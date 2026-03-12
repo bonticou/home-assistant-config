@@ -1,0 +1,262 @@
+- id: '1768872479153'
+  alias: Noise Detection - Wynn's Room
+  description: ''
+  triggers:
+  - type: turned_on
+    device_id: 750c2af8c7945e3d7c5408c939a0f626
+    entity_id: 908ae83dad00b7da33f8b24d0878bd91
+    domain: binary_sensor
+    trigger: device
+    for:
+      hours: 0
+      minutes: 0
+      seconds: 5
+  conditions:
+  - condition: zone
+    entity_id: person.bonticou
+    zone: zone.home
+  actions:
+  - action: notify.mobile_app_tk_iphone_16_pro
+    metadata: {}
+    data:
+      message: Check on Wynn
+      title: Noise Detected
+  mode: single
+
+- id: '1769637453428'
+  alias: Security Alert - Garage door unlocked
+  description: ''
+  triggers:
+  - device_id: 2630076641e1802855cba32d3fa8ae1c
+    domain: device_tracker
+    entity_id: 52e767667fd87e1cabd5c464dea59a51
+    type: leaves
+    trigger: device
+    zone: zone.home
+  conditions:
+  - condition: device
+    device_id: b5a40283143019aadc8bd7f84322735b
+    domain: lock
+    entity_id: 416f147bea968fb0b40eecd1e80e0583
+    type: is_unlocked
+  actions:
+  - action: notify.mobile_app_tk_iphone_16_pro
+    metadata: {}
+    data:
+      message: Garage door is unlocked
+      title: Security Alert
+  mode: single
+
+- id: water_overnight_continuous_flow
+  alias: "Water — Overnight Continuous Flow (Running Toilet)"
+  description: >
+    Detects small sustained flow overnight when no one should be using water.
+    Primary indicator of a running toilet or dripping fixture.
+  triggers:
+    - trigger: numeric_state
+      entity_id: sensor.flo_shutoff_water_flow_rate
+      above: 0.05
+      for:
+        minutes: 10
+  conditions:
+    - condition: time
+      after: "00:00:00"
+      before: "06:00:00"
+  actions:
+    - action: notify.mobile_app_tk_iphone_16_pro
+      data:
+        title: "Water Running Overnight"
+        message: >
+          Flow has been {{ states('sensor.flo_shutoff_water_flow_rate') }} gal/min
+          for 10+ minutes. Possible running toilet or dripping fixture.
+          Check Water tab in HA.
+  mode: single
+
+- id: water_daytime_sustained_flow
+  alias: "Water — Daytime Sustained Low Flow"
+  description: >
+    Detects continuous low-level flow during the day for 20+ minutes.
+    Accounts for normal household activity but flags potential running toilet.
+  triggers:
+    - trigger: numeric_state
+      entity_id: sensor.flo_shutoff_water_flow_rate
+      above: 0.1
+      for:
+        minutes: 20
+  conditions:
+    - condition: time
+      after: "06:00:00"
+      before: "23:59:59"
+  actions:
+    - action: notify.mobile_app_tk_iphone_16_pro
+      data:
+        title: "Sustained Water Flow"
+        message: >
+          Water has been flowing at
+          {{ states('sensor.flo_shutoff_water_flow_rate') }} gal/min
+          for 20+ minutes. Could be a running toilet or left-on fixture.
+  mode: single
+
+- id: water_burst_daytime
+  alias: "Water — High Flow Burst (Daytime)"
+  description: Immediate alert for potential pipe burst during the day.
+  triggers:
+    - trigger: numeric_state
+      entity_id: sensor.flo_shutoff_water_flow_rate
+      above: 8
+      for:
+        minutes: 1
+  conditions:
+    - condition: time
+      after: "06:00:00"
+      before: "23:59:59"
+  actions:
+    - action: notify.mobile_app_tk_iphone_16_pro
+      data:
+        title: "Very High Water Flow"
+        message: >
+          Flow rate is {{ states('sensor.flo_shutoff_water_flow_rate') }} gal/min
+          well above normal. Possible pipe burst. Check immediately or shut off
+          valve in HA Water tab.
+  mode: single
+
+- id: water_burst_overnight
+  alias: "Water — High Flow Burst (Overnight)"
+  description: Immediate critical alert for any significant flow overnight.
+  triggers:
+    - trigger: numeric_state
+      entity_id: sensor.flo_shutoff_water_flow_rate
+      above: 5
+      for:
+        minutes: 1
+  conditions:
+    - condition: time
+      after: "00:00:00"
+      before: "06:00:00"
+  actions:
+    - action: notify.mobile_app_tk_iphone_16_pro
+      data:
+        title: "Water Burst Overnight"
+        message: >
+          URGENT: Flow rate is {{ states('sensor.flo_shutoff_water_flow_rate') }} gal/min
+          at {{ now().strftime('%I:%M %p') }}. No one should be using water.
+          Possible pipe burst, consider shutting off valve immediately.
+  mode: single
+
+- id: water_low_pressure
+  alias: "Water — Low Pressure"
+  description: Sustained low pressure indicates pump issues, blockage, or large leak.
+  triggers:
+    - trigger: numeric_state
+      entity_id: sensor.flo_shutoff_water_pressure
+      below: 40
+      for:
+        minutes: 5
+  conditions: []
+  actions:
+    - action: notify.mobile_app_tk_iphone_16_pro
+      data:
+        title: "Low Water Pressure"
+        message: >
+          Pressure has dropped to {{ states('sensor.flo_shutoff_water_pressure') }} psi
+          (normal ~58 psi) for 5+ minutes. Could indicate pump issue, blockage,
+          or a significant leak.
+  mode: single
+
+- id: water_high_pressure
+  alias: "Water — High Pressure"
+  description: High pressure strains pipes and appliances. PRV may have failed.
+  triggers:
+    - trigger: numeric_state
+      entity_id: sensor.flo_shutoff_water_pressure
+      above: 80
+      for:
+        minutes: 5
+  conditions: []
+  actions:
+    - action: notify.mobile_app_tk_iphone_16_pro
+      data:
+        title: "High Water Pressure"
+        message: >
+          Pressure is {{ states('sensor.flo_shutoff_water_pressure') }} psi
+          above safe limit of 80 psi. Check pressure reducing valve (PRV).
+  mode: single
+
+- id: water_daily_usage_high
+  alias: "Water — High Daily Usage"
+  description: Evening check for abnormally high daily consumption.
+  triggers:
+    - trigger: time
+      at: "20:00:00"
+  conditions:
+    - condition: numeric_state
+      entity_id: sensor.flo_shutoff_today_s_water_usage
+      above: 400
+  actions:
+    - action: notify.mobile_app_tk_iphone_16_pro
+      data:
+        title: "High Water Usage Today"
+        message: >
+          Today's usage is {{ states('sensor.flo_shutoff_today_s_water_usage') }} gal
+          above the 400 gal threshold. Review the Water tab for unusual flow periods.
+  mode: single
+
+- id: water_leak_sensor_triggered
+  alias: "Water — Leak Sensor Triggered"
+  description: Immediate alert if any zone leak sensor detects water.
+  triggers:
+    - trigger: state
+      entity_id:
+        - binary_sensor.kitchen_sink_leak_detection_water_detected
+        - binary_sensor.island_sink_leak_detection_water_detected
+        - binary_sensor.dishwasher_leak_detection_water_detected
+        - binary_sensor.kitchen_fridge_leak_detection_water_detected
+        - binary_sensor.washing_machine_leak_detection_water_detected
+        - binary_sensor.laundry_sink_leak_detection_water_detected
+        - binary_sensor.mechanical_room_leak_detection_water_detected
+        - binary_sensor.electrical_room_leak_detection_water_detected
+        - binary_sensor.basement_ejector_leak_detection_water_detected
+      to: "on"
+  conditions: []
+  actions:
+    - action: notify.mobile_app_tk_iphone_16_pro
+      data:
+        title: "Leak Detected"
+        message: >
+          Water detected at {{ trigger.to_state.attributes.friendly_name }}
+          at {{ now().strftime('%I:%M %p') }}. Check immediately.
+          Shut off valve from HA Water tab if needed.
+  mode: parallel
+  max: 10
+
+- id: water_shutoff_valve_closed
+  alias: "Water — Shutoff Valve Closed"
+  description: Alert if the shutoff valve closes for any reason.
+  triggers:
+    - trigger: state
+      entity_id: switch.flo_shutoff_shutoff_valve
+      to: "off"
+  conditions: []
+  actions:
+    - action: notify.mobile_app_tk_iphone_16_pro
+      data:
+        title: "Water Shutoff Valve Closed"
+        message: >
+          The Flo shutoff valve has closed at {{ now().strftime('%I:%M %p') }}.
+          If this was not intentional, check the Flo app and HA Water tab.
+  mode: single
+
+- id: water_flo_system_alert
+  alias: "Water — Flo System Alert"
+  description: Passes through any native Flo system alerts to your phone.
+  triggers:
+    - trigger: state
+      entity_id: binary_sensor.flo_shutoff_pending_system_alerts
+      to: "on"
+  conditions: []
+  actions:
+    - action: notify.mobile_app_tk_iphone_16_pro
+      data:
+        title: "Flo System Alert"
+        message: Flo has flagged a system alert. Check the Flo app for details.
+  mode: single

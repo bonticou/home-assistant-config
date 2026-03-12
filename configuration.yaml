@@ -1,0 +1,162 @@
+# Loads default set of integrations. Do not remove.
+default_config:
+
+# Load frontend themes from the themes folder
+frontend:
+  themes: !include_dir_merge_named themes
+
+automation: !include automations.yaml
+script: !include scripts.yaml
+scene: !include scenes.yaml
+
+recorder:
+  purge_keep_days: 30
+  exclude:
+    entity_globs:
+      - sensor.*_signal_strength
+      - sensor.*_rssi
+      - sensor.*_lqi
+      - sensor.*_linkquality
+    entities:
+      - sun.sun
+      - weather.forecast_home
+
+# ─────────────────────────────────────────────────────────────
+# All template sensors in a single block.
+# After editing, restart HA (not just reload — templates need restart).
+# ─────────────────────────────────────────────────────────────
+template:
+  - sensor:
+      - name: "Radon Level Status"
+        unique_id: radon_level_status
+        state: >
+          {% set r = states('sensor.basement_air_quality_radon') | float(0) %}
+          {% if r < 100 %}Good
+          {% elif r < 148 %}Fair
+          {% else %}Poor
+          {% endif %}
+        icon: mdi:radioactive
+
+      # ── Dew Point °F ─────────────────────────────────────
+      # Why it matters: if dew point approaches your cave wall
+      # temperature, condensation forms on labels and corks.
+      # Keep dew point well below ambient temp (~10°F margin).
+      - name: "wine_cave_dew_point"
+        unique_id: wine_cave_dew_point
+        unit_of_measurement: "°F"
+        device_class: temperature
+        state_class: measurement
+        state: >
+          {% set t = states('sensor.wine_temperature') | float(0) %}
+          {% set rh = states('sensor.wine_humidity') | float(0) %}
+          {% if t == 0 or rh == 0 %}
+            unknown
+          {% else %}
+            {% set tc = (t - 32) * 5 / 9 %}
+            {% set a = 17.27 %}
+            {% set b = 237.7 %}
+            {% set alpha = ((a * tc) / (b + tc)) + ((rh / 100) | log) %}
+            {% set dp_c = (b * alpha) / (a - alpha) %}
+            {{ ((dp_c * 9 / 5) + 32) | round(1) }}
+          {% endif %}
+
+      # ── Absolute Humidity g/m³ ────────────────────────────
+      # Why it matters: RH is relative to temperature. When your
+      # compressor cools the air, RH rises even if no moisture
+      # was added. Absolute humidity tracks real moisture content.
+      # Stable AH = stable environment. Drifting AH = real change.
+      - name: "wine_cave_absolute_humidity"
+        unique_id: wine_cave_absolute_humidity
+        unit_of_measurement: "g/m³"
+        state_class: measurement
+        state: >
+          {% set t = states('sensor.wine_temperature') | float(0) %}
+          {% set rh = states('sensor.wine_humidity') | float(0) %}
+          {% if t == 0 or rh == 0 %}
+            unknown
+          {% else %}
+            {% set tc = (t - 32) * 5 / 9 %}
+            {% set tk = tc + 273.15 %}
+            {% set es = 6.112 * (2.71828 ** ((17.67 * tc) / (tc + 243.5))) %}
+            {{ ((es * rh * 2.1674) / tk) | round(2) }}
+          {% endif %}
+
+      # ── Compliance Status ─────────────────────────────────
+      # Three-tier: Optimal / Warning / Critical
+      # Warning = approaching limits, Critical = outside safe zone
+      # Thresholds: target 55°F / 50-65% RH
+      #   Optimal:  53–57°F, 50–65% RH
+      #   Warning:  50–60°F, 45–70% RH
+      #   Critical: outside Warning band
+      - name: "wine_cave_status"
+        unique_id: wine_cave_status
+        state: >
+          {% set t = states('sensor.wine_temperature') | float(0) %}
+          {% set rh = states('sensor.wine_humidity') | float(0) %}
+          {% if t < 50 or t > 62 or rh < 45 or rh > 72 %}
+            Critical
+          {% elif t < 53 or t > 57 or rh < 50 or rh > 65 %}
+            Warning
+          {% else %}
+            Optimal
+          {% endif %}
+        icon: >
+          {% set t = states('sensor.wine_temperature') | float(0) %}
+          {% set rh = states('sensor.wine_humidity') | float(0) %}
+          {% if t < 50 or t > 62 or rh < 45 or rh > 72 %}mdi:alert-circle
+          {% elif t < 53 or t > 57 or rh < 50 or rh > 65 %}mdi:alert
+          {% else %}mdi:check-circle{% endif %}
+
+      # ── Temp Excursion Flag ───────────────────────────────
+      # Binary: 1 if temp outside 53–57°F target, else 0
+      # Used by automations to measure excursion duration
+      - name: "wine_cave_temp_excursion"
+        unique_id: wine_cave_temp_excursion
+        unit_of_measurement: ""
+        state: >
+          {% set t = states('sensor.wine_temperature') | float(0) %}
+          {{ 1 if (t < 53 or t > 57) else 0 }}
+
+      # ── RH Excursion Flag ─────────────────────────────────
+      - name: "wine_cave_rh_excursion"
+        unique_id: wine_cave_rh_excursion
+        unit_of_measurement: ""
+        state: >
+          {% set rh = states('sensor.wine_humidity') | float(0) %}
+          {{ 1 if (rh < 50 or rh > 65) else 0 }}
+
+# ── 24h Rolling Average Sensors ──────────────────────────
+# These use HA's built-in statistics integration.
+# Add this block to configuration.yaml (separate from template:)
+# These update every 30 min and give true 24h mean.
+
+sensor:
+  - platform: statistics
+    name: "wine_temp_24h_mean"
+    entity_id: sensor.wine_temperature
+    state_characteristic: mean
+    max_age:
+      hours: 24
+    sampling_size: 1000
+    precision: 1
+
+  - platform: statistics
+    name: "wine_humidity_24h_mean"
+    entity_id: sensor.wine_humidity
+    state_characteristic: mean
+    max_age:
+      hours: 24
+    sampling_size: 1000
+    precision: 1
+    
+light:
+  - platform: group
+    name: Interior (Test)
+    unique_id: interior_test_group
+    entities:
+      - light.front_foyer_ceiling_lights
+      - light.stairs_front_stairs
+      - light.back_stairs_back_stairs
+      - light.upstairs_hallway_main_lights
+      - light.vestibule_main_lights
+      - light.back_patio_light
