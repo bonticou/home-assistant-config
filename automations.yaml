@@ -1,12 +1,10 @@
 - id: '1768872479153'
   alias: Noise Detection - Wynn's Room
-  description: ''
+  description: Notify when the Wynn's Room camera hears a baby cry for 5 seconds.
   triggers:
-  - type: turned_on
-    device_id: 750c2af8c7945e3d7c5408c939a0f626
-    entity_id: 908ae83dad00b7da33f8b24d0878bd91
-    domain: binary_sensor
-    trigger: device
+  - trigger: state
+    entity_id: binary_sensor.wynn_s_room_baby_cry_detected
+    to: 'on'
     for:
       hours: 0
       minutes: 0
@@ -25,20 +23,19 @@
 
 - id: '1769637453428'
   alias: Security Alert - Garage door unlocked
-  description: ''
+  description: Notify if Trevor leaves home while the garage lock is still unlocked.
   triggers:
-  - device_id: 2630076641e1802855cba32d3fa8ae1c
-    domain: device_tracker
-    entity_id: 52e767667fd87e1cabd5c464dea59a51
-    type: leaves
-    trigger: device
+  - trigger: zone
+    entity_id: device_tracker.tk_iphone_16_pro
     zone: zone.home
+    event: leave
   conditions:
-  - condition: device
-    device_id: b5a40283143019aadc8bd7f84322735b
-    domain: lock
-    entity_id: 416f147bea968fb0b40eecd1e80e0583
-    type: is_unlocked
+  - condition: state
+    entity_id: lock.aqara_smart_lock_u100
+    state: unlocked
+  - condition: state
+    entity_id: device_tracker.unifi_default_42_15_78_4a_d9_f8
+    state: home
   actions:
   - action: notify.mobile_app_tk_iphone_16_pro
     metadata: {}
@@ -259,4 +256,157 @@
       data:
         title: "Flo System Alert"
         message: Flo has flagged a system alert. Check the Flo app for details.
+  mode: single
+
+- id: away_security_unsecured_reminder
+  alias: "Security — House Unsecured While Away"
+  description: >
+    Reminds Trevor when both Trevor and Casey are away while the garage door is
+    unlocked or lights are still on. Reminder can be snoozed from the push.
+  triggers:
+    - trigger: state
+      entity_id: binary_sensor.house_unsecured_while_away
+      to: "on"
+    - trigger: time_pattern
+      minutes: "/15"
+  conditions:
+    - condition: state
+      entity_id: binary_sensor.house_unsecured_while_away
+      state: "on"
+    - condition: template
+      value_template: >
+        {% set snooze = states('input_datetime.away_security_snooze_until') %}
+        {{ snooze in ['unknown', 'unavailable', ''] or as_datetime(snooze) <= now() }}
+  actions:
+    - action: script.away_security_send_alert
+  mode: single
+
+- id: away_security_notification_actions
+  alias: "Security — Away Reminder Actions"
+  description: Handles quick actions from the away-security push notification.
+  triggers:
+    - trigger: event
+      event_type: mobile_app_notification_action
+  conditions:
+    - condition: template
+      value_template: >
+        {{ trigger.event.data.action in [
+          'LOCK_AWAY_GARAGE',
+          'TURN_OFF_AWAY_LIGHTS',
+          'SNOOZE_AWAY_SECURITY_30',
+          'SNOOZE_AWAY_SECURITY_120'
+        ] }}
+  actions:
+    - choose:
+        - conditions:
+            - condition: template
+              value_template: "{{ trigger.event.data.action == 'LOCK_AWAY_GARAGE' }}"
+          sequence:
+            - if:
+                - condition: state
+                  entity_id: lock.aqara_smart_lock_u100
+                  state: unlocked
+              then:
+                - action: lock.lock
+                  target:
+                    entity_id: lock.aqara_smart_lock_u100
+            - delay:
+                seconds: 2
+            - if:
+                - condition: state
+                  entity_id: binary_sensor.house_unsecured_while_away
+                  state: "on"
+              then:
+                - action: script.away_security_send_alert
+              else:
+                - action: script.away_security_clear_alert
+
+        - conditions:
+            - condition: template
+              value_template: "{{ trigger.event.data.action == 'TURN_OFF_AWAY_LIGHTS' }}"
+          sequence:
+            - variables:
+                active_lights: >
+                  {{ states.light
+                    | selectattr('state', 'eq', 'on')
+                    | rejectattr('attributes.entity_id', 'defined')
+                    | map(attribute='entity_id')
+                    | list }}
+            - repeat:
+                for_each: "{{ active_lights }}"
+                sequence:
+                  - action: light.turn_off
+                    target:
+                      entity_id: "{{ repeat.item }}"
+            - delay:
+                seconds: 2
+            - if:
+                - condition: state
+                  entity_id: binary_sensor.house_unsecured_while_away
+                  state: "on"
+              then:
+                - action: script.away_security_send_alert
+              else:
+                - action: script.away_security_clear_alert
+
+        - conditions:
+            - condition: template
+              value_template: "{{ trigger.event.data.action == 'SNOOZE_AWAY_SECURITY_30' }}"
+          sequence:
+            - action: input_datetime.set_datetime
+              target:
+                entity_id: input_datetime.away_security_snooze_until
+              data:
+                datetime: "{{ (now() + timedelta(minutes=30)).strftime('%Y-%m-%d %H:%M:%S') }}"
+            - action: script.away_security_clear_alert
+            - action: notify.mobile_app_tk_iphone_16_pro
+              data:
+                title: House reminder sleeping
+                message: Away security reminders paused for 30 minutes.
+                data:
+                  tag: away-security-snooze
+
+        - conditions:
+            - condition: template
+              value_template: "{{ trigger.event.data.action == 'SNOOZE_AWAY_SECURITY_120' }}"
+          sequence:
+            - action: input_datetime.set_datetime
+              target:
+                entity_id: input_datetime.away_security_snooze_until
+              data:
+                datetime: "{{ (now() + timedelta(hours=2)).strftime('%Y-%m-%d %H:%M:%S') }}"
+            - action: script.away_security_clear_alert
+            - action: notify.mobile_app_tk_iphone_16_pro
+              data:
+                title: House reminder sleeping
+                message: Away security reminders paused for 2 hours.
+                data:
+                  tag: away-security-snooze
+  mode: parallel
+  max: 10
+
+- id: away_security_clear_when_resolved
+  alias: "Security — Clear Away Reminder When Resolved"
+  description: Clears the active away-security push once the issue is resolved.
+  triggers:
+    - trigger: state
+      entity_id: binary_sensor.house_unsecured_while_away
+      to: "off"
+  conditions: []
+  actions:
+    - action: script.away_security_clear_alert
+  mode: single
+
+- id: set_default_theme_liquid_glass
+  alias: "Frontend — Set Liquid Glass Theme"
+  description: Applies the liquid glass theme on Home Assistant startup.
+  triggers:
+    - trigger: homeassistant
+      event: start
+  conditions: []
+  actions:
+    - action: frontend.set_theme
+      data:
+        name: liquid_glass
+        mode: dark
   mode: single

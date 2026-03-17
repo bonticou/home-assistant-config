@@ -5,9 +5,25 @@ default_config:
 frontend:
   themes: !include_dir_merge_named themes
 
+lovelace:
+  dashboards:
+    calm-mobile:
+      mode: yaml
+      title: Calm Mobile
+      icon: mdi:gesture-tap-hold
+      show_in_sidebar: true
+      require_admin: false
+      filename: dashboards/calm_mobile.yaml
+
 automation: !include automations.yaml
 script: !include scripts.yaml
 scene: !include scenes.yaml
+
+input_datetime:
+  away_security_snooze_until:
+    name: Away Security Snooze Until
+    has_date: true
+    has_time: true
 
 recorder:
   purge_keep_days: 30
@@ -125,14 +141,99 @@ template:
           {% set rh = states('sensor.wine_humidity') | float(0) %}
           {{ 1 if (rh < 50 or rh > 65) else 0 }}
 
+      - name: "wine_temp_24h_mean"
+        unique_id: wine_temp_24h_mean
+        unit_of_measurement: "°F"
+        device_class: temperature
+        state_class: measurement
+        availability: >
+          {{ is_number(states('sensor.wine_temperature_24h_stats')) }}
+        state: >
+          {{ states('sensor.wine_temperature_24h_stats') | float(0) | round(1) }}
+
+      - name: "wine_humidity_24h_mean"
+        unique_id: wine_humidity_24h_mean
+        unit_of_measurement: "%"
+        state_class: measurement
+        availability: >
+          {{ is_number(states('sensor.wine_humidity_24h_stats')) }}
+        state: >
+          {{ states('sensor.wine_humidity_24h_stats') | float(0) | round(1) }}
+
+      - name: "away_security_issue_summary"
+        unique_id: away_security_issue_summary
+        state: >
+          {% set lights = states.light
+            | selectattr('state', 'eq', 'on')
+            | rejectattr('attributes.entity_id', 'defined')
+            | map(attribute='name')
+            | list %}
+          {% set ns = namespace(items=[]) %}
+          {% if is_state('lock.aqara_smart_lock_u100', 'unlocked') %}
+            {% set ns.items = ns.items + ['garage door unlocked'] %}
+          {% endif %}
+          {% if lights | count == 1 %}
+            {% set ns.items = ns.items + [lights[0] ~ ' on'] %}
+          {% elif lights | count > 1 %}
+            {% set ns.items = ns.items + [lights | count ~ ' lights on'] %}
+          {% endif %}
+          {{ ns.items | join(' and ') if ns.items else 'House secure' }}
+        icon: >
+          {% if is_state('lock.aqara_smart_lock_u100', 'unlocked') %}
+            mdi:lock-open-alert-outline
+          {% elif states.light
+              | selectattr('state', 'eq', 'on')
+              | rejectattr('attributes.entity_id', 'defined')
+              | list
+              | count > 0 %}
+            mdi:lightbulb-alert-outline
+          {% else %}
+            mdi:shield-home-outline
+          {% endif %}
+
+    binary_sensor:
+      - name: "house_unsecured_while_away"
+        unique_id: house_unsecured_while_away
+        state: >
+          {% set everyone_away =
+            is_state('person.bonticou', 'not_home') and
+            is_state('device_tracker.unifi_default_42_15_78_4a_d9_f8', 'not_home') %}
+          {% set lights_on = states.light
+            | selectattr('state', 'eq', 'on')
+            | rejectattr('attributes.entity_id', 'defined')
+            | list
+            | count > 0 %}
+          {{ everyone_away and (is_state('lock.aqara_smart_lock_u100', 'unlocked') or lights_on) }}
+        icon: >
+          {% if is_state('lock.aqara_smart_lock_u100', 'unlocked') %}
+            mdi:lock-open-alert-outline
+          {% elif states.light
+              | selectattr('state', 'eq', 'on')
+              | rejectattr('attributes.entity_id', 'defined')
+              | list
+              | count > 0 %}
+            mdi:lightbulb-alert-outline
+          {% else %}
+            mdi:shield-home-outline
+          {% endif %}
+        attributes:
+          lights_on_count: >
+            {{ states.light
+              | selectattr('state', 'eq', 'on')
+              | rejectattr('attributes.entity_id', 'defined')
+              | list
+              | count }}
+          summary: "{{ states('sensor.away_security_issue_summary') }}"
+
 # ── 24h Rolling Average Sensors ──────────────────────────
-# These use HA's built-in statistics integration.
-# Add this block to configuration.yaml (separate from template:)
-# These update every 30 min and give true 24h mean.
+# These use HA's built-in statistics integration as the source of truth
+# for the two template sensors above. Keeping the statistics entities
+# separate gives the dashboard stable entity IDs.
 
 sensor:
   - platform: statistics
-    name: "wine_temp_24h_mean"
+    name: "Wine Temperature 24h Stats"
+    unique_id: wine_temperature_24h_stats
     entity_id: sensor.wine_temperature
     state_characteristic: mean
     max_age:
@@ -141,7 +242,8 @@ sensor:
     precision: 1
 
   - platform: statistics
-    name: "wine_humidity_24h_mean"
+    name: "Wine Humidity 24h Stats"
+    unique_id: wine_humidity_24h_stats
     entity_id: sensor.wine_humidity
     state_characteristic: mean
     max_age:
@@ -160,3 +262,9 @@ light:
       - light.upstairs_hallway_main_lights
       - light.vestibule_main_lights
       - light.back_patio_light
+  - platform: group
+    name: Wynn's Room
+    unique_id: wynns_room_group
+    entities:
+      - light.wynn_s_room_chandelier
+      - light.wynn_s_room_ceiling_lights
