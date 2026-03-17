@@ -263,7 +263,7 @@ light:
       - light.vestibule_main_lights
       - light.back_patio_light
   - platform: group
-    name: Wynn's Room
+    name: Wynns Room Lights
     unique_id: wynns_room_group
     entities:
       - light.wynn_s_room_chandelier
