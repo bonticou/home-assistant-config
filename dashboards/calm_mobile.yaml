@@ -2585,13 +2585,13 @@ views:
         title: Wynn's Room
 
       - type: custom:mushroom-light-card
-        entity: light.wynns_room_lights
+        entity: light.wynn_s_room
         name: Wynn's Room
         icon: mdi:lamp
         tap_action:
           <<: *lights_transition_tap_action
           data:
-            light_entity: light.wynns_room_lights
+            light_entity: light.wynn_s_room
             transition_seconds: 3
         show_brightness_control: true
         show_color_temp_control: false
