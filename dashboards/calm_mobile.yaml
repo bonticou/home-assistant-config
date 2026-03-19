@@ -3110,7 +3110,7 @@ views:
                 [[[
                   const enabled = entity.state === 'on';
                   const color = enabled ? '#14b8a6' : '#94a3b8';
-                  return `<div class="tile-icon"><ha-icon icon="mdi:shield-water-outline" style="color:${color}"></ha-icon></div>`;
+                  return `<div class="tile-icon"><ha-icon icon="mdi:water-check-outline" style="color:${color}"></ha-icon></div>`;
                 ]]]
               text: >-
                 [[[
@@ -3621,7 +3621,7 @@ views:
                 {{ 'Armed' if is_state('automation.water_daytime_sustained_low_flow', 'on') else 'Disabled' }}
               secondary: >-
                 Watches for sustained low daytime flow that can indicate a quiet leak.
-              icon: mdi:shield-water-outline
+              icon: mdi:water-check-outline
               icon_color: >-
                 {{ 'teal' if is_state('automation.water_daytime_sustained_low_flow', 'on') else 'grey' }}
               fill_container: true
