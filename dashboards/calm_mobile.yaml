@@ -4213,7 +4213,7 @@ views:
             stroke_width: 1.5
             group_by:
               func: avg
-              duration: 5min
+              duration: 10min
           - entity: sensor.wine_humidity
             name: Humidity
             yaxis_id: humidity
@@ -4222,7 +4222,7 @@ views:
             stroke_width: 1.5
             group_by:
               func: avg
-              duration: 5min
+              duration: 10min
           - entity: sensor.wine_temp_24h_mean
             name: Temp avg
             yaxis_id: temp
@@ -4318,7 +4318,7 @@ views:
             stroke_width: 1.5
             group_by:
               func: avg
-              duration: 30min
+              duration: 1h
           - entity: sensor.wine_humidity
             name: Humidity
             yaxis_id: humidity
@@ -4327,12 +4327,26 @@ views:
             stroke_width: 1.5
             group_by:
               func: avg
-              duration: 30min
+              duration: 1h
           - entity: sensor.wine_temp_24h_mean
             name: Temp avg
             yaxis_id: temp
             type: line
             color: 'rgba(239, 83, 80, 0.55)'
+            stroke_width: 1.2
+            show:
+              in_legend: false
+            data_generator: |
+              const value = Number(entity.state);
+              if (!Number.isFinite(value)) return [];
+              const end = Date.now();
+              const start = end - 7 * 24 * 60 * 60 * 1000;
+              return [[start, value], [end, value]];
+          - entity: sensor.wine_humidity_24h_mean
+            name: Humidity avg
+            yaxis_id: humidity
+            type: line
+            color: 'rgba(66, 165, 245, 0.55)'
             stroke_width: 1.2
             show:
               in_legend: false
@@ -4389,7 +4403,7 @@ views:
             stroke_width: 1.5
             group_by:
               func: avg
-              duration: 2h
+              duration: 6h
           - entity: sensor.wine_humidity
             name: Humidity
             yaxis_id: humidity
@@ -4398,49 +4412,7 @@ views:
             stroke_width: 1.5
             group_by:
               func: avg
-              duration: 2h
-          - entity: sensor.wine_temp_24h_mean
-            name: Temp avg
-            yaxis_id: temp
-            type: line
-            color: 'rgba(239, 83, 80, 0.55)'
-            stroke_width: 1.2
-            show:
-              in_legend: false
-            data_generator: |
-              const value = Number(entity.state);
-              if (!Number.isFinite(value)) return [];
-              const end = Date.now();
-              const start = end - 30 * 24 * 60 * 60 * 1000;
-              return [[start, value], [end, value]];
-          - entity: sensor.wine_humidity_24h_mean
-            name: Humidity avg
-            yaxis_id: humidity
-            type: line
-            color: 'rgba(66, 165, 245, 0.55)'
-            stroke_width: 1.2
-            show:
-              in_legend: false
-            data_generator: |
-              const value = Number(entity.state);
-              if (!Number.isFinite(value)) return [];
-              const end = Date.now();
-              const start = end - 30 * 24 * 60 * 60 * 1000;
-              return [[start, value], [end, value]];
-          - entity: sensor.wine_humidity_24h_mean
-            name: Humidity avg
-            yaxis_id: humidity
-            type: line
-            color: 'rgba(66, 165, 245, 0.55)'
-            stroke_width: 1.2
-            show:
-              in_legend: false
-            data_generator: |
-              const value = Number(entity.state);
-              if (!Number.isFinite(value)) return [];
-              const end = Date.now();
-              const start = end - 7 * 24 * 60 * 60 * 1000;
-              return [[start, value], [end, value]];
+              duration: 6h
         card_mod:
           style: |
             ha-card {
