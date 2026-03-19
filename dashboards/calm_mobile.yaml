@@ -162,37 +162,64 @@ views:
               action: more-info
           - type: template
             icon: >-
+              {% set now_ts = as_timestamp(now()) %}
+              {% set next_sunrise = as_timestamp(state_attr('sun.sun', 'next_rising')) %}
+              {% set next_sunset = as_timestamp(state_attr('sun.sun', 'next_setting')) %}
+              {% set ignore_door_lights = (
+                (is_state('sun.sun', 'below_horizon') and now_ts <= (next_sunrise + 3600))
+                or
+                (is_state('sun.sun', 'above_horizon') and now_ts >= (next_sunset - 3600))
+              ) %}
               {% set light_count = states.light
                 | selectattr('state', 'eq', 'on')
                 | rejectattr('attributes.entity_id', 'defined')
                 | list
                 | count %}
-              {% set switch_count = [
+              {% set door_switch_count = [
                 states('switch.master_lantern'),
                 states('switch.front_foyer_sconces')
               ] | select('eq', 'on') | list | count %}
+              {% set switch_count = 0 if ignore_door_lights else door_switch_count %}
               {{ 'mdi:lightbulb-on-outline' if (light_count + switch_count) > 0 else 'mdi:lightbulb-off-outline' }}
             icon_color: >-
+              {% set now_ts = as_timestamp(now()) %}
+              {% set next_sunrise = as_timestamp(state_attr('sun.sun', 'next_rising')) %}
+              {% set next_sunset = as_timestamp(state_attr('sun.sun', 'next_setting')) %}
+              {% set ignore_door_lights = (
+                (is_state('sun.sun', 'below_horizon') and now_ts <= (next_sunrise + 3600))
+                or
+                (is_state('sun.sun', 'above_horizon') and now_ts >= (next_sunset - 3600))
+              ) %}
               {% set light_count = states.light
                 | selectattr('state', 'eq', 'on')
                 | rejectattr('attributes.entity_id', 'defined')
                 | list
                 | count %}
-              {% set switch_count = [
+              {% set door_switch_count = [
                 states('switch.master_lantern'),
                 states('switch.front_foyer_sconces')
               ] | select('eq', 'on') | list | count %}
+              {% set switch_count = 0 if ignore_door_lights else door_switch_count %}
               {{ 'amber' if (light_count + switch_count) > 0 else 'grey' }}
             content: >-
+              {% set now_ts = as_timestamp(now()) %}
+              {% set next_sunrise = as_timestamp(state_attr('sun.sun', 'next_rising')) %}
+              {% set next_sunset = as_timestamp(state_attr('sun.sun', 'next_setting')) %}
+              {% set ignore_door_lights = (
+                (is_state('sun.sun', 'below_horizon') and now_ts <= (next_sunrise + 3600))
+                or
+                (is_state('sun.sun', 'above_horizon') and now_ts >= (next_sunset - 3600))
+              ) %}
               {% set light_count = states.light
                 | selectattr('state', 'eq', 'on')
                 | rejectattr('attributes.entity_id', 'defined')
                 | list
                 | count %}
-              {% set switch_count = [
+              {% set door_switch_count = [
                 states('switch.master_lantern'),
                 states('switch.front_foyer_sconces')
               ] | select('eq', 'on') | list | count %}
+              {% set switch_count = 0 if ignore_door_lights else door_switch_count %}
               {{ 'Lights on' if (light_count + switch_count) > 0 else 'Lights off' }}
             tap_action:
               action: navigate
