@@ -4342,6 +4342,91 @@ views:
               const end = Date.now();
               const start = end - 7 * 24 * 60 * 60 * 1000;
               return [[start, value], [end, value]];
+
+      - type: custom:mushroom-title-card
+        title: 30 Day Overlay
+      - type: custom:apexcharts-card
+        graph_span: 30d
+        header:
+          show: false
+        apex_config:
+          chart:
+            height: 240
+            background: transparent
+          stroke:
+            curve: smooth
+            dashArray:
+              - 0
+              - 0
+              - 6
+              - 6
+          xaxis:
+            tickAmount: 6
+            labels:
+              format: d MMM
+          grid:
+            borderColor: rgba(120, 120, 120, 0.16)
+          legend:
+            show: false
+          tooltip:
+            theme: dark
+        yaxis:
+          - id: temp
+            min: 55
+            max: 57.7
+            decimals: 1
+          - id: humidity
+            min: 49.8
+            max: 54.2
+            opposite: true
+            decimals: 0
+        series:
+          - entity: sensor.wine_temperature
+            name: Temperature
+            yaxis_id: temp
+            type: line
+            color: '#ef5350'
+            stroke_width: 1.5
+            group_by:
+              func: avg
+              duration: 2h
+          - entity: sensor.wine_humidity
+            name: Humidity
+            yaxis_id: humidity
+            type: line
+            color: '#42a5f5'
+            stroke_width: 1.5
+            group_by:
+              func: avg
+              duration: 2h
+          - entity: sensor.wine_temp_24h_mean
+            name: Temp avg
+            yaxis_id: temp
+            type: line
+            color: 'rgba(239, 83, 80, 0.55)'
+            stroke_width: 1.2
+            show:
+              in_legend: false
+            data_generator: |
+              const value = Number(entity.state);
+              if (!Number.isFinite(value)) return [];
+              const end = Date.now();
+              const start = end - 30 * 24 * 60 * 60 * 1000;
+              return [[start, value], [end, value]];
+          - entity: sensor.wine_humidity_24h_mean
+            name: Humidity avg
+            yaxis_id: humidity
+            type: line
+            color: 'rgba(66, 165, 245, 0.55)'
+            stroke_width: 1.2
+            show:
+              in_legend: false
+            data_generator: |
+              const value = Number(entity.state);
+              if (!Number.isFinite(value)) return [];
+              const end = Date.now();
+              const start = end - 30 * 24 * 60 * 60 * 1000;
+              return [[start, value], [end, value]];
           - entity: sensor.wine_humidity_24h_mean
             name: Humidity avg
             yaxis_id: humidity
