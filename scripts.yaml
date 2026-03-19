@@ -126,6 +126,30 @@ lights_bedtime_scene:
         brightness_pct: 10
         transition: 3
 
+door_lights_schedule_on:
+  alias: Door Lights Schedule On
+  description: Turn on the front door lights for the normal overnight routine.
+  icon: mdi:coach-lamp
+  mode: single
+  sequence:
+    - action: switch.turn_on
+      data:
+        entity_id:
+          - switch.master_lantern
+          - switch.front_foyer_sconces
+
+door_lights_schedule_off:
+  alias: Door Lights Schedule Off
+  description: Turn off the front door lights when the normal overnight routine ends.
+  icon: mdi:coach-lamp-outline
+  mode: single
+  sequence:
+    - action: switch.turn_off
+      data:
+        entity_id:
+          - switch.master_lantern
+          - switch.front_foyer_sconces
+
 away_security_send_alert:
   alias: Away Security Send Alert
   description: Sends the active away-security issue with quick actions.

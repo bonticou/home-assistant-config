@@ -258,6 +258,30 @@
         message: Flo has flagged a system alert. Check the Flo app for details.
   mode: single
 
+- id: door_lights_schedule_sync
+  alias: "Lights — Door Lights Schedule Sync"
+  description: Keep the front door lights synced to the sunset/sunrise schedule and restore the correct state on startup.
+  triggers:
+    - trigger: homeassistant
+      event: start
+    - trigger: state
+      entity_id: binary_sensor.door_lights_schedule_active
+      to: "on"
+    - trigger: state
+      entity_id: binary_sensor.door_lights_schedule_active
+      to: "off"
+  actions:
+    - choose:
+        - conditions:
+            - condition: state
+              entity_id: binary_sensor.door_lights_schedule_active
+              state: "on"
+          sequence:
+            - action: script.door_lights_schedule_on
+      default:
+        - action: script.door_lights_schedule_off
+  mode: single
+
 - id: away_security_unsecured_reminder
   alias: "Security — House Unsecured While Away"
   description: >
