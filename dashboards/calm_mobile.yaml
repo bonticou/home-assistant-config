@@ -4052,7 +4052,6 @@ views:
     cards:
       - type: custom:mushroom-title-card
         title: Wine Cave
-        subtitle: Stability and drift in one calm view
 
       - type: custom:mushroom-template-card
         entity: sensor.wine_cave_status
