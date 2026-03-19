@@ -288,6 +288,8 @@
   triggers:
     - trigger: homeassistant
       event: start
+    - trigger: time_pattern
+      minutes: "/15"
     - trigger: state
       entity_id: binary_sensor.front_stairs_schedule_active
       to: "on"

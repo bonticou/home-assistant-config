@@ -183,7 +183,7 @@ front_stairs_schedule_on:
     - action: light.turn_on
       data:
         entity_id: light.stairs_front_stairs
-        brightness_pct: 10
+        brightness_pct: "{{ states('sensor.front_stairs_schedule_brightness') | int(10) }}"
         transition: 3
 
 front_stairs_schedule_off:

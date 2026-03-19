@@ -2722,9 +2722,11 @@ views:
         primary: Front stairs light
         secondary: >-
           {% set active = is_state('binary_sensor.front_stairs_schedule_active', 'on') %}
+          {% set target = states('sensor.front_stairs_schedule_brightness') | int(0) %}
           {% set next_on = (as_timestamp(state_attr('sun.sun', 'next_setting')) - 7200) | timestamp_custom('%-I:%M %p', true) %}
           {% set next_off = (as_timestamp(state_attr('sun.sun', 'next_rising')) + 7200) | timestamp_custom('%-I:%M %p', true) %}
           {{ 'Active now' if active else 'Inactive now' }}
+          {% if active %} • {{ target }}% target{% endif %}
           • On {{ next_on }}
           • Off {{ next_off }}
         multiline_secondary: true

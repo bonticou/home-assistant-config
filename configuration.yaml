@@ -160,6 +160,36 @@ template:
         state: >
           {{ states('sensor.wine_humidity_24h_stats') | float(0) | round(1) }}
 
+      - name: "front_stairs_schedule_brightness"
+        unique_id: front_stairs_schedule_brightness
+        unit_of_measurement: "%"
+        state: >
+          {% set evening_start_pct = 30 %}
+          {% set overnight_pct = 10 %}
+          {% set morning_end_pct = 20 %}
+          {% set now_ts = as_timestamp(now()) %}
+          {% set next_sunrise = as_timestamp(state_attr('sun.sun', 'next_rising')) %}
+          {% set next_sunset = as_timestamp(state_attr('sun.sun', 'next_setting')) %}
+          {% if is_state('binary_sensor.front_stairs_schedule_active', 'off') %}
+            0
+          {% elif is_state('sun.sun', 'above_horizon') %}
+            {% set start_ts = next_sunset - 7200 %}
+            {% set end_ts = next_sunset + 7200 %}
+            {% set progress = ((now_ts - start_ts) / (end_ts - start_ts)) | float(0) %}
+            {% set clamped = [0, [1, progress] | min] | max %}
+            {{ (evening_start_pct - ((evening_start_pct - overnight_pct) * clamped)) | round(0) }}
+          {% else %}
+            {% set morning_start_ts = next_sunrise - 7200 %}
+            {% if now_ts < morning_start_ts %}
+              {{ overnight_pct }}
+            {% else %}
+              {% set end_ts = next_sunrise + 7200 %}
+              {% set progress = ((now_ts - morning_start_ts) / (end_ts - morning_start_ts)) | float(0) %}
+              {% set clamped = [0, [1, progress] | min] | max %}
+              {{ (overnight_pct + ((morning_end_pct - overnight_pct) * clamped)) | round(0) }}
+            {% endif %}
+          {% endif %}
+
       - name: "away_security_issue_summary"
         unique_id: away_security_issue_summary
         state: >
