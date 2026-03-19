@@ -2617,43 +2617,6 @@ views:
               style: *lights_compact_card_style
 
       - type: custom:mushroom-title-card
-        title: Outdoor
-
-      - type: grid
-        columns: 2
-        square: false
-        cards:
-          - type: custom:mushroom-light-card
-            entity: light.back_patio_light
-            name: Back Patio
-            icon: mdi:outdoor-lamp
-            tap_action:
-              <<: *lights_transition_tap_action
-              data:
-                light_entity: light.back_patio_light
-                transition_seconds: 3
-            show_brightness_control: true
-            use_light_color: true
-            card_mod:
-              style: *lights_compact_card_style
-          - type: custom:mushroom-entity-card
-            entity: switch.master_lantern
-            name: Master Lantern
-            icon: mdi:ceiling-light
-            tap_action:
-              action: toggle
-            card_mod:
-              style: *lights_compact_card_style
-          - type: custom:mushroom-entity-card
-            entity: switch.front_foyer_sconces
-            name: Front Door
-            icon: mdi:door
-            tap_action:
-              action: toggle
-            card_mod:
-              style: *lights_compact_card_style
-
-      - type: custom:mushroom-title-card
         title: Wynn's Room
 
       - type: custom:mushroom-light-card
