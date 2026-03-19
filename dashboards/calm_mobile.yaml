@@ -2767,8 +2767,6 @@ views:
 
       - type: custom:apexcharts-card
         graph_span: 7d
-        span:
-          end: day
         header:
           show: false
         apex_config:
@@ -2798,10 +2796,10 @@ views:
             name: Usage
             type: column
             color: '#4da3ff'
-            statistics:
-              type: max
-              period: day
-              align: start
+            stroke_width: 0
+            group_by:
+              func: max
+              duration: 1d
 
       - type: custom:mushroom-title-card
         title: Last 24 Hours
