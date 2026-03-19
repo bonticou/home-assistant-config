@@ -238,6 +238,19 @@ template:
             (is_state('sun.sun', 'above_horizon') and now_ts >= (next_sunset - 3600))
           }}
 
+      - name: "front_stairs_schedule_active"
+        unique_id: front_stairs_schedule_active
+        icon: mdi:stairs
+        state: >
+          {% set now_ts = as_timestamp(now()) %}
+          {% set next_sunrise = as_timestamp(state_attr('sun.sun', 'next_rising')) %}
+          {% set next_sunset = as_timestamp(state_attr('sun.sun', 'next_setting')) %}
+          {{
+            (is_state('sun.sun', 'below_horizon') and now_ts <= (next_sunrise + 7200))
+            or
+            (is_state('sun.sun', 'above_horizon') and now_ts >= (next_sunset - 7200))
+          }}
+
 # ── 24h Rolling Average Sensors ──────────────────────────
 # These use HA's built-in statistics integration as the source of truth
 # for the two template sensors above. Keeping the statistics entities

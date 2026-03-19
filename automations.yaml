@@ -282,6 +282,30 @@
         - action: script.door_lights_schedule_off
   mode: single
 
+- id: front_stairs_schedule_sync
+  alias: "Lights — Front Stairs Schedule Sync"
+  description: Keep the front stairs light synced to the sunset/sunrise schedule and restore the correct state on startup.
+  triggers:
+    - trigger: homeassistant
+      event: start
+    - trigger: state
+      entity_id: binary_sensor.front_stairs_schedule_active
+      to: "on"
+    - trigger: state
+      entity_id: binary_sensor.front_stairs_schedule_active
+      to: "off"
+  actions:
+    - choose:
+        - conditions:
+            - condition: state
+              entity_id: binary_sensor.front_stairs_schedule_active
+              state: "on"
+          sequence:
+            - action: script.front_stairs_schedule_on
+      default:
+        - action: script.front_stairs_schedule_off
+  mode: single
+
 - id: away_security_unsecured_reminder
   alias: "Security — House Unsecured While Away"
   description: >
