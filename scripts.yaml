@@ -100,6 +100,30 @@ lights_evening_scene:
           - switch.master_lantern
           - switch.front_foyer_sconces
 
+lights_all_off_scene:
+  alias: Lights All Off Scene
+  description: Turn off all house lights and switches, including Wynn's room.
+  icon: mdi:lightbulb-off-outline
+  mode: single
+  sequence:
+    - action: light.turn_off
+      data:
+        entity_id:
+          - light.front_foyer_ceiling_lights
+          - light.stairs_front_stairs
+          - light.back_stairs_back_stairs
+          - light.upstairs_hallway_main_lights
+          - light.vestibule_main_lights
+          - light.back_patio_light
+          - light.wynn_s_room_chandelier
+          - light.wynn_s_room_ceiling_lights
+        transition: 3
+    - action: switch.turn_off
+      data:
+        entity_id:
+          - switch.master_lantern
+          - switch.front_foyer_sconces
+
 lights_bedtime_scene:
   alias: Lights Bedtime Scene
   description: Turn off the house lights for bedtime, excluding Wynn's room, while leaving front stairs at 10 percent.

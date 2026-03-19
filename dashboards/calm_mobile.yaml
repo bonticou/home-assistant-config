@@ -2497,6 +2497,12 @@ views:
         alignment: start
         chips:
           - type: template
+            icon: mdi:lightbulb-off-outline
+            content: All off
+            tap_action:
+              action: perform-action
+              perform_action: script.lights_all_off_scene
+          - type: template
             icon: mdi:weather-sunset
             content: Evening
             tap_action:
