@@ -2783,9 +2783,15 @@ views:
             show: false
           tooltip:
             theme: dark
+            x:
+              format: ddd
           xaxis:
             labels:
-              format: d MMM
+              format: ddd
+              style:
+                colors: rgba(226, 232, 240, 0.74)
+                fontSize: 12px
+                fontWeight: 500
         yaxis:
           - min: 0
             decimals: 0
