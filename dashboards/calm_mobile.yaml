@@ -2448,8 +2448,23 @@ views:
     icon: mdi:lightbulb-outline
     cards:
       - type: custom:mushroom-title-card
-        title: Lights
-        subtitle: The most-used controls first
+        title: Scenes
+
+      - type: custom:mushroom-chips-card
+        alignment: start
+        chips:
+          - type: template
+            icon: mdi:weather-sunset
+            content: Evening
+            tap_action:
+              action: perform-action
+              perform_action: script.lights_evening_scene
+          - type: template
+            icon: mdi:weather-night
+            content: Bedtime
+            tap_action:
+              action: perform-action
+              perform_action: script.lights_bedtime_scene
 
       - type: custom:mushroom-title-card
         title: Common areas

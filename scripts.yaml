@@ -77,6 +77,55 @@ light_transition_toggle:
             entity_id: "{{ target_light }}"
             transition: "{{ transition }}"
 
+lights_evening_scene:
+  alias: Lights Evening Scene
+  description: Set the main house lights to a calm 33 percent evening level, excluding Wynn's room.
+  icon: mdi:weather-sunset
+  mode: single
+  sequence:
+    - action: light.turn_on
+      data:
+        entity_id:
+          - light.front_foyer_ceiling_lights
+          - light.stairs_front_stairs
+          - light.back_stairs_back_stairs
+          - light.upstairs_hallway_main_lights
+          - light.vestibule_main_lights
+          - light.back_patio_light
+        brightness_pct: 33
+        transition: 3
+    - action: switch.turn_on
+      data:
+        entity_id:
+          - switch.master_lantern
+          - switch.front_foyer_sconces
+
+lights_bedtime_scene:
+  alias: Lights Bedtime Scene
+  description: Turn off the house lights for bedtime, excluding Wynn's room, while leaving front stairs at 10 percent.
+  icon: mdi:weather-night
+  mode: single
+  sequence:
+    - action: light.turn_off
+      data:
+        entity_id:
+          - light.front_foyer_ceiling_lights
+          - light.back_stairs_back_stairs
+          - light.upstairs_hallway_main_lights
+          - light.vestibule_main_lights
+          - light.back_patio_light
+        transition: 3
+    - action: switch.turn_off
+      data:
+        entity_id:
+          - switch.master_lantern
+          - switch.front_foyer_sconces
+    - action: light.turn_on
+      data:
+        entity_id: light.stairs_front_stairs
+        brightness_pct: 10
+        transition: 3
+
 away_security_send_alert:
   alias: Away Security Send Alert
   description: Sends the active away-security issue with quick actions.
