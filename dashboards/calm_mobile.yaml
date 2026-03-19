@@ -4065,7 +4065,6 @@ views:
           {% else %}{{ temp }}°F · Wine cave unavailable{% endif %}
         secondary: >-
           {{ states('sensor.wine_humidity') | float(0) | round(0) }}% humidity
-          · {{ states('sensor.wine_cave_dew_point') | float(0) | round(1) }}°F dew point
           · {{ states('sensor.wine_cave_status') }}
         icon: mdi:glass-wine
         icon_color: >-
