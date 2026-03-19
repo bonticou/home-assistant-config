@@ -2537,6 +2537,15 @@ views:
             ha-card {
               padding: 8px 14px;
             }
+            mushroom-light-brightness-control {
+              --control-height: 28px;
+            }
+            mushroom-light-brightness-control mushroom-slider,
+            mushroom-light-brightness-control ha-slider {
+              --main-height: 8px;
+              --md-slider-active-track-height: 8px;
+              --md-slider-inactive-track-height: 8px;
+            }
 
       - type: grid
         columns: 2
