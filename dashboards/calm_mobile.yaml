@@ -3,7 +3,7 @@ views:
   - title: Home
     path: home
     icon: mdi:home-variant-outline
-    background: &calm_mobile_view_background "center top / cover no-repeat fixed url('/local/liquid_glass_bg.png')"
+    background: &calm_mobile_view_background /local/liquid_glass_bg.png
     cards:
       - type: custom:mushroom-title-card
         title: >-
