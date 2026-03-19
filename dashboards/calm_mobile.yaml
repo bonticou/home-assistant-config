@@ -3,6 +3,7 @@ views:
   - title: Home
     path: home
     icon: mdi:home-variant-outline
+    background: &calm_mobile_view_background "center top / cover no-repeat fixed url('/local/liquid_glass_bg.png')"
     cards:
       - type: custom:mushroom-title-card
         title: >-
@@ -2488,6 +2489,7 @@ views:
   - title: Lights
     path: lights
     icon: mdi:lightbulb-outline
+    background: *calm_mobile_view_background
     cards:
       - type: custom:mushroom-title-card
         title: Scenes
@@ -2749,6 +2751,7 @@ views:
   - title: Water
     path: water
     icon: mdi:water-outline
+    background: *calm_mobile_view_background
     cards:
       - type: custom:mushroom-title-card
         title: Water
@@ -4040,6 +4043,7 @@ views:
   - title: Wine
     path: wine
     icon: mdi:glass-wine
+    background: *calm_mobile_view_background
     cards:
       - type: custom:mushroom-title-card
         title: Wine Cave
@@ -5137,6 +5141,7 @@ views:
   - title: Music
     path: music
     icon: mdi:speaker-multiple
+    background: *calm_mobile_view_background
     cards:
       - type: custom:mushroom-title-card
         title: Now Playing
