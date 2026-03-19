@@ -1,5 +1,5 @@
 liquid_glass:
-  lovelace-background: "center top / 100% auto repeat-y scroll url('/local/liquid_glass_bg.png')"
+  lovelace-background: "center top / cover no-repeat scroll url('/local/liquid_glass_bg.png')"
   primary-background-color: "#08111f"
   secondary-background-color: "#0f172a"
   card-background-color: "rgba(15, 23, 42, 0.58)"
