@@ -4059,7 +4059,7 @@ views:
         primary: >-
           {% set temp = states('sensor.wine_temperature') | float(0) | round(1) %}
           {% set status = states('sensor.wine_cave_status') %}
-          {% if status in ['Optimal', 'Normal', 'Good'] %}{{ temp }}°F · Cellar is steady
+          {% if status in ['Optimal', 'Normal', 'Good'] %}{{ temp }}°F · Wine cave is optimal
           {% elif status in ['Warning', 'Caution'] %}{{ temp }}°F · Drift needs a look
           {% elif status == 'Critical' %}{{ temp }}°F · Conditions need attention
           {% else %}{{ temp }}°F · Wine cave unavailable{% endif %}
