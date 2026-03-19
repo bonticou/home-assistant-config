@@ -1,5 +1,4 @@
 title: Calm Mobile
-theme: liquid_glass
 views:
   - title: Home
     path: home
