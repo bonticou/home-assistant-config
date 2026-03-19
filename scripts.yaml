@@ -102,15 +102,18 @@ lights_evening_scene:
 
 lights_all_off_scene:
   alias: Lights All Off Scene
-  description: Turn off all house lights and switches, including Wynn's room.
+  description: Turn off the normal house lights, while leaving scheduled ambient exterior lights alone if someone is home.
   icon: mdi:lightbulb-off-outline
   mode: single
   sequence:
+    - variables:
+        everyone_away: >
+          {{ is_state('person.bonticou', 'not_home')
+             and is_state('device_tracker.unifi_default_42_15_78_4a_d9_f8', 'not_home') }}
     - action: light.turn_off
       data:
         entity_id:
           - light.front_foyer_ceiling_lights
-          - light.stairs_front_stairs
           - light.back_stairs_back_stairs
           - light.upstairs_hallway_main_lights
           - light.vestibule_main_lights
@@ -118,11 +121,21 @@ lights_all_off_scene:
           - light.wynn_s_room_chandelier
           - light.wynn_s_room_ceiling_lights
         transition: 3
-    - action: switch.turn_off
-      data:
-        entity_id:
-          - switch.master_lantern
-          - switch.front_foyer_sconces
+    - choose:
+        - conditions:
+            - condition: template
+              value_template: "{{ everyone_away }}"
+          sequence:
+            - action: light.turn_off
+              data:
+                entity_id:
+                  - light.stairs_front_stairs
+                transition: 3
+            - action: switch.turn_off
+              data:
+                entity_id:
+                  - switch.master_lantern
+                  - switch.front_foyer_sconces
 
 lights_bedtime_scene:
   alias: Lights Bedtime Scene
