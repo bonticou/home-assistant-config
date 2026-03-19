@@ -161,6 +161,43 @@ views:
             tap_action:
               action: more-info
           - type: template
+            icon: >-
+              {% set light_count = states.light
+                | selectattr('state', 'eq', 'on')
+                | rejectattr('attributes.entity_id', 'defined')
+                | list
+                | count %}
+              {% set switch_count = [
+                states('switch.master_lantern'),
+                states('switch.front_foyer_sconces')
+              ] | select('eq', 'on') | list | count %}
+              {{ 'mdi:lightbulb-on-outline' if (light_count + switch_count) > 0 else 'mdi:lightbulb-off-outline' }}
+            icon_color: >-
+              {% set light_count = states.light
+                | selectattr('state', 'eq', 'on')
+                | rejectattr('attributes.entity_id', 'defined')
+                | list
+                | count %}
+              {% set switch_count = [
+                states('switch.master_lantern'),
+                states('switch.front_foyer_sconces')
+              ] | select('eq', 'on') | list | count %}
+              {{ 'amber' if (light_count + switch_count) > 0 else 'grey' }}
+            content: >-
+              {% set light_count = states.light
+                | selectattr('state', 'eq', 'on')
+                | rejectattr('attributes.entity_id', 'defined')
+                | list
+                | count %}
+              {% set switch_count = [
+                states('switch.master_lantern'),
+                states('switch.front_foyer_sconces')
+              ] | select('eq', 'on') | list | count %}
+              {{ 'Lights on' if (light_count + switch_count) > 0 else 'Lights off' }}
+            tap_action:
+              action: navigate
+              navigation_path: /calm-mobile/lights
+          - type: template
             entity: sensor.basement_air_quality_radon
             icon: mdi:radioactive
             icon_color: >-
