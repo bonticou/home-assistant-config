@@ -2695,6 +2695,28 @@ views:
             card_mod:
               style: *lights_compact_card_style
 
+      - type: custom:mushroom-title-card
+        title: Automation today
+
+      - type: custom:mushroom-template-card
+        entity: binary_sensor.door_lights_schedule_active
+        primary: Front door lights
+        secondary: >-
+          {% set active = is_state('binary_sensor.door_lights_schedule_active', 'on') %}
+          {% set next_on = (as_timestamp(state_attr('sun.sun', 'next_setting')) - 3600) | timestamp_custom('%-I:%M %p', true) %}
+          {% set next_off = (as_timestamp(state_attr('sun.sun', 'next_rising')) + 3600) | timestamp_custom('%-I:%M %p', true) %}
+          {{ 'Active now' if active else 'Inactive now' }}
+          • On {{ next_on }}
+          • Off {{ next_off }}
+        multiline_secondary: true
+        icon: mdi:coach-lamp
+        icon_color: >-
+          {{ 'amber' if is_state('binary_sensor.door_lights_schedule_active', 'on') else 'grey' }}
+        tap_action:
+          action: more-info
+        card_mod:
+          style: *lights_compact_card_style
+
   - title: Water
     path: water
     icon: mdi:water-outline
