@@ -2762,6 +2762,48 @@ views:
               action: more-info
 
       - type: custom:mushroom-title-card
+        title: Last 7 Days
+        subtitle: Daily water usage including today
+
+      - type: custom:apexcharts-card
+        graph_span: 7d
+        span:
+          end: day
+        header:
+          show: false
+        apex_config:
+          chart:
+            height: 220
+            type: bar
+          plotOptions:
+            bar:
+              borderRadius: 8
+              columnWidth: 48%
+          grid:
+            borderColor: rgba(120, 120, 120, 0.16)
+          legend:
+            show: false
+          tooltip:
+            theme: dark
+          xaxis:
+            labels:
+              format: d MMM
+        yaxis:
+          - min: 0
+            decimals: 0
+            apex_config:
+              tickAmount: 4
+        series:
+          - entity: sensor.flo_shutoff_today_s_water_usage
+            name: Usage
+            type: column
+            color: '#4da3ff'
+            statistics:
+              type: max
+              period: day
+              align: start
+
+      - type: custom:mushroom-title-card
         title: Last 24 Hours
         subtitle: Flow spikes and pressure drift
 
