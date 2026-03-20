@@ -4413,6 +4413,121 @@ views:
               background: transparent !important;
             }
 
+      - type: custom:mushroom-title-card
+        title: Collection experiment
+        subtitle: Snapshot from your cellar sheet
+
+      - type: custom:mushroom-chips-card
+        alignment: left
+        chips:
+          - type: template
+            icon: mdi:bottle-wine-outline
+            icon_color: teal
+            content: 180 bottles
+            tap_action:
+              action: url
+              url_path: https://docs.google.com/spreadsheets/d/13f61tOxK8E61GL3phvjiBzCuyYRybymtKPGOduIOvDc/edit?gid=1865301611#gid=1865301611
+          - type: template
+            icon: mdi:glass-wine
+            icon_color: pink
+            content: 55 ready now
+            tap_action:
+              action: url
+              url_path: https://docs.google.com/spreadsheets/d/13f61tOxK8E61GL3phvjiBzCuyYRybymtKPGOduIOvDc/edit?gid=1865301611#gid=1865301611
+          - type: template
+            icon: mdi:timer-sand
+            icon_color: amber
+            content: 9 hold
+            tap_action:
+              action: url
+              url_path: https://docs.google.com/spreadsheets/d/13f61tOxK8E61GL3phvjiBzCuyYRybymtKPGOduIOvDc/edit?gid=1865301611#gid=1865301611
+          - type: template
+            icon: mdi:map-marker-radius-outline
+            icon_color: indigo
+            content: Bordeaux 21
+            tap_action:
+              action: url
+              url_path: https://docs.google.com/spreadsheets/d/13f61tOxK8E61GL3phvjiBzCuyYRybymtKPGOduIOvDc/edit?gid=1865301611#gid=1865301611
+
+      - type: grid
+        columns: 2
+        square: false
+        cards:
+          - type: custom:mushroom-template-card
+            primary: Cellar snapshot
+            secondary: |-
+              180 bottles tracked
+              55 ready now · 9 still sleeping
+            icon: mdi:bottle-wine
+            icon_color: teal
+            multiline_secondary: true
+            tap_action:
+              action: url
+              url_path: https://docs.google.com/spreadsheets/d/13f61tOxK8E61GL3phvjiBzCuyYRybymtKPGOduIOvDc/edit?gid=1865301611#gid=1865301611
+            card_mod:
+              style: &wine_collection_card_style |
+                ha-card {
+                  border: 1px solid rgba(148, 163, 184, 0.18);
+                  box-shadow: 0 10px 20px rgba(2, 8, 23, 0.18);
+                  border-radius: 24px;
+                  background: linear-gradient(180deg, rgba(15, 23, 42, 0.78), rgba(30, 41, 59, 0.72)) !important;
+                  backdrop-filter: blur(16px) saturate(160%);
+                  -webkit-backdrop-filter: blur(16px) saturate(160%);
+                  --card-primary-color: #f8fafc;
+                  --card-secondary-color: #cbd5e1;
+                }
+                .primary {
+                  font-size: 22px !important;
+                  font-weight: 560 !important;
+                  letter-spacing: -0.02em;
+                }
+                .secondary {
+                  line-height: 1.55 !important;
+                }
+          - type: custom:mushroom-template-card
+            primary: Cellar shape
+            secondary: |-
+              Bordeaux 21 · Piedmont 20
+              California 18 · Tuscany 13
+            icon: mdi:earth
+            icon_color: blue
+            multiline_secondary: true
+            tap_action:
+              action: url
+              url_path: https://docs.google.com/spreadsheets/d/13f61tOxK8E61GL3phvjiBzCuyYRybymtKPGOduIOvDc/edit?gid=1865301611#gid=1865301611
+            card_mod:
+              style: *wine_collection_card_style
+
+      - type: custom:mushroom-template-card
+        primary: Drink next
+        secondary: |-
+          3x Lingua Franca Tongue 'N Cheek 2022
+          1x Château Troplong Mondot 2011
+          2x Enrico VI (Villero) 2004
+        icon: mdi:glass-wine
+        icon_color: pink
+        multiline_secondary: true
+        tap_action:
+          action: url
+          url_path: https://docs.google.com/spreadsheets/d/13f61tOxK8E61GL3phvjiBzCuyYRybymtKPGOduIOvDc/edit?gid=1865301611#gid=1865301611
+        card_mod:
+          style: *wine_collection_card_style
+
+      - type: custom:mushroom-template-card
+        primary: Hold a little longer
+        secondary: |-
+          3x G.D. Vajra Barolo Ravera 2021 · from 2027
+          3x Château Brane-Cantenac 2022 · from 2035
+          3x Château Larcis Ducasse 2022 · from 2037
+        icon: mdi:timer-sand
+        icon_color: amber
+        multiline_secondary: true
+        tap_action:
+          action: url
+          url_path: https://docs.google.com/spreadsheets/d/13f61tOxK8E61GL3phvjiBzCuyYRybymtKPGOduIOvDc/edit?gid=1865301611#gid=1865301611
+        card_mod:
+          style: *wine_collection_card_style
+
       - type: custom:popup-card
         target:
           entity_id: sensor.wine_cave_status
