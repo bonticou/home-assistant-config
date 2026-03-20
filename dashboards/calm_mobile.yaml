@@ -4064,7 +4064,6 @@ views:
           {% else %}{{ temp }}°F · Wine cave unavailable{% endif %}
         secondary: >-
           {{ states('sensor.wine_humidity') | float(0) | round(0) }}% humidity
-          · {{ states('sensor.wine_cave_status') }}
         icon: mdi:glass-wine
         icon_color: >-
           {% set status = states('sensor.wine_cave_status') %}
@@ -4135,34 +4134,44 @@ views:
               action: more-info
       - type: custom:mushroom-title-card
         title: 24-hour trends
-      - type: markdown
-        content: >-
-          {% set temp = states('sensor.wine_temperature_24h_stats') %}
-          {% set humidity = states('sensor.wine_humidity_24h_stats') %}
-          {% if is_number(temp) and is_number(humidity) %}
-          Mean temp {{ temp | float | round(1) }}°F · Mean humidity {{ humidity | float | round(0) }}%
-          {% else %}
-          Mean data loading
-          {% endif %}
-        card_mod: &wine_trends_subtitle_style
-          style: |
-            ha-card {
-              background: none;
-              box-shadow: none;
-              border: none;
-              margin-top: -26px;
-              margin-bottom: 6px;
-              padding: 0;
-            }
-            ha-markdown {
-              padding: 0 !important;
-            }
-            p {
-              margin: 0;
-              color: rgba(226, 232, 240, 0.68);
-              font-size: 14px;
-              line-height: 1.4;
-            }
+      - type: custom:button-card
+        entity: sensor.wine_temperature_24h_stats
+        show_icon: false
+        show_name: false
+        show_state: false
+        custom_fields:
+          text: >-
+            [[[
+              const temp = Number(hass.states['sensor.wine_temperature_24h_stats']?.state);
+              const humidity = Number(hass.states['sensor.wine_humidity_24h_stats']?.state);
+              const content = Number.isFinite(temp) && Number.isFinite(humidity)
+                ? `Mean temp ${temp.toFixed(1)}°F · Mean humidity ${Math.round(humidity)}%`
+                : 'Mean settling in';
+              return `<div class="trend-subtitle">${content}</div>`;
+            ]]]
+        styles: &wine_trends_subtitle_button_styles
+          card:
+            - background: transparent
+            - box-shadow: none
+            - border: none
+            - border-radius: 0
+            - padding: 0
+            - margin-top: -18px
+            - margin-bottom: 10px
+          grid:
+            - grid-template-areas: '"text"'
+            - grid-template-columns: minmax(0, 1fr)
+          custom_fields:
+            text:
+              - justify-self: start
+              - align-self: start
+        extra_styles: &wine_trends_subtitle_extra |
+          .trend-subtitle {
+            color: rgba(226, 232, 240, 0.68);
+            font-size: 14px;
+            line-height: 1.4;
+            letter-spacing: -0.01em;
+          }
       - type: custom:apexcharts-card
         graph_span: 24h
         header:
@@ -4271,16 +4280,23 @@ views:
 
       - type: custom:mushroom-title-card
         title: 7-day trends
-      - type: markdown
-        content: >-
-          {% set temp = states('sensor.wine_temperature_7d_stats') %}
-          {% set humidity = states('sensor.wine_humidity_7d_stats') %}
-          {% if is_number(temp) and is_number(humidity) %}
-          Mean temp {{ temp | float | round(1) }}°F · Mean humidity {{ humidity | float | round(0) }}%
-          {% else %}
-          Mean data loading
-          {% endif %}
-        card_mod: *wine_trends_subtitle_style
+      - type: custom:button-card
+        entity: sensor.wine_temperature_7d_stats
+        show_icon: false
+        show_name: false
+        show_state: false
+        custom_fields:
+          text: >-
+            [[[
+              const temp = Number(hass.states['sensor.wine_temperature_7d_stats']?.state);
+              const humidity = Number(hass.states['sensor.wine_humidity_7d_stats']?.state);
+              const content = Number.isFinite(temp) && Number.isFinite(humidity)
+                ? `Mean temp ${temp.toFixed(1)}°F · Mean humidity ${Math.round(humidity)}%`
+                : 'Week mean settling in';
+              return `<div class="trend-subtitle">${content}</div>`;
+            ]]]
+        styles: *wine_trends_subtitle_button_styles
+        extra_styles: *wine_trends_subtitle_extra
       - type: custom:apexcharts-card
         graph_span: 7d
         header:
@@ -4329,16 +4345,23 @@ views:
 
       - type: custom:mushroom-title-card
         title: 30-day trends
-      - type: markdown
-        content: >-
-          {% set temp = states('sensor.wine_temperature_30d_stats') %}
-          {% set humidity = states('sensor.wine_humidity_30d_stats') %}
-          {% if is_number(temp) and is_number(humidity) %}
-          Mean temp {{ temp | float | round(1) }}°F · Mean humidity {{ humidity | float | round(0) }}%
-          {% else %}
-          Mean data loading
-          {% endif %}
-        card_mod: *wine_trends_subtitle_style
+      - type: custom:button-card
+        entity: sensor.wine_temperature_30d_stats
+        show_icon: false
+        show_name: false
+        show_state: false
+        custom_fields:
+          text: >-
+            [[[
+              const temp = Number(hass.states['sensor.wine_temperature_30d_stats']?.state);
+              const humidity = Number(hass.states['sensor.wine_humidity_30d_stats']?.state);
+              const content = Number.isFinite(temp) && Number.isFinite(humidity)
+                ? `Mean temp ${temp.toFixed(1)}°F · Mean humidity ${Math.round(humidity)}%`
+                : 'Month mean settling in';
+              return `<div class="trend-subtitle">${content}</div>`;
+            ]]]
+        styles: *wine_trends_subtitle_button_styles
+        extra_styles: *wine_trends_subtitle_extra
       - type: custom:apexcharts-card
         graph_span: 30d
         header:
@@ -4414,8 +4437,8 @@ views:
             }
 
       - type: custom:mushroom-title-card
-        title: Collection experiment
-        subtitle: Snapshot from your cellar sheet
+        title: Collection snapshot
+        subtitle: Ready-now view from your cellar sheet
 
       - type: custom:mushroom-chips-card
         alignment: left
@@ -4435,16 +4458,16 @@ views:
               action: url
               url_path: https://docs.google.com/spreadsheets/d/13f61tOxK8E61GL3phvjiBzCuyYRybymtKPGOduIOvDc/edit?gid=1865301611#gid=1865301611
           - type: template
-            icon: mdi:timer-sand
-            icon_color: amber
-            content: 9 hold
+            icon: mdi:fruit-grapes
+            icon_color: purple
+            content: Nebbiolo 17
             tap_action:
               action: url
               url_path: https://docs.google.com/spreadsheets/d/13f61tOxK8E61GL3phvjiBzCuyYRybymtKPGOduIOvDc/edit?gid=1865301611#gid=1865301611
           - type: template
             icon: mdi:map-marker-radius-outline
             icon_color: indigo
-            content: Bordeaux 21
+            content: Bordeaux 18
             tap_action:
               action: url
               url_path: https://docs.google.com/spreadsheets/d/13f61tOxK8E61GL3phvjiBzCuyYRybymtKPGOduIOvDc/edit?gid=1865301611#gid=1865301611
@@ -4454,11 +4477,11 @@ views:
         square: false
         cards:
           - type: custom:mushroom-template-card
-            primary: Cellar snapshot
+            primary: Ready now mix
             secondary: |-
-              180 bottles tracked
-              55 ready now · 9 still sleeping
-            icon: mdi:bottle-wine
+              Bordeaux family 18 · Nebbiolo 17
+              Pinot Noir 5 · Super Tuscan 5
+            icon: mdi:shape-outline
             icon_color: teal
             multiline_secondary: true
             tap_action:
@@ -4485,11 +4508,11 @@ views:
                   line-height: 1.55 !important;
                 }
           - type: custom:mushroom-template-card
-            primary: Cellar shape
+            primary: Ready places
             secondary: |-
-              Bordeaux 21 · Piedmont 20
-              California 18 · Tuscany 13
-            icon: mdi:earth
+              Italy 23 · France 16
+              USA 11 · Argentina 3
+            icon: mdi:map-outline
             icon_color: blue
             multiline_secondary: true
             tap_action:
@@ -4499,13 +4522,29 @@ views:
               style: *wine_collection_card_style
 
       - type: custom:mushroom-template-card
-        primary: Drink next
+        primary: Open first
         secondary: |-
-          3x Lingua Franca Tongue 'N Cheek 2022
-          1x Château Troplong Mondot 2011
-          2x Enrico VI (Villero) 2004
+          3x Lingua Franca Tongue 'N Cheek 2022 · Pinot Noir
+          2x Enrico VI (Villero) 2004 · Nebbiolo
+          1x Château Troplong Mondot 2011 · Bordeaux blend
+          2x Viña Tondonia Reserva 2012 · Rioja blend
         icon: mdi:glass-wine
         icon_color: pink
+        multiline_secondary: true
+        tap_action:
+          action: url
+          url_path: https://docs.google.com/spreadsheets/d/13f61tOxK8E61GL3phvjiBzCuyYRybymtKPGOduIOvDc/edit?gid=1865301611#gid=1865301611
+        card_mod:
+          style: *wine_collection_card_style
+
+      - type: custom:mushroom-template-card
+        primary: Ready bench
+        secondary: |-
+          Château Pape Clément 7
+          Paolo Scavino 6 · Orin Swift 6
+          Château Léoville Poyferré 4
+        icon: mdi:star-circle-outline
+        icon_color: purple
         multiline_secondary: true
         tap_action:
           action: url
