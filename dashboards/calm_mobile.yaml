@@ -4134,7 +4134,35 @@ views:
             tap_action:
               action: more-info
       - type: custom:mushroom-title-card
-        title: 24 Hour Overlay
+        title: 24-hour trends
+      - type: markdown
+        content: >-
+          {% set temp = states('sensor.wine_temperature_24h_stats') %}
+          {% set humidity = states('sensor.wine_humidity_24h_stats') %}
+          {% if is_number(temp) and is_number(humidity) %}
+          Mean temp {{ temp | float | round(1) }}°F · Mean humidity {{ humidity | float | round(0) }}%
+          {% else %}
+          Mean data loading
+          {% endif %}
+        card_mod: &wine_trends_subtitle_style
+          style: |
+            ha-card {
+              background: none;
+              box-shadow: none;
+              border: none;
+              margin-top: -26px;
+              margin-bottom: 6px;
+              padding: 0;
+            }
+            ha-markdown {
+              padding: 0 !important;
+            }
+            p {
+              margin: 0;
+              color: rgba(226, 232, 240, 0.68);
+              font-size: 14px;
+              line-height: 1.4;
+            }
       - type: custom:apexcharts-card
         graph_span: 24h
         header:
@@ -4145,11 +4173,6 @@ views:
             background: transparent
           stroke:
             curve: smooth
-            dashArray:
-              - 0
-              - 0
-              - 6
-              - 6
           xaxis:
             tickAmount: 6
             labels:
@@ -4221,34 +4244,6 @@ views:
             group_by:
               func: avg
               duration: 10min
-          - entity: sensor.wine_temp_24h_mean
-            name: Temp avg
-            yaxis_id: temp
-            type: line
-            color: 'rgba(239, 83, 80, 0.55)'
-            stroke_width: 1.2
-            show:
-              in_legend: false
-            data_generator: |
-              const value = Number(entity.state);
-              if (!Number.isFinite(value)) return [];
-              const end = Date.now();
-              const start = end - 24 * 60 * 60 * 1000;
-              return [[start, value], [end, value]];
-          - entity: sensor.wine_humidity_24h_mean
-            name: Humidity avg
-            yaxis_id: humidity
-            type: line
-            color: 'rgba(66, 165, 245, 0.55)'
-            stroke_width: 1.2
-            show:
-              in_legend: false
-            data_generator: |
-              const value = Number(entity.state);
-              if (!Number.isFinite(value)) return [];
-              const end = Date.now();
-              const start = end - 24 * 60 * 60 * 1000;
-              return [[start, value], [end, value]];
         card_mod:
           style: |
             ha-card {
@@ -4275,7 +4270,17 @@ views:
             }
 
       - type: custom:mushroom-title-card
-        title: 7 Day Overlay
+        title: 7-day trends
+      - type: markdown
+        content: >-
+          {% set temp = states('sensor.wine_temperature_7d_stats') %}
+          {% set humidity = states('sensor.wine_humidity_7d_stats') %}
+          {% if is_number(temp) and is_number(humidity) %}
+          Mean temp {{ temp | float | round(1) }}°F · Mean humidity {{ humidity | float | round(0) }}%
+          {% else %}
+          Mean data loading
+          {% endif %}
+        card_mod: *wine_trends_subtitle_style
       - type: custom:apexcharts-card
         graph_span: 7d
         header:
@@ -4286,11 +4291,6 @@ views:
             background: transparent
           stroke:
             curve: smooth
-            dashArray:
-              - 0
-              - 0
-              - 6
-              - 6
           grid:
             borderColor: rgba(120, 120, 120, 0.16)
           legend:
@@ -4326,37 +4326,19 @@ views:
             group_by:
               func: avg
               duration: 1h
-          - entity: sensor.wine_temp_24h_mean
-            name: Temp avg
-            yaxis_id: temp
-            type: line
-            color: 'rgba(239, 83, 80, 0.55)'
-            stroke_width: 1.2
-            show:
-              in_legend: false
-            data_generator: |
-              const value = Number(entity.state);
-              if (!Number.isFinite(value)) return [];
-              const end = Date.now();
-              const start = end - 7 * 24 * 60 * 60 * 1000;
-              return [[start, value], [end, value]];
-          - entity: sensor.wine_humidity_24h_mean
-            name: Humidity avg
-            yaxis_id: humidity
-            type: line
-            color: 'rgba(66, 165, 245, 0.55)'
-            stroke_width: 1.2
-            show:
-              in_legend: false
-            data_generator: |
-              const value = Number(entity.state);
-              if (!Number.isFinite(value)) return [];
-              const end = Date.now();
-              const start = end - 7 * 24 * 60 * 60 * 1000;
-              return [[start, value], [end, value]];
 
       - type: custom:mushroom-title-card
-        title: 30 Day Overlay
+        title: 30-day trends
+      - type: markdown
+        content: >-
+          {% set temp = states('sensor.wine_temperature_30d_stats') %}
+          {% set humidity = states('sensor.wine_humidity_30d_stats') %}
+          {% if is_number(temp) and is_number(humidity) %}
+          Mean temp {{ temp | float | round(1) }}°F · Mean humidity {{ humidity | float | round(0) }}%
+          {% else %}
+          Mean data loading
+          {% endif %}
+        card_mod: *wine_trends_subtitle_style
       - type: custom:apexcharts-card
         graph_span: 30d
         header:
@@ -4367,11 +4349,6 @@ views:
             background: transparent
           stroke:
             curve: smooth
-            dashArray:
-              - 0
-              - 0
-              - 6
-              - 6
           xaxis:
             tickAmount: 6
             labels:

@@ -306,6 +306,46 @@ sensor:
       hours: 24
     sampling_size: 1000
     precision: 1
+
+  - platform: statistics
+    name: "Wine Temperature 7d Stats"
+    unique_id: wine_temperature_7d_stats
+    entity_id: sensor.wine_temperature
+    state_characteristic: mean
+    max_age:
+      days: 7
+    sampling_size: 10000
+    precision: 1
+
+  - platform: statistics
+    name: "Wine Humidity 7d Stats"
+    unique_id: wine_humidity_7d_stats
+    entity_id: sensor.wine_humidity
+    state_characteristic: mean
+    max_age:
+      days: 7
+    sampling_size: 10000
+    precision: 1
+
+  - platform: statistics
+    name: "Wine Temperature 30d Stats"
+    unique_id: wine_temperature_30d_stats
+    entity_id: sensor.wine_temperature
+    state_characteristic: mean
+    max_age:
+      days: 30
+    sampling_size: 10000
+    precision: 1
+
+  - platform: statistics
+    name: "Wine Humidity 30d Stats"
+    unique_id: wine_humidity_30d_stats
+    entity_id: sensor.wine_humidity
+    state_characteristic: mean
+    max_age:
+      days: 30
+    sampling_size: 10000
+    precision: 1
     
 light:
   - platform: group
