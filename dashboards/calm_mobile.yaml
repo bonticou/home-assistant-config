@@ -4108,7 +4108,7 @@ views:
               {% else %}teal{% endif %}
             content: >-
               {% set raw = states('sensor.wine_temperature_24h_stats') %}
-              {{ (raw | float | round(1) ~ '°F avg') if is_number(raw) else '24h temp pending' }}
+              {{ (raw | float | round(1) ~ '°F 24h avg') if is_number(raw) else '24h temp pending' }}
             tap_action:
               action: more-info
           - type: template
@@ -4122,7 +4122,7 @@ views:
               {% else %}teal{% endif %}
             content: >-
               {% set raw = states('sensor.wine_humidity_24h_stats') %}
-              {{ (raw | float | round(0) ~ '% avg') if is_number(raw) else '24h humidity pending' }}
+              {{ (raw | float | round(0) ~ '% 24h avg') if is_number(raw) else '24h humidity pending' }}
             tap_action:
               action: more-info
           - type: template
