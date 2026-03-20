@@ -3,4 +3,6 @@
 *.zip
 .DS_Store
 .wine_collection_snapshot.json
+__pycache__/
+*.pyc
 backup/
