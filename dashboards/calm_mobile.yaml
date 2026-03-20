@@ -4472,20 +4472,20 @@ views:
               action: url
               url_path: https://docs.google.com/spreadsheets/d/13f61tOxK8E61GL3phvjiBzCuyYRybymtKPGOduIOvDc/edit?gid=1865301611#gid=1865301611
           - type: template
-            icon: mdi:chart-line
-            icon_color: blue
-            content: >-
-              {% set stabilizing = state_attr('sensor.wine_collection_snapshot', 'stabilizing_total') %}
-              {{ (stabilizing | int ~ ' stabilizing') if stabilizing is not none else '35 stabilizing' }}
-            tap_action:
-              action: url
-              url_path: https://docs.google.com/spreadsheets/d/13f61tOxK8E61GL3phvjiBzCuyYRybymtKPGOduIOvDc/edit?gid=1865301611#gid=1865301611
-          - type: template
             icon: mdi:check-decagram-outline
             icon_color: amber
             content: >-
               {% set mature = state_attr('sensor.wine_collection_snapshot', 'mature_total') %}
               {{ (mature | int ~ ' mature') if mature is not none else '19 mature' }}
+            tap_action:
+              action: url
+              url_path: https://docs.google.com/spreadsheets/d/13f61tOxK8E61GL3phvjiBzCuyYRybymtKPGOduIOvDc/edit?gid=1865301611#gid=1865301611
+          - type: template
+            icon: mdi:chart-line
+            icon_color: blue
+            content: >-
+              {% set stabilizing = state_attr('sensor.wine_collection_snapshot', 'stabilizing_total') %}
+              {{ (stabilizing | int ~ ' stabilizing') if stabilizing is not none else '35 stabilizing' }}
             tap_action:
               action: url
               url_path: https://docs.google.com/spreadsheets/d/13f61tOxK8E61GL3phvjiBzCuyYRybymtKPGOduIOvDc/edit?gid=1865301611#gid=1865301611
@@ -4510,9 +4510,7 @@ views:
             custom_fields:
               header: >-
                 [[[
-                  const snapshot = hass.states['sensor.wine_collection_snapshot']?.attributes || {};
-                  const readyTotal = Number(snapshot.ready_total);
-                  return `<div class="wine-screener-header"><div class="wine-screener-title">Ready styles</div><div class="wine-screener-meta">${Number.isFinite(readyTotal) ? readyTotal : 70} ready</div></div>`;
+                  return `<div class="wine-screener-header"><div class="wine-screener-title">Ready styles</div></div>`;
                 ]]]
               rows: >-
                 [[[
@@ -4552,7 +4550,7 @@ views:
             extra_styles: &wine_screener_card_extra |
               .wine-screener-header {
                 display: flex;
-                justify-content: space-between;
+                justify-content: flex-start;
                 align-items: baseline;
                 gap: 12px;
               }
@@ -4613,6 +4611,8 @@ views:
                 font-weight: 600;
                 font-variant-numeric: tabular-nums;
                 font-family: ui-monospace, SFMono-Regular, SF Mono, Menlo, monospace;
+                justify-self: start;
+                text-align: left;
               }
               .wine-bottle-name {
                 color: #f8fafc;
@@ -4621,6 +4621,8 @@ views:
                 white-space: nowrap;
                 overflow: hidden;
                 text-overflow: ellipsis;
+                justify-self: start;
+                text-align: left;
               }
               .wine-bottle-kind {
                 color: rgba(226, 232, 240, 0.7);
@@ -4628,6 +4630,8 @@ views:
                 line-height: 1.2;
                 white-space: nowrap;
                 margin-left: 4px;
+                justify-self: start;
+                text-align: left;
               }
           - type: custom:button-card
             show_icon: false
@@ -4636,7 +4640,7 @@ views:
             custom_fields:
               header: >-
                 [[[
-                  return `<div class="wine-screener-header"><div class="wine-screener-title">Ready regions</div><div class="wine-screener-meta">top regions</div></div>`;
+                  return `<div class="wine-screener-header"><div class="wine-screener-title">Ready regions</div></div>`;
                 ]]]
               rows: >-
                 [[[
@@ -4665,7 +4669,7 @@ views:
             [[[
               const snapshot = hass.states['sensor.wine_collection_snapshot']?.attributes || {};
               const total = Number(snapshot.mature_total);
-              return `<div class="wine-screener-header"><div class="wine-screener-title">Mature now</div><div class="wine-screener-meta">${Number.isFinite(total) ? total : 19} bottles</div></div>`;
+              return `<div class="wine-screener-header"><div class="wine-screener-title">Mature</div><div class="wine-screener-meta">${Number.isFinite(total) ? total : 19} bottles</div></div>`;
             ]]]
           rows: >-
             [[[
@@ -4693,7 +4697,7 @@ views:
             [[[
               const snapshot = hass.states['sensor.wine_collection_snapshot']?.attributes || {};
               const total = Number(snapshot.stabilizing_total);
-              return `<div class="wine-screener-header"><div class="wine-screener-title">Stabilizing now</div><div class="wine-screener-meta">${Number.isFinite(total) ? total : 35} bottles</div></div>`;
+              return `<div class="wine-screener-header"><div class="wine-screener-title">Stabilizing</div><div class="wine-screener-meta">${Number.isFinite(total) ? total : 35} bottles</div></div>`;
             ]]]
           rows: >-
             [[[
