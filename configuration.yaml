@@ -19,6 +19,35 @@ automation: !include automations.yaml
 script: !include scripts.yaml
 scene: !include scenes.yaml
 
+command_line:
+  - sensor:
+      name: Wine Collection Snapshot
+      unique_id: wine_collection_snapshot
+      command: python3 /config/tools/refresh_wine_collection_snapshot.py
+      command_timeout: 60
+      scan_interval: 86400
+      value_template: >
+        {{ value_json.ready_total if value_json.ready_total is defined else 0 }}
+      json_attributes:
+        - sheet_url
+        - data_source
+        - refreshed_at
+        - refreshed_label
+        - total_bottles
+        - ready_total
+        - stabilizing_total
+        - mature_total
+        - early_total
+        - hold_total
+        - unknown_total
+        - ready_styles
+        - ready_regions
+        - ready_countries
+        - stabilizing_rows
+        - mature_rows
+        - early_rows
+        - hold_rows
+
 input_datetime:
   away_security_snooze_until:
     name: Away Security Snooze Until

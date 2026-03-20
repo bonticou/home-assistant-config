@@ -4442,37 +4442,59 @@ views:
         alignment: left
         chips:
           - type: template
+            icon: mdi:refresh
+            icon_color: white
+            content: Refresh
+            tap_action:
+              action: call-service
+              service: homeassistant.update_entity
+              target:
+                entity_id: sensor.wine_collection_snapshot
+            hold_action:
+              action: url
+              url_path: https://docs.google.com/spreadsheets/d/13f61tOxK8E61GL3phvjiBzCuyYRybymtKPGOduIOvDc/edit?gid=1865301611#gid=1865301611
+          - type: template
             icon: mdi:bottle-wine-outline
             icon_color: teal
-            content: 88 total
+            content: >-
+              {% set total = state_attr('sensor.wine_collection_snapshot', 'total_bottles') %}
+              {{ (total | int ~ ' total') if total is not none else '92 total' }}
             tap_action:
               action: url
               url_path: https://docs.google.com/spreadsheets/d/13f61tOxK8E61GL3phvjiBzCuyYRybymtKPGOduIOvDc/edit?gid=1865301611#gid=1865301611
           - type: template
             icon: mdi:glass-wine
             icon_color: pink
-            content: 53 ready now
+            content: >-
+              {% set ready = state_attr('sensor.wine_collection_snapshot', 'ready_total') %}
+              {{ (ready | int ~ ' ready now') if ready is not none else '70 ready now' }}
             tap_action:
               action: url
               url_path: https://docs.google.com/spreadsheets/d/13f61tOxK8E61GL3phvjiBzCuyYRybymtKPGOduIOvDc/edit?gid=1865301611#gid=1865301611
           - type: template
             icon: mdi:chart-line
             icon_color: blue
-            content: 30 stabilizing
+            content: >-
+              {% set stabilizing = state_attr('sensor.wine_collection_snapshot', 'stabilizing_total') %}
+              {{ (stabilizing | int ~ ' stabilizing') if stabilizing is not none else '35 stabilizing' }}
             tap_action:
               action: url
               url_path: https://docs.google.com/spreadsheets/d/13f61tOxK8E61GL3phvjiBzCuyYRybymtKPGOduIOvDc/edit?gid=1865301611#gid=1865301611
           - type: template
             icon: mdi:check-decagram-outline
             icon_color: amber
-            content: 17 mature
+            content: >-
+              {% set mature = state_attr('sensor.wine_collection_snapshot', 'mature_total') %}
+              {{ (mature | int ~ ' mature') if mature is not none else '19 mature' }}
             tap_action:
               action: url
               url_path: https://docs.google.com/spreadsheets/d/13f61tOxK8E61GL3phvjiBzCuyYRybymtKPGOduIOvDc/edit?gid=1865301611#gid=1865301611
           - type: template
             icon: mdi:timer-sand
             icon_color: purple
-            content: 9 hold
+            content: >-
+              {% set hold = state_attr('sensor.wine_collection_snapshot', 'hold_total') %}
+              {{ (hold | int ~ ' hold') if hold is not none else '12 hold' }}
             tap_action:
               action: url
               url_path: https://docs.google.com/spreadsheets/d/13f61tOxK8E61GL3phvjiBzCuyYRybymtKPGOduIOvDc/edit?gid=1865301611#gid=1865301611
@@ -4488,18 +4510,21 @@ views:
             custom_fields:
               header: >-
                 [[[
-                  return `<div class="wine-screener-header"><div class="wine-screener-title">Ready styles</div><div class="wine-screener-meta">53 ready</div></div>`;
+                  const snapshot = hass.states['sensor.wine_collection_snapshot']?.attributes || {};
+                  const readyTotal = Number(snapshot.ready_total);
+                  return `<div class="wine-screener-header"><div class="wine-screener-title">Ready styles</div><div class="wine-screener-meta">${Number.isFinite(readyTotal) ? readyTotal : 70} ready</div></div>`;
                 ]]]
               rows: >-
                 [[[
-                  const rows = [
-                    ['Nebbiolo', '17'],
-                    ['Bordeaux blend', '15'],
-                    ['Super Tuscan', '5'],
-                    ['Red blend', '4'],
-                    ['Pinot Noir', '3'],
+                  const snapshot = hass.states['sensor.wine_collection_snapshot']?.attributes || {};
+                  const rows = snapshot.ready_styles || [
+                    { label: 'Bordeaux blend', value: 22 },
+                    { label: 'Nebbiolo', value: 17 },
+                    { label: 'Pinot Noir', value: 7 },
+                    { label: 'Super Tuscan', value: 5 },
+                    { label: 'Red blend', value: 4 },
                   ];
-                  return rows.map(([label, value]) => `<div class="wine-stat-row"><span class="wine-stat-label">${label}</span><span class="wine-stat-value">${value}</span></div>`).join('');
+                  return rows.map((row) => `<div class="wine-stat-row"><span class="wine-stat-label">${row.label}</span><span class="wine-stat-value">${row.value}</span></div>`).join('');
                 ]]]
             tap_action:
               action: url
@@ -4611,18 +4636,19 @@ views:
             custom_fields:
               header: >-
                 [[[
-                  return `<div class="wine-screener-header"><div class="wine-screener-title">Ready places</div><div class="wine-screener-meta">region view</div></div>`;
+                  return `<div class="wine-screener-header"><div class="wine-screener-title">Ready regions</div><div class="wine-screener-meta">top regions</div></div>`;
                 ]]]
               rows: >-
                 [[[
-                  const rows = [
-                    ['Piedmont', '17'],
-                    ['Bordeaux', '15'],
-                    ['Tuscany', '6'],
-                    ['California', '6'],
-                    ['Oregon', '3'],
+                  const snapshot = hass.states['sensor.wine_collection_snapshot']?.attributes || {};
+                  const rows = snapshot.ready_regions || [
+                    { label: 'Piedmont', value: 17 },
+                    { label: 'California', value: 16 },
+                    { label: 'Bordeaux', value: 15 },
+                    { label: 'Tuscany', value: 13 },
+                    { label: 'Mendoza', value: 3 },
                   ];
-                  return rows.map(([label, value]) => `<div class="wine-stat-row"><span class="wine-stat-label">${label}</span><span class="wine-stat-value">${value}</span></div>`).join('');
+                  return rows.map((row) => `<div class="wine-stat-row"><span class="wine-stat-label">${row.label}</span><span class="wine-stat-value">${row.value}</span></div>`).join('');
                 ]]]
             tap_action:
               action: url
@@ -4641,24 +4667,20 @@ views:
         custom_fields:
           header: >-
             [[[
-              return `<div class="wine-screener-header"><div class="wine-screener-title">Stabilizing now</div><div class="wine-screener-meta">30 bottles</div></div>`;
+              const snapshot = hass.states['sensor.wine_collection_snapshot']?.attributes || {};
+              const total = Number(snapshot.stabilizing_total);
+              return `<div class="wine-screener-header"><div class="wine-screener-title">Stabilizing now</div><div class="wine-screener-meta">${Number.isFinite(total) ? total : 35} bottles</div></div>`;
             ]]]
           rows: >-
             [[[
-              const rows = [
-                ['3x', 'Borgogno MGA 2020', 'Nebbiolo'],
-                ['3x', 'Gran Enemigo 2021', 'Cab Franc'],
-                ['3x', 'Ginestra 2018', 'Nebbiolo'],
-                ['3x', 'Scavino Rocche 2020', 'Nebbiolo'],
-                ['3x', 'Scavino Ravera 2021', 'Nebbiolo'],
-                ['3x', 'Grattamacco 2021', 'Super Tuscan'],
-                ['3x', 'Pape Clément 2018', 'Bordeaux'],
-                ['3x', 'Altare Arborina 2021', 'Nebbiolo'],
-                ['3x', 'Léoville Poyferré 2019', 'Bordeaux'],
-                ['1x', 'Guado al Tasso 2020', 'Bordeaux-style'],
-                ['2x', 'Caiarossa 2021', 'Super Tuscan'],
+              const snapshot = hass.states['sensor.wine_collection_snapshot']?.attributes || {};
+              const rows = snapshot.stabilizing_rows || [
+                { qty: '3x', name: 'Saint-Julien 2019', kind: 'Bordeaux blend' },
+                { qty: '3x', name: 'Barolo Ginestra DOCG 2018', kind: 'Nebbiolo' },
+                { qty: '3x', name: 'Barolo Ravera 2021', kind: 'Nebbiolo' },
+                { qty: '3x', name: 'Kissing Vipers 2021', kind: 'Grenache/Syrah' },
               ];
-              return rows.map(([qty, name, kind]) => `<div class="wine-bottle-row"><span class="wine-bottle-qty">${qty}</span><span class="wine-bottle-name">${name}</span><span class="wine-bottle-kind">${kind}</span></div>`).join('');
+              return rows.map((row) => `<div class="wine-bottle-row"><span class="wine-bottle-qty">${row.qty}</span><span class="wine-bottle-name">${row.name}</span><span class="wine-bottle-kind">${row.kind}</span></div>`).join('');
             ]]]
         tap_action:
           action: url
@@ -4673,22 +4695,20 @@ views:
         custom_fields:
           header: >-
             [[[
-              return `<div class="wine-screener-header"><div class="wine-screener-title">Mature now</div><div class="wine-screener-meta">17 bottles</div></div>`;
+              const snapshot = hass.states['sensor.wine_collection_snapshot']?.attributes || {};
+              const total = Number(snapshot.mature_total);
+              return `<div class="wine-screener-header"><div class="wine-screener-title">Mature now</div><div class="wine-screener-meta">${Number.isFinite(total) ? total : 19} bottles</div></div>`;
             ]]]
           rows: >-
             [[[
-              const rows = [
-                ['1x', 'Troplong Mondot 2011', 'Bordeaux'],
-                ['2x', 'Enrico VI 2004', 'Nebbiolo'],
-                ['1x', 'Croix de Bois 2015', 'Rhône'],
-                ['1x', 'Pape Clément 2014', 'Bordeaux'],
-                ['2x', 'Viña Tondonia 2012', 'Rioja blend'],
-                ['1x', 'Léoville Poyferré 2014', 'Bordeaux'],
-                ['3x', 'Pape Clément 2016', 'Bordeaux'],
-                ['4x', 'Abstract', 'Red blend'],
-                ['2x', 'Papillon', 'Bordeaux-style'],
+              const snapshot = hass.states['sensor.wine_collection_snapshot']?.attributes || {};
+              const rows = snapshot.mature_rows || [
+                { qty: '3x', name: 'Pessac-Leognan Rouge 2016', kind: 'Bordeaux blend' },
+                { qty: '4x', name: 'Abstract Red', kind: 'Red blend' },
+                { qty: '2x', name: 'Enrico VI (Villero) 2004', kind: 'Nebbiolo' },
+                { qty: '2x', name: 'Papillon', kind: 'Bordeaux blend' },
               ];
-              return rows.map(([qty, name, kind]) => `<div class="wine-bottle-row"><span class="wine-bottle-qty">${qty}</span><span class="wine-bottle-name">${name}</span><span class="wine-bottle-kind">${kind}</span></div>`).join('');
+              return rows.map((row) => `<div class="wine-bottle-row"><span class="wine-bottle-qty">${row.qty}</span><span class="wine-bottle-name">${row.name}</span><span class="wine-bottle-kind">${row.kind}</span></div>`).join('');
             ]]]
         tap_action:
           action: url
@@ -4703,15 +4723,20 @@ views:
         custom_fields:
           header: >-
             [[[
-              return `<div class="wine-screener-header"><div class="wine-screener-title">Early but open</div><div class="wine-screener-meta">6 bottles</div></div>`;
+              const snapshot = hass.states['sensor.wine_collection_snapshot']?.attributes || {};
+              const total = Number(snapshot.early_total);
+              return `<div class="wine-screener-header"><div class="wine-screener-title">Early but open</div><div class="wine-screener-meta">${Number.isFinite(total) ? total : 16} bottles</div></div>`;
             ]]]
           rows: >-
             [[[
-              const rows = [
-                ['3x', `Tongue 'N Cheek 2022`, 'Pinot Noir'],
-                ['3x', 'Domaine de Chevalier 2022', 'Bordeaux'],
+              const snapshot = hass.states['sensor.wine_collection_snapshot']?.attributes || {};
+              const rows = snapshot.early_rows || [
+                { qty: '3x', name: 'Pessac-Leognan Rouge 2022', kind: 'Bordeaux blend' },
+                { qty: '3x', name: `Tongue 'N Cheek 2022`, kind: 'Pinot Noir' },
+                { qty: '3x', name: 'Tignanello 2022', kind: 'Sangiovese blend' },
+                { qty: '3x', name: 'Cabernet Sauvignon 2023', kind: 'Cabernet Sauvignon' },
               ];
-              return rows.map(([qty, name, kind]) => `<div class="wine-bottle-row"><span class="wine-bottle-qty">${qty}</span><span class="wine-bottle-name">${name}</span><span class="wine-bottle-kind">${kind}</span></div>`).join('');
+              return rows.map((row) => `<div class="wine-bottle-row"><span class="wine-bottle-qty">${row.qty}</span><span class="wine-bottle-name">${row.name}</span><span class="wine-bottle-kind">${row.kind}</span></div>`).join('');
             ]]]
         tap_action:
           action: url
@@ -4726,16 +4751,20 @@ views:
         custom_fields:
           header: >-
             [[[
-              return `<div class="wine-screener-header"><div class="wine-screener-title">Hold list</div><div class="wine-screener-meta">9 bottles</div></div>`;
+              const snapshot = hass.states['sensor.wine_collection_snapshot']?.attributes || {};
+              const total = Number(snapshot.hold_total);
+              return `<div class="wine-screener-header"><div class="wine-screener-title">Hold list</div><div class="wine-screener-meta">${Number.isFinite(total) ? total : 12} bottles</div></div>`;
             ]]]
           rows: >-
             [[[
-              const rows = [
-                ['3x', 'Vajra Ravera 2021', 'opens 2027'],
-                ['3x', 'Brane-Cantenac 2022', 'opens 2035'],
-                ['3x', 'Larcis Ducasse 2022', 'opens 2037'],
+              const snapshot = hass.states['sensor.wine_collection_snapshot']?.attributes || {};
+              const rows = snapshot.hold_rows || [
+                { qty: '3x', name: 'Barolo Ravera 2021', kind: 'opens 2027' },
+                { qty: '3x', name: 'Sidecar 2021', kind: 'opens 2028' },
+                { qty: '3x', name: 'Margaux 2022', kind: 'opens 2035' },
+                { qty: '3x', name: 'Saint-Emilion Grand Cru 2022', kind: 'opens 2037' },
               ];
-              return rows.map(([qty, name, kind]) => `<div class="wine-bottle-row"><span class="wine-bottle-qty">${qty}</span><span class="wine-bottle-name">${name}</span><span class="wine-bottle-kind">${kind}</span></div>`).join('');
+              return rows.map((row) => `<div class="wine-bottle-row"><span class="wine-bottle-qty">${row.qty}</span><span class="wine-bottle-name">${row.name}</span><span class="wine-bottle-kind">${row.kind}</span></div>`).join('');
             ]]]
         tap_action:
           action: url
