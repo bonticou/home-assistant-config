@@ -4137,18 +4137,16 @@ views:
       - type: custom:button-card
         entity: sensor.wine_temperature_24h_stats
         show_icon: false
-        show_name: false
+        show_name: true
         show_state: false
-        custom_fields:
-          text: >-
-            [[[
-              const temp = Number(hass.states['sensor.wine_temperature_24h_stats']?.state);
-              const humidity = Number(hass.states['sensor.wine_humidity_24h_stats']?.state);
-              const content = Number.isFinite(temp) && Number.isFinite(humidity)
-                ? `Mean temp ${temp.toFixed(1)}°F · Mean humidity ${Math.round(humidity)}%`
-                : 'Mean settling in';
-              return `<div class="trend-subtitle">${content}</div>`;
-            ]]]
+        name: >-
+          [[[
+            const temp = Number(hass.states['sensor.wine_temperature_24h_stats']?.state);
+            const humidity = Number(hass.states['sensor.wine_humidity_24h_stats']?.state);
+            return Number.isFinite(temp) && Number.isFinite(humidity)
+              ? `Mean temp ${temp.toFixed(1)}°F · Mean humidity ${Math.round(humidity)}%`
+              : 'Mean settling in';
+          ]]]
         styles: &wine_trends_subtitle_button_styles
           card:
             - background: transparent
@@ -4158,20 +4156,19 @@ views:
             - padding: 0
             - margin-top: -18px
             - margin-bottom: 10px
-          grid:
-            - grid-template-areas: '"text"'
-            - grid-template-columns: minmax(0, 1fr)
-          custom_fields:
-            text:
-              - justify-self: start
-              - align-self: start
-        extra_styles: &wine_trends_subtitle_extra |
-          .trend-subtitle {
-            color: rgba(226, 232, 240, 0.68);
-            font-size: 14px;
-            line-height: 1.4;
-            letter-spacing: -0.01em;
-          }
+          name:
+            - justify-self: start
+            - color: rgba(226, 232, 240, 0.68)
+            - font-size: 14px
+            - font-weight: 400
+            - line-height: 1.4
+            - letter-spacing: -0.01em
+            - white-space: normal
+            - text-align: left
+        tap_action:
+          action: none
+        hold_action:
+          action: none
       - type: custom:apexcharts-card
         graph_span: 24h
         header:
@@ -4283,20 +4280,21 @@ views:
       - type: custom:button-card
         entity: sensor.wine_temperature_7d_stats
         show_icon: false
-        show_name: false
+        show_name: true
         show_state: false
-        custom_fields:
-          text: >-
-            [[[
-              const temp = Number(hass.states['sensor.wine_temperature_7d_stats']?.state);
-              const humidity = Number(hass.states['sensor.wine_humidity_7d_stats']?.state);
-              const content = Number.isFinite(temp) && Number.isFinite(humidity)
-                ? `Mean temp ${temp.toFixed(1)}°F · Mean humidity ${Math.round(humidity)}%`
-                : 'Week mean settling in';
-              return `<div class="trend-subtitle">${content}</div>`;
-            ]]]
+        name: >-
+          [[[
+            const temp = Number(hass.states['sensor.wine_temperature_7d_stats']?.state);
+            const humidity = Number(hass.states['sensor.wine_humidity_7d_stats']?.state);
+            return Number.isFinite(temp) && Number.isFinite(humidity)
+              ? `Mean temp ${temp.toFixed(1)}°F · Mean humidity ${Math.round(humidity)}%`
+              : 'Week mean settling in';
+          ]]]
         styles: *wine_trends_subtitle_button_styles
-        extra_styles: *wine_trends_subtitle_extra
+        tap_action:
+          action: none
+        hold_action:
+          action: none
       - type: custom:apexcharts-card
         graph_span: 7d
         header:
@@ -4348,20 +4346,21 @@ views:
       - type: custom:button-card
         entity: sensor.wine_temperature_30d_stats
         show_icon: false
-        show_name: false
+        show_name: true
         show_state: false
-        custom_fields:
-          text: >-
-            [[[
-              const temp = Number(hass.states['sensor.wine_temperature_30d_stats']?.state);
-              const humidity = Number(hass.states['sensor.wine_humidity_30d_stats']?.state);
-              const content = Number.isFinite(temp) && Number.isFinite(humidity)
-                ? `Mean temp ${temp.toFixed(1)}°F · Mean humidity ${Math.round(humidity)}%`
-                : 'Month mean settling in';
-              return `<div class="trend-subtitle">${content}</div>`;
-            ]]]
+        name: >-
+          [[[
+            const temp = Number(hass.states['sensor.wine_temperature_30d_stats']?.state);
+            const humidity = Number(hass.states['sensor.wine_humidity_30d_stats']?.state);
+            return Number.isFinite(temp) && Number.isFinite(humidity)
+              ? `Mean temp ${temp.toFixed(1)}°F · Mean humidity ${Math.round(humidity)}%`
+              : 'Month mean settling in';
+          ]]]
         styles: *wine_trends_subtitle_button_styles
-        extra_styles: *wine_trends_subtitle_extra
+        tap_action:
+          action: none
+        hold_action:
+          action: none
       - type: custom:apexcharts-card
         graph_span: 30d
         header:
@@ -4438,7 +4437,7 @@ views:
 
       - type: custom:mushroom-title-card
         title: Collection snapshot
-        subtitle: Ready-now view from your cellar sheet
+        subtitle: 88 bottles total · 53 ready now
 
       - type: custom:mushroom-chips-card
         alignment: left
@@ -4446,28 +4445,35 @@ views:
           - type: template
             icon: mdi:bottle-wine-outline
             icon_color: teal
-            content: 180 bottles
+            content: 88 total
             tap_action:
               action: url
               url_path: https://docs.google.com/spreadsheets/d/13f61tOxK8E61GL3phvjiBzCuyYRybymtKPGOduIOvDc/edit?gid=1865301611#gid=1865301611
           - type: template
             icon: mdi:glass-wine
             icon_color: pink
-            content: 55 ready now
+            content: 53 ready now
             tap_action:
               action: url
               url_path: https://docs.google.com/spreadsheets/d/13f61tOxK8E61GL3phvjiBzCuyYRybymtKPGOduIOvDc/edit?gid=1865301611#gid=1865301611
           - type: template
-            icon: mdi:fruit-grapes
+            icon: mdi:chart-line
+            icon_color: blue
+            content: 30 stabilizing
+            tap_action:
+              action: url
+              url_path: https://docs.google.com/spreadsheets/d/13f61tOxK8E61GL3phvjiBzCuyYRybymtKPGOduIOvDc/edit?gid=1865301611#gid=1865301611
+          - type: template
+            icon: mdi:check-decagram-outline
+            icon_color: amber
+            content: 17 mature
+            tap_action:
+              action: url
+              url_path: https://docs.google.com/spreadsheets/d/13f61tOxK8E61GL3phvjiBzCuyYRybymtKPGOduIOvDc/edit?gid=1865301611#gid=1865301611
+          - type: template
+            icon: mdi:timer-sand
             icon_color: purple
-            content: Nebbiolo 17
-            tap_action:
-              action: url
-              url_path: https://docs.google.com/spreadsheets/d/13f61tOxK8E61GL3phvjiBzCuyYRybymtKPGOduIOvDc/edit?gid=1865301611#gid=1865301611
-          - type: template
-            icon: mdi:map-marker-radius-outline
-            icon_color: indigo
-            content: Bordeaux 18
+            content: 9 hold
             tap_action:
               action: url
               url_path: https://docs.google.com/spreadsheets/d/13f61tOxK8E61GL3phvjiBzCuyYRybymtKPGOduIOvDc/edit?gid=1865301611#gid=1865301611
@@ -4476,96 +4482,267 @@ views:
         columns: 2
         square: false
         cards:
-          - type: custom:mushroom-template-card
-            primary: Ready now mix
-            secondary: |-
-              Bordeaux family 18 · Nebbiolo 17
-              Pinot Noir 5 · Super Tuscan 5
-            icon: mdi:shape-outline
-            icon_color: teal
-            multiline_secondary: true
+          - type: custom:button-card
+            show_icon: false
+            show_name: false
+            show_state: false
+            custom_fields:
+              header: >-
+                [[[
+                  return `<div class="wine-screener-header"><div class="wine-screener-title">Ready styles</div><div class="wine-screener-meta">53 ready</div></div>`;
+                ]]]
+              rows: >-
+                [[[
+                  const rows = [
+                    ['Nebbiolo', '17'],
+                    ['Bordeaux blend', '15'],
+                    ['Super Tuscan', '5'],
+                    ['Red blend', '4'],
+                    ['Pinot Noir', '3'],
+                  ];
+                  return rows.map(([label, value]) => `<div class="wine-stat-row"><span class="wine-stat-label">${label}</span><span class="wine-stat-value">${value}</span></div>`).join('');
+                ]]]
             tap_action:
               action: url
               url_path: https://docs.google.com/spreadsheets/d/13f61tOxK8E61GL3phvjiBzCuyYRybymtKPGOduIOvDc/edit?gid=1865301611#gid=1865301611
-            card_mod:
-              style: &wine_collection_card_style |
-                ha-card {
-                  border: 1px solid rgba(148, 163, 184, 0.18);
-                  box-shadow: 0 10px 20px rgba(2, 8, 23, 0.18);
-                  border-radius: 24px;
-                  background: linear-gradient(180deg, rgba(15, 23, 42, 0.78), rgba(30, 41, 59, 0.72)) !important;
-                  backdrop-filter: blur(16px) saturate(160%);
-                  -webkit-backdrop-filter: blur(16px) saturate(160%);
-                  --card-primary-color: #f8fafc;
-                  --card-secondary-color: #cbd5e1;
-                }
-                .primary {
-                  font-size: 22px !important;
-                  font-weight: 560 !important;
-                  letter-spacing: -0.02em;
-                }
-                .secondary {
-                  line-height: 1.55 !important;
-                }
-          - type: custom:mushroom-template-card
-            primary: Ready places
-            secondary: |-
-              Italy 23 · France 16
-              USA 11 · Argentina 3
-            icon: mdi:map-outline
-            icon_color: blue
-            multiline_secondary: true
+            styles: &wine_screener_card_styles
+              card:
+                - border-radius: 24px
+                - padding: 18px 18px 16px
+                - border: 1px solid rgba(148, 163, 184, 0.18)
+                - box-shadow: 0 10px 20px rgba(2, 8, 23, 0.18)
+                - background: linear-gradient(180deg, rgba(15, 23, 42, 0.78), rgba(30, 41, 59, 0.72))
+                - backdrop-filter: blur(16px) saturate(160%)
+                - -webkit-backdrop-filter: blur(16px) saturate(160%)
+              grid:
+                - grid-template-areas: '"header" "rows"'
+                - grid-template-columns: minmax(0, 1fr)
+                - row-gap: 10px
+              custom_fields:
+                header:
+                  - justify-self: stretch
+                  - align-self: start
+                rows:
+                  - justify-self: stretch
+                  - align-self: start
+            extra_styles: &wine_screener_card_extra |
+              .wine-screener-header {
+                display: flex;
+                justify-content: space-between;
+                align-items: baseline;
+                gap: 12px;
+              }
+              .wine-screener-title {
+                color: #f8fafc;
+                font-size: 21px;
+                font-weight: 560;
+                letter-spacing: -0.02em;
+              }
+              .wine-screener-meta {
+                color: rgba(226, 232, 240, 0.62);
+                font-size: 11px;
+                font-weight: 600;
+                letter-spacing: 0.08em;
+                text-transform: uppercase;
+                white-space: nowrap;
+              }
+              .wine-stat-row {
+                display: grid;
+                grid-template-columns: minmax(0, 1fr) auto;
+                gap: 10px;
+                padding: 5px 0;
+                border-top: 1px solid rgba(148, 163, 184, 0.12);
+              }
+              .wine-stat-row:first-child {
+                border-top: none;
+                padding-top: 0;
+              }
+              .wine-stat-label {
+                color: rgba(248, 250, 252, 0.92);
+                font-size: 13px;
+                line-height: 1.25;
+                white-space: nowrap;
+                overflow: hidden;
+                text-overflow: ellipsis;
+              }
+              .wine-stat-value {
+                color: rgba(226, 232, 240, 0.82);
+                font-size: 13px;
+                font-weight: 600;
+                font-variant-numeric: tabular-nums;
+              }
+              .wine-bottle-row {
+                display: grid;
+                grid-template-columns: 28px minmax(0, 1fr) auto;
+                gap: 10px;
+                align-items: baseline;
+                padding: 6px 0;
+                border-top: 1px solid rgba(148, 163, 184, 0.12);
+              }
+              .wine-bottle-row:first-child {
+                border-top: none;
+                padding-top: 0;
+              }
+              .wine-bottle-qty {
+                color: rgba(148, 163, 184, 0.92);
+                font-size: 12px;
+                font-weight: 600;
+                font-variant-numeric: tabular-nums;
+                font-family: ui-monospace, SFMono-Regular, SF Mono, Menlo, monospace;
+              }
+              .wine-bottle-name {
+                color: #f8fafc;
+                font-size: 13px;
+                line-height: 1.25;
+                white-space: nowrap;
+                overflow: hidden;
+                text-overflow: ellipsis;
+              }
+              .wine-bottle-kind {
+                color: rgba(226, 232, 240, 0.7);
+                font-size: 12px;
+                line-height: 1.2;
+                white-space: nowrap;
+                margin-left: 4px;
+              }
+          - type: custom:button-card
+            show_icon: false
+            show_name: false
+            show_state: false
+            custom_fields:
+              header: >-
+                [[[
+                  return `<div class="wine-screener-header"><div class="wine-screener-title">Ready places</div><div class="wine-screener-meta">region view</div></div>`;
+                ]]]
+              rows: >-
+                [[[
+                  const rows = [
+                    ['Piedmont', '17'],
+                    ['Bordeaux', '15'],
+                    ['Tuscany', '6'],
+                    ['California', '6'],
+                    ['Oregon', '3'],
+                  ];
+                  return rows.map(([label, value]) => `<div class="wine-stat-row"><span class="wine-stat-label">${label}</span><span class="wine-stat-value">${value}</span></div>`).join('');
+                ]]]
             tap_action:
               action: url
               url_path: https://docs.google.com/spreadsheets/d/13f61tOxK8E61GL3phvjiBzCuyYRybymtKPGOduIOvDc/edit?gid=1865301611#gid=1865301611
-            card_mod:
-              style: *wine_collection_card_style
+            styles: *wine_screener_card_styles
+            extra_styles: *wine_screener_card_extra
 
-      - type: custom:mushroom-template-card
-        primary: Open first
-        secondary: |-
-          3x Lingua Franca Tongue 'N Cheek 2022 · Pinot Noir
-          2x Enrico VI (Villero) 2004 · Nebbiolo
-          1x Château Troplong Mondot 2011 · Bordeaux blend
-          2x Viña Tondonia Reserva 2012 · Rioja blend
-        icon: mdi:glass-wine
-        icon_color: pink
-        multiline_secondary: true
+      - type: custom:mushroom-title-card
+        title: Ready bottles
+        subtitle: Condensed by maturity field
+
+      - type: custom:button-card
+        show_icon: false
+        show_name: false
+        show_state: false
+        custom_fields:
+          header: >-
+            [[[
+              return `<div class="wine-screener-header"><div class="wine-screener-title">Stabilizing now</div><div class="wine-screener-meta">30 bottles</div></div>`;
+            ]]]
+          rows: >-
+            [[[
+              const rows = [
+                ['3x', 'Borgogno MGA 2020', 'Nebbiolo'],
+                ['3x', 'Gran Enemigo 2021', 'Cab Franc'],
+                ['3x', 'Ginestra 2018', 'Nebbiolo'],
+                ['3x', 'Scavino Rocche 2020', 'Nebbiolo'],
+                ['3x', 'Scavino Ravera 2021', 'Nebbiolo'],
+                ['3x', 'Grattamacco 2021', 'Super Tuscan'],
+                ['3x', 'Pape Clément 2018', 'Bordeaux'],
+                ['3x', 'Altare Arborina 2021', 'Nebbiolo'],
+                ['3x', 'Léoville Poyferré 2019', 'Bordeaux'],
+                ['1x', 'Guado al Tasso 2020', 'Bordeaux-style'],
+                ['2x', 'Caiarossa 2021', 'Super Tuscan'],
+              ];
+              return rows.map(([qty, name, kind]) => `<div class="wine-bottle-row"><span class="wine-bottle-qty">${qty}</span><span class="wine-bottle-name">${name}</span><span class="wine-bottle-kind">${kind}</span></div>`).join('');
+            ]]]
         tap_action:
           action: url
           url_path: https://docs.google.com/spreadsheets/d/13f61tOxK8E61GL3phvjiBzCuyYRybymtKPGOduIOvDc/edit?gid=1865301611#gid=1865301611
-        card_mod:
-          style: *wine_collection_card_style
+        styles: *wine_screener_card_styles
+        extra_styles: *wine_screener_card_extra
 
-      - type: custom:mushroom-template-card
-        primary: Ready bench
-        secondary: |-
-          Château Pape Clément 7
-          Paolo Scavino 6 · Orin Swift 6
-          Château Léoville Poyferré 4
-        icon: mdi:star-circle-outline
-        icon_color: purple
-        multiline_secondary: true
+      - type: custom:button-card
+        show_icon: false
+        show_name: false
+        show_state: false
+        custom_fields:
+          header: >-
+            [[[
+              return `<div class="wine-screener-header"><div class="wine-screener-title">Mature now</div><div class="wine-screener-meta">17 bottles</div></div>`;
+            ]]]
+          rows: >-
+            [[[
+              const rows = [
+                ['1x', 'Troplong Mondot 2011', 'Bordeaux'],
+                ['2x', 'Enrico VI 2004', 'Nebbiolo'],
+                ['1x', 'Croix de Bois 2015', 'Rhône'],
+                ['1x', 'Pape Clément 2014', 'Bordeaux'],
+                ['2x', 'Viña Tondonia 2012', 'Rioja blend'],
+                ['1x', 'Léoville Poyferré 2014', 'Bordeaux'],
+                ['3x', 'Pape Clément 2016', 'Bordeaux'],
+                ['4x', 'Abstract', 'Red blend'],
+                ['2x', 'Papillon', 'Bordeaux-style'],
+              ];
+              return rows.map(([qty, name, kind]) => `<div class="wine-bottle-row"><span class="wine-bottle-qty">${qty}</span><span class="wine-bottle-name">${name}</span><span class="wine-bottle-kind">${kind}</span></div>`).join('');
+            ]]]
         tap_action:
           action: url
           url_path: https://docs.google.com/spreadsheets/d/13f61tOxK8E61GL3phvjiBzCuyYRybymtKPGOduIOvDc/edit?gid=1865301611#gid=1865301611
-        card_mod:
-          style: *wine_collection_card_style
+        styles: *wine_screener_card_styles
+        extra_styles: *wine_screener_card_extra
 
-      - type: custom:mushroom-template-card
-        primary: Hold a little longer
-        secondary: |-
-          3x G.D. Vajra Barolo Ravera 2021 · from 2027
-          3x Château Brane-Cantenac 2022 · from 2035
-          3x Château Larcis Ducasse 2022 · from 2037
-        icon: mdi:timer-sand
-        icon_color: amber
-        multiline_secondary: true
+      - type: custom:button-card
+        show_icon: false
+        show_name: false
+        show_state: false
+        custom_fields:
+          header: >-
+            [[[
+              return `<div class="wine-screener-header"><div class="wine-screener-title">Early but open</div><div class="wine-screener-meta">6 bottles</div></div>`;
+            ]]]
+          rows: >-
+            [[[
+              const rows = [
+                ['3x', `Tongue 'N Cheek 2022`, 'Pinot Noir'],
+                ['3x', 'Domaine de Chevalier 2022', 'Bordeaux'],
+              ];
+              return rows.map(([qty, name, kind]) => `<div class="wine-bottle-row"><span class="wine-bottle-qty">${qty}</span><span class="wine-bottle-name">${name}</span><span class="wine-bottle-kind">${kind}</span></div>`).join('');
+            ]]]
         tap_action:
           action: url
           url_path: https://docs.google.com/spreadsheets/d/13f61tOxK8E61GL3phvjiBzCuyYRybymtKPGOduIOvDc/edit?gid=1865301611#gid=1865301611
-        card_mod:
-          style: *wine_collection_card_style
+        styles: *wine_screener_card_styles
+        extra_styles: *wine_screener_card_extra
+
+      - type: custom:button-card
+        show_icon: false
+        show_name: false
+        show_state: false
+        custom_fields:
+          header: >-
+            [[[
+              return `<div class="wine-screener-header"><div class="wine-screener-title">Hold list</div><div class="wine-screener-meta">9 bottles</div></div>`;
+            ]]]
+          rows: >-
+            [[[
+              const rows = [
+                ['3x', 'Vajra Ravera 2021', 'opens 2027'],
+                ['3x', 'Brane-Cantenac 2022', 'opens 2035'],
+                ['3x', 'Larcis Ducasse 2022', 'opens 2037'],
+              ];
+              return rows.map(([qty, name, kind]) => `<div class="wine-bottle-row"><span class="wine-bottle-qty">${qty}</span><span class="wine-bottle-name">${name}</span><span class="wine-bottle-kind">${kind}</span></div>`).join('');
+            ]]]
+        tap_action:
+          action: url
+          url_path: https://docs.google.com/spreadsheets/d/13f61tOxK8E61GL3phvjiBzCuyYRybymtKPGOduIOvDc/edit?gid=1865301611#gid=1865301611
+        styles: *wine_screener_card_styles
+        extra_styles: *wine_screener_card_extra
 
       - type: custom:popup-card
         target:
