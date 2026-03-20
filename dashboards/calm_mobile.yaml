@@ -4687,15 +4687,16 @@ views:
             extra_styles: *wine_screener_card_extra
 
       - type: custom:button-card
-        show_icon: false
+        show_icon: true
         show_name: false
         show_state: false
+        icon: mdi:check-decagram-outline
         custom_fields:
           header: >-
             [[[
               const snapshot = hass.states['sensor.wine_collection_snapshot']?.attributes || {};
               const total = Number(snapshot.mature_total);
-              return `<div class="wine-screener-header"><div class="wine-screener-title"><ha-icon class="wine-screener-icon wine-screener-icon-mature" icon="mdi:check-decagram-outline"></ha-icon><span>Mature</span></div><div class="wine-screener-meta">${Number.isFinite(total) ? total : 19} bottles</div></div>`;
+              return `<div class="wine-screener-header"><div class="wine-screener-title">Mature</div><div class="wine-screener-meta">${Number.isFinite(total) ? total : 19} bottles</div></div>`;
             ]]]
           rows: >-
             [[[
@@ -4711,19 +4712,33 @@ views:
         tap_action:
           action: url
           url_path: https://docs.google.com/spreadsheets/d/13f61tOxK8E61GL3phvjiBzCuyYRybymtKPGOduIOvDc/edit?gid=1865301611#gid=1865301611
-        styles: *wine_screener_card_styles
+        styles:
+          <<: *wine_screener_card_styles
+          grid:
+            - grid-template-areas: '"i header" "rows rows"'
+            - grid-template-columns: auto minmax(0, 1fr)
+            - column-gap: 10px
+            - row-gap: 10px
+          icon:
+            - color: '#fbbf24'
+            - width: 18px
+            - height: 18px
+            - justify-self: start
+            - align-self: center
+            - margin-top: 2px
         extra_styles: *wine_screener_card_extra
 
       - type: custom:button-card
-        show_icon: false
+        show_icon: true
         show_name: false
         show_state: false
+        icon: mdi:chart-line
         custom_fields:
           header: >-
             [[[
               const snapshot = hass.states['sensor.wine_collection_snapshot']?.attributes || {};
               const total = Number(snapshot.stabilizing_total);
-              return `<div class="wine-screener-header"><div class="wine-screener-title"><ha-icon class="wine-screener-icon wine-screener-icon-stabilizing" icon="mdi:chart-line"></ha-icon><span>Stabilizing</span></div><div class="wine-screener-meta">${Number.isFinite(total) ? total : 35} bottles</div></div>`;
+              return `<div class="wine-screener-header"><div class="wine-screener-title">Stabilizing</div><div class="wine-screener-meta">${Number.isFinite(total) ? total : 35} bottles</div></div>`;
             ]]]
           rows: >-
             [[[
@@ -4739,19 +4754,33 @@ views:
         tap_action:
           action: url
           url_path: https://docs.google.com/spreadsheets/d/13f61tOxK8E61GL3phvjiBzCuyYRybymtKPGOduIOvDc/edit?gid=1865301611#gid=1865301611
-        styles: *wine_screener_card_styles
+        styles:
+          <<: *wine_screener_card_styles
+          grid:
+            - grid-template-areas: '"i header" "rows rows"'
+            - grid-template-columns: auto minmax(0, 1fr)
+            - column-gap: 10px
+            - row-gap: 10px
+          icon:
+            - color: '#60a5fa'
+            - width: 18px
+            - height: 18px
+            - justify-self: start
+            - align-self: center
+            - margin-top: 2px
         extra_styles: *wine_screener_card_extra
 
       - type: custom:button-card
-        show_icon: false
+        show_icon: true
         show_name: false
         show_state: false
+        icon: mdi:glass-wine
         custom_fields:
           header: >-
             [[[
               const snapshot = hass.states['sensor.wine_collection_snapshot']?.attributes || {};
               const total = Number(snapshot.early_total);
-              return `<div class="wine-screener-header"><div class="wine-screener-title"><ha-icon class="wine-screener-icon wine-screener-icon-early" icon="mdi:glass-wine"></ha-icon><span>Early but open</span></div><div class="wine-screener-meta">${Number.isFinite(total) ? total : 16} bottles</div></div>`;
+              return `<div class="wine-screener-header"><div class="wine-screener-title">Early but open</div><div class="wine-screener-meta">${Number.isFinite(total) ? total : 16} bottles</div></div>`;
             ]]]
           rows: >-
             [[[
@@ -4767,19 +4796,33 @@ views:
         tap_action:
           action: url
           url_path: https://docs.google.com/spreadsheets/d/13f61tOxK8E61GL3phvjiBzCuyYRybymtKPGOduIOvDc/edit?gid=1865301611#gid=1865301611
-        styles: *wine_screener_card_styles
+        styles:
+          <<: *wine_screener_card_styles
+          grid:
+            - grid-template-areas: '"i header" "rows rows"'
+            - grid-template-columns: auto minmax(0, 1fr)
+            - column-gap: 10px
+            - row-gap: 10px
+          icon:
+            - color: '#f472b6'
+            - width: 18px
+            - height: 18px
+            - justify-self: start
+            - align-self: center
+            - margin-top: 2px
         extra_styles: *wine_screener_card_extra
 
       - type: custom:button-card
-        show_icon: false
+        show_icon: true
         show_name: false
         show_state: false
+        icon: mdi:timer-sand
         custom_fields:
           header: >-
             [[[
               const snapshot = hass.states['sensor.wine_collection_snapshot']?.attributes || {};
               const total = Number(snapshot.hold_total);
-              return `<div class="wine-screener-header"><div class="wine-screener-title"><ha-icon class="wine-screener-icon wine-screener-icon-hold" icon="mdi:timer-sand"></ha-icon><span>Hold list</span></div><div class="wine-screener-meta">${Number.isFinite(total) ? total : 12} bottles</div></div>`;
+              return `<div class="wine-screener-header"><div class="wine-screener-title">Hold list</div><div class="wine-screener-meta">${Number.isFinite(total) ? total : 12} bottles</div></div>`;
             ]]]
           rows: >-
             [[[
@@ -4795,7 +4838,20 @@ views:
         tap_action:
           action: url
           url_path: https://docs.google.com/spreadsheets/d/13f61tOxK8E61GL3phvjiBzCuyYRybymtKPGOduIOvDc/edit?gid=1865301611#gid=1865301611
-        styles: *wine_screener_card_styles
+        styles:
+          <<: *wine_screener_card_styles
+          grid:
+            - grid-template-areas: '"i header" "rows rows"'
+            - grid-template-columns: auto minmax(0, 1fr)
+            - column-gap: 10px
+            - row-gap: 10px
+          icon:
+            - color: '#c084fc'
+            - width: 18px
+            - height: 18px
+            - justify-self: start
+            - align-self: center
+            - margin-top: 2px
         extra_styles: *wine_screener_card_extra
 
       - type: custom:popup-card
