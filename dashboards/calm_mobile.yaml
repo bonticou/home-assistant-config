@@ -4135,7 +4135,6 @@ views:
       - type: custom:mushroom-title-card
         title: 24-hour trends
       - type: custom:button-card
-        entity: sensor.wine_temperature_24h_stats
         show_icon: false
         show_name: true
         show_state: false
@@ -4153,8 +4152,11 @@ views:
             - box-shadow: none
             - border: none
             - border-radius: 0
-            - padding: 0
-            - margin-top: -18px
+            - outline: none
+            - min-height: 0
+            - height: auto
+            - padding: 0 16px
+            - margin-top: -16px
             - margin-bottom: 10px
           name:
             - justify-self: start
@@ -4278,7 +4280,6 @@ views:
       - type: custom:mushroom-title-card
         title: 7-day trends
       - type: custom:button-card
-        entity: sensor.wine_temperature_7d_stats
         show_icon: false
         show_name: true
         show_state: false
@@ -4344,7 +4345,6 @@ views:
       - type: custom:mushroom-title-card
         title: 30-day trends
       - type: custom:button-card
-        entity: sensor.wine_temperature_30d_stats
         show_icon: false
         show_name: true
         show_state: false
@@ -4437,7 +4437,6 @@ views:
 
       - type: custom:mushroom-title-card
         title: Collection snapshot
-        subtitle: 88 bottles total · 53 ready now
 
       - type: custom:mushroom-chips-card
         alignment: left
