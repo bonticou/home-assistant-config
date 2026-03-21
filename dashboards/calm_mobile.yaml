@@ -4559,26 +4559,6 @@ views:
                 font-size: 21px;
                 font-weight: 560;
                 letter-spacing: -0.02em;
-                display: flex;
-                align-items: center;
-                gap: 10px;
-              }
-              .wine-screener-icon {
-                --mdc-icon-size: 18px;
-                color: rgba(226, 232, 240, 0.78);
-                flex: 0 0 auto;
-              }
-              .wine-screener-icon-mature {
-                color: #fbbf24;
-              }
-              .wine-screener-icon-stabilizing {
-                color: #60a5fa;
-              }
-              .wine-screener-icon-early {
-                color: #f472b6;
-              }
-              .wine-screener-icon-hold {
-                color: #c084fc;
               }
               .wine-screener-meta {
                 color: rgba(226, 232, 240, 0.62);
@@ -4689,7 +4669,7 @@ views:
             [[[
               const snapshot = hass.states['sensor.wine_collection_snapshot']?.attributes || {};
               const total = Number(snapshot.mature_total);
-              return `<div class="wine-screener-header"><div class="wine-screener-title"><ha-icon class="wine-screener-icon wine-screener-icon-mature" icon="mdi:check-decagram-outline"></ha-icon><span>Mature</span></div><div class="wine-screener-meta">${Number.isFinite(total) ? total : 19} bottles</div></div>`;
+              return `<div class="wine-screener-header"><div class="wine-screener-title">Mature</div><div class="wine-screener-meta">${Number.isFinite(total) ? total : 19} bottles</div></div>`;
             ]]]
           rows: >-
             [[[
@@ -4717,7 +4697,7 @@ views:
             [[[
               const snapshot = hass.states['sensor.wine_collection_snapshot']?.attributes || {};
               const total = Number(snapshot.stabilizing_total);
-              return `<div class="wine-screener-header"><div class="wine-screener-title"><ha-icon class="wine-screener-icon wine-screener-icon-stabilizing" icon="mdi:chart-line"></ha-icon><span>Stabilizing</span></div><div class="wine-screener-meta">${Number.isFinite(total) ? total : 35} bottles</div></div>`;
+              return `<div class="wine-screener-header"><div class="wine-screener-title">Stabilizing</div><div class="wine-screener-meta">${Number.isFinite(total) ? total : 35} bottles</div></div>`;
             ]]]
           rows: >-
             [[[
@@ -4745,7 +4725,7 @@ views:
             [[[
               const snapshot = hass.states['sensor.wine_collection_snapshot']?.attributes || {};
               const total = Number(snapshot.early_total);
-              return `<div class="wine-screener-header"><div class="wine-screener-title"><ha-icon class="wine-screener-icon wine-screener-icon-early" icon="mdi:glass-wine"></ha-icon><span>Early but open</span></div><div class="wine-screener-meta">${Number.isFinite(total) ? total : 16} bottles</div></div>`;
+              return `<div class="wine-screener-header"><div class="wine-screener-title">Early but open</div><div class="wine-screener-meta">${Number.isFinite(total) ? total : 16} bottles</div></div>`;
             ]]]
           rows: >-
             [[[
@@ -4773,7 +4753,7 @@ views:
             [[[
               const snapshot = hass.states['sensor.wine_collection_snapshot']?.attributes || {};
               const total = Number(snapshot.hold_total);
-              return `<div class="wine-screener-header"><div class="wine-screener-title"><ha-icon class="wine-screener-icon wine-screener-icon-hold" icon="mdi:timer-sand"></ha-icon><span>Hold list</span></div><div class="wine-screener-meta">${Number.isFinite(total) ? total : 12} bottles</div></div>`;
+              return `<div class="wine-screener-header"><div class="wine-screener-title">Hold list</div><div class="wine-screener-meta">${Number.isFinite(total) ? total : 12} bottles</div></div>`;
             ]]]
           rows: >-
             [[[
