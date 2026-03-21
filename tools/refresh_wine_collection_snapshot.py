@@ -120,24 +120,14 @@ def bucket_row(row, mode):
 
 def sort_bucket(rows, mode):
     if mode == "hold":
-        key_fn = lambda row: (
-            row["from_year"] or 9999,
-            -row["qty"],
-            row["to_year"] or 9999,
-            display_name(row).lower(),
-        )
+        key_fn = lambda row: (row["from_year"] or 9999, -row["qty"], display_name(row).lower())
     elif mode == "mature":
-        key_fn = lambda row: (
-            -row["qty"],
-            row["to_year"] or 9999,
-            row["from_year"] or 9999,
-            display_name(row).lower(),
-        )
+        key_fn = lambda row: (row["to_year"] or 9999, -row["qty"], display_name(row).lower())
     else:
         key_fn = lambda row: (
-            -row["qty"],
             row["from_year"] or 9999,
             row["to_year"] or 9999,
+            -row["qty"],
             display_name(row).lower(),
         )
     return [bucket_row(row, mode) for row in sorted(rows, key=key_fn)]
