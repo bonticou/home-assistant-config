@@ -4544,12 +4544,9 @@ views:
                 header:
                   - justify-self: stretch
                   - align-self: start
-                  - width: 100%
                 rows:
                   - justify-self: stretch
                   - align-self: start
-                  - width: 100%
-                  - text-align: left
             extra_styles: &wine_screener_card_extra |
               .wine-screener-header {
                 display: flex;
@@ -4592,11 +4589,11 @@ views:
                 white-space: nowrap;
               }
               .wine-stat-row {
-                display: grid;
-                grid-template-columns: minmax(0, 1fr) auto;
+                display: flex;
+                justify-content: flex-start;
                 align-items: baseline;
+                flex-wrap: wrap;
                 gap: 10px;
-                width: 100%;
                 padding: 5px 0;
                 border-top: 1px solid rgba(148, 163, 184, 0.12);
               }
@@ -4619,8 +4616,8 @@ views:
                 font-size: 13px;
                 font-weight: 600;
                 font-variant-numeric: tabular-nums;
-                justify-self: end;
-                text-align: right;
+                justify-self: start;
+                text-align: left;
               }
               .wine-bottle-row {
                 display: grid;
