@@ -83,6 +83,7 @@ def inventory_rows(csv_text):
             "region": clean(row.get("Region")),
             "style": normalize_style(row.get("Style")),
             "vintage": clean(row.get("Vintage")),
+            "vintage_year": parse_int(row.get("Vintage")),
             "qty": qty,
             "from_year": parse_int(row.get("From")),
             "to_year": parse_int(row.get("To")),
@@ -119,27 +120,11 @@ def bucket_row(row, mode):
 
 
 def sort_bucket(rows, mode):
-    if mode == "hold":
-        key_fn = lambda row: (
-            row["from_year"] or 9999,
-            -row["qty"],
-            row["to_year"] or 9999,
-            display_name(row).lower(),
-        )
-    elif mode == "mature":
-        key_fn = lambda row: (
-            -row["qty"],
-            row["to_year"] or 9999,
-            row["from_year"] or 9999,
-            display_name(row).lower(),
-        )
-    else:
-        key_fn = lambda row: (
-            -row["qty"],
-            row["from_year"] or 9999,
-            row["to_year"] or 9999,
-            display_name(row).lower(),
-        )
+    key_fn = lambda row: (
+        row["vintage_year"] or 9999,
+        display_name(row).lower(),
+        bottle_kind(row).lower(),
+    )
     return [bucket_row(row, mode) for row in sorted(rows, key=key_fn)]
 
 
