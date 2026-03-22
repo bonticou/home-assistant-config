@@ -4557,41 +4557,10 @@ views:
                 gap: 12px;
               }
               .wine-screener-title {
-                display: flex;
-                align-items: center;
-                gap: 10px;
                 color: #f8fafc;
                 font-size: 21px;
                 font-weight: 560;
                 letter-spacing: -0.02em;
-              }
-              .wine-screener-title-icon {
-                display: inline-flex;
-                align-items: center;
-                justify-content: center;
-                width: 22px;
-                height: 22px;
-                border-radius: 999px;
-                flex: none;
-              }
-              .wine-screener-title-icon ha-icon {
-                --mdc-icon-size: 14px;
-              }
-              .wine-icon-mature {
-                color: #fbbf24;
-                background: rgba(251, 191, 36, 0.14);
-              }
-              .wine-icon-stabilizing {
-                color: #38bdf8;
-                background: rgba(56, 189, 248, 0.14);
-              }
-              .wine-icon-early {
-                color: #f472b6;
-                background: rgba(244, 114, 182, 0.14);
-              }
-              .wine-icon-hold {
-                color: #a78bfa;
-                background: rgba(167, 139, 250, 0.14);
               }
               .wine-screener-meta {
                 color: rgba(226, 232, 240, 0.62);
@@ -4602,10 +4571,11 @@ views:
                 white-space: nowrap;
               }
               .wine-stat-row {
-                display: grid;
-                grid-template-columns: minmax(0, 1fr) auto;
+                display: flex;
+                justify-content: flex-start;
+                align-items: baseline;
+                flex-wrap: wrap;
                 gap: 10px;
-                align-items: center;
                 padding: 5px 0;
                 border-top: 1px solid rgba(148, 163, 184, 0.12);
               }
@@ -4614,7 +4584,6 @@ views:
                 padding-top: 0;
               }
               .wine-stat-label {
-                display: block;
                 color: rgba(248, 250, 252, 0.92);
                 font-size: 13px;
                 line-height: 1.25;
@@ -4628,6 +4597,7 @@ views:
                 align-items: center;
                 justify-content: flex-start;
                 min-width: 0;
+                width: 100%;
               }
               .wine-stat-label-text {
                 min-width: 0;
@@ -4642,17 +4612,20 @@ views:
                 transform: translateY(1px);
               }
               .wine-stat-value {
-                justify-self: end;
+                justify-self: start;
                 color: rgba(226, 232, 240, 0.82);
                 font-size: 13px;
                 font-weight: 600;
                 font-variant-numeric: tabular-nums;
+                text-align: left;
               }
               .wine-bottle-row {
-                display: grid;
-                grid-template-columns: 28px minmax(0, 1fr) auto;
-                gap: 10px;
+                display: flex;
+                justify-content: flex-start;
                 align-items: baseline;
+                flex-wrap: nowrap;
+                gap: 10px;
+                min-width: 0;
                 padding: 6px 0;
                 border-top: 1px solid rgba(148, 163, 184, 0.12);
               }
@@ -4661,6 +4634,7 @@ views:
                 padding-top: 0;
               }
               .wine-bottle-qty {
+                flex: 0 0 28px;
                 color: rgba(148, 163, 184, 0.92);
                 font-size: 12px;
                 font-weight: 600;
@@ -4668,19 +4642,24 @@ views:
                 font-family: ui-monospace, SFMono-Regular, SF Mono, Menlo, monospace;
               }
               .wine-bottle-name {
+                flex: 0 1 auto;
+                min-width: 0;
                 color: #f8fafc;
                 font-size: 13px;
                 line-height: 1.25;
+                text-align: left;
                 white-space: nowrap;
                 overflow: hidden;
                 text-overflow: ellipsis;
               }
               .wine-bottle-kind {
+                flex: 0 0 auto;
                 color: rgba(226, 232, 240, 0.7);
                 font-size: 12px;
                 line-height: 1.2;
                 white-space: nowrap;
-                margin-left: 4px;
+                margin-left: 0;
+                text-align: left;
               }
           - type: custom:button-card
             show_icon: false
@@ -4729,15 +4708,16 @@ views:
             extra_styles: *wine_screener_card_extra
 
       - type: custom:button-card
-        show_icon: false
+        show_icon: true
         show_name: false
         show_state: false
+        icon: mdi:check-decagram-outline
         custom_fields:
           header: >-
             [[[
               const snapshot = hass.states['sensor.wine_collection_snapshot']?.attributes || {};
               const total = Number(snapshot.mature_total);
-              return `<div class="wine-screener-header"><div class="wine-screener-title"><span class="wine-screener-title-icon wine-icon-mature"><ha-icon icon="mdi:check-decagram-outline"></ha-icon></span><span>Mature</span></div><div class="wine-screener-meta">${Number.isFinite(total) ? total : 19} bottles</div></div>`;
+              return `<div class="wine-screener-header"><div class="wine-screener-title">Mature</div><div class="wine-screener-meta">${Number.isFinite(total) ? total : 19} bottles</div></div>`;
             ]]]
           rows: >-
             [[[
@@ -4753,19 +4733,33 @@ views:
         tap_action:
           action: url
           url_path: https://docs.google.com/spreadsheets/d/13f61tOxK8E61GL3phvjiBzCuyYRybymtKPGOduIOvDc/edit?gid=1865301611#gid=1865301611
-        styles: *wine_screener_card_styles
+        styles:
+          <<: *wine_screener_card_styles
+          grid:
+            - grid-template-areas: '"i header" "rows rows"'
+            - grid-template-columns: auto minmax(0, 1fr)
+            - column-gap: 10px
+            - row-gap: 10px
+          icon:
+            - color: '#fbbf24'
+            - width: 18px
+            - height: 18px
+            - justify-self: start
+            - align-self: center
+            - margin-top: 2px
         extra_styles: *wine_screener_card_extra
 
       - type: custom:button-card
-        show_icon: false
+        show_icon: true
         show_name: false
         show_state: false
+        icon: mdi:chart-line
         custom_fields:
           header: >-
             [[[
               const snapshot = hass.states['sensor.wine_collection_snapshot']?.attributes || {};
               const total = Number(snapshot.stabilizing_total);
-              return `<div class="wine-screener-header"><div class="wine-screener-title"><span class="wine-screener-title-icon wine-icon-stabilizing"><ha-icon icon="mdi:chart-line"></ha-icon></span><span>Stabilizing</span></div><div class="wine-screener-meta">${Number.isFinite(total) ? total : 35} bottles</div></div>`;
+              return `<div class="wine-screener-header"><div class="wine-screener-title">Stabilizing</div><div class="wine-screener-meta">${Number.isFinite(total) ? total : 35} bottles</div></div>`;
             ]]]
           rows: >-
             [[[
@@ -4781,19 +4775,33 @@ views:
         tap_action:
           action: url
           url_path: https://docs.google.com/spreadsheets/d/13f61tOxK8E61GL3phvjiBzCuyYRybymtKPGOduIOvDc/edit?gid=1865301611#gid=1865301611
-        styles: *wine_screener_card_styles
+        styles:
+          <<: *wine_screener_card_styles
+          grid:
+            - grid-template-areas: '"i header" "rows rows"'
+            - grid-template-columns: auto minmax(0, 1fr)
+            - column-gap: 10px
+            - row-gap: 10px
+          icon:
+            - color: '#60a5fa'
+            - width: 18px
+            - height: 18px
+            - justify-self: start
+            - align-self: center
+            - margin-top: 2px
         extra_styles: *wine_screener_card_extra
 
       - type: custom:button-card
-        show_icon: false
+        show_icon: true
         show_name: false
         show_state: false
+        icon: mdi:glass-wine
         custom_fields:
           header: >-
             [[[
               const snapshot = hass.states['sensor.wine_collection_snapshot']?.attributes || {};
               const total = Number(snapshot.early_total);
-              return `<div class="wine-screener-header"><div class="wine-screener-title"><span class="wine-screener-title-icon wine-icon-early"><ha-icon icon="mdi:glass-wine"></ha-icon></span><span>Early but open</span></div><div class="wine-screener-meta">${Number.isFinite(total) ? total : 16} bottles</div></div>`;
+              return `<div class="wine-screener-header"><div class="wine-screener-title">Early but open</div><div class="wine-screener-meta">${Number.isFinite(total) ? total : 16} bottles</div></div>`;
             ]]]
           rows: >-
             [[[
@@ -4809,19 +4817,33 @@ views:
         tap_action:
           action: url
           url_path: https://docs.google.com/spreadsheets/d/13f61tOxK8E61GL3phvjiBzCuyYRybymtKPGOduIOvDc/edit?gid=1865301611#gid=1865301611
-        styles: *wine_screener_card_styles
+        styles:
+          <<: *wine_screener_card_styles
+          grid:
+            - grid-template-areas: '"i header" "rows rows"'
+            - grid-template-columns: auto minmax(0, 1fr)
+            - column-gap: 10px
+            - row-gap: 10px
+          icon:
+            - color: '#f472b6'
+            - width: 18px
+            - height: 18px
+            - justify-self: start
+            - align-self: center
+            - margin-top: 2px
         extra_styles: *wine_screener_card_extra
 
       - type: custom:button-card
-        show_icon: false
+        show_icon: true
         show_name: false
         show_state: false
+        icon: mdi:timer-sand
         custom_fields:
           header: >-
             [[[
               const snapshot = hass.states['sensor.wine_collection_snapshot']?.attributes || {};
               const total = Number(snapshot.hold_total);
-              return `<div class="wine-screener-header"><div class="wine-screener-title"><span class="wine-screener-title-icon wine-icon-hold"><ha-icon icon="mdi:timer-sand"></ha-icon></span><span>Hold list</span></div><div class="wine-screener-meta">${Number.isFinite(total) ? total : 12} bottles</div></div>`;
+              return `<div class="wine-screener-header"><div class="wine-screener-title">Hold list</div><div class="wine-screener-meta">${Number.isFinite(total) ? total : 12} bottles</div></div>`;
             ]]]
           rows: >-
             [[[
@@ -4837,7 +4859,20 @@ views:
         tap_action:
           action: url
           url_path: https://docs.google.com/spreadsheets/d/13f61tOxK8E61GL3phvjiBzCuyYRybymtKPGOduIOvDc/edit?gid=1865301611#gid=1865301611
-        styles: *wine_screener_card_styles
+        styles:
+          <<: *wine_screener_card_styles
+          grid:
+            - grid-template-areas: '"i header" "rows rows"'
+            - grid-template-columns: auto minmax(0, 1fr)
+            - column-gap: 10px
+            - row-gap: 10px
+          icon:
+            - color: '#c084fc'
+            - width: 18px
+            - height: 18px
+            - justify-self: start
+            - align-self: center
+            - margin-top: 2px
         extra_styles: *wine_screener_card_extra
 
       - type: custom:popup-card
