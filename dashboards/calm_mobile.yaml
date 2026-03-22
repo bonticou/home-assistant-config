@@ -4569,11 +4569,10 @@ views:
                 white-space: nowrap;
               }
               .wine-stat-row {
-                display: flex;
-                justify-content: flex-start;
-                align-items: baseline;
-                flex-wrap: wrap;
+                display: grid;
+                grid-template-columns: minmax(0, 1fr) auto;
                 gap: 10px;
+                align-items: center;
                 padding: 5px 0;
                 border-top: 1px solid rgba(148, 163, 184, 0.12);
               }
@@ -4582,6 +4581,8 @@ views:
                 padding-top: 0;
               }
               .wine-stat-label {
+                display: block;
+                min-width: 0;
                 color: rgba(248, 250, 252, 0.92);
                 font-size: 13px;
                 line-height: 1.25;
@@ -4595,7 +4596,6 @@ views:
                 align-items: center;
                 justify-content: flex-start;
                 min-width: 0;
-                width: 100%;
               }
               .wine-stat-label-text {
                 min-width: 0;
@@ -4610,20 +4610,18 @@ views:
                 transform: translateY(1px);
               }
               .wine-stat-value {
-                justify-self: start;
+                justify-self: end;
                 color: rgba(226, 232, 240, 0.82);
                 font-size: 13px;
                 font-weight: 600;
                 font-variant-numeric: tabular-nums;
-                text-align: left;
+                text-align: right;
               }
               .wine-bottle-row {
-                display: flex;
-                justify-content: flex-start;
+                display: grid;
+                grid-template-columns: 28px minmax(0, 1fr) auto;
                 align-items: baseline;
-                flex-wrap: nowrap;
                 gap: 10px;
-                min-width: 0;
                 padding: 6px 0;
                 border-top: 1px solid rgba(148, 163, 184, 0.12);
               }
@@ -4632,7 +4630,6 @@ views:
                 padding-top: 0;
               }
               .wine-bottle-qty {
-                flex: 0 0 28px;
                 color: rgba(148, 163, 184, 0.92);
                 font-size: 12px;
                 font-weight: 600;
@@ -4640,7 +4637,6 @@ views:
                 font-family: ui-monospace, SFMono-Regular, SF Mono, Menlo, monospace;
               }
               .wine-bottle-name {
-                flex: 0 1 auto;
                 min-width: 0;
                 color: #f8fafc;
                 font-size: 13px;
@@ -4651,13 +4647,13 @@ views:
                 text-overflow: ellipsis;
               }
               .wine-bottle-kind {
-                flex: 0 0 auto;
+                justify-self: end;
                 color: rgba(226, 232, 240, 0.7);
                 font-size: 12px;
                 line-height: 1.2;
                 white-space: nowrap;
-                margin-left: 0;
-                text-align: left;
+                margin-left: 4px;
+                text-align: right;
               }
           - type: custom:button-card
             show_icon: false
