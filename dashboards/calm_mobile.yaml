@@ -4510,9 +4510,7 @@ views:
             custom_fields:
               header: >-
                 [[[
-                  const snapshot = hass.states['sensor.wine_collection_snapshot']?.attributes || {};
-                  const readyTotal = Number(snapshot.ready_total);
-                  return `<div class="wine-screener-header"><div class="wine-screener-title">Ready styles</div><div class="wine-screener-meta">${Number.isFinite(readyTotal) ? readyTotal : 70} ready</div></div>`;
+                  return `<div class="wine-screener-header"><div class="wine-screener-title">Ready styles</div></div>`;
                 ]]]
               rows: >-
                 [[[
@@ -4668,7 +4666,7 @@ views:
             custom_fields:
               header: >-
                 [[[
-                  return `<div class="wine-screener-header"><div class="wine-screener-title">Ready regions</div><div class="wine-screener-meta">top regions</div></div>`;
+                  return `<div class="wine-screener-header"><div class="wine-screener-title">Ready regions</div></div>`;
                 ]]]
               rows: >-
                 [[[
