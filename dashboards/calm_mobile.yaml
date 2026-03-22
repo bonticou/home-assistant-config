@@ -4589,6 +4589,12 @@ views:
                 overflow: hidden;
                 text-overflow: ellipsis;
               }
+              .wine-stat-flag {
+                display: inline-block;
+                margin-right: 8px;
+                font-size: 15px;
+                transform: translateY(1px);
+              }
               .wine-stat-value {
                 color: rgba(226, 232, 240, 0.82);
                 font-size: 13px;
@@ -4648,7 +4654,26 @@ views:
                     { label: 'Tuscany', value: 13 },
                     { label: 'Mendoza', value: 3 },
                   ];
-                  return rows.map((row) => `<div class="wine-stat-row"><span class="wine-stat-label">${row.label}</span><span class="wine-stat-value">${row.value}</span></div>`).join('');
+                  const flags = {
+                    Piedmont: '🇮🇹',
+                    Tuscany: '🇮🇹',
+                    Bordeaux: '🇫🇷',
+                    Burgundy: '🇫🇷',
+                    Champagne: '🇫🇷',
+                    California: '🇺🇸',
+                    Oregon: '🇺🇸',
+                    Washington: '🇺🇸',
+                    Mendoza: '🇦🇷',
+                    Rioja: '🇪🇸',
+                    Douro: '🇵🇹',
+                    Mosel: '🇩🇪',
+                    Barossa: '🇦🇺',
+                    Stellenbosch: '🇿🇦',
+                  };
+                  return rows.map((row) => {
+                    const flag = flags[row.label] || '🍷';
+                    return `<div class="wine-stat-row"><span class="wine-stat-label"><span class="wine-stat-flag">${flag}</span>${row.label}</span><span class="wine-stat-value">${row.value}</span></div>`;
+                  }).join('');
                 ]]]
             tap_action:
               action: url
