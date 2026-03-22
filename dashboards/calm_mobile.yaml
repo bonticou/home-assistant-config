@@ -4452,7 +4452,7 @@ views:
                 entity_id: sensor.wine_collection_snapshot
             hold_action:
               action: url
-              url_path: https://docs.google.com/spreadsheets/d/13f61tOxK8E61GL3phvjiBzCuyYRybymtKPGOduIOvDc/edit?gid=1865301611#gid=1865301611
+              url_path: https://docs.google.com/spreadsheets/d/1XBYnqfFw7ggvTGqqeNdX6AaFtzQNf_lKnQHAzyPPA58/edit?usp=sharing
           - type: template
             icon: mdi:bottle-wine-outline
             icon_color: teal
@@ -4461,7 +4461,7 @@ views:
               {{ (total | int ~ ' total') if total is not none else '92 total' }}
             tap_action:
               action: url
-              url_path: https://docs.google.com/spreadsheets/d/13f61tOxK8E61GL3phvjiBzCuyYRybymtKPGOduIOvDc/edit?gid=1865301611#gid=1865301611
+              url_path: https://docs.google.com/spreadsheets/d/1XBYnqfFw7ggvTGqqeNdX6AaFtzQNf_lKnQHAzyPPA58/edit?usp=sharing
           - type: template
             icon: mdi:glass-wine
             icon_color: pink
@@ -4470,7 +4470,7 @@ views:
               {{ (ready | int ~ ' ready now') if ready is not none else '70 ready now' }}
             tap_action:
               action: url
-              url_path: https://docs.google.com/spreadsheets/d/13f61tOxK8E61GL3phvjiBzCuyYRybymtKPGOduIOvDc/edit?gid=1865301611#gid=1865301611
+              url_path: https://docs.google.com/spreadsheets/d/1XBYnqfFw7ggvTGqqeNdX6AaFtzQNf_lKnQHAzyPPA58/edit?usp=sharing
           - type: template
             icon: mdi:check-decagram-outline
             icon_color: amber
@@ -4479,7 +4479,7 @@ views:
               {{ (mature | int ~ ' mature') if mature is not none else '19 mature' }}
             tap_action:
               action: url
-              url_path: https://docs.google.com/spreadsheets/d/13f61tOxK8E61GL3phvjiBzCuyYRybymtKPGOduIOvDc/edit?gid=1865301611#gid=1865301611
+              url_path: https://docs.google.com/spreadsheets/d/1XBYnqfFw7ggvTGqqeNdX6AaFtzQNf_lKnQHAzyPPA58/edit?usp=sharing
           - type: template
             icon: mdi:chart-line
             icon_color: blue
@@ -4488,7 +4488,7 @@ views:
               {{ (stabilizing | int ~ ' stabilizing') if stabilizing is not none else '35 stabilizing' }}
             tap_action:
               action: url
-              url_path: https://docs.google.com/spreadsheets/d/13f61tOxK8E61GL3phvjiBzCuyYRybymtKPGOduIOvDc/edit?gid=1865301611#gid=1865301611
+              url_path: https://docs.google.com/spreadsheets/d/1XBYnqfFw7ggvTGqqeNdX6AaFtzQNf_lKnQHAzyPPA58/edit?usp=sharing
           - type: template
             icon: mdi:timer-sand
             icon_color: purple
@@ -4497,7 +4497,7 @@ views:
               {{ (hold | int ~ ' hold') if hold is not none else '12 hold' }}
             tap_action:
               action: url
-              url_path: https://docs.google.com/spreadsheets/d/13f61tOxK8E61GL3phvjiBzCuyYRybymtKPGOduIOvDc/edit?gid=1865301611#gid=1865301611
+              url_path: https://docs.google.com/spreadsheets/d/1XBYnqfFw7ggvTGqqeNdX6AaFtzQNf_lKnQHAzyPPA58/edit?usp=sharing
 
       - type: grid
         columns: 2
@@ -4526,7 +4526,7 @@ views:
                 ]]]
             tap_action:
               action: url
-              url_path: https://docs.google.com/spreadsheets/d/13f61tOxK8E61GL3phvjiBzCuyYRybymtKPGOduIOvDc/edit?gid=1865301611#gid=1865301611
+              url_path: https://docs.google.com/spreadsheets/d/1XBYnqfFw7ggvTGqqeNdX6AaFtzQNf_lKnQHAzyPPA58/edit?usp=sharing
             styles: &wine_screener_card_styles
               card:
                 - border-radius: 24px
@@ -4697,7 +4697,7 @@ views:
                 ]]]
             tap_action:
               action: url
-              url_path: https://docs.google.com/spreadsheets/d/13f61tOxK8E61GL3phvjiBzCuyYRybymtKPGOduIOvDc/edit?gid=1865301611#gid=1865301611
+              url_path: https://docs.google.com/spreadsheets/d/1XBYnqfFw7ggvTGqqeNdX6AaFtzQNf_lKnQHAzyPPA58/edit?usp=sharing
             styles: *wine_screener_card_styles
             extra_styles: *wine_screener_card_extra
 
@@ -4726,7 +4726,7 @@ views:
             ]]]
         tap_action:
           action: url
-          url_path: https://docs.google.com/spreadsheets/d/13f61tOxK8E61GL3phvjiBzCuyYRybymtKPGOduIOvDc/edit?gid=1865301611#gid=1865301611
+          url_path: https://docs.google.com/spreadsheets/d/1XBYnqfFw7ggvTGqqeNdX6AaFtzQNf_lKnQHAzyPPA58/edit?usp=sharing
         styles:
           <<: *wine_screener_card_styles
           grid:
@@ -4768,7 +4768,7 @@ views:
             ]]]
         tap_action:
           action: url
-          url_path: https://docs.google.com/spreadsheets/d/13f61tOxK8E61GL3phvjiBzCuyYRybymtKPGOduIOvDc/edit?gid=1865301611#gid=1865301611
+          url_path: https://docs.google.com/spreadsheets/d/1XBYnqfFw7ggvTGqqeNdX6AaFtzQNf_lKnQHAzyPPA58/edit?usp=sharing
         styles:
           <<: *wine_screener_card_styles
           grid:
@@ -4810,7 +4810,7 @@ views:
             ]]]
         tap_action:
           action: url
-          url_path: https://docs.google.com/spreadsheets/d/13f61tOxK8E61GL3phvjiBzCuyYRybymtKPGOduIOvDc/edit?gid=1865301611#gid=1865301611
+          url_path: https://docs.google.com/spreadsheets/d/1XBYnqfFw7ggvTGqqeNdX6AaFtzQNf_lKnQHAzyPPA58/edit?usp=sharing
         styles:
           <<: *wine_screener_card_styles
           grid:
@@ -4852,7 +4852,7 @@ views:
             ]]]
         tap_action:
           action: url
-          url_path: https://docs.google.com/spreadsheets/d/13f61tOxK8E61GL3phvjiBzCuyYRybymtKPGOduIOvDc/edit?gid=1865301611#gid=1865301611
+          url_path: https://docs.google.com/spreadsheets/d/1XBYnqfFw7ggvTGqqeNdX6AaFtzQNf_lKnQHAzyPPA58/edit?usp=sharing
         styles:
           <<: *wine_screener_card_styles
           grid:

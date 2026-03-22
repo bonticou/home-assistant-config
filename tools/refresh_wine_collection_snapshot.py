@@ -10,16 +10,9 @@ from urllib.error import URLError
 from urllib.request import Request, urlopen
 
 
-SHEET_ID = "13f61tOxK8E61GL3phvjiBzCuyYRybymtKPGOduIOvDc"
-SHEET_GID = "1865301611"
-SHEET_URL = (
-    f"https://docs.google.com/spreadsheets/d/{SHEET_ID}/edit"
-    f"?gid={SHEET_GID}#gid={SHEET_GID}"
-)
-CSV_URL = (
-    f"https://docs.google.com/spreadsheets/d/{SHEET_ID}/export"
-    f"?format=csv&gid={SHEET_GID}"
-)
+SHEET_ID = "1XBYnqfFw7ggvTGqqeNdX6AaFtzQNf_lKnQHAzyPPA58"
+SHEET_URL = f"https://docs.google.com/spreadsheets/d/{SHEET_ID}/edit?usp=sharing"
+CSV_URL = f"https://docs.google.com/spreadsheets/d/{SHEET_ID}/gviz/tq?tqx=out:csv"
 READY_PHASES = {"early", "stabilizing", "mature"}
 HOLD_PHASES = {"premature"}
 STYLE_ALIASES = {
