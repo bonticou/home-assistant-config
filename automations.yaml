@@ -21,28 +21,61 @@
       title: Noise Detected
   mode: single
 
-- id: '1769637453428'
-  alias: Security Alert - Garage door unlocked
-  description: Notify if Trevor leaves home while the garage lock is still unlocked.
+- id: camera_latest_motion_tracker
+  alias: "Cameras - Latest Motion Tracker"
+  description: Stores the most recent real camera motion-style event for the Home header.
   triggers:
-  - trigger: zone
-    entity_id: device_tracker.tk_iphone_16_pro
-    zone: zone.home
-    event: leave
+    - trigger: event
+      event_type: state_changed
   conditions:
-  - condition: state
-    entity_id: lock.aqara_smart_lock_u100
-    state: unlocked
-  - condition: state
-    entity_id: device_tracker.unifi_default_42_15_78_4a_d9_f8
-    state: home
+    - condition: template
+      value_template: >-
+        {% set entity = trigger.event.data.entity_id | default('') %}
+        {% set new = trigger.event.data.new_state %}
+        {% set old = trigger.event.data.old_state %}
+        {% set motion_sources = {
+          'binary_sensor.g6_instant_motion': 'Play Room',
+          'binary_sensor.g6_instant_motion_2': 'Front Yard',
+          'binary_sensor.wynn_s_room_motion': "Wynn's Room",
+          'binary_sensor.wynn_s_room_person_detected': "Wynn's Room",
+          'binary_sensor.mud_room_motion': 'Mud Room',
+          'binary_sensor.mud_room_person_detected': 'Mud Room'
+        } %}
+        {% if entity.startswith('binary_sensor.') and new is not none and new.state == 'on' and (old is none or old.state != 'on') %}
+          {{ entity in motion_sources }}
+        {% else %}
+          false
+        {% endif %}
   actions:
-  - action: notify.mobile_app_tk_iphone_16_pro
-    metadata: {}
-    data:
-      message: Garage door is unlocked
-      title: Security Alert
-  mode: single
+    - variables:
+        entity: "{{ trigger.event.data.entity_id }}"
+        label: >-
+          {% set motion_sources = {
+            'binary_sensor.g6_instant_motion': 'Play Room',
+            'binary_sensor.g6_instant_motion_2': 'Front Yard',
+            'binary_sensor.wynn_s_room_motion': "Wynn's Room",
+            'binary_sensor.wynn_s_room_person_detected': "Wynn's Room",
+            'binary_sensor.mud_room_motion': 'Mud Room',
+            'binary_sensor.mud_room_person_detected': 'Mud Room'
+          } %}
+          {{ motion_sources.get(entity, state_attr(entity, 'friendly_name') or entity) }}
+    - action: input_datetime.set_datetime
+      target:
+        entity_id: input_datetime.latest_camera_motion_at
+      data:
+        datetime: "{{ now().strftime('%Y-%m-%d %H:%M:%S') }}"
+    - action: input_text.set_value
+      target:
+        entity_id: input_text.latest_camera_motion_label
+      data:
+        value: "{{ label }}"
+    - action: input_text.set_value
+      target:
+        entity_id: input_text.latest_camera_motion_entity
+      data:
+        value: "{{ entity }}"
+  mode: queued
+  max: 20
 
 - id: water_overnight_continuous_flow
   alias: "Water — Overnight Continuous Flow (Running Toilet)"
@@ -60,9 +93,9 @@
       after: "00:00:00"
       before: "06:00:00"
   actions:
-    - action: notify.mobile_app_tk_iphone_16_pro
+    - action: script.water_send_alert
       data:
-        title: "Water Running Overnight"
+        alert_kind: overnight_flow
         message: >
           Flow has been {{ states('sensor.flo_shutoff_water_flow_rate') }} gal/min
           for 10+ minutes. Possible running toilet or dripping fixture.
@@ -85,9 +118,9 @@
       after: "06:00:00"
       before: "23:59:59"
   actions:
-    - action: notify.mobile_app_tk_iphone_16_pro
+    - action: script.water_send_alert
       data:
-        title: "Sustained Water Flow"
+        alert_kind: sustained_flow
         message: >
           Water has been flowing at
           {{ states('sensor.flo_shutoff_water_flow_rate') }} gal/min
@@ -108,9 +141,10 @@
       after: "06:00:00"
       before: "23:59:59"
   actions:
-    - action: notify.mobile_app_tk_iphone_16_pro
+    - action: script.water_send_alert
       data:
-        title: "Very High Water Flow"
+        alert_kind: burst_day
+        severity: critical
         message: >
           Flow rate is {{ states('sensor.flo_shutoff_water_flow_rate') }} gal/min
           well above normal. Possible pipe burst. Check immediately or shut off
@@ -131,13 +165,51 @@
       after: "00:00:00"
       before: "06:00:00"
   actions:
-    - action: notify.mobile_app_tk_iphone_16_pro
+    - action: script.water_send_alert
       data:
-        title: "Water Burst Overnight"
+        alert_kind: burst_night
+        severity: critical
         message: >
           URGENT: Flow rate is {{ states('sensor.flo_shutoff_water_flow_rate') }} gal/min
           at {{ now().strftime('%I:%M %p') }}. No one should be using water.
           Possible pipe burst, consider shutting off valve immediately.
+  mode: single
+
+- id: water_pressure_drop_sudden
+  alias: "Water — Pressure Drop (Sudden)"
+  description: Early warning when water pressure falls sharply while the valve is open.
+  triggers:
+    - trigger: numeric_state
+      entity_id: sensor.flo_shutoff_water_pressure
+      below: 50
+      for:
+        minutes: 1
+  conditions:
+    - condition: state
+      entity_id: switch.flo_shutoff_shutoff_valve
+      state: "on"
+    - condition: template
+      value_template: >-
+        {% set previous_pressure = trigger.from_state.state | float(0) if trigger.from_state is not none else 0 %}
+        {% set current_pressure = states('sensor.flo_shutoff_water_pressure') | float(0) %}
+        {{ previous_pressure - current_pressure >= 12 }}
+  actions:
+    - variables:
+        previous_pressure: >-
+          {{ trigger.from_state.state | float(0) | round(0) if trigger.from_state is not none else 0 }}
+        current_pressure: "{{ states('sensor.flo_shutoff_water_pressure') | float(0) | round(0) }}"
+        current_flow: "{{ states('sensor.flo_shutoff_water_flow_rate') | float(0) | round(2) }}"
+        pressure_drop: >-
+          {% set previous_pressure = trigger.from_state.state | float(0) if trigger.from_state is not none else 0 %}
+          {% set current_pressure = states('sensor.flo_shutoff_water_pressure') | float(0) %}
+          {{ (previous_pressure - current_pressure) | round(0) }}
+    - action: script.water_send_alert
+      data:
+        alert_kind: pressure_drop
+        message: >-
+          Pressure fell from {{ previous_pressure }} psi to {{ current_pressure }} psi
+          (down {{ pressure_drop }} psi) with flow at {{ current_flow }} gal/min.
+          This was a sudden drop below 50 psi. Check for a developing water issue.{% if current_flow | float(0) > 1.5 %} Sprinklers on?{% endif %}
   mode: single
 
 - id: water_low_pressure
@@ -149,15 +221,21 @@
       below: 40
       for:
         minutes: 5
-  conditions: []
+  conditions:
+    - condition: state
+      entity_id: switch.flo_shutoff_shutoff_valve
+      state: "on"
   actions:
-    - action: notify.mobile_app_tk_iphone_16_pro
+    - variables:
+        current_pressure: "{{ states('sensor.flo_shutoff_water_pressure') | float(0) | round(0) }}"
+        current_flow: "{{ states('sensor.flo_shutoff_water_flow_rate') | float(0) | round(2) }}"
+    - action: script.water_send_alert
       data:
-        title: "Low Water Pressure"
-        message: >
-          Pressure has dropped to {{ states('sensor.flo_shutoff_water_pressure') }} psi
-          (normal ~58 psi) for 5+ minutes. Could indicate pump issue, blockage,
-          or a significant leak.
+        alert_kind: low_pressure
+        message: >-
+          Pressure is down to {{ current_pressure }} psi with flow at {{ current_flow }} gal/min.
+          It has stayed below 40 psi for 5+ minutes. Could indicate pump issue,
+          blockage, or a significant leak.{% if current_flow | float(0) > 1.5 %} Sprinklers on?{% endif %}
   mode: single
 
 - id: water_high_pressure
@@ -171,9 +249,9 @@
         minutes: 5
   conditions: []
   actions:
-    - action: notify.mobile_app_tk_iphone_16_pro
+    - action: script.water_send_alert
       data:
-        title: "High Water Pressure"
+        alert_kind: high_pressure
         message: >
           Pressure is {{ states('sensor.flo_shutoff_water_pressure') }} psi
           above safe limit of 80 psi. Check pressure reducing valve (PRV).
@@ -190,9 +268,9 @@
       entity_id: sensor.flo_shutoff_today_s_water_usage
       above: 400
   actions:
-    - action: notify.mobile_app_tk_iphone_16_pro
+    - action: script.water_send_alert
       data:
-        title: "High Water Usage Today"
+        alert_kind: usage_high
         message: >
           Today's usage is {{ states('sensor.flo_shutoff_today_s_water_usage') }} gal
           above the 400 gal threshold. Review the Water tab for unusual flow periods.
@@ -216,9 +294,10 @@
       to: "on"
   conditions: []
   actions:
-    - action: notify.mobile_app_tk_iphone_16_pro
+    - action: script.water_send_alert
       data:
-        title: "Leak Detected"
+        alert_kind: leak
+        severity: critical
         message: >
           Water detected at {{ trigger.to_state.attributes.friendly_name }}
           at {{ now().strftime('%I:%M %p') }}. Check immediately.
@@ -235,9 +314,10 @@
       to: "off"
   conditions: []
   actions:
-    - action: notify.mobile_app_tk_iphone_16_pro
+    - action: script.water_send_alert
       data:
-        title: "Water Shutoff Valve Closed"
+        alert_kind: valve_closed
+        severity: critical
         message: >
           The Flo shutoff valve has closed at {{ now().strftime('%I:%M %p') }}.
           If this was not intentional, check the Flo app and HA Water tab.
@@ -252,15 +332,15 @@
       to: "on"
   conditions: []
   actions:
-    - action: notify.mobile_app_tk_iphone_16_pro
+    - action: script.water_send_alert
       data:
-        title: "Flo System Alert"
+        alert_kind: flo_system
         message: Flo has flagged a system alert. Check the Flo app for details.
   mode: single
 
 - id: door_lights_schedule_sync
   alias: "Lights — Door Lights Schedule Sync"
-  description: Keep the front door lights synced to the sunset/sunrise schedule and restore the correct state on startup.
+  description: Keep the front door lights synced to the adaptive sun-elevation evening schedule and restore the correct state on startup.
   triggers:
     - trigger: homeassistant
       event: start
@@ -284,7 +364,7 @@
 
 - id: front_stairs_schedule_sync
   alias: "Lights — Front Stairs Schedule Sync"
-  description: Keep the front stairs light synced to the sunset/sunrise schedule and restore the correct state on startup.
+  description: Keep the front stairs light synced to the adaptive sun-elevation evening schedule, while honoring the bedtime 4 percent override until the overnight schedule ends.
   triggers:
     - trigger: homeassistant
       event: start
@@ -306,6 +386,84 @@
             - action: script.front_stairs_schedule_on
       default:
         - action: script.front_stairs_schedule_off
+        - action: input_boolean.turn_off
+          target:
+            entity_id: input_boolean.front_stairs_sleep_override
+  mode: single
+
+- id: foyer_chandelier_schedule_sync
+  alias: "Lights — Foyer Chandelier Schedule Sync"
+  description: Keep the foyer chandelier synced to the front stairs evening schedule while honoring the bedtime hold for the rest of the night.
+  triggers:
+    - trigger: homeassistant
+      event: start
+      id: startup
+    - trigger: time_pattern
+      minutes: "/15"
+      id: refresh
+    - trigger: state
+      entity_id: binary_sensor.front_stairs_schedule_active
+      to: "on"
+      id: schedule_on
+    - trigger: state
+      entity_id: binary_sensor.front_stairs_schedule_active
+      to: "off"
+      for:
+        minutes: 2
+      id: schedule_off
+  actions:
+    - choose:
+        - conditions:
+            - condition: trigger
+              id: schedule_off
+            - condition: state
+              entity_id: sun.sun
+              state: "above_horizon"
+          sequence:
+            - action: script.foyer_chandelier_schedule_off
+            - action: input_boolean.turn_off
+              target:
+                entity_id: input_boolean.foyer_chandelier_sleep_hold
+        - conditions:
+            - condition: trigger
+              id: schedule_on
+            - condition: state
+              entity_id: input_boolean.foyer_chandelier_sleep_hold
+              state: "off"
+          sequence:
+            - action: script.foyer_chandelier_schedule_on
+        - conditions:
+            - condition: trigger
+              id: startup
+            - condition: state
+              entity_id: binary_sensor.front_stairs_schedule_active
+              state: "off"
+          sequence:
+            - action: input_boolean.turn_off
+              target:
+                entity_id: input_boolean.foyer_chandelier_sleep_hold
+        - conditions:
+            - condition: state
+              entity_id: binary_sensor.front_stairs_schedule_active
+              state: "on"
+            - condition: state
+              entity_id: input_boolean.foyer_chandelier_sleep_hold
+              state: "off"
+          sequence:
+            - choose:
+                - conditions:
+                    - condition: template
+                      value_template: "{{ trigger.id == 'startup' }}"
+                  sequence:
+                    - action: script.foyer_chandelier_schedule_on
+                - conditions:
+                    - condition: trigger
+                      id: refresh
+                    - condition: state
+                      entity_id: light.front_foyer_chandelier
+                      state: "on"
+                  sequence:
+                    - action: script.foyer_chandelier_schedule_on
   mode: single
 
 - id: away_security_unsecured_reminder
@@ -317,19 +475,99 @@
     - trigger: state
       entity_id: binary_sensor.house_unsecured_while_away
       to: "on"
+      id: became_unsecured
+    - trigger: homeassistant
+      event: start
+      id: startup
+    - trigger: event
+      event_type: automation_reloaded
+      id: automation_reloaded
+    - trigger: state
+      entity_id: device_tracker.unifi_default_42_15_78_4a_d9_f8
+      not_from:
+        - "unknown"
+        - "unavailable"
+      not_to:
+        - "unknown"
+        - "unavailable"
+      id: casey_departed
+    - trigger: state
+      entity_id: device_tracker.tk_iphone_16_pro
+      not_from:
+        - "unknown"
+        - "unavailable"
+      not_to:
+        - "unknown"
+        - "unavailable"
+      id: trevor_departed
+    - trigger: state
+      entity_id: sensor.away_security_issue_summary
+      id: issue_changed
     - trigger: time_pattern
       minutes: "/15"
+      id: repeat
   conditions:
-    - condition: state
-      entity_id: binary_sensor.house_unsecured_while_away
-      state: "on"
     - condition: template
       value_template: >
         {% set snooze = states('input_datetime.away_security_snooze_until') %}
-        {{ snooze in ['unknown', 'unavailable', ''] or as_datetime(snooze) <= now() }}
+        {{ snooze in ['unknown', 'unavailable', '']
+           or as_timestamp(snooze, 0) <= as_timestamp(now()) }}
   actions:
-    - action: script.away_security_send_alert
-  mode: single
+    - if:
+        - condition: template
+          value_template: "{{ trigger.id == 'startup' }}"
+      then:
+        - delay:
+            seconds: 15
+    - variables:
+        trevor_state: "{{ states('device_tracker.tk_iphone_16_pro') }}"
+        casey_state: "{{ states('device_tracker.unifi_default_42_15_78_4a_d9_f8') }}"
+        trevor_away: "{{ trevor_state not in ['home', 'unknown', 'unavailable', ''] }}"
+        casey_away: "{{ casey_state not in ['home', 'unknown', 'unavailable', ''] }}"
+        use_casey_context: >
+          {{ trigger.id == 'casey_departed'
+             and trigger.from_state is not none
+             and trigger.to_state is not none
+             and trigger.from_state.state == 'home'
+             and trigger.to_state.state not in ['home', 'unknown', 'unavailable', ''] }}
+        garage_unlocked: "{{ is_state('lock.aqara_smart_lock_u100', 'unlocked') }}"
+        daylight: "{{ is_state('sun.sun', 'above_horizon') }}"
+        active_lights_on: >
+          {{ states('sensor.away_security_active_lights') | int(0) > 0 }}
+        home_unsecured: >
+          {{ trevor_away | bool
+             and casey_away | bool
+             and (garage_unlocked | bool or active_lights_on | bool) }}
+    - if:
+        - condition: template
+          value_template: "{{ home_unsecured | bool }}"
+      then:
+        - choose:
+            - conditions:
+                - condition: template
+                  value_template: >
+                    {{ use_casey_context | bool
+                       and daylight | bool
+                       and garage_unlocked | bool
+                       and active_lights_on | bool }}
+              sequence:
+                - action: script.casey_left_combo_send_alert
+            - conditions:
+                - condition: template
+                  value_template: "{{ use_casey_context | bool and garage_unlocked | bool }}"
+              sequence:
+                - action: script.casey_left_garage_send_alert
+            - conditions:
+                - condition: template
+                  value_template: >
+                    {{ use_casey_context | bool
+                       and daylight | bool
+                       and active_lights_on | bool }}
+              sequence:
+                - action: script.casey_left_lights_send_alert
+          default:
+            - action: script.away_security_send_alert
+  mode: restart
 
 - id: away_security_notification_actions
   alias: "Security — Away Reminder Actions"
@@ -342,7 +580,10 @@
       value_template: >
         {{ trigger.event.data.action in [
           'LOCK_AWAY_GARAGE',
+          'LOCK_CASEY_LEFT_GARAGE',
+          'SECURE_CASEY_LEFT_HOME',
           'TURN_OFF_AWAY_LIGHTS',
+          'TURN_OFF_CASEY_LEFT_LIGHTS',
           'SNOOZE_AWAY_SECURITY_30',
           'SNOOZE_AWAY_SECURITY_120'
         ] }}
@@ -350,7 +591,49 @@
     - choose:
         - conditions:
             - condition: template
-              value_template: "{{ trigger.event.data.action == 'LOCK_AWAY_GARAGE' }}"
+              value_template: "{{ trigger.event.data.action == 'SECURE_CASEY_LEFT_HOME' }}"
+          sequence:
+            - if:
+                - condition: state
+                  entity_id: lock.aqara_smart_lock_u100
+                  state: unlocked
+              then:
+                - action: lock.lock
+                  target:
+                    entity_id: lock.aqara_smart_lock_u100
+            - variables:
+                active_lights: >
+                  {% set light_ids = state_attr('sensor.away_security_active_lights', 'entity_ids') | default('', true) %}
+                  {{ (light_ids.split('||') if light_ids else []) | reject('eq', '') | list }}
+            - repeat:
+                for_each: "{{ active_lights }}"
+                sequence:
+                  - action: light.turn_off
+                    target:
+                      entity_id: "{{ repeat.item }}"
+            - delay:
+                seconds: 2
+            - action: script.casey_left_combo_clear_alert
+            - action: script.casey_left_garage_clear_alert
+            - action: script.casey_left_lights_clear_alert
+            - if:
+                - condition: template
+                  value_template: >
+                    {% set trevor_state = states('device_tracker.tk_iphone_16_pro') %}
+                    {% set casey_state = states('device_tracker.unifi_default_42_15_78_4a_d9_f8') %}
+                    {% set trevor_away = trevor_state not in ['home', 'unknown', 'unavailable', ''] %}
+                    {% set casey_away = casey_state not in ['home', 'unknown', 'unavailable', ''] %}
+                    {% set lights_on = states('sensor.away_security_active_lights') | int(0) > 0 %}
+                    {{ trevor_away and casey_away and
+                       (is_state('lock.aqara_smart_lock_u100', 'unlocked') or lights_on) }}
+              then:
+                - action: script.away_security_send_alert
+              else:
+                - action: script.away_security_clear_alert
+
+        - conditions:
+            - condition: template
+              value_template: "{{ trigger.event.data.action in ['LOCK_AWAY_GARAGE', 'LOCK_CASEY_LEFT_GARAGE'] }}"
           sequence:
             - if:
                 - condition: state
@@ -362,10 +645,17 @@
                     entity_id: lock.aqara_smart_lock_u100
             - delay:
                 seconds: 2
+            - action: script.casey_left_garage_clear_alert
             - if:
-                - condition: state
-                  entity_id: binary_sensor.house_unsecured_while_away
-                  state: "on"
+                - condition: template
+                  value_template: >
+                    {% set trevor_state = states('device_tracker.tk_iphone_16_pro') %}
+                    {% set casey_state = states('device_tracker.unifi_default_42_15_78_4a_d9_f8') %}
+                    {% set trevor_away = trevor_state not in ['home', 'unknown', 'unavailable', ''] %}
+                    {% set casey_away = casey_state not in ['home', 'unknown', 'unavailable', ''] %}
+                    {% set lights_on = states('sensor.away_security_active_lights') | int(0) > 0 %}
+                    {{ trevor_away and casey_away and
+                       (is_state('lock.aqara_smart_lock_u100', 'unlocked') or lights_on) }}
               then:
                 - action: script.away_security_send_alert
               else:
@@ -373,15 +663,12 @@
 
         - conditions:
             - condition: template
-              value_template: "{{ trigger.event.data.action == 'TURN_OFF_AWAY_LIGHTS' }}"
+              value_template: "{{ trigger.event.data.action in ['TURN_OFF_AWAY_LIGHTS', 'TURN_OFF_CASEY_LEFT_LIGHTS'] }}"
           sequence:
             - variables:
                 active_lights: >
-                  {{ states.light
-                    | selectattr('state', 'eq', 'on')
-                    | rejectattr('attributes.entity_id', 'defined')
-                    | map(attribute='entity_id')
-                    | list }}
+                  {% set light_ids = state_attr('sensor.away_security_active_lights', 'entity_ids') | default('', true) %}
+                  {{ (light_ids.split('||') if light_ids else []) | reject('eq', '') | list }}
             - repeat:
                 for_each: "{{ active_lights }}"
                 sequence:
@@ -390,10 +677,17 @@
                       entity_id: "{{ repeat.item }}"
             - delay:
                 seconds: 2
+            - action: script.casey_left_lights_clear_alert
             - if:
-                - condition: state
-                  entity_id: binary_sensor.house_unsecured_while_away
-                  state: "on"
+                - condition: template
+                  value_template: >
+                    {% set trevor_state = states('device_tracker.tk_iphone_16_pro') %}
+                    {% set casey_state = states('device_tracker.unifi_default_42_15_78_4a_d9_f8') %}
+                    {% set trevor_away = trevor_state not in ['home', 'unknown', 'unavailable', ''] %}
+                    {% set casey_away = casey_state not in ['home', 'unknown', 'unavailable', ''] %}
+                    {% set lights_on = states('sensor.away_security_active_lights') | int(0) > 0 %}
+                    {{ trevor_away and casey_away and
+                       (is_state('lock.aqara_smart_lock_u100', 'unlocked') or lights_on) }}
               then:
                 - action: script.away_security_send_alert
               else:
@@ -434,7 +728,6 @@
                   tag: away-security-snooze
   mode: parallel
   max: 10
-
 - id: away_security_clear_when_resolved
   alias: "Security — Clear Away Reminder When Resolved"
   description: Clears the active away-security push once the issue is resolved.
@@ -446,6 +739,135 @@
   actions:
     - action: script.away_security_clear_alert
   mode: single
+
+- id: security_casey_left_garage_clear
+  alias: "Security — Clear Casey Left Garage Alert"
+  description: Clears the contextual Casey-left-garage push once it is no longer relevant.
+  triggers:
+    - trigger: state
+      entity_id: lock.aqara_smart_lock_u100
+      to: locked
+    - trigger: state
+      entity_id: device_tracker.tk_iphone_16_pro
+      to: home
+    - trigger: state
+      entity_id: device_tracker.unifi_default_42_15_78_4a_d9_f8
+      to: home
+  conditions: []
+  actions:
+    - action: script.casey_left_garage_clear_alert
+  mode: single
+
+- id: security_casey_left_combo_clear
+  alias: "Security — Clear Casey Left Combo Alert"
+  description: Clears the contextual Casey-left combo push once it is no longer relevant.
+  triggers:
+    - trigger: state
+      entity_id: lock.aqara_smart_lock_u100
+      to: locked
+    - trigger: state
+      entity_id: sun.sun
+      to: "below_horizon"
+    - trigger: state
+      entity_id: device_tracker.tk_iphone_16_pro
+      to: home
+    - trigger: state
+      entity_id: device_tracker.unifi_default_42_15_78_4a_d9_f8
+      to: home
+    - trigger: event
+      event_type: state_changed
+      id: lights_state_changed
+  conditions:
+    - condition: template
+      value_template: >
+        {% if trigger.id == 'lights_state_changed' %}
+          {% set entity = trigger.event.data.entity_id | default('') %}
+          {{ entity.startswith('light.') }}
+        {% else %}
+          true
+        {% endif %}
+  actions:
+    - if:
+        - condition: template
+          value_template: >
+            {{ not (
+              is_state('sun.sun', 'above_horizon')
+              and states('device_tracker.tk_iphone_16_pro') not in ['home', 'unknown', 'unavailable', '']
+              and states('device_tracker.unifi_default_42_15_78_4a_d9_f8') not in ['home', 'unknown', 'unavailable', '']
+              and is_state('lock.aqara_smart_lock_u100', 'unlocked')
+              and states('sensor.away_security_active_lights') | int(0) > 0
+            ) }}
+      then:
+        - action: script.casey_left_combo_clear_alert
+  mode: single
+
+- id: security_casey_left_lights_clear
+  alias: "Security — Clear Casey Left Lights Alert"
+  description: Clears the contextual Casey-left-lights push once it is no longer relevant.
+  triggers:
+    - trigger: state
+      entity_id: sun.sun
+      to: "below_horizon"
+    - trigger: state
+      entity_id: device_tracker.tk_iphone_16_pro
+      to: home
+    - trigger: state
+      entity_id: device_tracker.unifi_default_42_15_78_4a_d9_f8
+      to: home
+    - trigger: event
+      event_type: state_changed
+      id: lights_state_changed
+  conditions:
+    - condition: template
+      value_template: >
+        {% if trigger.id == 'lights_state_changed' %}
+          {% set entity = trigger.event.data.entity_id | default('') %}
+          {{ entity.startswith('light.') }}
+        {% else %}
+          true
+        {% endif %}
+  actions:
+    - if:
+        - condition: template
+          value_template: >
+            {{ is_state('sun.sun', 'below_horizon')
+               or is_state('device_tracker.tk_iphone_16_pro', 'home')
+               or is_state('device_tracker.unifi_default_42_15_78_4a_d9_f8', 'home')
+               or states('sensor.away_security_active_lights') | int(0) == 0 }}
+      then:
+        - action: script.casey_left_lights_clear_alert
+  mode: single
+
+- id: security_entry_ring_notifications
+  alias: "Security — Entry Ring Notifications"
+  description: Sends mobile notifications for front door and mud room Ring motion and doorbell events.
+  triggers:
+    - trigger: state
+      entity_id: event.front_door_motion
+      id: front_door_motion
+    - trigger: state
+      entity_id: event.front_door_ding
+      id: front_door_ding
+    - trigger: state
+      entity_id: event.mudroom_door_motion
+      id: mudroom_door_motion
+    - trigger: state
+      entity_id: event.mudroom_door_ding
+      id: mudroom_door_ding
+  conditions:
+    - condition: template
+      value_template: >
+        {{ trigger.to_state is not none and trigger.to_state.state not in ['unknown', 'unavailable'] }}
+  actions:
+    - variables:
+        zone_name: "{{ 'Mud room' if trigger.id.startswith('mudroom') else 'Front door' }}"
+        event_kind: "{{ 'doorbell' if trigger.id.endswith('ding') else 'motion' }}"
+    - action: script.entry_camera_send_alert
+      data:
+        zone_name: "{{ zone_name }}"
+        event_kind: "{{ event_kind }}"
+  mode: parallel
+  max: 10
 
 - id: set_default_theme_liquid_glass
   alias: "Frontend — Set Liquid Glass Theme"
@@ -460,3 +882,917 @@
         name: liquid_glass
         mode: dark
   mode: single
+
+- id: downstairs_climate_pilot_startup_sync
+  alias: "Climate — Downstairs Pilot Startup Sync"
+  description: Refreshes the downstairs climate observability entities and clears stale advisory notifications on startup.
+  triggers:
+    - trigger: homeassistant
+      event: start
+  actions:
+    - action: homeassistant.update_entity
+      target:
+        entity_id:
+          - sensor.downstairs_temp_avg
+          - sensor.downstairs_humidity_avg
+          - sensor.downstairs_temp_spread
+          - sensor.downstairs_time_period
+          - sensor.downstairs_active_season
+          - sensor.downstairs_outdoor_temp
+          - sensor.downstairs_outdoor_humidity
+          - sensor.downstairs_outdoor_wind_speed
+          - sensor.downstairs_source_policy
+          - binary_sensor.downstairs_open_window_eligible
+          - sensor.downstairs_ecobee_setpoint
+          - sensor.downstairs_climate_status
+          - sensor.downstairs_climate_insight
+          - sensor.downstairs_away_watch
+          - sensor.downstairs_away_watch_reason
+          - sensor.downstairs_away_minutes
+          - binary_sensor.downstairs_temp_spread_high
+          - binary_sensor.downstairs_someone_home
+          - binary_sensor.downstairs_everyone_away
+    - choose:
+        - conditions:
+            - condition: template
+              value_template: >
+                {{ not is_state('input_boolean.downstairs_mobile_alerts_enabled', 'on')
+                   or not is_state('input_boolean.downstairs_pilot_enabled', 'on')
+                   or states('sensor.downstairs_away_watch') in ['all_clear', 'grace_period', 'home_occupied', 'unknown', 'unavailable'] }}
+          sequence:
+            - action: notify.mobile_app_tk_iphone_16_pro
+              data:
+                message: clear_notification
+                data:
+                  tag: downstairs-away-watch
+    - choose:
+        - conditions:
+            - condition: template
+              value_template: >
+                {{ not is_state('input_boolean.downstairs_mobile_alerts_enabled', 'on')
+                   or not is_state('input_boolean.downstairs_pilot_enabled', 'on')
+                   or not is_state('binary_sensor.downstairs_open_window_eligible', 'on')
+                   or not is_state('binary_sensor.downstairs_someone_home', 'on')
+                   or not is_state('sensor.downstairs_time_period', 'night') }}
+          sequence:
+            - action: notify.mobile_app_tk_iphone_16_pro
+              data:
+                message: clear_notification
+                data:
+                  tag: downstairs-window-night
+  mode: single
+
+- id: downstairs_climate_recommendation_notification
+  alias: "Climate — Downstairs Open Window Heads-Up"
+  description: Sends a calm evening heads-up when outdoor conditions favor opening windows instead of leaning on HVAC.
+  triggers:
+    - trigger: state
+      entity_id: binary_sensor.downstairs_open_window_eligible
+      to: "on"
+      for:
+        minutes: 20
+      id: send
+    - trigger: state
+      entity_id:
+        - input_boolean.downstairs_pilot_enabled
+        - input_boolean.downstairs_mobile_alerts_enabled
+        - binary_sensor.downstairs_someone_home
+        - binary_sensor.downstairs_open_window_eligible
+        - sensor.downstairs_time_period
+      id: reevaluate
+  actions:
+    - variables:
+        should_send: >
+          {{ is_state('input_boolean.downstairs_pilot_enabled', 'on')
+             and is_state('input_boolean.downstairs_mobile_alerts_enabled', 'on')
+             and is_state('binary_sensor.downstairs_someone_home', 'on')
+             and is_state('binary_sensor.downstairs_open_window_eligible', 'on')
+             and is_state('sensor.downstairs_time_period', 'night') }}
+    - choose:
+        - conditions:
+            - condition: template
+              value_template: "{{ trigger.id == 'send' and should_send }}"
+          sequence:
+            - action: notify.mobile_app_tk_iphone_16_pro
+              data:
+                title: 🪟 Good window night downstairs
+                message: >-
+                  Indoor is {{ states('sensor.downstairs_temp_avg') }}°F with {{ states('sensor.downstairs_humidity_avg') }}% humidity.
+                  Outdoor air is {{ states('sensor.downstairs_outdoor_temp') }}°F with {{ states('sensor.downstairs_outdoor_humidity') }}% humidity and {{ states('sensor.downstairs_outdoor_wind_speed') }} mph wind.
+                  Conditions look good for opening windows and coasting tonight.
+                data:
+                  tag: downstairs-window-night
+                  sticky: false
+                  ttl: 0
+                  priority: normal
+                  url: /calm-mobile/climate
+      default:
+        - action: notify.mobile_app_tk_iphone_16_pro
+          data:
+            message: clear_notification
+            data:
+              tag: downstairs-window-night
+  mode: restart
+
+- id: downstairs_climate_profile_recommendation_notification
+  alias: "Climate — Downstairs Away Watch"
+  description: Alerts when both phones are away and the downstairs climate or ecobee profile needs attention.
+  triggers:
+    - trigger: state
+      entity_id: sensor.downstairs_away_watch
+      to: too_hot
+      for:
+        minutes: 45
+      id: too_hot
+    - trigger: state
+      entity_id: sensor.downstairs_away_watch
+      to: too_cold
+      for:
+        minutes: 45
+      id: too_cold
+    - trigger: state
+      entity_id: sensor.downstairs_away_watch
+      to: too_humid
+      for:
+        minutes: 90
+      id: too_humid
+    - trigger: state
+      entity_id: sensor.downstairs_away_watch
+      to: too_dry
+      for:
+        hours: 6
+      id: too_dry
+    - trigger: state
+      entity_id: sensor.downstairs_away_watch
+      to: profile_check
+      for:
+        minutes: 20
+      id: profile_check
+    - trigger: state
+      entity_id: sensor.downstairs_away_watch
+      to:
+        - all_clear
+        - grace_period
+        - home_occupied
+      id: clear
+    - trigger: state
+      entity_id:
+        - input_boolean.downstairs_pilot_enabled
+        - input_boolean.downstairs_mobile_alerts_enabled
+      id: reevaluate
+  conditions:
+  actions:
+    - variables:
+        watch: "{{ states('sensor.downstairs_away_watch') }}"
+        reason: "{{ states('sensor.downstairs_away_watch_reason') }}"
+        should_send: >
+          {{ is_state('input_boolean.downstairs_pilot_enabled', 'on')
+             and is_state('input_boolean.downstairs_mobile_alerts_enabled', 'on')
+             and watch in ['too_hot', 'too_cold', 'too_humid', 'too_dry', 'profile_check'] }}
+    - choose:
+        - conditions:
+            - condition: template
+              value_template: "{{ trigger.id != 'clear' and should_send }}"
+          sequence:
+            - action: notify.mobile_app_tk_iphone_16_pro
+              data:
+                title: >-
+                  {% if watch == 'too_hot' %}🥵 Downstairs is hot while away
+                  {% elif watch == 'too_cold' %}🥶 Downstairs is cold while away
+                  {% elif watch == 'too_humid' %}💧 Downstairs is humid while away
+                  {% elif watch == 'too_dry' %}🌵 Downstairs is dry while away
+                  {% else %}🏠 Ecobee still looks occupied{% endif %}
+                message: >-
+                  {{ reason }}
+                  Indoor {{ states('sensor.downstairs_temp_avg') }}°F / {{ states('sensor.downstairs_humidity_avg') }}%.
+                  Outdoor {{ states('sensor.downstairs_outdoor_temp') }}°F.
+                  Ecobee profile {{ states('select.dining_room_current_mode') }}.
+                data:
+                  tag: downstairs-away-watch
+                  sticky: true
+                  ttl: 0
+                  priority: high
+                  url: /calm-mobile/climate
+      default:
+        - action: notify.mobile_app_tk_iphone_16_pro
+          data:
+            message: clear_notification
+            data:
+              tag: downstairs-away-watch
+  mode: restart
+
+- id: downstairs_climate_sensor_spread_watch
+  alias: "Climate — Downstairs Sensor Spread Watch"
+  description: Warns when the two downstairs sensors disagree for an extended period and the average may be less trustworthy.
+  triggers:
+    - trigger: state
+      entity_id: binary_sensor.downstairs_temp_spread_high
+      to: "on"
+      for:
+        minutes: 30
+  conditions:
+    - condition: state
+      entity_id: input_boolean.downstairs_pilot_enabled
+      state: "on"
+    - condition: state
+      entity_id: input_boolean.downstairs_mobile_alerts_enabled
+      state: "on"
+  actions:
+    - action: notify.mobile_app_tk_iphone_16_pro
+      data:
+        title: 🌡️ Downstairs sensors need a look
+        message: >-
+          Main Floor and Main Floor 2 are still {{ states('sensor.downstairs_temp_spread') }}°F apart.
+          That likely means the space is uneven or one sensor placement needs a second look before trusting the average too heavily.
+        data:
+          tag: downstairs-climate-spread
+  mode: single
+
+- id: garden_seedling_morning_check_notification
+  alias: "Garden — Morning Seedling Check"
+  description: Sends a gentle morning reminder to inspect the indoor starts.
+  triggers:
+    - trigger: time
+      at: "08:30:00"
+  conditions:
+    - condition: state
+      entity_id: input_boolean.garden_tracking_enabled
+      state: "on"
+    - condition: state
+      entity_id: input_boolean.garden_watering_nudges_enabled
+      state: "on"
+    - condition: state
+      entity_id: binary_sensor.garden_indoor_seedlings_active
+      state: "on"
+    - condition: state
+      entity_id: binary_sensor.garden_seedling_check_due
+      state: "on"
+  actions:
+    - action: script.notify_trevor_phone
+      data:
+        title: "Garden check"
+        message: >-
+          Take a quick pass on the 32 indoor starts you sowed on April 11, 2026.
+          Check moisture, leaf color, any legginess, and whether the lights are still close to the canopy.
+        data:
+          tag: garden-daily-check
+          url: /calm-mobile/garden
+          actions:
+            - action: GARDEN_MARK_CHECKED
+              title: Mark checked
+            - action: GARDEN_MARK_WATERED
+              title: Mark watered
+  mode: single
+
+- id: garden_daily_status_reset
+  alias: "Garden — Reset Daily Status"
+  description: Clears the daily check and watering flags shortly after midnight.
+  triggers:
+    - trigger: time
+      at: "00:05:00"
+  actions:
+    - action: input_boolean.turn_off
+      target:
+        entity_id:
+          - input_boolean.garden_checked_today
+          - input_boolean.garden_watered_today
+  mode: single
+
+- id: garden_seedling_evening_watering_notification
+  alias: "Garden — Evening Moisture Review"
+  description: Sends an evening reminder to review watering needs for the indoor starts.
+  triggers:
+    - trigger: time
+      at: "18:30:00"
+  conditions:
+    - condition: state
+      entity_id: input_boolean.garden_tracking_enabled
+      state: "on"
+    - condition: state
+      entity_id: input_boolean.garden_watering_nudges_enabled
+      state: "on"
+    - condition: state
+      entity_id: binary_sensor.garden_indoor_seedlings_active
+      state: "on"
+    - condition: state
+      entity_id: binary_sensor.garden_water_review_due
+      state: "on"
+  actions:
+    - action: script.notify_trevor_phone
+      data:
+        title: "Garden moisture pass"
+        message: >-
+          Do an evening check on the indoor trays.
+          If the cells feel light or the surface is drying, bottom-water tonight.
+        data:
+          tag: garden-daily-check
+          url: /calm-mobile/garden
+          actions:
+            - action: GARDEN_MARK_CHECKED
+              title: Mark checked
+            - action: GARDEN_MARK_WATERED
+              title: Mark watered
+  mode: single
+
+- id: garden_marigolds_hardening_notification
+  alias: "Garden — Marigolds Hardening Reminder"
+  description: Suggests starting hardening off for the petite marigolds once the live weather and forecast cooperate.
+  triggers:
+    - trigger: time
+      at: "09:00:00"
+  conditions:
+    - condition: state
+      entity_id: input_boolean.garden_tracking_enabled
+      state: "on"
+    - condition: state
+      entity_id: input_boolean.garden_weather_nudges_enabled
+      state: "on"
+    - condition: state
+      entity_id: input_boolean.garden_marigolds_hardening_off
+      state: "off"
+    - condition: state
+      entity_id: input_boolean.garden_marigolds_outside
+      state: "off"
+    - condition: numeric_state
+      entity_id: sensor.garden_days_since_sowing
+      above: 13
+    - condition: state
+      entity_id: binary_sensor.garden_marigolds_weather_ready
+      state: "on"
+  actions:
+    - action: script.notify_trevor_phone
+      data:
+        title: "Garden: marigolds can start hardening"
+        message: >-
+          Your petite marigolds have reached their hardening window.
+          Outside right now: {{ states('sensor.garden_outdoor_snapshot') }}.
+          Next forecast lows: {{ state_attr('sensor.garden_lowest_forecast_low_4_day', 'next_4_lows') }}.
+          Start with a short bright-shade session and build up over 5 to 7 days.
+        data:
+          tag: garden-marigolds-stage
+          url: /calm-mobile/garden
+          actions:
+            - action: GARDEN_START_MARIGOLDS_HARDENING
+              title: Started
+  mode: single
+
+- id: garden_basil_hardening_notification
+  alias: "Garden — Basil Hardening Reminder"
+  description: Suggests starting hardening off for the basil once the live weather and forecast are warm enough.
+  triggers:
+    - trigger: time
+      at: "09:10:00"
+  conditions:
+    - condition: state
+      entity_id: input_boolean.garden_tracking_enabled
+      state: "on"
+    - condition: state
+      entity_id: input_boolean.garden_weather_nudges_enabled
+      state: "on"
+    - condition: state
+      entity_id: input_boolean.garden_basil_hardening_off
+      state: "off"
+    - condition: state
+      entity_id: input_boolean.garden_basil_outside
+      state: "off"
+    - condition: numeric_state
+      entity_id: sensor.garden_days_since_sowing
+      above: 27
+    - condition: state
+      entity_id: binary_sensor.garden_basil_weather_ready
+      state: "on"
+  actions:
+    - action: script.notify_trevor_phone
+      data:
+        title: "Garden: basil can start hardening"
+        message: >-
+          The basil trays have reached their hardening window.
+          Outside right now: {{ states('sensor.garden_outdoor_snapshot') }}.
+          Next forecast lows: {{ state_attr('sensor.garden_lowest_forecast_low_4_day', 'next_4_lows') }}.
+          Give them a gentle first day outdoors and build exposure over about a week.
+        data:
+          tag: garden-basil-stage
+          url: /calm-mobile/garden
+          actions:
+            - action: GARDEN_START_BASIL_HARDENING
+              title: Started
+  mode: single
+
+- id: garden_marigolds_move_outside_notification
+  alias: "Garden — Marigolds Move Outside Reminder"
+  description: Suggests moving the marigolds outside once hardening time and weather both look good.
+  triggers:
+    - trigger: time
+      at: "09:20:00"
+  conditions:
+    - condition: state
+      entity_id: input_boolean.garden_tracking_enabled
+      state: "on"
+    - condition: state
+      entity_id: input_boolean.garden_weather_nudges_enabled
+      state: "on"
+    - condition: state
+      entity_id: input_boolean.garden_marigolds_hardening_off
+      state: "on"
+    - condition: state
+      entity_id: input_boolean.garden_marigolds_outside
+      state: "off"
+    - condition: state
+      entity_id: binary_sensor.garden_marigolds_weather_ready
+      state: "on"
+    - condition: template
+      value_template: >
+        {% set started = states('input_datetime.garden_marigolds_hardening_started') %}
+        {{ started not in ['unknown', 'unavailable', '']
+           and (now().date() - as_datetime(started).date()).days >= 5 }}
+  actions:
+    - action: script.notify_trevor_phone
+      data:
+        title: "Garden: marigolds look ready to move out"
+        message: >-
+          Your petite marigolds have had at least five days of hardening.
+          Outside right now: {{ states('sensor.garden_outdoor_snapshot') }}.
+          Next forecast lows: {{ state_attr('sensor.garden_lowest_forecast_low_4_day', 'next_4_lows') }}.
+          If the trays look sturdy, they should be ready for full-time outdoor life.
+        data:
+          tag: garden-marigolds-stage
+          url: /calm-mobile/garden
+          actions:
+            - action: GARDEN_MARK_MARIGOLDS_OUTSIDE
+              title: Moved outside
+  mode: single
+
+- id: garden_basil_move_outside_notification
+  alias: "Garden — Basil Move Outside Reminder"
+  description: Suggests moving the basil outside once hardening time and weather both look good.
+  triggers:
+    - trigger: time
+      at: "09:30:00"
+  conditions:
+    - condition: state
+      entity_id: input_boolean.garden_tracking_enabled
+      state: "on"
+    - condition: state
+      entity_id: input_boolean.garden_weather_nudges_enabled
+      state: "on"
+    - condition: state
+      entity_id: input_boolean.garden_basil_hardening_off
+      state: "on"
+    - condition: state
+      entity_id: input_boolean.garden_basil_outside
+      state: "off"
+    - condition: state
+      entity_id: binary_sensor.garden_basil_weather_ready
+      state: "on"
+    - condition: template
+      value_template: >
+        {% set started = states('input_datetime.garden_basil_hardening_started') %}
+        {{ started not in ['unknown', 'unavailable', '']
+           and (now().date() - as_datetime(started).date()).days >= 7 }}
+  actions:
+    - action: script.notify_trevor_phone
+      data:
+        title: "Garden: basil looks ready to move out"
+        message: >-
+          The basil trays have had about a week of hardening.
+          Outside right now: {{ states('sensor.garden_outdoor_snapshot') }}.
+          Next forecast lows: {{ state_attr('sensor.garden_lowest_forecast_low_4_day', 'next_4_lows') }}.
+          If the stems and leaves still look happy, they should be ready for outdoor nights.
+        data:
+          tag: garden-basil-stage
+          url: /calm-mobile/garden
+          actions:
+            - action: GARDEN_MARK_BASIL_OUTSIDE
+              title: Moved outside
+  mode: single
+
+- id: garden_notification_actions
+  alias: "Garden — Notification Actions"
+  description: Handles the quick actions from garden reminders.
+  triggers:
+    - trigger: event
+      event_type: mobile_app_notification_action
+  conditions:
+    - condition: template
+      value_template: >
+        {{ trigger.event.data.action in [
+          'GARDEN_MARK_CHECKED',
+          'GARDEN_MARK_WATERED',
+          'GARDEN_START_MARIGOLDS_HARDENING',
+          'GARDEN_START_BASIL_HARDENING',
+          'GARDEN_MARK_MARIGOLDS_OUTSIDE',
+          'GARDEN_MARK_BASIL_OUTSIDE'
+        ] }}
+  actions:
+    - choose:
+        - conditions:
+            - condition: template
+              value_template: "{{ trigger.event.data.action == 'GARDEN_MARK_CHECKED' }}"
+          sequence:
+            - action: script.garden_mark_seedlings_checked
+
+        - conditions:
+            - condition: template
+              value_template: "{{ trigger.event.data.action == 'GARDEN_MARK_WATERED' }}"
+          sequence:
+            - action: script.garden_mark_seedlings_watered
+
+        - conditions:
+            - condition: template
+              value_template: "{{ trigger.event.data.action == 'GARDEN_START_MARIGOLDS_HARDENING' }}"
+          sequence:
+            - action: script.garden_start_marigolds_hardening
+
+        - conditions:
+            - condition: template
+              value_template: "{{ trigger.event.data.action == 'GARDEN_START_BASIL_HARDENING' }}"
+          sequence:
+            - action: script.garden_start_basil_hardening
+
+        - conditions:
+            - condition: template
+              value_template: "{{ trigger.event.data.action == 'GARDEN_MARK_MARIGOLDS_OUTSIDE' }}"
+          sequence:
+            - action: script.garden_mark_marigolds_outside
+
+        - conditions:
+            - condition: template
+              value_template: "{{ trigger.event.data.action == 'GARDEN_MARK_BASIL_OUTSIDE' }}"
+          sequence:
+            - action: script.garden_mark_basil_outside
+    - action: notify.mobile_app_tk_iphone_16_pro
+      data:
+        message: clear_notification
+        data:
+          tag: "{{ 'garden-daily-check' if trigger.event.data.action in ['GARDEN_MARK_CHECKED', 'GARDEN_MARK_WATERED'] else 'garden-marigolds-stage' if trigger.event.data.action in ['GARDEN_START_MARIGOLDS_HARDENING', 'GARDEN_MARK_MARIGOLDS_OUTSIDE'] else 'garden-basil-stage' }}"
+  mode: parallel
+  max: 10
+
+- id: wine_cave_cooling_cycle_notification
+  alias: "Wine Cave — Cooling Cycle Notification"
+  description: Sends one calm push when the cave looks like it entered a normal refrigeration cycle.
+  triggers:
+    - trigger: state
+      entity_id: binary_sensor.wine_cave_cooling_cycle
+      to: "on"
+  conditions:
+    - condition: state
+      entity_id: binary_sensor.wine_cave_sensor_unavailable
+      state: "off"
+  actions:
+    - action: script.wine_cave_send_alert
+      data:
+        alert_kind: cycle
+        message: >-
+          Humidity bumped because the refrigeration cycle started.
+          {{ states('sensor.wine_temperature') | float(0) | round(1) }}°F
+          · {{ states('sensor.wine_humidity') | float(0) | round(0) }}% RH
+          · {{ states('sensor.wine_cave_absolute_humidity') | float(0) | round(2) }} g/m³.
+          This looks normal.
+  mode: single
+
+- id: wine_cave_temperature_alerts
+  alias: "Wine Cave — Temperature Alerts"
+  description: Sends pushes when the wine cave is genuinely running too warm or too cold for a sustained period.
+  triggers:
+    - trigger: state
+      entity_id: binary_sensor.wine_cave_temp_high_alert
+      to: "on"
+      id: temp_high
+    - trigger: state
+      entity_id: binary_sensor.wine_cave_temp_low_alert
+      to: "on"
+      id: temp_low
+  conditions:
+    - condition: state
+      entity_id: binary_sensor.wine_cave_sensor_unavailable
+      state: "off"
+  actions:
+    - choose:
+        - conditions:
+            - condition: trigger
+              id: temp_high
+          sequence:
+            - action: script.wine_cave_send_alert
+              data:
+                alert_kind: temp_high
+                message: >-
+                  Wine cave is at {{ states('sensor.wine_temperature') | float(0) | round(1) }}°F,
+                  above your 60°F ceiling.
+                  This no longer looks like a normal cycle.
+        - conditions:
+            - condition: trigger
+              id: temp_low
+          sequence:
+            - action: script.wine_cave_send_alert
+              data:
+                alert_kind: temp_low
+                message: >-
+                  Wine cave is at {{ states('sensor.wine_temperature') | float(0) | round(1) }}°F,
+                  below your 50°F floor.
+                  This may be overcooling or a sensor issue.
+  mode: single
+
+- id: wine_cave_moisture_anomaly_notification
+  alias: "Wine Cave — Moisture Anomaly Notification"
+  description: Alerts when humidity is outside the desired band in a way that does not look like a normal refrigeration cycle.
+  triggers:
+    - trigger: state
+      entity_id: binary_sensor.wine_cave_moisture_anomaly
+      to: "on"
+  conditions:
+    - condition: state
+      entity_id: binary_sensor.wine_cave_sensor_unavailable
+      state: "off"
+    - condition: template
+      value_template: >
+        {{ not (
+          is_state('binary_sensor.wine_cave_condensation_risk', 'on')
+          and (states('sensor.wine_humidity') | float(0)) > 70
+        ) }}
+  actions:
+    - action: script.wine_cave_send_alert
+      data:
+        alert_kind: moisture
+        message: >-
+          {% set humidity = states('sensor.wine_humidity') | float(0) | round(0) %}
+          {% set ah = states('sensor.wine_cave_absolute_humidity') | float(0) | round(2) %}
+          {% set ah_delta = states('sensor.wine_cave_absolute_humidity_24h_delta') | float(0) %}
+          {% if humidity < 50 %}
+            Humidity is {{ humidity }}%, below your 50% floor.
+            Actual moisture is {{ ah }} g/m³, so this looks drier than a normal cycle.
+          {% else %}
+            Humidity is {{ humidity }}% and actual moisture is {{ ah }} g/m³,
+            {{ (ah_delta | abs) | round(2) }} g/m³ above the 24-hour average.
+            This looks different from a normal refrigeration cycle.
+          {% endif %}
+  mode: single
+
+- id: wine_cave_condensation_risk_notification
+  alias: "Wine Cave — Condensation Risk Notification"
+  description: Warns when dew point gets too close to the cellar temperature for long enough to matter.
+  triggers:
+    - trigger: state
+      entity_id: binary_sensor.wine_cave_condensation_risk
+      to: "on"
+  conditions:
+    - condition: state
+      entity_id: binary_sensor.wine_cave_sensor_unavailable
+      state: "off"
+  actions:
+    - action: script.wine_cave_send_alert
+      data:
+        alert_kind: condensation
+        message: >-
+          Dew point has moved close to cellar temperature:
+          {{ states('sensor.wine_cave_dew_point') | float(0) | round(1) }}°F dew point
+          vs {{ states('sensor.wine_temperature') | float(0) | round(1) }}°F air temperature.
+          Labels and corks may be at risk if this holds.
+  mode: single
+
+- id: wine_cave_drift_notification
+  alias: "Wine Cave — Drift Notification"
+  description: Sends an early heads-up when the last 24 hours drift away from the cave's recent baseline.
+  triggers:
+    - trigger: state
+      entity_id: binary_sensor.wine_cave_drift_alert
+      to: "on"
+  conditions:
+    - condition: state
+      entity_id: binary_sensor.wine_cave_sensor_unavailable
+      state: "off"
+    - condition: state
+      entity_id: binary_sensor.wine_cave_actionable_alert
+      state: "off"
+  actions:
+    - action: script.wine_cave_send_alert
+      data:
+        alert_kind: drift
+        message: >-
+          The last 24 hours have drifted away from the cave's recent pattern:
+          {{ states('sensor.wine_temperature_24h_stats') | float(0) | round(1) }}°F avg vs
+          {{ states('sensor.wine_temperature_7d_stats') | float(0) | round(1) }}°F over 7 days,
+          and {{ states('sensor.wine_humidity_24h_stats') | float(0) | round(0) }}% avg vs
+          {{ states('sensor.wine_humidity_7d_stats') | float(0) | round(0) }}% over 7 days.
+          Worth a look before it turns into a hard alarm.
+  mode: single
+
+- id: wine_cave_sensor_unavailable_notification
+  alias: "Wine Cave — Sensor Unavailable Notification"
+  description: Warns when wine cave telemetry has been missing long enough that climate alerts may be incomplete.
+  triggers:
+    - trigger: state
+      entity_id: binary_sensor.wine_cave_sensor_unavailable
+      to: "on"
+  actions:
+    - action: script.wine_cave_send_alert
+      data:
+        alert_kind: sensor_unavailable
+        message: >-
+          Wine cave temperature or humidity data has been unavailable for 10 minutes,
+          so condition alerts may be incomplete right now.
+  mode: single
+
+- id: wine_cave_sensor_unavailable_clear
+  alias: "Wine Cave — Clear Sensor Unavailable Notification"
+  description: Clears the stale wine cave sensor-health push once telemetry has recovered.
+  triggers:
+    - trigger: state
+      entity_id: binary_sensor.wine_cave_sensor_unavailable
+      to: "off"
+      for:
+        minutes: 5
+  actions:
+    - action: script.notify_trevor_phone
+      data:
+        message: clear_notification
+        data:
+          tag: wine-cave-sensor_unavailable
+  mode: single
+
+- id: wine_cave_abrupt_change_notification
+  alias: "Wine Cave — Abrupt Change Notification"
+  description: Sends an immediate push when temperature or humidity jumps far more than a normal cycle swing.
+  triggers:
+    - trigger: state
+      entity_id: sensor.wine_temperature
+      id: temperature
+    - trigger: state
+      entity_id: sensor.wine_humidity
+      id: humidity
+  conditions:
+    - condition: state
+      entity_id: binary_sensor.wine_cave_sensor_unavailable
+      state: "off"
+    - condition: template
+      value_template: >
+        {{ trigger.from_state is not none
+           and trigger.to_state is not none
+           and trigger.from_state.state not in ['unknown', 'unavailable', 'none', '']
+           and trigger.to_state.state not in ['unknown', 'unavailable', 'none', '']
+           and (as_timestamp(now()) - as_timestamp(trigger.from_state.last_updated, 0)) <= 1800 }}
+    - condition: template
+      value_template: >
+        {% set from_value = trigger.from_state.state | float(0) %}
+        {% set to_value = trigger.to_state.state | float(0) %}
+        {% set delta = (to_value - from_value) | abs %}
+        {{ (trigger.id == 'temperature' and delta >= 3)
+           or (trigger.id == 'humidity' and delta >= 15) }}
+  actions:
+    - action: script.wine_cave_send_alert
+      data:
+        alert_kind: abrupt
+        message: >-
+          {% set from_value = trigger.from_state.state | float(0) %}
+          {% set to_value = trigger.to_state.state | float(0) %}
+          {% set delta = (to_value - from_value) | abs %}
+          {% if trigger.id == 'temperature' %}
+            Wine temperature changed {{ delta | round(1) }}°F in under 30 minutes,
+            from {{ from_value | round(1) }}°F to {{ to_value | round(1) }}°F.
+            That can point to an open door, outside air intrusion, or a sensor issue.
+          {% else %}
+            Wine humidity changed {{ delta | round(0) }} points in under 30 minutes,
+            from {{ from_value | round(0) }}% to {{ to_value | round(0) }}%.
+            That is larger than a normal cycle swing.
+          {% endif %}
+    - delay:
+        minutes: 30
+  mode: single
+
+- id: wine_cave_recovery_notification
+  alias: "Wine Cave — Recovery Notification"
+  description: Sends a push when the active wine cave issue has settled back into range for a while.
+  triggers:
+    - trigger: state
+      entity_id: binary_sensor.wine_cave_actionable_alert
+      to: "off"
+      for:
+        minutes: 30
+  conditions:
+    - condition: state
+      entity_id: binary_sensor.wine_cave_sensor_unavailable
+      state: "off"
+  actions:
+    - action: script.notify_trevor_phone
+      data:
+        message: clear_notification
+        data:
+          tag: wine-cave-temp_high
+    - action: script.notify_trevor_phone
+      data:
+        message: clear_notification
+        data:
+          tag: wine-cave-temp_low
+    - action: script.notify_trevor_phone
+      data:
+        message: clear_notification
+        data:
+          tag: wine-cave-moisture
+    - action: script.notify_trevor_phone
+      data:
+        message: clear_notification
+        data:
+          tag: wine-cave-condensation
+    - action: script.wine_cave_send_alert
+      data:
+        alert_kind: recovery
+        message: >-
+          Live conditions are back in range at
+          {{ states('sensor.wine_temperature') | float(0) | round(1) }}°F
+          and {{ states('sensor.wine_humidity') | float(0) | round(0) }}% RH.
+  mode: single
+
+- id: basement_humidity_watch_notification
+  alias: "Climate — Basement Humidity Watch"
+  description: Uses the Airthings-backed basement sensor to warn when the basement stays humid long enough to invite mold, mustiness, or damp-loving bugs.
+  triggers:
+    - trigger: numeric_state
+      entity_id: sensor.mechanical_room_humidity
+      above: 55
+      for:
+        minutes: 90
+      id: watch
+    - trigger: numeric_state
+      entity_id: sensor.mechanical_room_humidity
+      above: 60
+      for:
+        minutes: 45
+      id: urgent
+    - trigger: numeric_state
+      entity_id: sensor.mechanical_room_humidity
+      below: 52
+      for:
+        minutes: 90
+      id: clear
+    - trigger: homeassistant
+      event: start
+      id: startup
+    - trigger: event
+      event_type: automation_reloaded
+      id: automation_reloaded
+  actions:
+    - if:
+        - condition: template
+          value_template: "{{ trigger.id == 'startup' }}"
+      then:
+        - delay:
+            minutes: 20
+    - if:
+        - condition: template
+          value_template: "{{ trigger.id == 'automation_reloaded' }}"
+      then:
+        - delay:
+            minutes: 1
+    - variables:
+        humidity_raw: "{{ states('sensor.mechanical_room_humidity') }}"
+        temp_raw: "{{ states('sensor.mechanical_room_temperature') }}"
+        humidity_valid: "{{ is_number(humidity_raw) }}"
+        temp_valid: "{{ is_number(temp_raw) }}"
+        humidity: "{{ humidity_raw | float(0) }}"
+        temp: "{{ temp_raw | float(0) }}"
+        alert_kind: >-
+          {% set h = states('sensor.mechanical_room_humidity') %}
+          {% if is_number(h) and (h | float(0)) >= 60 %}
+            urgent
+          {% elif is_number(h) and (h | float(0)) >= 55 %}
+            watch
+          {% else %}
+            clear
+          {% endif %}
+        warm_damp: >-
+          {% set h = states('sensor.mechanical_room_humidity') %}
+          {% set t = states('sensor.mechanical_room_temperature') %}
+          {{ is_number(h) and is_number(t) and (h | float(0)) >= 60 and (t | float(0)) >= 68 }}
+    - choose:
+        - conditions:
+            - condition: template
+              value_template: "{{ alert_kind == 'urgent' }}"
+          sequence:
+            - action: script.basement_humidity_send_alert
+              data:
+                alert_kind: urgent
+                message: >-
+                  Basement humidity is sitting at {{ humidity | round(0) }}%
+                  {% if temp_valid | bool %}with the basement around {{ temp | round(0) }}°F{% endif %}.
+                  That is damp enough to raise mold, mustiness, and insect risk if it keeps up.
+                  {% if warm_damp | bool %}
+                    Warm plus humid is especially worth correcting.
+                  {% endif %}
+                  Worth checking the dehumidifier, drainage, or any open-air source.
+        - conditions:
+            - condition: template
+              value_template: "{{ alert_kind == 'watch' }}"
+          sequence:
+            - action: script.basement_humidity_send_alert
+              data:
+                alert_kind: watch
+                message: >-
+                  Basement humidity has stayed above the safer range long enough to deserve a look:
+                  {{ humidity | round(0) }}%
+                  {% if temp_valid | bool %}at about {{ temp | round(0) }}°F{% endif %}.
+                  In your climate, keeping the basement in the low-to-mid 50s is the better target for
+                  mold and damp-bug prevention.
+                  Worth checking dehumidification before it turns swampy.
+      default:
+        - action: script.basement_humidity_clear_alert
+  mode: restart

@@ -1,4 +1,4 @@
-title: Calm Mobile
+title: Home
 views:
   - title: Home
     path: home
@@ -13,6 +13,62 @@ views:
           {% elif hour < 17 %}Good afternoon
           {% elif not is_night %}Good evening
           {% else %}Good night{% endif %}
+
+      - type: conditional
+        conditions:
+          - entity: binary_sensor.main_dashboard_sleep_hero_active
+            state: "on"
+        card:
+          type: custom:mushroom-template-card
+          entity: script.lights_bedtime_scene
+          primary: Sleep
+          secondary: Wind the house down with the bedtime scene.
+          icon: mdi:weather-night
+          icon_color: amber
+          multiline_secondary: true
+          fill_container: true
+          tap_action:
+            action: call-service
+            service: script.turn_on
+            target:
+              entity_id: script.lights_bedtime_scene
+          hold_action:
+            action: navigate
+            navigation_path: /calm-mobile/lights
+          card_mod:
+            style: |
+              ha-card {
+                border: none;
+                border-radius: 28px;
+                padding: 12px 10px;
+                box-shadow: 0 18px 38px rgba(15, 23, 42, 0.16);
+                background:
+                  radial-gradient(circle at top right, rgba(245, 158, 11, 0.18), transparent 34%),
+                  linear-gradient(145deg, rgba(15, 23, 42, 0.98), rgba(30, 41, 59, 0.94));
+                color: #f8fafc;
+              }
+              mushroom-state-info .primary {
+                font-size: 30px !important;
+                line-height: 1.02 !important;
+                font-weight: 620 !important;
+                letter-spacing: -0.03em;
+                margin-bottom: 6px !important;
+              }
+              mushroom-state-info .secondary {
+                font-size: 14px !important;
+                line-height: 1.45 !important;
+                opacity: 0.82 !important;
+                max-width: 230px;
+              }
+              mushroom-shape-icon {
+                --shape-color: rgba(251, 191, 36, 0.16) !important;
+                --shape-color-disabled: rgba(251, 191, 36, 0.16) !important;
+                width: 68px;
+                height: 68px;
+              }
+              ha-state-icon {
+                color: #fbbf24 !important;
+              }
 
       - type: custom:mushroom-template-card
         entity: weather.forecast_home
@@ -202,6 +258,38 @@ views:
             tap_action:
               action: navigate
               navigation_path: /calm-mobile/lights
+          - type: template
+            entity: climate.dining_room
+            icon: >-
+              {% set profile = states('select.dining_room_current_mode') %}
+              {% set hvac_action = state_attr('climate.dining_room', 'hvac_action') %}
+              {% if profile == 'away' %}mdi:home-export-outline
+              {% elif profile == 'sleep' %}mdi:sleep
+              {% elif hvac_action == 'heating' %}mdi:radiator
+              {% elif hvac_action == 'cooling' %}mdi:snowflake
+              {% elif is_state('binary_sensor.downstairs_open_window_eligible', 'on') %}mdi:window-open-variant
+              {% else %}mdi:home-thermometer-outline{% endif %}
+            icon_color: >-
+              {% set profile = states('select.dining_room_current_mode') %}
+              {% set hvac_action = state_attr('climate.dining_room', 'hvac_action') %}
+              {% if profile == 'away' %}amber
+              {% elif profile == 'sleep' %}indigo
+              {% elif hvac_action == 'heating' %}orange
+              {% elif hvac_action == 'cooling' %}blue
+              {% elif is_state('binary_sensor.downstairs_open_window_eligible', 'on') %}teal
+              {% else %}grey{% endif %}
+            content: >-
+              {% set profile = states('select.dining_room_current_mode') %}
+              {% set temp = states('sensor.downstairs_temp_avg') %}
+              {% if profile == 'away' %}Dining Away
+              {% elif profile == 'sleep' %}Dining Sleep
+              {% elif is_number(temp) %}Dining {{ temp | float(0) | round(0) }}°
+              {% else %}Dining HVAC{% endif %}
+            tap_action:
+              action: navigate
+              navigation_path: /calm-mobile/climate
+            hold_action:
+              action: more-info
           - type: template
             entity: sensor.basement_air_quality_radon
             icon: mdi:radioactive
@@ -404,66 +492,41 @@ views:
       - type: custom:mushroom-template-card
         primary: Latest motion
         secondary: >-
-          {% set cameras = [
-            ('g6_instant_2', 'Backyard'),
-            ('g6_instant', 'Basement'),
-            ('wynn_s_room', "Wynn's Room"),
-            ('mud_room', 'Mud Room')
-          ] %}
-          {% set keywords = ['motion', 'occupancy', 'person', 'smart', 'ring'] %}
-          {% set ns = namespace(entity='', label='', ts=0, active=false) %}
-          {% for prefix, label in cameras %}
-            {% for sensor in states.binary_sensor %}
-              {% set entity = sensor.entity_id %}
-              {% if prefix in entity and sensor.state not in ['unknown', 'unavailable'] %}
-                {% set matched = namespace(ok=false) %}
-                {% for keyword in keywords %}
-                  {% if keyword in entity %}
-                    {% set matched.ok = true %}
-                  {% endif %}
-                {% endfor %}
-                {% if matched.ok %}
-                  {% set changed = as_timestamp(sensor.last_changed, 0) %}
-                  {% if changed > ns.ts %}
-                    {% set ns.entity = entity %}
-                    {% set ns.label = label %}
-                    {% set ns.ts = changed %}
-                    {% set ns.active = is_state(entity, 'on') %}
-                  {% endif %}
-                {% endif %}
-              {% endif %}
-            {% endfor %}
-          {% endfor %}
-          {% if ns.entity %}
-            {{ ns.label }} · {{ 'Motion now' if ns.active else relative_time(states[ns.entity].last_changed) ~ ' ago' }}
+          {% set stored_label = states('input_text.latest_camera_motion_label') %}
+          {% set motion_entity = states('input_text.latest_camera_motion_entity') %}
+          {% set stamp = states('input_datetime.latest_camera_motion_at') %}
+          {% set motion_sources = {
+            'binary_sensor.g6_instant_motion': 'Play Room',
+            'binary_sensor.g6_instant_motion_2': 'Front Yard',
+            'binary_sensor.wynn_s_room_motion': "Wynn's Room",
+            'binary_sensor.wynn_s_room_person_detected': "Wynn's Room",
+            'binary_sensor.mud_room_motion': 'Mud Room',
+            'binary_sensor.mud_room_person_detected': 'Mud Room'
+          } %}
+          {% if motion_entity in motion_sources and stamp not in ['', 'unknown', 'unavailable'] %}
+            {% set ts = as_datetime(stamp) %}
+            {{ motion_sources[motion_entity] }} - {{ relative_time(ts) ~ ' ago' if ts else 'Recently' }}
+          {% elif motion_entity in ['', 'unknown', 'unavailable'] and stored_label not in ['', 'unknown', 'unavailable'] and stamp not in ['', 'unknown', 'unavailable'] %}
+            {% set ts = as_datetime(stamp) %}
+            {{ stored_label }} - {{ relative_time(ts) ~ ' ago' if ts else 'Recently' }}
           {% else %}
             No camera motion data available yet
           {% endif %}
         icon: mdi:cctv
         icon_color: >-
-          {% set cameras = [
-            'g6_instant_2',
-            'g6_instant',
-            'wynn_s_room',
-            'mud_room'
+          {% set motion_entities = [
+            'binary_sensor.g6_instant_motion',
+            'binary_sensor.g6_instant_motion_2',
+            'binary_sensor.wynn_s_room_motion',
+            'binary_sensor.wynn_s_room_person_detected',
+            'binary_sensor.mud_room_motion',
+            'binary_sensor.mud_room_person_detected'
           ] %}
-          {% set keywords = ['motion', 'occupancy', 'person', 'smart', 'ring'] %}
           {% set ns = namespace(active=false) %}
-          {% for prefix in cameras %}
-            {% for sensor in states.binary_sensor %}
-              {% set entity = sensor.entity_id %}
-              {% if prefix in entity and is_state(entity, 'on') %}
-                {% set matched = namespace(ok=false) %}
-                {% for keyword in keywords %}
-                  {% if keyword in entity %}
-                    {% set matched.ok = true %}
-                  {% endif %}
-                {% endfor %}
-                {% if matched.ok %}
-                  {% set ns.active = true %}
-                {% endif %}
-              {% endif %}
-            {% endfor %}
+          {% for entity in motion_entities %}
+            {% if is_state(entity, 'on') %}
+              {% set ns.active = true %}
+            {% endif %}
           {% endfor %}
           {{ 'teal' if ns.active else 'grey' }}
         layout: horizontal
@@ -503,7 +566,7 @@ views:
                 entity: camera.g6_instant_high_resolution_channel
                 show_name: true
                 show_icon: false
-                name: Basement
+                name: Play Room
                 tap_action:
                   action: more-info
                 style:
@@ -537,7 +600,7 @@ views:
                 entity: camera.g6_instant_high_resolution_channel_2
                 show_name: true
                 show_icon: false
-                name: Backyard
+                name: Front Yard
                 tap_action:
                   action: more-info
                 style:
@@ -1464,7 +1527,7 @@ views:
       - type: custom:popup-card
         target:
           entity_id: camera.g6_instant_high_resolution_channel
-        title: Basement Camera
+        title: Play Room Camera
         dismiss_icon: mdi:close
         initial_style: wide
         popup_styles: *calm_popup_styles
@@ -1514,27 +1577,20 @@ views:
                     overflow: hidden;
                   }
             - type: custom:mushroom-template-card
-              primary: Basement motion
+              primary: Play Room motion
               secondary: >-
-                {% set prefix = 'g6_instant' %}
-                {% set keywords = ['motion', 'occupancy', 'person', 'smart', 'ring'] %}
+                {% set motion_entities = [
+                  'binary_sensor.g6_instant_motion'
+                ] %}
                 {% set ns = namespace(entity='', ts=0, active=false) %}
                 {% for sensor in states.binary_sensor %}
                   {% set entity = sensor.entity_id %}
-                  {% if prefix in entity and sensor.state not in ['unknown', 'unavailable'] %}
-                    {% set matched = namespace(ok=false) %}
-                    {% for keyword in keywords %}
-                      {% if keyword in entity %}
-                        {% set matched.ok = true %}
-                      {% endif %}
-                    {% endfor %}
-                    {% if matched.ok %}
-                      {% set changed = as_timestamp(sensor.last_changed, 0) %}
-                      {% if changed > ns.ts %}
-                        {% set ns.entity = entity %}
-                        {% set ns.ts = changed %}
-                        {% set ns.active = is_state(entity, 'on') %}
-                      {% endif %}
+                  {% if entity in motion_entities and sensor.state not in ['unknown', 'unavailable'] %}
+                    {% set changed = as_timestamp(sensor.last_changed, 0) %}
+                    {% if changed > ns.ts %}
+                      {% set ns.entity = entity %}
+                      {% set ns.ts = changed %}
+                      {% set ns.active = is_state(entity, 'on') %}
                     {% endif %}
                   {% endif %}
                 {% endfor %}
@@ -1545,21 +1601,13 @@ views:
                 {% endif %}
               icon: mdi:cctv
               icon_color: >-
-                {% set prefix = 'g6_instant' %}
-                {% set keywords = ['motion', 'occupancy', 'person', 'smart', 'ring'] %}
+                {% set motion_entities = [
+                  'binary_sensor.g6_instant_motion'
+                ] %}
                 {% set ns = namespace(active=false) %}
-                {% for sensor in states.binary_sensor %}
-                  {% set entity = sensor.entity_id %}
-                  {% if prefix in entity and is_state(entity, 'on') %}
-                    {% set matched = namespace(ok=false) %}
-                    {% for keyword in keywords %}
-                      {% if keyword in entity %}
-                        {% set matched.ok = true %}
-                      {% endif %}
-                    {% endfor %}
-                    {% if matched.ok %}
-                      {% set ns.active = true %}
-                    {% endif %}
+                {% for entity in motion_entities %}
+                  {% if is_state(entity, 'on') %}
+                    {% set ns.active = true %}
                   {% endif %}
                 {% endfor %}
                 {{ 'teal' if ns.active else 'grey' }}
@@ -1599,20 +1647,15 @@ views:
               custom_fields:
                 events: |
                   [[[
-                    const prefix = 'g6_instant';
-                    const matches = Object.values(states)
-                      .filter((s) =>
-                        s.entity_id.startsWith(`binary_sensor.${prefix}`) &&
-                        /(motion|occupancy|person|smart|ring)/.test(s.entity_id) &&
-                        !['unknown', 'unavailable'].includes(s.state)
-                      )
+                    const labels = {
+                      'binary_sensor.g6_instant_motion': 'Motion',
+                    };
+                    const matches = Object.keys(labels)
+                      .map((entityId) => states[entityId])
+                      .filter((s) => s && !['unknown', 'unavailable'].includes(s.state))
                       .sort((a, b) => new Date(b.last_changed) - new Date(a.last_changed))
                       .slice(0, 8);
-                    const pretty = (entityId) =>
-                      entityId
-                        .replace(`binary_sensor.${prefix}_`, '')
-                        .replace(/_/g, ' ')
-                        .replace(/\b\w/g, (c) => c.toUpperCase());
+                    const pretty = (entityId) => labels[entityId] || entityId;
                     const when = (value) => {
                       const date = new Date(value);
                       const sameDay = date.toDateString() === new Date().toDateString();
@@ -1720,7 +1763,7 @@ views:
       - type: custom:popup-card
         target:
           entity_id: camera.g6_instant_high_resolution_channel_2
-        title: Backyard Camera
+        title: Front Yard Camera
         dismiss_icon: mdi:close
         initial_style: wide
         popup_styles: *calm_popup_styles
@@ -1770,27 +1813,20 @@ views:
                     overflow: hidden;
                   }
             - type: custom:mushroom-template-card
-              primary: Backyard motion
+              primary: Front yard motion
               secondary: >-
-                {% set prefix = 'g6_instant_2' %}
-                {% set keywords = ['motion', 'occupancy', 'person', 'smart', 'ring'] %}
+                {% set motion_entities = [
+                  'binary_sensor.g6_instant_motion_2'
+                ] %}
                 {% set ns = namespace(entity='', ts=0, active=false) %}
                 {% for sensor in states.binary_sensor %}
                   {% set entity = sensor.entity_id %}
-                  {% if prefix in entity and sensor.state not in ['unknown', 'unavailable'] %}
-                    {% set matched = namespace(ok=false) %}
-                    {% for keyword in keywords %}
-                      {% if keyword in entity %}
-                        {% set matched.ok = true %}
-                      {% endif %}
-                    {% endfor %}
-                    {% if matched.ok %}
-                      {% set changed = as_timestamp(sensor.last_changed, 0) %}
-                      {% if changed > ns.ts %}
-                        {% set ns.entity = entity %}
-                        {% set ns.ts = changed %}
-                        {% set ns.active = is_state(entity, 'on') %}
-                      {% endif %}
+                  {% if entity in motion_entities and sensor.state not in ['unknown', 'unavailable'] %}
+                    {% set changed = as_timestamp(sensor.last_changed, 0) %}
+                    {% if changed > ns.ts %}
+                      {% set ns.entity = entity %}
+                      {% set ns.ts = changed %}
+                      {% set ns.active = is_state(entity, 'on') %}
                     {% endif %}
                   {% endif %}
                 {% endfor %}
@@ -1801,21 +1837,13 @@ views:
                 {% endif %}
               icon: mdi:cctv
               icon_color: >-
-                {% set prefix = 'g6_instant_2' %}
-                {% set keywords = ['motion', 'occupancy', 'person', 'smart', 'ring'] %}
+                {% set motion_entities = [
+                  'binary_sensor.g6_instant_motion_2'
+                ] %}
                 {% set ns = namespace(active=false) %}
-                {% for sensor in states.binary_sensor %}
-                  {% set entity = sensor.entity_id %}
-                  {% if prefix in entity and is_state(entity, 'on') %}
-                    {% set matched = namespace(ok=false) %}
-                    {% for keyword in keywords %}
-                      {% if keyword in entity %}
-                        {% set matched.ok = true %}
-                      {% endif %}
-                    {% endfor %}
-                    {% if matched.ok %}
-                      {% set ns.active = true %}
-                    {% endif %}
+                {% for entity in motion_entities %}
+                  {% if is_state(entity, 'on') %}
+                    {% set ns.active = true %}
                   {% endif %}
                 {% endfor %}
                 {{ 'teal' if ns.active else 'grey' }}
@@ -1855,20 +1883,15 @@ views:
               custom_fields:
                 events: |
                   [[[
-                    const prefix = 'g6_instant_2';
-                    const matches = Object.values(states)
-                      .filter((s) =>
-                        s.entity_id.startsWith(`binary_sensor.${prefix}`) &&
-                        /(motion|occupancy|person|smart|ring)/.test(s.entity_id) &&
-                        !['unknown', 'unavailable'].includes(s.state)
-                      )
+                    const labels = {
+                      'binary_sensor.g6_instant_motion_2': 'Motion',
+                    };
+                    const matches = Object.keys(labels)
+                      .map((entityId) => states[entityId])
+                      .filter((s) => s && !['unknown', 'unavailable'].includes(s.state))
                       .sort((a, b) => new Date(b.last_changed) - new Date(a.last_changed))
                       .slice(0, 8);
-                    const pretty = (entityId) =>
-                      entityId
-                        .replace(`binary_sensor.${prefix}_`, '')
-                        .replace(/_/g, ' ')
-                        .replace(/\b\w/g, (c) => c.toUpperCase());
+                    const pretty = (entityId) => labels[entityId] || entityId;
                     const when = (value) => {
                       const date = new Date(value);
                       const sameDay = date.toDateString() === new Date().toDateString();
@@ -2028,25 +2051,19 @@ views:
             - type: custom:mushroom-template-card
               primary: Wynn's Room motion
               secondary: >-
-                {% set prefix = 'wynn_s_room' %}
-                {% set keywords = ['motion', 'occupancy', 'person', 'smart', 'ring'] %}
+                {% set motion_entities = [
+                  'binary_sensor.wynn_s_room_motion',
+                  'binary_sensor.wynn_s_room_person_detected'
+                ] %}
                 {% set ns = namespace(entity='', ts=0, active=false) %}
                 {% for sensor in states.binary_sensor %}
                   {% set entity = sensor.entity_id %}
-                  {% if prefix in entity and sensor.state not in ['unknown', 'unavailable'] %}
-                    {% set matched = namespace(ok=false) %}
-                    {% for keyword in keywords %}
-                      {% if keyword in entity %}
-                        {% set matched.ok = true %}
-                      {% endif %}
-                    {% endfor %}
-                    {% if matched.ok %}
-                      {% set changed = as_timestamp(sensor.last_changed, 0) %}
-                      {% if changed > ns.ts %}
-                        {% set ns.entity = entity %}
-                        {% set ns.ts = changed %}
-                        {% set ns.active = is_state(entity, 'on') %}
-                      {% endif %}
+                  {% if entity in motion_entities and sensor.state not in ['unknown', 'unavailable'] %}
+                    {% set changed = as_timestamp(sensor.last_changed, 0) %}
+                    {% if changed > ns.ts %}
+                      {% set ns.entity = entity %}
+                      {% set ns.ts = changed %}
+                      {% set ns.active = is_state(entity, 'on') %}
                     {% endif %}
                   {% endif %}
                 {% endfor %}
@@ -2057,21 +2074,14 @@ views:
                 {% endif %}
               icon: mdi:cctv
               icon_color: >-
-                {% set prefix = 'wynn_s_room' %}
-                {% set keywords = ['motion', 'occupancy', 'person', 'smart', 'ring'] %}
+                {% set motion_entities = [
+                  'binary_sensor.wynn_s_room_motion',
+                  'binary_sensor.wynn_s_room_person_detected'
+                ] %}
                 {% set ns = namespace(active=false) %}
-                {% for sensor in states.binary_sensor %}
-                  {% set entity = sensor.entity_id %}
-                  {% if prefix in entity and is_state(entity, 'on') %}
-                    {% set matched = namespace(ok=false) %}
-                    {% for keyword in keywords %}
-                      {% if keyword in entity %}
-                        {% set matched.ok = true %}
-                      {% endif %}
-                    {% endfor %}
-                    {% if matched.ok %}
-                      {% set ns.active = true %}
-                    {% endif %}
+                {% for entity in motion_entities %}
+                  {% if is_state(entity, 'on') %}
+                    {% set ns.active = true %}
                   {% endif %}
                 {% endfor %}
                 {{ 'teal' if ns.active else 'grey' }}
@@ -2111,20 +2121,16 @@ views:
               custom_fields:
                 events: |
                   [[[
-                    const prefix = 'wynn_s_room';
-                    const matches = Object.values(states)
-                      .filter((s) =>
-                        s.entity_id.startsWith(`binary_sensor.${prefix}`) &&
-                        /(motion|occupancy|person|smart|ring)/.test(s.entity_id) &&
-                        !['unknown', 'unavailable'].includes(s.state)
-                      )
+                    const labels = {
+                      'binary_sensor.wynn_s_room_motion': 'Motion',
+                      'binary_sensor.wynn_s_room_person_detected': 'Person',
+                    };
+                    const matches = Object.keys(labels)
+                      .map((entityId) => states[entityId])
+                      .filter((s) => s && !['unknown', 'unavailable'].includes(s.state))
                       .sort((a, b) => new Date(b.last_changed) - new Date(a.last_changed))
                       .slice(0, 8);
-                    const pretty = (entityId) =>
-                      entityId
-                        .replace(`binary_sensor.${prefix}_`, '')
-                        .replace(/_/g, ' ')
-                        .replace(/\b\w/g, (c) => c.toUpperCase());
+                    const pretty = (entityId) => labels[entityId] || entityId;
                     const when = (value) => {
                       const date = new Date(value);
                       const sameDay = date.toDateString() === new Date().toDateString();
@@ -2284,25 +2290,19 @@ views:
             - type: custom:mushroom-template-card
               primary: Mud Room motion
               secondary: >-
-                {% set prefix = 'mud_room' %}
-                {% set keywords = ['motion', 'occupancy', 'person', 'smart', 'ring'] %}
+                {% set motion_entities = [
+                  'binary_sensor.mud_room_motion',
+                  'binary_sensor.mud_room_person_detected'
+                ] %}
                 {% set ns = namespace(entity='', ts=0, active=false) %}
                 {% for sensor in states.binary_sensor %}
                   {% set entity = sensor.entity_id %}
-                  {% if prefix in entity and sensor.state not in ['unknown', 'unavailable'] %}
-                    {% set matched = namespace(ok=false) %}
-                    {% for keyword in keywords %}
-                      {% if keyword in entity %}
-                        {% set matched.ok = true %}
-                      {% endif %}
-                    {% endfor %}
-                    {% if matched.ok %}
-                      {% set changed = as_timestamp(sensor.last_changed, 0) %}
-                      {% if changed > ns.ts %}
-                        {% set ns.entity = entity %}
-                        {% set ns.ts = changed %}
-                        {% set ns.active = is_state(entity, 'on') %}
-                      {% endif %}
+                  {% if entity in motion_entities and sensor.state not in ['unknown', 'unavailable'] %}
+                    {% set changed = as_timestamp(sensor.last_changed, 0) %}
+                    {% if changed > ns.ts %}
+                      {% set ns.entity = entity %}
+                      {% set ns.ts = changed %}
+                      {% set ns.active = is_state(entity, 'on') %}
                     {% endif %}
                   {% endif %}
                 {% endfor %}
@@ -2313,21 +2313,14 @@ views:
                 {% endif %}
               icon: mdi:cctv
               icon_color: >-
-                {% set prefix = 'mud_room' %}
-                {% set keywords = ['motion', 'occupancy', 'person', 'smart', 'ring'] %}
+                {% set motion_entities = [
+                  'binary_sensor.mud_room_motion',
+                  'binary_sensor.mud_room_person_detected'
+                ] %}
                 {% set ns = namespace(active=false) %}
-                {% for sensor in states.binary_sensor %}
-                  {% set entity = sensor.entity_id %}
-                  {% if prefix in entity and is_state(entity, 'on') %}
-                    {% set matched = namespace(ok=false) %}
-                    {% for keyword in keywords %}
-                      {% if keyword in entity %}
-                        {% set matched.ok = true %}
-                      {% endif %}
-                    {% endfor %}
-                    {% if matched.ok %}
-                      {% set ns.active = true %}
-                    {% endif %}
+                {% for entity in motion_entities %}
+                  {% if is_state(entity, 'on') %}
+                    {% set ns.active = true %}
                   {% endif %}
                 {% endfor %}
                 {{ 'teal' if ns.active else 'grey' }}
@@ -2367,20 +2360,16 @@ views:
               custom_fields:
                 events: |
                   [[[
-                    const prefix = 'mud_room';
-                    const matches = Object.values(states)
-                      .filter((s) =>
-                        s.entity_id.startsWith(`binary_sensor.${prefix}`) &&
-                        /(motion|occupancy|person|smart|ring)/.test(s.entity_id) &&
-                        !['unknown', 'unavailable'].includes(s.state)
-                      )
+                    const labels = {
+                      'binary_sensor.mud_room_motion': 'Motion',
+                      'binary_sensor.mud_room_person_detected': 'Person',
+                    };
+                    const matches = Object.keys(labels)
+                      .map((entityId) => states[entityId])
+                      .filter((s) => s && !['unknown', 'unavailable'].includes(s.state))
                       .sort((a, b) => new Date(b.last_changed) - new Date(a.last_changed))
                       .slice(0, 8);
-                    const pretty = (entityId) =>
-                      entityId
-                        .replace(`binary_sensor.${prefix}_`, '')
-                        .replace(/_/g, ' ')
-                        .replace(/\b\w/g, (c) => c.toUpperCase());
+                    const pretty = (entityId) => labels[entityId] || entityId;
                     const when = (value) => {
                       const date = new Date(value);
                       const sameDay = date.toDateString() === new Date().toDateString();
@@ -2492,27 +2481,87 @@ views:
       - type: custom:mushroom-title-card
         title: Scenes
 
-      - type: custom:mushroom-chips-card
-        alignment: start
-        chips:
-          - type: template
+      - type: grid
+        columns: 2
+        square: false
+        cards:
+          - type: custom:button-card
+            name: All off
             icon: mdi:lightbulb-off-outline
-            content: All off
+            show_state: false
             tap_action:
-              action: perform-action
-              perform_action: script.lights_all_off_scene
-          - type: template
+              action: call-service
+              service: script.turn_on
+              service_data:
+                entity_id: script.lights_all_off_scene
+            styles:
+              &lights_scene_button_styles
+              card:
+                - height: 58px
+                - padding: 0 14px
+                - border-radius: 18px
+                - border: 1px solid rgba(226, 232, 240, 0.1)
+                - background: linear-gradient(180deg, rgba(15, 23, 42, 0.34), rgba(30, 41, 59, 0.24))
+                - backdrop-filter: blur(12px)
+                - -webkit-backdrop-filter: blur(12px)
+                - box-shadow: 0 10px 22px rgba(2, 6, 23, 0.16)
+                - text-align: left
+              grid:
+                - grid-template-areas: '"i n"'
+                - grid-template-columns: 20px minmax(0, 1fr)
+                - column-gap: 10px
+                - align-items: center
+              icon:
+                - width: 18px
+                - color: '#94a3b8'
+              name:
+                - justify-self: start
+                - font-size: 15px
+                - font-weight: 560
+                - letter-spacing: -0.01em
+                - color: rgba(248, 250, 252, 0.96)
+          - type: custom:button-card
+            name: Evening
             icon: mdi:weather-sunset
-            content: Evening
+            show_state: false
             tap_action:
-              action: perform-action
-              perform_action: script.lights_evening_scene
-          - type: template
+              action: call-service
+              service: script.turn_on
+              service_data:
+                entity_id: script.lights_evening_scene
+            styles:
+              <<: *lights_scene_button_styles
+              icon:
+                - width: 18px
+                - color: '#fbbf24'
+          - type: custom:button-card
+            name: TV
+            icon: mdi:television
+            show_state: false
+            tap_action:
+              action: call-service
+              service: script.turn_on
+              service_data:
+                entity_id: script.lights_tv_scene
+            styles:
+              <<: *lights_scene_button_styles
+              icon:
+                - width: 18px
+                - color: '#67e8f9'
+          - type: custom:button-card
+            name: Bedtime
             icon: mdi:weather-night
-            content: Bedtime
+            show_state: false
             tap_action:
-              action: perform-action
-              perform_action: script.lights_bedtime_scene
+              action: call-service
+              service: script.turn_on
+              service_data:
+                entity_id: script.lights_bedtime_scene
+            styles:
+              <<: *lights_scene_button_styles
+              icon:
+                - width: 18px
+                - color: '#818cf8'
 
       - type: custom:mushroom-title-card
         title: Common areas
@@ -2521,12 +2570,9 @@ views:
         entity: light.interior_test
         name: Common areas
         icon: mdi:home-lightbulb-outline
-        tap_action: &lights_transition_tap_action
+        tap_action:
           action: perform-action
-          perform_action: script.light_transition_toggle
-          data:
-            light_entity: light.interior_test
-            transition_seconds: 3
+          perform_action: script.common_areas_transition_toggle
         show_brightness_control: true
         show_color_temp_control: false
         use_light_color: true
@@ -2554,11 +2600,23 @@ views:
             entity: light.front_foyer_ceiling_lights
             name: Foyer Ceiling
             icon: mdi:ceiling-light
-            tap_action:
-              <<: *lights_transition_tap_action
+            tap_action: &lights_transition_tap_action
+              action: perform-action
+              perform_action: script.light_transition_toggle
               data:
                 light_entity: light.front_foyer_ceiling_lights
                 transition_seconds: 3
+            show_brightness_control: true
+            use_light_color: true
+            card_mod:
+              style: *lights_compact_card_style
+          - type: custom:mushroom-light-card
+            entity: light.front_foyer_chandelier
+            name: Foyer Chandelier
+            icon: mdi:ceiling-light
+            tap_action:
+              action: perform-action
+              perform_action: script.foyer_chandelier_toggle
             show_brightness_control: true
             use_light_color: true
             card_mod:
@@ -2610,6 +2668,69 @@ views:
               <<: *lights_transition_tap_action
               data:
                 light_entity: light.vestibule_main_lights
+                transition_seconds: 3
+            show_brightness_control: true
+            use_light_color: true
+            card_mod:
+              style: *lights_compact_card_style
+
+      - type: custom:mushroom-title-card
+        title: Family Room
+
+      - type: custom:mushroom-light-card
+        entity: light.family_room
+        name: Family Room
+        icon: mdi:sofa-outline
+        tap_action:
+          <<: *lights_transition_tap_action
+          data:
+            light_entity: light.family_room
+            transition_seconds: 3
+        show_brightness_control: true
+        show_color_temp_control: false
+        use_light_color: true
+        fill_container: true
+        card_mod:
+          style: *lights_compact_card_style
+
+      - type: grid
+        columns: 2
+        square: false
+        cards:
+          - type: custom:mushroom-light-card
+            entity: light.family_room_main_lights_1
+            name: Family Room 1
+            icon: mdi:ceiling-light
+            tap_action:
+              <<: *lights_transition_tap_action
+              data:
+                light_entity: light.family_room_main_lights_1
+                transition_seconds: 3
+            show_brightness_control: true
+            use_light_color: true
+            card_mod:
+              style: *lights_compact_card_style
+          - type: custom:mushroom-light-card
+            entity: light.family_room_main_lights_2
+            name: Family Room 2
+            icon: mdi:ceiling-light
+            tap_action:
+              <<: *lights_transition_tap_action
+              data:
+                light_entity: light.family_room_main_lights_2
+                transition_seconds: 3
+            show_brightness_control: true
+            use_light_color: true
+            card_mod:
+              style: *lights_compact_card_style
+          - type: custom:mushroom-light-card
+            entity: light.family_room_main_lights_3
+            name: Family Room 3
+            icon: mdi:ceiling-light
+            tap_action:
+              <<: *lights_transition_tap_action
+              data:
+                light_entity: light.family_room_main_lights_3
                 transition_seconds: 3
             show_brightness_control: true
             use_light_color: true
@@ -2674,11 +2795,11 @@ views:
         primary: Front door lights
         secondary: >-
           {% set active = is_state('binary_sensor.door_lights_schedule_active', 'on') %}
-          {% set next_on = (as_timestamp(state_attr('sun.sun', 'next_setting')) - 3600) | timestamp_custom('%-I:%M %p', true) %}
-          {% set next_off = (as_timestamp(state_attr('sun.sun', 'next_rising')) + 3600) | timestamp_custom('%-I:%M %p', true) %}
+          {% set threshold = 10 %}
+          {% set elevation = state_attr('sun.sun', 'elevation') | float(0) | round(1) %}
           {{ 'Active now' if active else 'Inactive now' }}
-          • On {{ next_on }}
-          • Off {{ next_off }}
+          • Sun {{ elevation }}°
+          • Adaptive below {{ threshold }}°
         multiline_secondary: true
         icon: mdi:coach-lamp
         icon_color: >-
@@ -2694,14 +2815,35 @@ views:
         secondary: >-
           {% set active = is_state('binary_sensor.front_stairs_schedule_active', 'on') %}
           {% set target = states('sensor.front_stairs_schedule_brightness') | int(0) %}
-          {% set next_on = (as_timestamp(state_attr('sun.sun', 'next_setting')) - 7200) | timestamp_custom('%-I:%M %p', true) %}
-          {% set next_off = (as_timestamp(state_attr('sun.sun', 'next_rising')) + 7200) | timestamp_custom('%-I:%M %p', true) %}
+          {% set threshold = 10 %}
+          {% set elevation = state_attr('sun.sun', 'elevation') | float(0) | round(1) %}
           {{ 'Active now' if active else 'Inactive now' }}
           {% if active %} • {{ target }}% target{% endif %}
-          • On {{ next_on }}
-          • Off {{ next_off }}
+          • Sun {{ elevation }}°
+          • Adaptive below {{ threshold }}°
         multiline_secondary: true
         icon: mdi:stairs
+        icon_color: >-
+          {{ 'amber' if is_state('binary_sensor.front_stairs_schedule_active', 'on') else 'grey' }}
+        tap_action:
+          action: more-info
+        card_mod:
+          style: *lights_compact_card_style
+
+      - type: custom:mushroom-template-card
+        entity: binary_sensor.front_stairs_schedule_active
+        primary: Foyer chandelier
+        secondary: >-
+          {% set active = is_state('binary_sensor.front_stairs_schedule_active', 'on') %}
+          {% set target = 7 %}
+          {% set threshold = 10 %}
+          {% set elevation = state_attr('sun.sun', 'elevation') | float(0) | round(1) %}
+          {{ 'Active now' if active else 'Inactive now' }}
+          {% if active %} • {{ target }}% target{% endif %}
+          • Sun {{ elevation }}°
+          • Adaptive below {{ threshold }}°
+        multiline_secondary: true
+        icon: mdi:chandelier
         icon_color: >-
           {{ 'amber' if is_state('binary_sensor.front_stairs_schedule_active', 'on') else 'grey' }}
         tap_action:
@@ -2740,6 +2882,7 @@ views:
             icon_color: >-
               {% set pressure = states('sensor.flo_shutoff_water_pressure') | float(0) %}
               {% if pressure < 40 or pressure > 80 %}orange
+              {% elif pressure < 50 %}amber
               {% else %}blue{% endif %}
           - type: custom:mushroom-template-card
             entity: sensor.flo_shutoff_today_s_water_usage
@@ -3136,7 +3279,28 @@ views:
               text: >-
                 [[[
                   const meta = entity.state === 'on' ? 'Enabled' : 'Disabled';
-                  return `<div class="tile-copy"><div class="tile-label">Burst Alert</div><div class="tile-meta">${meta}</div></div>`;
+                  return `<div class="tile-copy"><div class="tile-label">Day Burst</div><div class="tile-meta">${meta}</div></div>`;
+                ]]]
+            tap_action:
+              action: more-info
+            styles: *water_compact_button_styles
+            extra_styles: *compact_tile_extra
+          - type: custom:button-card
+            entity: automation.water_high_flow_burst_overnight
+            show_icon: false
+            show_name: false
+            show_state: false
+            custom_fields:
+              icon: >-
+                [[[
+                  const enabled = entity.state === 'on';
+                  const color = enabled ? '#14b8a6' : '#94a3b8';
+                  return `<div class="tile-icon"><ha-icon icon="mdi:weather-night" style="color:${color}"></ha-icon></div>`;
+                ]]]
+              text: >-
+                [[[
+                  const meta = entity.state === 'on' ? 'Enabled' : 'Disabled';
+                  return `<div class="tile-copy"><div class="tile-label">Night Burst</div><div class="tile-meta">${meta}</div></div>`;
                 ]]]
             tap_action:
               action: more-info
@@ -3158,6 +3322,48 @@ views:
                 [[[
                   const meta = entity.state === 'on' ? 'Enabled' : 'Disabled';
                   return `<div class="tile-copy"><div class="tile-label">Low Pressure</div><div class="tile-meta">${meta}</div></div>`;
+                ]]]
+            tap_action:
+              action: more-info
+            styles: *water_compact_button_styles
+            extra_styles: *compact_tile_extra
+          - type: custom:button-card
+            entity: automation.water_pressure_drop_sudden
+            show_icon: false
+            show_name: false
+            show_state: false
+            custom_fields:
+              icon: >-
+                [[[
+                  const enabled = entity.state === 'on';
+                  const color = enabled ? '#14b8a6' : '#94a3b8';
+                  return `<div class="tile-icon"><ha-icon icon="mdi:gauge-empty" style="color:${color}"></ha-icon></div>`;
+                ]]]
+              text: >-
+                [[[
+                  const meta = entity.state === 'on' ? 'Enabled' : 'Disabled';
+                  return `<div class="tile-copy"><div class="tile-label">Sudden Drop</div><div class="tile-meta">${meta}</div></div>`;
+                ]]]
+            tap_action:
+              action: more-info
+            styles: *water_compact_button_styles
+            extra_styles: *compact_tile_extra
+          - type: custom:button-card
+            entity: automation.water_high_pressure
+            show_icon: false
+            show_name: false
+            show_state: false
+            custom_fields:
+              icon: >-
+                [[[
+                  const enabled = entity.state === 'on';
+                  const color = enabled ? '#14b8a6' : '#94a3b8';
+                  return `<div class="tile-icon"><ha-icon icon="mdi:gauge-full" style="color:${color}"></ha-icon></div>`;
+                ]]]
+              text: >-
+                [[[
+                  const meta = entity.state === 'on' ? 'Enabled' : 'Disabled';
+                  return `<div class="tile-copy"><div class="tile-label">High Pressure</div><div class="tile-meta">${meta}</div></div>`;
                 ]]]
             tap_action:
               action: more-info
@@ -3200,6 +3406,48 @@ views:
                 [[[
                   const meta = entity.state === 'on' ? 'Enabled' : 'Disabled';
                   return `<div class="tile-copy"><div class="tile-label">Leak Alerts</div><div class="tile-meta">${meta}</div></div>`;
+                ]]]
+            tap_action:
+              action: more-info
+            styles: *water_compact_button_styles
+            extra_styles: *compact_tile_extra
+          - type: custom:button-card
+            entity: automation.water_shutoff_valve_closed
+            show_icon: false
+            show_name: false
+            show_state: false
+            custom_fields:
+              icon: >-
+                [[[
+                  const enabled = entity.state === 'on';
+                  const color = enabled ? '#14b8a6' : '#94a3b8';
+                  return `<div class="tile-icon"><ha-icon icon="mdi:pipe-valve" style="color:${color}"></ha-icon></div>`;
+                ]]]
+              text: >-
+                [[[
+                  const meta = entity.state === 'on' ? 'Enabled' : 'Disabled';
+                  return `<div class="tile-copy"><div class="tile-label">Valve Closed</div><div class="tile-meta">${meta}</div></div>`;
+                ]]]
+            tap_action:
+              action: more-info
+            styles: *water_compact_button_styles
+            extra_styles: *compact_tile_extra
+          - type: custom:button-card
+            entity: automation.water_flo_system_alert
+            show_icon: false
+            show_name: false
+            show_state: false
+            custom_fields:
+              icon: >-
+                [[[
+                  const enabled = entity.state === 'on';
+                  const color = enabled ? '#14b8a6' : '#94a3b8';
+                  return `<div class="tile-icon"><ha-icon icon="mdi:shield-alert-outline" style="color:${color}"></ha-icon></div>`;
+                ]]]
+              text: >-
+                [[[
+                  const meta = entity.state === 'on' ? 'Enabled' : 'Disabled';
+                  return `<div class="tile-copy"><div class="tile-label">Flo Alert</div><div class="tile-meta">${meta}</div></div>`;
                 ]]]
             tap_action:
               action: more-info
@@ -3656,7 +3904,7 @@ views:
       - type: custom:popup-card
         target:
           entity_id: automation.water_high_flow_burst_daytime
-        title: Burst Alert Guard
+        title: Daytime Burst Guard
         dismiss_icon: mdi:close
         initial_style: wide
         popup_styles: *calm_popup_styles
@@ -3703,6 +3951,54 @@ views:
 
       - type: custom:popup-card
         target:
+          entity_id: automation.water_high_flow_burst_overnight
+        title: Overnight Burst Guard
+        dismiss_icon: mdi:close
+        initial_style: wide
+        popup_styles: *calm_popup_styles
+        card:
+          type: vertical-stack
+          cards:
+            - type: custom:mushroom-template-card
+              entity: automation.water_high_flow_burst_overnight
+              primary: >-
+                {{ 'Armed' if is_state('automation.water_high_flow_burst_overnight', 'on') else 'Disabled' }}
+              secondary: >-
+                Watches for major overnight flow when the house should be quiet.
+              icon: mdi:weather-night
+              icon_color: >-
+                {{ 'teal' if is_state('automation.water_high_flow_burst_overnight', 'on') else 'grey' }}
+              fill_container: true
+              tap_action:
+                action: none
+              card_mod:
+                style: *calm_popup_hero_style
+            - type: custom:mushroom-chips-card
+              alignment: left
+              chips:
+                - type: template
+                  entity: automation.water_high_flow_burst_overnight
+                  icon: mdi:power
+                  icon_color: >-
+                    {{ 'teal' if is_state('automation.water_high_flow_burst_overnight', 'on') else 'grey' }}
+                  content: >-
+                    {{ 'Enabled' if is_state('automation.water_high_flow_burst_overnight', 'on') else 'Disabled' }}
+                  tap_action:
+                    action: none
+                - type: template
+                  entity: automation.water_high_flow_burst_overnight
+                  icon: mdi:history
+                  icon_color: blue-grey
+                  content: >-
+                    {% set ts = state_attr('automation.water_high_flow_burst_overnight', 'last_triggered') %}
+                    {{ relative_time(as_datetime(ts)) ~ ' ago' if ts else 'No recent runs' }}
+                  tap_action:
+                    action: none
+              card_mod:
+                style: *calm_popup_chip_style
+
+      - type: custom:popup-card
+        target:
           entity_id: automation.water_low_pressure
         title: Low Pressure Guard
         dismiss_icon: mdi:close
@@ -3716,7 +4012,7 @@ views:
               primary: >-
                 {{ 'Armed' if is_state('automation.water_low_pressure', 'on') else 'Disabled' }}
               secondary: >-
-                Watches for water pressure dropping out of the normal range.
+                Watches for sustained pressure below 40 psi that lasts long enough to suggest a real fault.
               icon: mdi:gauge-low
               icon_color: >-
                 {{ 'teal' if is_state('automation.water_low_pressure', 'on') else 'grey' }}
@@ -3743,6 +4039,102 @@ views:
                   icon_color: blue-grey
                   content: >-
                     {% set ts = state_attr('automation.water_low_pressure', 'last_triggered') %}
+                    {{ relative_time(as_datetime(ts)) ~ ' ago' if ts else 'No recent runs' }}
+                  tap_action:
+                    action: none
+              card_mod:
+                style: *calm_popup_chip_style
+
+      - type: custom:popup-card
+        target:
+          entity_id: automation.water_pressure_drop_sudden
+        title: Sudden Pressure Drop Guard
+        dismiss_icon: mdi:close
+        initial_style: wide
+        popup_styles: *calm_popup_styles
+        card:
+          type: vertical-stack
+          cards:
+            - type: custom:mushroom-template-card
+              entity: automation.water_pressure_drop_sudden
+              primary: >-
+                {{ 'Armed' if is_state('automation.water_pressure_drop_sudden', 'on') else 'Disabled' }}
+              secondary: >-
+                Watches for a sharp drop below 50 psi so you get an earlier heads-up before sustained low pressure.
+              icon: mdi:gauge-empty
+              icon_color: >-
+                {{ 'teal' if is_state('automation.water_pressure_drop_sudden', 'on') else 'grey' }}
+              fill_container: true
+              tap_action:
+                action: none
+              card_mod:
+                style: *calm_popup_hero_style
+            - type: custom:mushroom-chips-card
+              alignment: left
+              chips:
+                - type: template
+                  entity: automation.water_pressure_drop_sudden
+                  icon: mdi:power
+                  icon_color: >-
+                    {{ 'teal' if is_state('automation.water_pressure_drop_sudden', 'on') else 'grey' }}
+                  content: >-
+                    {{ 'Enabled' if is_state('automation.water_pressure_drop_sudden', 'on') else 'Disabled' }}
+                  tap_action:
+                    action: none
+                - type: template
+                  entity: automation.water_pressure_drop_sudden
+                  icon: mdi:history
+                  icon_color: blue-grey
+                  content: >-
+                    {% set ts = state_attr('automation.water_pressure_drop_sudden', 'last_triggered') %}
+                    {{ relative_time(as_datetime(ts)) ~ ' ago' if ts else 'No recent runs' }}
+                  tap_action:
+                    action: none
+              card_mod:
+                style: *calm_popup_chip_style
+
+      - type: custom:popup-card
+        target:
+          entity_id: automation.water_high_pressure
+        title: High Pressure Guard
+        dismiss_icon: mdi:close
+        initial_style: wide
+        popup_styles: *calm_popup_styles
+        card:
+          type: vertical-stack
+          cards:
+            - type: custom:mushroom-template-card
+              entity: automation.water_high_pressure
+              primary: >-
+                {{ 'Armed' if is_state('automation.water_high_pressure', 'on') else 'Disabled' }}
+              secondary: >-
+                Watches for sustained pressure above 80 psi that can strain pipes and appliances.
+              icon: mdi:gauge-full
+              icon_color: >-
+                {{ 'teal' if is_state('automation.water_high_pressure', 'on') else 'grey' }}
+              fill_container: true
+              tap_action:
+                action: none
+              card_mod:
+                style: *calm_popup_hero_style
+            - type: custom:mushroom-chips-card
+              alignment: left
+              chips:
+                - type: template
+                  entity: automation.water_high_pressure
+                  icon: mdi:power
+                  icon_color: >-
+                    {{ 'teal' if is_state('automation.water_high_pressure', 'on') else 'grey' }}
+                  content: >-
+                    {{ 'Enabled' if is_state('automation.water_high_pressure', 'on') else 'Disabled' }}
+                  tap_action:
+                    action: none
+                - type: template
+                  entity: automation.water_high_pressure
+                  icon: mdi:history
+                  icon_color: blue-grey
+                  content: >-
+                    {% set ts = state_attr('automation.water_high_pressure', 'last_triggered') %}
                     {{ relative_time(as_datetime(ts)) ~ ' ago' if ts else 'No recent runs' }}
                   tap_action:
                     action: none
@@ -3847,6 +4239,102 @@ views:
 
       - type: custom:popup-card
         target:
+          entity_id: automation.water_shutoff_valve_closed
+        title: Valve Closed Guard
+        dismiss_icon: mdi:close
+        initial_style: wide
+        popup_styles: *calm_popup_styles
+        card:
+          type: vertical-stack
+          cards:
+            - type: custom:mushroom-template-card
+              entity: automation.water_shutoff_valve_closed
+              primary: >-
+                {{ 'Armed' if is_state('automation.water_shutoff_valve_closed', 'on') else 'Disabled' }}
+              secondary: >-
+                Watches for the Flo shutoff valve closing for any reason so you can verify whether it was intentional.
+              icon: mdi:pipe-valve
+              icon_color: >-
+                {{ 'teal' if is_state('automation.water_shutoff_valve_closed', 'on') else 'grey' }}
+              fill_container: true
+              tap_action:
+                action: none
+              card_mod:
+                style: *calm_popup_hero_style
+            - type: custom:mushroom-chips-card
+              alignment: left
+              chips:
+                - type: template
+                  entity: automation.water_shutoff_valve_closed
+                  icon: mdi:power
+                  icon_color: >-
+                    {{ 'teal' if is_state('automation.water_shutoff_valve_closed', 'on') else 'grey' }}
+                  content: >-
+                    {{ 'Enabled' if is_state('automation.water_shutoff_valve_closed', 'on') else 'Disabled' }}
+                  tap_action:
+                    action: none
+                - type: template
+                  entity: automation.water_shutoff_valve_closed
+                  icon: mdi:history
+                  icon_color: blue-grey
+                  content: >-
+                    {% set ts = state_attr('automation.water_shutoff_valve_closed', 'last_triggered') %}
+                    {{ relative_time(as_datetime(ts)) ~ ' ago' if ts else 'No recent runs' }}
+                  tap_action:
+                    action: none
+              card_mod:
+                style: *calm_popup_chip_style
+
+      - type: custom:popup-card
+        target:
+          entity_id: automation.water_flo_system_alert
+        title: Flo System Guard
+        dismiss_icon: mdi:close
+        initial_style: wide
+        popup_styles: *calm_popup_styles
+        card:
+          type: vertical-stack
+          cards:
+            - type: custom:mushroom-template-card
+              entity: automation.water_flo_system_alert
+              primary: >-
+                {{ 'Armed' if is_state('automation.water_flo_system_alert', 'on') else 'Disabled' }}
+              secondary: >-
+                Passes through native Flo system alerts so app-level issues still show up in the Water tab.
+              icon: mdi:shield-alert-outline
+              icon_color: >-
+                {{ 'teal' if is_state('automation.water_flo_system_alert', 'on') else 'grey' }}
+              fill_container: true
+              tap_action:
+                action: none
+              card_mod:
+                style: *calm_popup_hero_style
+            - type: custom:mushroom-chips-card
+              alignment: left
+              chips:
+                - type: template
+                  entity: automation.water_flo_system_alert
+                  icon: mdi:power
+                  icon_color: >-
+                    {{ 'teal' if is_state('automation.water_flo_system_alert', 'on') else 'grey' }}
+                  content: >-
+                    {{ 'Enabled' if is_state('automation.water_flo_system_alert', 'on') else 'Disabled' }}
+                  tap_action:
+                    action: none
+                - type: template
+                  entity: automation.water_flo_system_alert
+                  icon: mdi:history
+                  icon_color: blue-grey
+                  content: >-
+                    {% set ts = state_attr('automation.water_flo_system_alert', 'last_triggered') %}
+                    {{ relative_time(as_datetime(ts)) ~ ' ago' if ts else 'No recent runs' }}
+                  tap_action:
+                    action: none
+              card_mod:
+                style: *calm_popup_chip_style
+
+      - type: custom:popup-card
+        target:
           entity_id: sensor.flo_shutoff_water_flow_rate
         title: Flow Rate
         dismiss_icon: mdi:close
@@ -3917,13 +4405,16 @@ views:
                 {{ states('sensor.flo_shutoff_water_pressure') | float(0) | round(0) }} psi
               secondary: >-
                 {% set pressure = states('sensor.flo_shutoff_water_pressure') | float(0) %}
-                {% if pressure < 40 %}Pressure is running low.
+                {% if pressure < 40 %}Pressure is in the sustained low-pressure alert range.
+                {% elif pressure < 50 %}Pressure is low enough for sudden-drop review.
                 {% elif pressure > 80 %}Pressure is running high.
                 {% else %}Pressure is in the normal range.{% endif %}
               icon: mdi:gauge
               icon_color: >-
                 {% set pressure = states('sensor.flo_shutoff_water_pressure') | float(0) %}
-                {% if pressure < 40 or pressure > 80 %}orange{% else %}blue{% endif %}
+                {% if pressure < 40 or pressure > 80 %}orange
+                {% elif pressure < 50 %}amber
+                {% else %}blue{% endif %}
               fill_container: true
               tap_action:
                 action: none
@@ -4132,6 +4623,7 @@ views:
               {{ states('sensor.wine_cave_dew_point') | float(0) | round(1) }}°F dew point
             tap_action:
               action: more-info
+
       - type: custom:mushroom-title-card
         title: 24-hour trends
       - type: custom:button-card
@@ -5828,3 +6320,741 @@ views:
               service: script.turn_on
               target:
                 entity_id: script.spotify_bedtime_fade
+
+  - title: Climate
+    path: climate
+    icon: mdi:home-thermometer-outline
+    cards:
+      - type: custom:mushroom-title-card
+        title: Downstairs Climate
+        subtitle: Dining room and main floor observatory
+
+      - type: custom:mushroom-template-card
+        entity: sensor.downstairs_climate_status
+        primary: >-
+          {% set status = states('sensor.downstairs_climate_status') %}
+          {% if status == 'warming' %}Downstairs is warming
+          {% elif status == 'cooling' %}Downstairs is cooling
+          {% elif status == 'too_warm' %}Downstairs is running warm
+          {% elif status == 'too_cool' %}Downstairs is running cool
+          {% elif status == 'humid' %}Downstairs feels humid
+          {% elif status == 'dry' %}Downstairs feels dry
+          {% elif status == 'uneven' %}Downstairs is uneven
+          {% else %}Downstairs feels steady{% endif %}
+        secondary: >-
+          {{ states('sensor.downstairs_climate_insight') }}
+        multiline_secondary: true
+        icon: >-
+          {% set status = states('sensor.downstairs_climate_status') %}
+          {% if status == 'warming' %}mdi:radiator
+          {% elif status == 'cooling' %}mdi:snowflake
+          {% elif status == 'too_warm' %}mdi:thermometer-high
+          {% elif status == 'too_cool' %}mdi:thermometer-low
+          {% elif status == 'humid' %}mdi:water-percent
+          {% elif status == 'dry' %}mdi:water-off-outline
+          {% elif status == 'uneven' %}mdi:thermometer-alert
+          {% else %}mdi:home-thermometer-outline{% endif %}
+        icon_color: >-
+          {% set status = states('sensor.downstairs_climate_status') %}
+          {% if status == 'warming' %}orange
+          {% elif status == 'cooling' %}blue
+          {% elif status == 'too_warm' %}red
+          {% elif status == 'too_cool' %}indigo
+          {% elif status == 'humid' %}cyan
+          {% elif status == 'dry' %}amber
+          {% elif status == 'uneven' %}deep-orange
+          {% else %}green{% endif %}
+        tap_action:
+          action: more-info
+        card_mod:
+          style: |
+            ha-card {
+              min-height: 180px;
+              border: none;
+              box-shadow: 0 20px 42px rgba(15, 23, 42, 0.22);
+              border-radius: 28px;
+              padding: 14px 8px;
+              border: 1px solid rgba(148, 163, 184, 0.18);
+              color: rgba(15, 23, 42, 0.92) !important;
+              --primary-text-color: rgba(15, 23, 42, 0.92) !important;
+              --secondary-text-color: rgba(30, 41, 59, 0.78) !important;
+              background:
+                radial-gradient(circle at top right, rgba(14, 165, 233, 0.16), transparent 34%),
+                radial-gradient(circle at bottom left, rgba(20, 184, 166, 0.10), transparent 28%),
+                linear-gradient(180deg, rgba(248, 250, 252, 0.98), rgba(241, 245, 249, 0.94));
+            }
+            .primary {
+              font-size: 28px !important;
+              font-weight: 560 !important;
+              letter-spacing: -0.04em;
+              color: rgba(15, 23, 42, 0.92) !important;
+            }
+            .secondary {
+              font-size: 14px !important;
+              line-height: 1.5 !important;
+              opacity: 1 !important;
+              color: rgba(30, 41, 59, 0.78) !important;
+            }
+
+      - type: markdown
+        content: >-
+          **Control lives in ecobee.** This tab is for visibility, trends, and high-signal climate alerts:
+          open-window nights, away drift, profile mismatches while both phones are away, and sensor issues.
+
+      - type: custom:mushroom-chips-card
+        alignment: left
+        chips:
+          - type: template
+            entity: input_boolean.downstairs_pilot_enabled
+            icon: mdi:home-thermometer-outline
+            icon_color: >-
+              {{ 'teal' if is_state('input_boolean.downstairs_pilot_enabled', 'on') else 'grey' }}
+            content: >-
+              {{ 'Insights on' if is_state('input_boolean.downstairs_pilot_enabled', 'on') else 'Insights off' }}
+          - type: template
+            entity: input_boolean.downstairs_mobile_alerts_enabled
+            icon: mdi:cellphone-message
+            icon_color: >-
+              {{ 'teal' if is_state('input_boolean.downstairs_mobile_alerts_enabled', 'on') else 'grey' }}
+            content: >-
+              {{ 'Alerts on' if is_state('input_boolean.downstairs_mobile_alerts_enabled', 'on') else 'Alerts off' }}
+          - type: template
+            entity: device_tracker.tk_iphone_16_pro
+            icon: >-
+              {{ 'mdi:cellphone' if is_state('device_tracker.tk_iphone_16_pro', 'home') else 'mdi:cellphone-off' }}
+            icon_color: >-
+              {{ 'green' if is_state('device_tracker.tk_iphone_16_pro', 'home') else 'grey' }}
+            content: >-
+              {{ 'Trevor home' if is_state('device_tracker.tk_iphone_16_pro', 'home') else 'Trevor away' }}
+          - type: template
+            entity: device_tracker.unifi_default_42_15_78_4a_d9_f8
+            icon: >-
+              {{ 'mdi:cellphone' if is_state('device_tracker.unifi_default_42_15_78_4a_d9_f8', 'home') else 'mdi:cellphone-off' }}
+            icon_color: >-
+              {{ 'green' if is_state('device_tracker.unifi_default_42_15_78_4a_d9_f8', 'home') else 'grey' }}
+            content: >-
+              {{ 'Casey home' if is_state('device_tracker.unifi_default_42_15_78_4a_d9_f8', 'home') else 'Casey away' }}
+          - type: template
+            entity: select.dining_room_current_mode
+            icon: mdi:home-switch-outline
+            icon_color: blue-grey
+            content: >-
+              Ecobee {{ states('select.dining_room_current_mode') | title }}
+          - type: template
+            entity: climate.dining_room
+            icon: >-
+              {% set action = state_attr('climate.dining_room', 'hvac_action') | default('idle', true) %}
+              {% if action == 'heating' %}mdi:radiator
+              {% elif action == 'cooling' %}mdi:snowflake
+              {% else %}mdi:power-sleep{% endif %}
+            icon_color: >-
+              {% set action = state_attr('climate.dining_room', 'hvac_action') | default('idle', true) %}
+              {% if action == 'heating' %}orange
+              {% elif action == 'cooling' %}blue
+              {% else %}grey{% endif %}
+            content: >-
+              {% set action = state_attr('climate.dining_room', 'hvac_action') | default('idle', true) %}
+              Ecobee {{ action | replace('_', ' ') | title }}
+          - type: template
+            entity: binary_sensor.downstairs_open_window_eligible
+            icon: >-
+              {{ 'mdi:window-open-variant' if is_state('binary_sensor.downstairs_open_window_eligible', 'on') else 'mdi:window-closed-variant' }}
+            icon_color: >-
+              {{ 'teal' if is_state('binary_sensor.downstairs_open_window_eligible', 'on') else 'grey' }}
+            content: >-
+              {{ 'Window night' if is_state('binary_sensor.downstairs_open_window_eligible', 'on') else 'Windows not favored' }}
+          - type: template
+            entity: sensor.downstairs_away_watch
+            icon: >-
+              {% set watch = states('sensor.downstairs_away_watch') %}
+              {% if watch == 'too_hot' %}mdi:thermometer-high
+              {% elif watch == 'too_cold' %}mdi:thermometer-low
+              {% elif watch == 'too_humid' %}mdi:water-percent-alert
+              {% elif watch == 'too_dry' %}mdi:water-off-outline
+              {% elif watch == 'profile_check' %}mdi:home-alert-outline
+              {% elif watch == 'all_clear' %}mdi:shield-home-outline
+              {% else %}mdi:home-export-outline{% endif %}
+            icon_color: >-
+              {% set watch = states('sensor.downstairs_away_watch') %}
+              {% if watch in ['too_hot', 'too_cold', 'too_humid', 'too_dry', 'profile_check'] %}red
+              {% elif watch == 'all_clear' %}green
+              {% else %}grey{% endif %}
+            content: >-
+              {% set watch = states('sensor.downstairs_away_watch') %}
+              {% if watch == 'too_hot' %}Away: hot
+              {% elif watch == 'too_cold' %}Away: cold
+              {% elif watch == 'too_humid' %}Away: humid
+              {% elif watch == 'too_dry' %}Away: dry
+              {% elif watch == 'profile_check' %}Away: check ecobee
+              {% elif watch == 'all_clear' %}Away: clear
+              {% elif watch == 'grace_period' %}Away: grace period
+              {% else %}Home occupied{% endif %}
+
+      - type: custom:mushroom-title-card
+        title: Now
+
+      - type: entities
+        title: Readings
+        show_header_toggle: false
+        entities:
+          - entity: sensor.downstairs_temp_avg
+            name: Main floor avg temp
+          - entity: sensor.downstairs_humidity_avg
+            name: Main floor avg humidity
+          - entity: sensor.downstairs_temp_spread
+            name: Sensor spread
+          - entity: sensor.downstairs_climate_status
+            name: Climate status
+          - entity: sensor.dining_room_current_temperature
+            name: Ecobee temp
+          - entity: sensor.downstairs_ecobee_setpoint
+            name: Ecobee setpoint
+          - entity: sensor.dining_room_current_humidity
+            name: Ecobee humidity
+          - entity: select.dining_room_current_mode
+            name: Ecobee comfort profile
+          - entity: sensor.downstairs_source_policy
+            name: Winter source zone
+
+      - type: custom:mushroom-template-card
+        entity: weather.forecast_home
+        primary: >-
+          Outdoor {{ states('sensor.downstairs_outdoor_temp') }}°F · {{ states('weather.forecast_home') | replace('-', ' ') | replace('_', ' ') | title }}
+        secondary: >-
+          Humidity {{ states('sensor.downstairs_outdoor_humidity') }}% ·
+          Wind {{ states('sensor.downstairs_outdoor_wind_speed') }} mph ·
+          Winter source zone {{ states('sensor.downstairs_source_policy') | replace('_', ' ') }}.
+        icon: >-
+          {% set state = states('weather.forecast_home') %}
+          {% if state in ['sunny', 'clear-night'] %}mdi:weather-sunny
+          {% elif state in ['cloudy', 'partlycloudy'] %}mdi:weather-partly-cloudy
+          {% elif state in ['rainy', 'pouring'] %}mdi:weather-rainy
+          {% else %}mdi:weather-cloudy{% endif %}
+        icon_color: >-
+          {% set state = states('weather.forecast_home') %}
+          {% if state in ['sunny', 'clear-night'] %}amber
+          {% elif state in ['rainy', 'pouring'] %}blue
+          {% else %}blue-grey{% endif %}
+
+      - type: custom:mushroom-title-card
+        title: Away Watch
+        subtitle: Uses Trevor and Casey's phones, not ecobee motion
+
+      - type: custom:mushroom-template-card
+        entity: sensor.downstairs_away_watch
+        primary: >-
+          {% set watch = states('sensor.downstairs_away_watch') %}
+          {% if watch == 'too_hot' %}Too warm while away
+          {% elif watch == 'too_cold' %}Too cool while away
+          {% elif watch == 'too_humid' %}Humidity is climbing while away
+          {% elif watch == 'too_dry' %}Air is getting dry while away
+          {% elif watch == 'profile_check' %}Ecobee still looks occupied
+          {% elif watch == 'grace_period' %}Away watch is waiting
+          {% elif watch == 'all_clear' %}Away watch is clear
+          {% else %}Home is occupied{% endif %}
+        secondary: >-
+          {{ states('sensor.downstairs_away_watch_reason') }}
+        multiline_secondary: true
+        icon: >-
+          {% set watch = states('sensor.downstairs_away_watch') %}
+          {% if watch == 'too_hot' %}mdi:thermometer-high
+          {% elif watch == 'too_cold' %}mdi:thermometer-low
+          {% elif watch == 'too_humid' %}mdi:water-percent-alert
+          {% elif watch == 'too_dry' %}mdi:water-off-outline
+          {% elif watch == 'profile_check' %}mdi:home-alert-outline
+          {% elif watch == 'all_clear' %}mdi:shield-home-outline
+          {% elif watch == 'grace_period' %}mdi:timer-sand
+          {% else %}mdi:home-account{% endif %}
+        icon_color: >-
+          {% set watch = states('sensor.downstairs_away_watch') %}
+          {% if watch in ['too_hot', 'too_cold', 'too_humid', 'too_dry', 'profile_check'] %}red
+          {% elif watch == 'all_clear' %}green
+          {% elif watch == 'grace_period' %}amber
+          {% else %}grey{% endif %}
+
+      - type: entities
+        title: Presence & Away Context
+        show_header_toggle: false
+        entities:
+          - entity: device_tracker.tk_iphone_16_pro
+            name: Trevor phone
+          - entity: device_tracker.unifi_default_42_15_78_4a_d9_f8
+            name: Casey phone
+          - entity: binary_sensor.downstairs_everyone_away
+            name: Both phones away
+          - entity: sensor.downstairs_away_minutes
+            name: Away minutes
+          - entity: select.dining_room_current_mode
+            name: Actual ecobee profile
+          - entity: sensor.downstairs_away_watch
+            name: Away watch
+          - entity: sensor.downstairs_away_watch_reason
+            name: Away watch reason
+
+      - type: custom:mushroom-title-card
+        title: Trends
+
+      - type: custom:apexcharts-card
+        header:
+          show: true
+          title: Downstairs Temperature · 24h
+          show_states: true
+        graph_span: 24h
+        span:
+          end: minute
+        now:
+          show: true
+          label: Now
+        all_series_config:
+          stroke_width: 2
+          type: line
+        series:
+          - entity: sensor.main_floor_temperature
+            name: Main Floor
+            color: '#0ea5e9'
+          - entity: sensor.main_floor_2_temperature
+            name: Main Floor 2
+            color: '#14b8a6'
+          - entity: sensor.downstairs_temp_avg
+            name: Avg
+            color: '#0f172a'
+            stroke_width: 3
+          - entity: sensor.dining_room_current_temperature
+            name: Ecobee
+            color: '#f59e0b'
+            stroke_width: 2
+
+      - type: custom:apexcharts-card
+        header:
+          show: true
+          title: Downstairs Humidity · 24h
+          show_states: true
+        graph_span: 24h
+        span:
+          end: minute
+        now:
+          show: true
+        all_series_config:
+          stroke_width: 2
+          type: line
+        series:
+          - entity: sensor.main_floor_humidity
+            name: Main Floor
+            color: '#60a5fa'
+          - entity: sensor.main_floor_2_humidity
+            name: Main Floor 2
+            color: '#2dd4bf'
+          - entity: sensor.downstairs_humidity_avg
+            name: Avg
+            color: '#0f172a'
+            stroke_width: 3
+          - entity: sensor.dining_room_current_humidity
+            name: Ecobee
+            color: '#f59e0b'
+            stroke_width: 2
+
+      - type: custom:apexcharts-card
+        header:
+          show: true
+          title: Outdoor Temp vs Winter Source Zones · 24h
+          show_states: true
+        graph_span: 24h
+        span:
+          end: minute
+        now:
+          show: true
+        all_series_config:
+          stroke_width: 2
+          type: line
+        series:
+          - entity: sensor.downstairs_outdoor_temp
+            name: Outdoor
+            color: '#334155'
+          - entity: input_number.downstairs_aux_cutover_temp
+            name: Aux max outdoor
+            color: '#ef4444'
+            curve: stepline
+            stroke_width: 1
+          - entity: input_number.downstairs_compressor_lockout_temp
+            name: Compressor lockout
+            color: '#7c3aed'
+            curve: stepline
+            stroke_width: 1
+
+      - type: history-graph
+        title: Presence · 24h
+        hours_to_show: 24
+        entities:
+          - entity: device_tracker.tk_iphone_16_pro
+          - entity: device_tracker.unifi_default_42_15_78_4a_d9_f8
+          - entity: binary_sensor.downstairs_everyone_away
+
+      - type: history-graph
+        title: Climate Exceptions · 24h
+        hours_to_show: 24
+        entities:
+          - entity: sensor.downstairs_away_watch
+          - entity: binary_sensor.downstairs_open_window_eligible
+          - entity: binary_sensor.downstairs_temp_spread_high
+
+      - type: entities
+        title: Advanced Signals
+        show_header_toggle: false
+        state_color: true
+        entities:
+          - entity: input_boolean.downstairs_pilot_enabled
+            name: Climate insights
+          - entity: input_boolean.downstairs_mobile_alerts_enabled
+            name: Climate alerts
+          - entity: sensor.downstairs_active_season
+          - entity: sensor.downstairs_time_period
+          - entity: sensor.downstairs_outdoor_temp
+          - entity: sensor.downstairs_outdoor_humidity
+          - entity: sensor.downstairs_outdoor_wind_speed
+          - entity: sensor.downstairs_ecobee_setpoint
+          - entity: sensor.downstairs_climate_status
+          - entity: sensor.downstairs_climate_insight
+          - entity: binary_sensor.downstairs_open_window_eligible
+          - entity: sensor.downstairs_away_watch
+          - entity: sensor.downstairs_away_watch_reason
+          - entity: sensor.downstairs_away_minutes
+          - entity: binary_sensor.downstairs_someone_home
+          - entity: binary_sensor.downstairs_everyone_away
+
+  - title: Garden
+    path: garden
+    icon: mdi:sprout-outline
+    cards:
+      - type: custom:mushroom-title-card
+        title: Garden
+        subtitle: Indoor starts and raised-bed progress
+
+      - type: custom:mushroom-template-card
+        entity: sensor.garden_today_focus
+        primary: >-
+          {{ states('sensor.garden_today_focus') }}
+        secondary: >-
+          {% set indoor = states('sensor.garden_indoor_seedlings_count') | int(0) %}
+          {% set trays = states('sensor.garden_outdoor_seedlings_count') | int(0) %}
+          {% set planted = states('sensor.garden_outdoor_planted_count') | int(0) %}
+          {{ indoor }} indoors{% if trays > 0 %} · {{ trays }} outside in trays{% endif %}{% if planted > 0 %} · {{ planted }} in raised beds{% endif %} · started April 11, 2026 · day {{ states('sensor.garden_days_since_sowing') }}.
+          Next: {{ states('sensor.garden_next_milestone') }}.
+        icon: mdi:sprout-outline
+        icon_color: >-
+          {% if is_state('binary_sensor.garden_water_review_due', 'on') %}amber
+          {% elif is_state('binary_sensor.garden_seedling_check_due', 'on') %}blue
+          {% elif is_state('binary_sensor.garden_basil_weather_ready', 'on') %}green
+          {% elif is_state('binary_sensor.garden_marigolds_weather_ready', 'on') %}teal
+          {% else %}grey{% endif %}
+        multiline_secondary: true
+        card_mod:
+          style: &garden_hero_card_style |
+            ha-card {
+              min-height: 172px;
+              border: none;
+              box-shadow: 0 18px 40px rgba(2, 8, 23, 0.22);
+              border-radius: 30px;
+              padding: 14px 8px;
+              border: 1px solid rgba(148, 163, 184, 0.16);
+              background:
+                radial-gradient(circle at top right, rgba(110, 231, 183, 0.14), transparent 28%),
+                radial-gradient(circle at bottom left, rgba(45, 212, 191, 0.10), transparent 26%),
+                linear-gradient(180deg, rgba(15, 23, 42, 0.94), rgba(15, 23, 42, 0.88));
+            }
+            .primary {
+              font-size: 28px !important;
+              font-weight: 560 !important;
+              letter-spacing: -0.04em;
+              line-height: 1.02 !important;
+            }
+            .secondary {
+              line-height: 1.45 !important;
+              opacity: 0.9 !important;
+              max-width: 30rem;
+            }
+            mushroom-shape-icon {
+              --shape-color: rgba(255, 255, 255, 0.06) !important;
+            }
+
+      - type: custom:mushroom-template-card
+        entity: sensor.garden_outdoor_snapshot
+        primary: >-
+          {% if is_state('binary_sensor.garden_basil_weather_ready', 'on') %}
+            Warm enough for basil and marigolds
+          {% elif is_state('binary_sensor.garden_marigolds_weather_ready', 'on') %}
+            Good window for marigolds
+          {% else %}
+            Not ready for outdoor nights
+          {% endif %}
+        secondary: >-
+          Now {{ states('sensor.garden_outdoor_snapshot') }}.
+          4-night low {{ states('sensor.garden_lowest_forecast_low_4_day') }}°.
+          {{ states('sensor.garden_weather_readiness') }}.
+        icon: >-
+          {% set condition = states('weather.forecast_home') %}
+          {% set icons = {
+            'clear-night': 'mdi:weather-night',
+            'sunny': 'mdi:weather-sunny',
+            'partlycloudy': 'mdi:weather-partly-cloudy',
+            'cloudy': 'mdi:weather-cloudy',
+            'rainy': 'mdi:weather-rainy',
+            'pouring': 'mdi:weather-pouring',
+            'snowy': 'mdi:weather-snowy',
+            'snowy-rainy': 'mdi:weather-snowy-rainy',
+            'windy': 'mdi:weather-windy',
+            'windy-variant': 'mdi:weather-windy-variant',
+            'fog': 'mdi:weather-fog',
+            'lightning': 'mdi:weather-lightning',
+            'lightning-rainy': 'mdi:weather-lightning-rainy'
+          } %}
+          {{ icons[condition] | default('mdi:weather-cloudy') }}
+        icon_color: >-
+          {% if is_state('binary_sensor.garden_basil_weather_ready', 'on') %}green
+          {% elif is_state('binary_sensor.garden_marigolds_weather_ready', 'on') %}teal
+          {% elif states('weather.forecast_home') in ['rainy', 'pouring', 'lightning-rainy'] %}blue
+          {% else %}grey{% endif %}
+        multiline_secondary: true
+        card_mod:
+          style: &garden_support_card_style |
+            ha-card {
+              border: none;
+              box-shadow: 0 14px 28px rgba(2, 8, 23, 0.18);
+              border-radius: 26px;
+              padding: 10px 6px;
+              border: 1px solid rgba(148, 163, 184, 0.14);
+              background:
+                radial-gradient(circle at top right, rgba(56, 189, 248, 0.12), transparent 28%),
+                radial-gradient(circle at bottom left, rgba(59, 130, 246, 0.10), transparent 24%),
+                linear-gradient(180deg, rgba(15, 23, 42, 0.90), rgba(15, 23, 42, 0.84));
+            }
+            .primary {
+              font-size: 20px !important;
+              font-weight: 540 !important;
+              letter-spacing: -0.02em;
+            }
+            .secondary {
+              line-height: 1.42 !important;
+              opacity: 0.88 !important;
+            }
+            mushroom-shape-icon {
+              --shape-color: rgba(255, 255, 255, 0.06) !important;
+            }
+
+      - type: custom:mushroom-chips-card
+        alignment: left
+        chips:
+          - type: template
+            entity: sensor.garden_check_status
+            icon: mdi:clipboard-check-outline
+            icon_color: >-
+              {{ 'amber' if is_state('binary_sensor.garden_seedling_check_due', 'on') else 'green' }}
+            content: >-
+              {{ states('sensor.garden_check_status') }}
+          - type: template
+            entity: sensor.garden_watering_status
+            icon: mdi:watering-can-outline
+            icon_color: >-
+              {{ 'amber' if is_state('binary_sensor.garden_water_review_due', 'on') else 'green' }}
+            content: >-
+              {{ states('sensor.garden_watering_status') }}
+        card_mod:
+          style: |
+            ha-card {
+              border: none;
+              box-shadow: none;
+              --chip-spacing: 10px;
+              margin-top: -2px;
+            }
+            mushroom-template-chip {
+              --chip-background: rgba(15, 23, 42, 0.72);
+              --chip-border-width: 1px;
+              --chip-border-color: rgba(148, 163, 184, 0.14);
+            }
+
+      - type: custom:mushroom-title-card
+        title: Current Crops
+
+      - type: custom:mushroom-template-card
+        entity: sensor.garden_basil_genovese_status
+        primary: Basil
+        secondary: >-
+          16 starts · Genovese + lettuce.
+          {{ state_attr('sensor.garden_basil_genovese_status', 'stage_note') }}.
+          Harden around {{ state_attr('sensor.garden_basil_genovese_status', 'hardening_target') }}.
+        icon: mdi:leaf
+        icon_color: >-
+          {% if is_state('input_boolean.garden_basil_outside', 'on') %}green
+          {% elif is_state('input_boolean.garden_basil_hardening_off', 'on') %}amber
+          {% else %}teal{% endif %}
+        multiline_secondary: true
+        card_mod:
+          style: &garden_crop_card_style |
+            ha-card {
+              border: none;
+              box-shadow: 0 12px 24px rgba(2, 8, 23, 0.14);
+              border-radius: 24px;
+              padding: 8px 6px;
+              border: 1px solid rgba(148, 163, 184, 0.12);
+              background:
+                radial-gradient(circle at top right, rgba(34, 197, 94, 0.08), transparent 22%),
+                linear-gradient(180deg, rgba(15, 23, 42, 0.84), rgba(15, 23, 42, 0.78));
+            }
+            .primary {
+              font-size: 20px !important;
+              font-weight: 540 !important;
+            }
+            .secondary {
+              line-height: 1.42 !important;
+              opacity: 0.86 !important;
+            }
+            mushroom-shape-icon {
+              --shape-color: rgba(255, 255, 255, 0.05) !important;
+            }
+
+      - type: custom:mushroom-template-card
+        entity: sensor.garden_petite_marigolds_status
+        primary: Petite Marigolds
+        secondary: >-
+          {{ state_attr('sensor.garden_petite_marigolds_status', 'count') }} starts.
+          {{ state_attr('sensor.garden_petite_marigolds_status', 'stage_note') }}.
+          Harden around {{ state_attr('sensor.garden_petite_marigolds_status', 'hardening_target') }}.
+        icon: >-
+          {% if is_state('input_boolean.garden_marigolds_outside', 'on') %}mdi:flower
+          {% elif is_state('input_boolean.garden_marigolds_hardening_off', 'on') %}mdi:flower-pollen-outline
+          {% else %}mdi:flower-outline{% endif %}
+        icon_color: >-
+          {% if is_state('input_boolean.garden_marigolds_outside', 'on') %}green
+          {% elif is_state('input_boolean.garden_marigolds_hardening_off', 'on') %}amber
+          {% elif is_state('binary_sensor.garden_marigolds_weather_ready', 'on') %}teal
+          {% else %}grey{% endif %}
+        multiline_secondary: true
+        card_mod:
+          style: *garden_crop_card_style
+
+      - type: custom:mushroom-template-card
+        entity: sensor.garden_spinach_status
+        primary: Spinach
+        secondary: >-
+          {{ state_attr('sensor.garden_spinach_status', 'count') }} starts.
+          {{ state_attr('sensor.garden_spinach_status', 'stage_note') }}
+        icon: mdi:leaf
+        icon_color: green
+        multiline_secondary: true
+        card_mod:
+          style: *garden_crop_card_style
+
+      - type: custom:mushroom-title-card
+        title: Actions
+
+      - type: grid
+        columns: 2
+        square: false
+        cards:
+          - type: custom:mushroom-template-card
+            primary: Mark Checked
+            secondary: Log a quick tray inspection
+            icon: mdi:clipboard-check-outline
+            icon_color: blue
+            tap_action:
+              action: call-service
+              service: script.turn_on
+              target:
+                entity_id: script.garden_mark_seedlings_checked
+            card_mod:
+              style: &garden_action_card_style |
+                ha-card {
+                  border: none;
+                  box-shadow: 0 10px 22px rgba(2, 8, 23, 0.14);
+                  border-radius: 22px;
+                  border: 1px solid rgba(148, 163, 184, 0.12);
+                  background:
+                    linear-gradient(180deg, rgba(15, 23, 42, 0.82), rgba(15, 23, 42, 0.74));
+                }
+                .primary {
+                  font-weight: 540 !important;
+                }
+                .secondary {
+                  opacity: 0.82 !important;
+                }
+          - type: custom:mushroom-template-card
+            primary: Mark Watered
+            secondary: Log today’s watering pass
+            icon: mdi:watering-can-outline
+            icon_color: teal
+            tap_action:
+              action: call-service
+              service: script.turn_on
+              target:
+                entity_id: script.garden_mark_seedlings_watered
+            card_mod:
+              style: *garden_action_card_style
+
+      - type: custom:mushroom-template-card
+        entity: sensor.garden_next_stage_step
+        primary: >-
+          {{ states('sensor.garden_next_stage_step') }}
+        secondary: >-
+          {{ state_attr('sensor.garden_next_stage_step', 'detail') }}
+        icon: >-
+          {% set action_id = state_attr('sensor.garden_next_stage_step', 'action_id') %}
+          {% if action_id in ['start_marigolds_hardening', 'start_basil_hardening'] %}mdi:white-balance-sunny
+          {% elif action_id in ['mark_marigolds_outside', 'mark_basil_outside'] %}mdi:arrow-right-circle-outline
+          {% else %}mdi:calendar-check-outline{% endif %}
+        icon_color: >-
+          {% set action_id = state_attr('sensor.garden_next_stage_step', 'action_id') %}
+          {% if action_id in ['start_marigolds_hardening', 'start_basil_hardening'] %}amber
+          {% elif action_id in ['mark_marigolds_outside', 'mark_basil_outside'] %}green
+          {% else %}grey{% endif %}
+        multiline_secondary: true
+        tap_action:
+          action: call-service
+          service: script.turn_on
+          target:
+            entity_id: script.garden_apply_next_stage
+        card_mod:
+          style: |
+            ha-card {
+              border: none;
+              box-shadow: 0 14px 28px rgba(2, 8, 23, 0.18);
+              border-radius: 26px;
+              padding: 10px 6px;
+              border: 1px solid rgba(148, 163, 184, 0.14);
+              background:
+                radial-gradient(circle at top right, rgba(251, 191, 36, 0.12), transparent 26%),
+                radial-gradient(circle at bottom left, rgba(34, 197, 94, 0.10), transparent 22%),
+                linear-gradient(180deg, rgba(15, 23, 42, 0.90), rgba(15, 23, 42, 0.82));
+            }
+            .primary {
+              font-size: 21px !important;
+              font-weight: 550 !important;
+              letter-spacing: -0.02em;
+            }
+            .secondary {
+              line-height: 1.42 !important;
+              opacity: 0.88 !important;
+            }
+
+      - type: custom:mushroom-title-card
+        title: Plant Notes
+        subtitle: Update these only when something changes
+
+      - type: entities
+        title: Observation Check-In
+        show_header_toggle: false
+        entities:
+          - entity: input_select.garden_basil_observation
+            name: Basil
+          - entity: input_select.garden_marigolds_observation
+            name: Marigolds
+          - entity: input_select.garden_spinach_observation
+            name: Spinach
+        card_mod:
+          style: |
+            ha-card {
+              border: none;
+              box-shadow: 0 12px 24px rgba(2, 8, 23, 0.14);
+              border-radius: 24px;
+              border: 1px solid rgba(148, 163, 184, 0.12);
+              background:
+                linear-gradient(180deg, rgba(15, 23, 42, 0.82), rgba(15, 23, 42, 0.76));
+            }

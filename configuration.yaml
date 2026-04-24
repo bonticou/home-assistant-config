@@ -9,8 +9,8 @@ lovelace:
   dashboards:
     calm-mobile:
       mode: yaml
-      title: Calm Mobile
-      icon: mdi:gesture-tap-hold
+      title: Home
+      icon: mdi:home-variant-outline
       show_in_sidebar: true
       require_admin: false
       filename: dashboards/calm_mobile.yaml
@@ -53,6 +53,193 @@ input_datetime:
     name: Away Security Snooze Until
     has_date: true
     has_time: true
+  garden_seed_start_date:
+    name: Garden Seed Start Date
+    has_date: true
+    has_time: false
+    initial: "2026-04-11"
+  garden_last_checked:
+    name: Garden Last Checked
+    has_date: true
+    has_time: true
+  garden_last_watered:
+    name: Garden Last Watered
+    has_date: true
+    has_time: true
+  garden_marigolds_hardening_started:
+    name: Garden Marigolds Hardening Started
+    has_date: true
+    has_time: true
+  garden_marigolds_moved_outside:
+    name: Garden Marigolds Moved Outside
+    has_date: true
+    has_time: true
+  garden_basil_hardening_started:
+    name: Garden Basil Hardening Started
+    has_date: true
+    has_time: true
+  garden_basil_moved_outside:
+    name: Garden Basil Moved Outside
+    has_date: true
+    has_time: true
+  garden_spinach_planted_in_ground:
+    name: Garden Spinach Planted In Ground
+    has_date: true
+    has_time: true
+    initial: "2026-04-13 15:00:00"
+  garden_spinach_last_watered:
+    name: Garden Spinach Last Watered
+    has_date: true
+    has_time: true
+    initial: "2026-04-13 15:00:00"
+  latest_camera_motion_at:
+    name: Latest Camera Motion At
+    has_date: true
+    has_time: true
+
+input_text:
+  latest_camera_motion_label:
+    name: Latest Camera Motion Label
+    max: 100
+  latest_camera_motion_entity:
+    name: Latest Camera Motion Entity
+    max: 255
+
+input_boolean:
+  foyer_chandelier_sleep_hold:
+    name: Foyer Chandelier Sleep Hold
+    icon: mdi:weather-night
+  front_stairs_sleep_override:
+    name: Front Stairs Sleep Override
+    icon: mdi:stairs
+  downstairs_pilot_enabled:
+    name: Downstairs Pilot Enabled
+    icon: mdi:home-thermometer-outline
+    initial: true
+  downstairs_mobile_alerts_enabled:
+    name: Downstairs Mobile Alerts Enabled
+    icon: mdi:cellphone-message
+    initial: true
+  garden_tracking_enabled:
+    name: Garden Tracking Enabled
+    icon: mdi:sprout-outline
+    initial: true
+  garden_watering_nudges_enabled:
+    name: Garden Watering Nudges Enabled
+    icon: mdi:watering-can-outline
+    initial: true
+  garden_weather_nudges_enabled:
+    name: Garden Weather Nudges Enabled
+    icon: mdi:weather-partly-cloudy
+    initial: true
+  garden_checked_today:
+    name: Garden Checked Today
+    icon: mdi:clipboard-check-outline
+    initial: false
+  garden_watered_today:
+    name: Garden Watered Today
+    icon: mdi:watering-can-outline
+    initial: false
+  garden_marigolds_hardening_off:
+    name: Garden Marigolds Hardening Off
+    icon: mdi:white-balance-sunny
+    initial: false
+  garden_marigolds_outside:
+    name: Garden Marigolds Outside
+    icon: mdi:flower-outline
+    initial: false
+  garden_basil_hardening_off:
+    name: Garden Basil Hardening Off
+    icon: mdi:white-balance-sunny
+    initial: false
+  garden_basil_outside:
+    name: Garden Basil Outside
+    icon: mdi:leaf
+    initial: false
+  garden_spinach_in_ground:
+    name: Garden Spinach In Ground
+    icon: mdi:shovel
+    initial: true
+
+input_select:
+  downstairs_season_mode:
+    name: Downstairs Season Mode
+    options:
+      - auto
+      - winter
+      - summer
+      - shoulder
+    initial: auto
+    icon: mdi:calendar-sync
+  garden_basil_observation:
+    name: Garden Basil Observation
+    options:
+      - looking good
+      - dry
+      - leggy
+      - ready for next step
+      - stressed
+    initial: looking good
+    icon: mdi:leaf
+  garden_marigolds_observation:
+    name: Garden Marigolds Observation
+    options:
+      - looking good
+      - dry
+      - leggy
+      - ready for next step
+      - stressed
+    initial: looking good
+    icon: mdi:flower-outline
+  garden_spinach_observation:
+    name: Garden Spinach Observation
+    options:
+      - looking good
+      - dry
+      - true leaves showing
+      - ready for ground
+      - settling in
+      - stressed
+    initial: looking good
+    icon: mdi:leaf
+
+input_number:
+  downstairs_aux_cutover_temp:
+    name: Downstairs Aux Max Outdoor Temp
+    min: 20
+    max: 60
+    step: 1
+    mode: box
+    unit_of_measurement: "°F"
+    icon: mdi:thermometer-chevron-down
+    initial: 45
+  downstairs_compressor_lockout_temp:
+    name: Downstairs Compressor Lockout Temp
+    min: 20
+    max: 60
+    step: 1
+    mode: box
+    unit_of_measurement: "°F"
+    icon: mdi:thermometer-low
+    initial: 40
+  downstairs_open_window_advantage:
+    name: Downstairs Open Window Advantage
+    min: 1
+    max: 8
+    step: 1
+    mode: box
+    unit_of_measurement: "°F"
+    icon: mdi:window-open-variant
+    initial: 3
+  downstairs_away_profile_delay_minutes:
+    name: Downstairs Away Profile Delay
+    min: 0
+    max: 240
+    step: 5
+    mode: box
+    unit_of_measurement: "min"
+    icon: mdi:timer-outline
+    initial: 45
 
 recorder:
   purge_keep_days: 30
@@ -189,6 +376,52 @@ template:
         state: >
           {{ states('sensor.wine_humidity_24h_stats') | float(0) | round(1) }}
 
+      - name: "wine_cave_dew_point_margin"
+        unique_id: wine_cave_dew_point_margin
+        unit_of_measurement: "°F"
+        device_class: temperature
+        state_class: measurement
+        availability: >
+          {{ is_number(states('sensor.wine_temperature'))
+             and is_number(states('sensor.wine_cave_dew_point')) }}
+        state: >
+          {{ ((states('sensor.wine_temperature') | float(0))
+            - (states('sensor.wine_cave_dew_point') | float(0))) | round(1) }}
+
+      - name: "wine_cave_absolute_humidity_24h_delta"
+        unique_id: wine_cave_absolute_humidity_24h_delta
+        unit_of_measurement: "g/m³"
+        state_class: measurement
+        availability: >
+          {{ is_number(states('sensor.wine_cave_absolute_humidity'))
+             and is_number(states('sensor.wine_cave_absolute_humidity_24h_stats')) }}
+        state: >
+          {{ ((states('sensor.wine_cave_absolute_humidity') | float(0))
+            - (states('sensor.wine_cave_absolute_humidity_24h_stats') | float(0))) | round(2) }}
+
+      - name: "wine_cave_temp_24h_delta_7d"
+        unique_id: wine_cave_temp_24h_delta_7d
+        unit_of_measurement: "°F"
+        device_class: temperature
+        state_class: measurement
+        availability: >
+          {{ is_number(states('sensor.wine_temperature_24h_stats'))
+             and is_number(states('sensor.wine_temperature_7d_stats')) }}
+        state: >
+          {{ ((states('sensor.wine_temperature_24h_stats') | float(0))
+            - (states('sensor.wine_temperature_7d_stats') | float(0))) | round(1) }}
+
+      - name: "wine_cave_humidity_24h_delta_7d"
+        unique_id: wine_cave_humidity_24h_delta_7d
+        unit_of_measurement: "%"
+        state_class: measurement
+        availability: >
+          {{ is_number(states('sensor.wine_humidity_24h_stats'))
+             and is_number(states('sensor.wine_humidity_7d_stats')) }}
+        state: >
+          {{ ((states('sensor.wine_humidity_24h_stats') | float(0))
+            - (states('sensor.wine_humidity_7d_stats') | float(0))) | round(1) }}
+
       - name: "front_stairs_schedule_brightness"
         unique_id: front_stairs_schedule_brightness
         unit_of_measurement: "%"
@@ -196,37 +429,104 @@ template:
           {% set evening_start_pct = 30 %}
           {% set overnight_pct = 10 %}
           {% set morning_end_pct = 20 %}
-          {% set now_ts = as_timestamp(now()) %}
-          {% set next_sunrise = as_timestamp(state_attr('sun.sun', 'next_rising')) %}
-          {% set next_sunset = as_timestamp(state_attr('sun.sun', 'next_setting')) %}
-          {% if is_state('binary_sensor.front_stairs_schedule_active', 'off') %}
+          {% set schedule_elevation = 10 %}
+          {% set overnight_elevation = -10 %}
+          {% set sun_elevation = state_attr('sun.sun', 'elevation') %}
+          {% if sun_elevation is none %}
             0
-          {% elif is_state('sun.sun', 'above_horizon') %}
-            {% set start_ts = next_sunset - 7200 %}
-            {% set end_ts = next_sunset + 7200 %}
-            {% set progress = ((now_ts - start_ts) / (end_ts - start_ts)) | float(0) %}
-            {% set clamped = [0, [1, progress] | min] | max %}
-            {{ (evening_start_pct - ((evening_start_pct - overnight_pct) * clamped)) | round(0) }}
+          {% elif is_state('binary_sensor.front_stairs_schedule_active', 'off') %}
+            0
           {% else %}
-            {% set morning_start_ts = next_sunrise - 7200 %}
-            {% if now_ts < morning_start_ts %}
-              {{ overnight_pct }}
-            {% else %}
-              {% set end_ts = next_sunrise + 7200 %}
-              {% set progress = ((now_ts - morning_start_ts) / (end_ts - morning_start_ts)) | float(0) %}
+            {% set elevation = [overnight_elevation, [schedule_elevation, sun_elevation | float(0)] | min] | max %}
+            {% set span = (schedule_elevation - overnight_elevation) | float(1) %}
+            {% if is_state_attr('sun.sun', 'rising', true) %}
+              {% set progress = ((elevation - overnight_elevation) / span) | float(0) %}
               {% set clamped = [0, [1, progress] | min] | max %}
               {{ (overnight_pct + ((morning_end_pct - overnight_pct) * clamped)) | round(0) }}
+            {% else %}
+              {% set progress = ((schedule_elevation - elevation) / span) | float(0) %}
+              {% set clamped = [0, [1, progress] | min] | max %}
+              {{ (evening_start_pct - ((evening_start_pct - overnight_pct) * clamped)) | round(0) }}
             {% endif %}
           {% endif %}
+
+      - name: "foyer_chandelier_schedule_brightness"
+        unique_id: foyer_chandelier_schedule_brightness
+        unit_of_measurement: "%"
+        state: >
+          {% if is_state('binary_sensor.front_stairs_schedule_active', 'off') %}
+            0
+          {% else %}
+            7
+          {% endif %}
+
+      - name: "away_security_active_lights"
+        unique_id: away_security_active_lights
+        icon: mdi:lightbulb-alert-outline
+        state: >
+          {% set exempt = namespace(entity_ids=[]) %}
+          {% if is_state('binary_sensor.front_stairs_schedule_active', 'on') %}
+            {% set exempt.entity_ids = exempt.entity_ids + ['light.stairs_front_stairs'] %}
+          {% endif %}
+          {% if is_state('binary_sensor.front_stairs_schedule_active', 'on')
+             and is_state('input_boolean.foyer_chandelier_sleep_hold', 'off') %}
+            {% set exempt.entity_ids = exempt.entity_ids + ['light.front_foyer_chandelier'] %}
+          {% endif %}
+          {% set ns = namespace(lights=[]) %}
+          {% for light in states.light
+            | selectattr('state', 'eq', 'on')
+            | rejectattr('attributes.entity_id', 'defined')
+            | list %}
+            {% if light.entity_id not in exempt.entity_ids %}
+              {% set ns.lights = ns.lights + [light] %}
+            {% endif %}
+          {% endfor %}
+          {{ ns.lights | count }}
+        attributes:
+          names: >
+            {% set exempt = namespace(entity_ids=[]) %}
+            {% if is_state('binary_sensor.front_stairs_schedule_active', 'on') %}
+              {% set exempt.entity_ids = exempt.entity_ids + ['light.stairs_front_stairs'] %}
+            {% endif %}
+            {% if is_state('binary_sensor.front_stairs_schedule_active', 'on')
+               and is_state('input_boolean.foyer_chandelier_sleep_hold', 'off') %}
+              {% set exempt.entity_ids = exempt.entity_ids + ['light.front_foyer_chandelier'] %}
+            {% endif %}
+            {% set ns = namespace(names=[]) %}
+            {% for light in states.light
+              | selectattr('state', 'eq', 'on')
+              | rejectattr('attributes.entity_id', 'defined')
+              | list %}
+              {% if light.entity_id not in exempt.entity_ids %}
+                {% set ns.names = ns.names + [light.name] %}
+              {% endif %}
+            {% endfor %}
+            {{ ns.names | join('||') }}
+          entity_ids: >
+            {% set exempt = namespace(entity_ids=[]) %}
+            {% if is_state('binary_sensor.front_stairs_schedule_active', 'on') %}
+              {% set exempt.entity_ids = exempt.entity_ids + ['light.stairs_front_stairs'] %}
+            {% endif %}
+            {% if is_state('binary_sensor.front_stairs_schedule_active', 'on')
+               and is_state('input_boolean.foyer_chandelier_sleep_hold', 'off') %}
+              {% set exempt.entity_ids = exempt.entity_ids + ['light.front_foyer_chandelier'] %}
+            {% endif %}
+            {% set ns = namespace(ids=[]) %}
+            {% for light in states.light
+              | selectattr('state', 'eq', 'on')
+              | rejectattr('attributes.entity_id', 'defined')
+              | list %}
+              {% if light.entity_id not in exempt.entity_ids %}
+                {% set ns.ids = ns.ids + [light.entity_id] %}
+              {% endif %}
+            {% endfor %}
+            {{ ns.ids | join('||') }}
 
       - name: "away_security_issue_summary"
         unique_id: away_security_issue_summary
         state: >
-          {% set lights = states.light
-            | selectattr('state', 'eq', 'on')
-            | rejectattr('attributes.entity_id', 'defined')
-            | map(attribute='name')
-            | list %}
+          {% set light_names = state_attr('sensor.away_security_active_lights', 'names') | default('', true) %}
+          {% set lights = (light_names.split('||') if light_names else []) | reject('eq', '') | list %}
           {% set ns = namespace(items=[]) %}
           {% if is_state('lock.aqara_smart_lock_u100', 'unlocked') %}
             {% set ns.items = ns.items + ['garage door unlocked'] %}
@@ -240,11 +540,7 @@ template:
         icon: >
           {% if is_state('lock.aqara_smart_lock_u100', 'unlocked') %}
             mdi:lock-open-alert-outline
-          {% elif states.light
-              | selectattr('state', 'eq', 'on')
-              | rejectattr('attributes.entity_id', 'defined')
-              | list
-              | count > 0 %}
+          {% elif states('sensor.away_security_active_lights') | int(0) > 0 %}
             mdi:lightbulb-alert-outline
           {% else %}
             mdi:shield-home-outline
@@ -254,61 +550,1157 @@ template:
       - name: "house_unsecured_while_away"
         unique_id: house_unsecured_while_away
         state: >
-          {% set everyone_away =
-            is_state('person.bonticou', 'not_home') and
-            is_state('device_tracker.unifi_default_42_15_78_4a_d9_f8', 'not_home') %}
-          {% set lights_on = states.light
-            | selectattr('state', 'eq', 'on')
-            | rejectattr('attributes.entity_id', 'defined')
-            | list
-            | count > 0 %}
+          {% set trevor_state = states('device_tracker.tk_iphone_16_pro') %}
+          {% set casey_state = states('device_tracker.unifi_default_42_15_78_4a_d9_f8') %}
+          {% set trevor_away = trevor_state not in ['home', 'unknown', 'unavailable', ''] %}
+          {% set casey_away = casey_state not in ['home', 'unknown', 'unavailable', ''] %}
+          {% set everyone_away = trevor_away and casey_away %}
+          {% set lights_on = states('sensor.away_security_active_lights') | int(0) > 0 %}
           {{ everyone_away and (is_state('lock.aqara_smart_lock_u100', 'unlocked') or lights_on) }}
         icon: >
           {% if is_state('lock.aqara_smart_lock_u100', 'unlocked') %}
             mdi:lock-open-alert-outline
-          {% elif states.light
-              | selectattr('state', 'eq', 'on')
-              | rejectattr('attributes.entity_id', 'defined')
-              | list
-              | count > 0 %}
+          {% elif states('sensor.away_security_active_lights') | int(0) > 0 %}
             mdi:lightbulb-alert-outline
           {% else %}
             mdi:shield-home-outline
           {% endif %}
         attributes:
           lights_on_count: >
-            {{ states.light
-              | selectattr('state', 'eq', 'on')
-              | rejectattr('attributes.entity_id', 'defined')
-              | list
-              | count }}
+            {{ states('sensor.away_security_active_lights') | int(0) }}
           summary: "{{ states('sensor.away_security_issue_summary') }}"
 
       - name: "door_lights_schedule_active"
         unique_id: door_lights_schedule_active
         icon: mdi:coach-lamp
         state: >
-          {% set now_ts = as_timestamp(now()) %}
-          {% set next_sunrise = as_timestamp(state_attr('sun.sun', 'next_rising')) %}
-          {% set next_sunset = as_timestamp(state_attr('sun.sun', 'next_setting')) %}
-          {{
-            (is_state('sun.sun', 'below_horizon') and now_ts <= (next_sunrise + 3600))
-            or
-            (is_state('sun.sun', 'above_horizon') and now_ts >= (next_sunset - 3600))
-          }}
+          {% set schedule_elevation = 10 %}
+          {{ state_attr('sun.sun', 'elevation') | float(90) <= schedule_elevation }}
 
       - name: "front_stairs_schedule_active"
         unique_id: front_stairs_schedule_active
         icon: mdi:stairs
         state: >
-          {% set now_ts = as_timestamp(now()) %}
-          {% set next_sunrise = as_timestamp(state_attr('sun.sun', 'next_rising')) %}
-          {% set next_sunset = as_timestamp(state_attr('sun.sun', 'next_setting')) %}
+          {% set schedule_elevation = 10 %}
+          {{ state_attr('sun.sun', 'elevation') | float(90) <= schedule_elevation }}
+
+      - name: "main_dashboard_sleep_hero_active"
+        unique_id: main_dashboard_sleep_hero_active
+        icon: mdi:weather-night
+        state: >
+          {% set hour = now().hour %}
+          {{ is_state('person.bonticou', 'home')
+             and (hour >= 22 or hour < 5)
+             and is_state('input_boolean.foyer_chandelier_sleep_hold', 'off')
+             and is_state('input_boolean.front_stairs_sleep_override', 'off') }}
+
+      - name: "foyer_chandelier_schedule_active"
+        unique_id: foyer_chandelier_schedule_active
+        icon: mdi:chandelier
+        state: >
+          {{ is_state('binary_sensor.front_stairs_schedule_active', 'on') }}
+
+  - sensor:
+      - name: "Downstairs Temp Avg"
+        unique_id: downstairs_temp_avg
+        unit_of_measurement: "°F"
+        device_class: temperature
+        state_class: measurement
+        state: >
+          {% set ns = namespace(values=[]) %}
+          {% if is_number(states('sensor.main_floor_temperature')) %}
+            {% set ns.values = ns.values + [states('sensor.main_floor_temperature') | float(0)] %}
+          {% endif %}
+          {% if is_number(states('sensor.main_floor_2_temperature')) %}
+            {% set ns.values = ns.values + [states('sensor.main_floor_2_temperature') | float(0)] %}
+          {% endif %}
+          {% if ns.values | count > 0 %}
+            {{ (ns.values | sum / (ns.values | count)) | round(1) }}
+          {% else %}
+            unknown
+          {% endif %}
+
+      - name: "Downstairs Humidity Avg"
+        unique_id: downstairs_humidity_avg
+        unit_of_measurement: "%"
+        state_class: measurement
+        state: >
+          {% set ns = namespace(values=[]) %}
+          {% if is_number(states('sensor.main_floor_humidity')) %}
+            {% set ns.values = ns.values + [states('sensor.main_floor_humidity') | float(0)] %}
+          {% endif %}
+          {% if is_number(states('sensor.main_floor_2_humidity')) %}
+            {% set ns.values = ns.values + [states('sensor.main_floor_2_humidity') | float(0)] %}
+          {% endif %}
+          {% if ns.values | count > 0 %}
+            {{ (ns.values | sum / (ns.values | count)) | round(1) }}
+          {% else %}
+            unknown
+          {% endif %}
+
+      - name: "Downstairs Temp Spread"
+        unique_id: downstairs_temp_spread
+        unit_of_measurement: "°F"
+        device_class: temperature
+        state_class: measurement
+        state: >
+          {% set t1 = states('sensor.main_floor_temperature') %}
+          {% set t2 = states('sensor.main_floor_2_temperature') %}
+          {% if is_number(t1) and is_number(t2) %}
+            {{ ((t1 | float(0)) - (t2 | float(0))) | abs | round(1) }}
+          {% else %}
+            unknown
+          {% endif %}
+
+      - name: "Downstairs Time Period"
+        unique_id: downstairs_time_period
+        state: >
+          {% set current = now().strftime('%H:%M') %}
+          {{ 'day' if '06:30' <= current < '22:30' else 'night' }}
+        icon: >
+          {{ 'mdi:weather-sunny' if states('sensor.downstairs_time_period') == 'day' else 'mdi:weather-night' }}
+
+      - name: "Downstairs Active Season"
+        unique_id: downstairs_active_season
+        state: >
+          {% set selected = states('input_select.downstairs_season_mode') %}
+          {% if selected in ['winter', 'summer', 'shoulder'] %}
+            {{ selected }}
+          {% else %}
+            {% set month = now().month %}
+            {% if month in [11, 12, 1, 2, 3] %}
+              winter
+            {% elif month in [6, 7, 8, 9] %}
+              summer
+            {% else %}
+              shoulder
+            {% endif %}
+          {% endif %}
+        icon: >
+          {% set season = states('sensor.downstairs_active_season') %}
+          {% if season == 'winter' %}mdi:snowflake
+          {% elif season == 'summer' %}mdi:white-balance-sunny
+          {% else %}mdi:leaf{% endif %}
+
+      - name: "Downstairs Outdoor Temp"
+        unique_id: downstairs_outdoor_temp
+        unit_of_measurement: "°F"
+        device_class: temperature
+        state_class: measurement
+        state: >
+          {% set outdoor = state_attr('weather.forecast_home', 'temperature') %}
+          {{ outdoor | round(1) if outdoor is number else 'unknown' }}
+
+      - name: "Downstairs Outdoor Humidity"
+        unique_id: downstairs_outdoor_humidity
+        unit_of_measurement: "%"
+        state_class: measurement
+        state: >
+          {% set humidity = state_attr('weather.forecast_home', 'humidity') %}
+          {{ humidity | round(0) if humidity is number else 'unknown' }}
+
+      - name: "Downstairs Outdoor Wind Speed"
+        unique_id: downstairs_outdoor_wind_speed
+        unit_of_measurement: "mph"
+        state_class: measurement
+        state: >
+          {% set wind = state_attr('weather.forecast_home', 'wind_speed') %}
+          {{ wind | round(1) if wind is number else 'unknown' }}
+
+      - name: "Downstairs Source Policy"
+        unique_id: downstairs_source_policy
+        state: >
+          {% if is_number(states('sensor.downstairs_outdoor_temp')) %}
+            {% set outdoor = states('sensor.downstairs_outdoor_temp') | float(999) %}
+            {% set aux_cutover = states('input_number.downstairs_aux_cutover_temp') | float(45) %}
+            {% set compressor_lockout = states('input_number.downstairs_compressor_lockout_temp') | float(40) %}
+            {% if outdoor > aux_cutover %}
+              heat_pump
+            {% elif outdoor <= compressor_lockout %}
+              aux
+            {% else %}
+              transition
+            {% endif %}
+          {% else %}
+            unknown
+          {% endif %}
+        icon: >
+          {% set policy = states('sensor.downstairs_source_policy') %}
+          {% if policy == 'aux' %}mdi:fire
+          {% elif policy == 'transition' %}mdi:swap-horizontal
+          {% else %}mdi:fan-chevron-down{% endif %}
+
+      - name: "Downstairs Ecobee Setpoint"
+        unique_id: downstairs_ecobee_setpoint
+        unit_of_measurement: "°F"
+        device_class: temperature
+        state_class: measurement
+        state: >
+          {% set setpoint = state_attr('climate.dining_room', 'temperature') %}
+          {{ setpoint | round(0) if setpoint is number else 'unknown' }}
+
+      - name: "Downstairs Climate Status"
+        unique_id: downstairs_climate_status
+        state: >
+          {% set spread = states('sensor.downstairs_temp_spread') %}
+          {% set humidity = states('sensor.downstairs_humidity_avg') %}
+          {% set avg_temp = states('sensor.downstairs_temp_avg') %}
+          {% set setpoint = states('sensor.downstairs_ecobee_setpoint') %}
+          {% set action = state_attr('climate.dining_room', 'hvac_action') | default('idle', true) %}
+          {% if is_number(spread) and spread | float(0) > 3 %}
+            uneven
+          {% elif action == 'heating' %}
+            warming
+          {% elif action == 'cooling' %}
+            cooling
+          {% elif is_number(avg_temp) and is_number(setpoint) and (avg_temp | float(0)) >= (setpoint | float(0)) + 2 %}
+            too_warm
+          {% elif is_number(avg_temp) and is_number(setpoint) and (avg_temp | float(0)) <= (setpoint | float(0)) - 2 %}
+            too_cool
+          {% elif is_number(humidity) and (humidity | float(0)) >= 60 %}
+            humid
+          {% elif is_number(humidity) and (humidity | float(0)) <= 28 %}
+            dry
+          {% else %}
+            steady
+          {% endif %}
+        icon: >
+          {% set status = states('sensor.downstairs_climate_status') %}
+          {% if status == 'warming' %}mdi:radiator
+          {% elif status == 'cooling' %}mdi:snowflake
+          {% elif status == 'too_warm' %}mdi:thermometer-high
+          {% elif status == 'too_cool' %}mdi:thermometer-low
+          {% elif status == 'humid' %}mdi:water-percent
+          {% elif status == 'dry' %}mdi:water-off-outline
+          {% elif status == 'uneven' %}mdi:thermometer-alert
+          {% else %}mdi:home-thermometer-outline{% endif %}
+
+      - name: "Downstairs Climate Insight"
+        unique_id: downstairs_climate_insight
+        state: >
+          {% set avg_temp = states('sensor.downstairs_temp_avg') %}
+          {% set humidity = states('sensor.downstairs_humidity_avg') %}
+          {% set spread = states('sensor.downstairs_temp_spread') %}
+          {% set outdoor = states('sensor.downstairs_outdoor_temp') %}
+          {% set setpoint = states('sensor.downstairs_ecobee_setpoint') %}
+          {% set profile = states('select.dining_room_current_mode') | replace('_', ' ') %}
+          {% set action = state_attr('climate.dining_room', 'hvac_action') | default('idle', true) | replace('_', ' ') %}
+          {% set open_window = is_state('binary_sensor.downstairs_open_window_eligible', 'on') %}
+          Main floor averages {{ avg_temp }}°F and {{ humidity }}% humidity.
+          Ecobee is {{ action }} in {{ profile }} with a setpoint of {{ setpoint }}°F.
+          Sensor spread is {{ spread }}°F and outdoor air is {{ outdoor }}°F.
+          {% if open_window %}Tonight looks favorable for opening windows and coasting.{% endif %}
+
+      - name: "Downstairs Away Watch"
+        unique_id: downstairs_away_watch
+        state: >
+          {% set away = is_state('binary_sensor.downstairs_everyone_away', 'on') %}
+          {% set away_minutes = states('sensor.downstairs_away_minutes') | float(0) %}
+          {% set away_delay = states('input_number.downstairs_away_profile_delay_minutes') | float(45) %}
+          {% set avg_temp = states('sensor.downstairs_temp_avg') %}
+          {% set humidity = states('sensor.downstairs_humidity_avg') %}
+          {% set profile = states('select.dining_room_current_mode') %}
+          {% set season = states('sensor.downstairs_active_season') %}
+          {% if not away %}
+            home_occupied
+          {% elif away_minutes < away_delay %}
+            grace_period
+          {% elif is_number(avg_temp) and (avg_temp | float(0)) >= 78 %}
+            too_hot
+          {% elif is_number(avg_temp) and (avg_temp | float(0)) <= 60 %}
+            too_cold
+          {% elif is_number(humidity) and (humidity | float(0)) >= 65 %}
+            too_humid
+          {% elif profile == 'home' %}
+            profile_check
+          {% elif season == 'winter' and is_number(humidity) and (humidity | float(0)) <= 25 %}
+            too_dry
+          {% else %}
+            all_clear
+          {% endif %}
+        icon: >
+          {% set watch = states('sensor.downstairs_away_watch') %}
+          {% if watch == 'too_hot' %}mdi:thermometer-high
+          {% elif watch == 'too_cold' %}mdi:thermometer-low
+          {% elif watch == 'too_humid' %}mdi:water-percent-alert
+          {% elif watch == 'too_dry' %}mdi:water-off-outline
+          {% elif watch == 'profile_check' %}mdi:home-alert-outline
+          {% elif watch == 'all_clear' %}mdi:shield-home-outline
+          {% else %}mdi:home-export-outline{% endif %}
+
+      - name: "Downstairs Away Watch Reason"
+        unique_id: downstairs_away_watch_reason
+        state: >
+          {% set watch = states('sensor.downstairs_away_watch') %}
+          {% set away_minutes = states('sensor.downstairs_away_minutes') | int(0) %}
+          {% set avg_temp = states('sensor.downstairs_temp_avg') %}
+          {% set humidity = states('sensor.downstairs_humidity_avg') %}
+          {% set profile = states('select.dining_room_current_mode') %}
+          {% if watch == 'home_occupied' %}
+            Someone is home, so the away watch is idle.
+          {% elif watch == 'grace_period' %}
+            Both phones are away, but only for {{ away_minutes }} minutes so the away grace period is still active.
+          {% elif watch == 'too_hot' %}
+            Both phones have been away for {{ away_minutes }} minutes and downstairs is running hot at {{ avg_temp }}°F.
+          {% elif watch == 'too_cold' %}
+            Both phones have been away for {{ away_minutes }} minutes and downstairs has drifted down to {{ avg_temp }}°F.
+          {% elif watch == 'too_humid' %}
+            Both phones have been away for {{ away_minutes }} minutes and downstairs humidity is elevated at {{ humidity }}%.
+          {% elif watch == 'too_dry' %}
+            Both phones have been away for {{ away_minutes }} minutes and winter humidity has fallen to {{ humidity }}%.
+          {% elif watch == 'profile_check' %}
+            Both phones have been away for {{ away_minutes }} minutes, but the dining room ecobee is still in the {{ profile }} comfort profile.
+          {% else %}
+            Both phones are away and the downstairs zone looks stable right now.
+          {% endif %}
+
+      - name: "Downstairs Away Minutes"
+        unique_id: downstairs_away_minutes
+        unit_of_measurement: "min"
+        state_class: measurement
+        state: >
+          {% if is_state('binary_sensor.downstairs_everyone_away', 'on') %}
+            {{ ((as_timestamp(now()) - as_timestamp(states.binary_sensor.downstairs_everyone_away.last_changed)) / 60) | round(0) }}
+          {% else %}
+            0
+          {% endif %}
+
+  - binary_sensor:
+      - name: "Wine Cave Sensor Unavailable"
+        unique_id: wine_cave_sensor_unavailable
+        state: >
+          {{ states('sensor.wine_temperature') in ['unknown', 'unavailable', 'none', '']
+             or states('sensor.wine_humidity') in ['unknown', 'unavailable', 'none', ''] }}
+        delay_on:
+          minutes: 10
+        delay_off:
+          minutes: 10
+        icon: >
+          {{ 'mdi:wifi-alert' if is_state('binary_sensor.wine_cave_sensor_unavailable', 'on') else 'mdi:wifi-check' }}
+
+      - name: "Wine Cave Cooling Cycle"
+        unique_id: wine_cave_cooling_cycle
+        availability: >
+          {{ is_number(states('sensor.wine_temperature'))
+             and is_number(states('sensor.wine_humidity'))
+             and is_number(states('sensor.wine_cave_absolute_humidity_24h_delta'))
+             and is_number(states('sensor.wine_cave_dew_point_margin')) }}
+        state: >
+          {% set temp = states('sensor.wine_temperature') | float(0) %}
+          {% set humidity = states('sensor.wine_humidity') | float(0) %}
+          {% set ah_delta = states('sensor.wine_cave_absolute_humidity_24h_delta') | float(0) %}
+          {% set dew_margin = states('sensor.wine_cave_dew_point_margin') | float(0) %}
+          {{ temp >= 50 and temp <= 60
+             and humidity >= 70
+             and (ah_delta | abs) <= 0.35
+             and dew_margin >= 8 }}
+        delay_on:
+          minutes: 3
+        delay_off:
+          minutes: 15
+        icon: >
+          {{ 'mdi:snowflake-thermometer' if is_state('binary_sensor.wine_cave_cooling_cycle', 'on') else 'mdi:snowflake-off' }}
+
+      - name: "Wine Cave Temp High Alert"
+        unique_id: wine_cave_temp_high_alert
+        availability: >
+          {{ is_number(states('sensor.wine_temperature')) }}
+        state: >
+          {{ (states('sensor.wine_temperature') | float(0)) > 60 }}
+        delay_on:
+          minutes: 15
+        delay_off:
+          minutes: 10
+        icon: >
+          {{ 'mdi:thermometer-high' if is_state('binary_sensor.wine_cave_temp_high_alert', 'on') else 'mdi:thermometer' }}
+
+      - name: "Wine Cave Temp Low Alert"
+        unique_id: wine_cave_temp_low_alert
+        availability: >
+          {{ is_number(states('sensor.wine_temperature')) }}
+        state: >
+          {{ (states('sensor.wine_temperature') | float(0)) < 50 }}
+        delay_on:
+          minutes: 15
+        delay_off:
+          minutes: 10
+        icon: >
+          {{ 'mdi:thermometer-low' if is_state('binary_sensor.wine_cave_temp_low_alert', 'on') else 'mdi:thermometer' }}
+
+      - name: "Wine Cave Moisture Anomaly"
+        unique_id: wine_cave_moisture_anomaly
+        availability: >
+          {{ is_number(states('sensor.wine_temperature'))
+             and is_number(states('sensor.wine_humidity'))
+             and is_number(states('sensor.wine_cave_absolute_humidity_24h_delta'))
+             and is_number(states('sensor.wine_cave_dew_point_margin')) }}
+        state: >
+          {% set temp = states('sensor.wine_temperature') | float(0) %}
+          {% set humidity = states('sensor.wine_humidity') | float(0) %}
+          {% set ah_delta = states('sensor.wine_cave_absolute_humidity_24h_delta') | float(0) %}
+          {% set dew_margin = states('sensor.wine_cave_dew_point_margin') | float(0) %}
+          {% set cycle_like = temp >= 50 and temp <= 60
+            and humidity >= 70
+            and (ah_delta | abs) <= 0.35
+            and dew_margin >= 8 %}
+          {{ humidity < 50
+             or (humidity > 70
+             and not cycle_like
+             and (ah_delta | abs) >= 0.5) }}
+        delay_on:
+          minutes: 15
+        delay_off:
+          minutes: 30
+        icon: >
+          {{ 'mdi:water-alert' if is_state('binary_sensor.wine_cave_moisture_anomaly', 'on') else 'mdi:water-check' }}
+
+      - name: "Wine Cave Condensation Risk"
+        unique_id: wine_cave_condensation_risk
+        availability: >
+          {{ is_number(states('sensor.wine_cave_dew_point_margin')) }}
+        state: >
+          {{ (states('sensor.wine_cave_dew_point_margin') | float(99)) < 7 }}
+        delay_on:
+          minutes: 10
+        delay_off:
+          minutes: 20
+        icon: >
+          {{ 'mdi:water-thermometer-alert' if is_state('binary_sensor.wine_cave_condensation_risk', 'on') else 'mdi:water-thermometer' }}
+
+      - name: "Wine Cave Drift Alert"
+        unique_id: wine_cave_drift_alert
+        availability: >
+          {{ is_number(states('sensor.wine_cave_temp_24h_delta_7d'))
+             and is_number(states('sensor.wine_cave_humidity_24h_delta_7d')) }}
+        state: >
+          {% set temp_delta = states('sensor.wine_cave_temp_24h_delta_7d') | float(0) %}
+          {% set humidity_delta = states('sensor.wine_cave_humidity_24h_delta_7d') | float(0) %}
+          {{ (temp_delta | abs) >= 1.5 or (humidity_delta | abs) >= 6 }}
+        delay_on:
+          hours: 3
+        delay_off:
+          hours: 6
+        icon: >
+          {{ 'mdi:chart-line-variant' if is_state('binary_sensor.wine_cave_drift_alert', 'on') else 'mdi:chart-line' }}
+
+      - name: "Wine Cave Actionable Alert"
+        unique_id: wine_cave_actionable_alert
+        state: >
+          {{ is_state('binary_sensor.wine_cave_temp_high_alert', 'on')
+             or is_state('binary_sensor.wine_cave_temp_low_alert', 'on')
+             or is_state('binary_sensor.wine_cave_moisture_anomaly', 'on')
+             or is_state('binary_sensor.wine_cave_condensation_risk', 'on') }}
+        icon: >
+          {{ 'mdi:alert-circle-outline' if is_state('binary_sensor.wine_cave_actionable_alert', 'on') else 'mdi:check-circle-outline' }}
+
+  - binary_sensor:
+      - name: "Downstairs Temp Spread High"
+        unique_id: downstairs_temp_spread_high
+        state: >
+          {{ is_number(states('sensor.downstairs_temp_spread'))
+             and states('sensor.downstairs_temp_spread') | float(0) > 3 }}
+        icon: >
+          {{ 'mdi:thermometer-alert' if is_state('binary_sensor.downstairs_temp_spread_high', 'on') else 'mdi:thermometer' }}
+
+      - name: "Downstairs Open Window Eligible"
+        unique_id: downstairs_open_window_eligible
+        state: >
+          {% set season = states('sensor.downstairs_active_season') %}
+          {% set period = states('sensor.downstairs_time_period') %}
+          {% set avg_temp = states('sensor.downstairs_temp_avg') %}
+          {% set avg_humidity = states('sensor.downstairs_humidity_avg') %}
+          {% set outdoor = states('sensor.downstairs_outdoor_temp') %}
+          {% set humidity = states('sensor.downstairs_outdoor_humidity') %}
+          {% set wind = states('sensor.downstairs_outdoor_wind_speed') %}
+          {% set required_advantage = states('input_number.downstairs_open_window_advantage') | float(3) %}
+          {% set weather_state = states('weather.forecast_home') %}
+          {% set favorable_weather = weather_state not in ['rainy', 'pouring', 'snowy', 'snowy-rainy'] %}
+          {% set season_ok = season == 'shoulder' or (season == 'summer' and period == 'night') %}
+          {% if is_number(avg_temp) and is_number(avg_humidity) %}
+            {% set humidity_penalty = [0, [((avg_humidity | float(0)) - 45) * 0.08, 2] | min] | max %}
+            {% set indoor = (avg_temp | float(0)) + humidity_penalty %}
+          {% else %}
+            {% set indoor = none %}
+          {% endif %}
           {{
-            (is_state('sun.sun', 'below_horizon') and now_ts <= (next_sunrise + 7200))
-            or
-            (is_state('sun.sun', 'above_horizon') and now_ts >= (next_sunset - 7200))
+            season_ok
+            and favorable_weather
+            and indoor is number
+            and is_number(outdoor)
+            and is_number(humidity)
+            and is_number(wind)
+            and (outdoor | float(999)) <= (indoor - required_advantage)
+            and (humidity | float(100)) <= 75
+            and (wind | float(999)) <= 18
           }}
+        icon: >
+          {{ 'mdi:window-open-variant' if is_state('binary_sensor.downstairs_open_window_eligible', 'on') else 'mdi:window-closed-variant' }}
+
+      - name: "Downstairs Someone Home"
+        unique_id: downstairs_someone_home
+        state: >
+          {{
+            is_state('device_tracker.tk_iphone_16_pro', 'home')
+            or is_state('device_tracker.unifi_default_42_15_78_4a_d9_f8', 'home')
+          }}
+        icon: >
+          {{ 'mdi:home-heart' if is_state('binary_sensor.downstairs_someone_home', 'on') else 'mdi:home-off-outline' }}
+
+      - name: "Downstairs Everyone Away"
+        unique_id: downstairs_everyone_away
+        state: >
+          {{
+            not is_state('device_tracker.tk_iphone_16_pro', 'home')
+            and not is_state('device_tracker.unifi_default_42_15_78_4a_d9_f8', 'home')
+          }}
+        icon: >
+          {{ 'mdi:home-export-outline' if is_state('binary_sensor.downstairs_everyone_away', 'on') else 'mdi:home-account' }}
+
+  - triggers:
+      - trigger: homeassistant
+        event: start
+      - trigger: time_pattern
+        hours: "/3"
+    actions:
+      - action: weather.get_forecasts
+        target:
+          entity_id: weather.forecast_home
+        data:
+          type: daily
+        response_variable: garden_daily_forecast
+    sensor:
+      - name: "Garden Lowest Forecast Low 4 Day"
+        unique_id: garden_lowest_forecast_low_4_day
+        unit_of_measurement: "°F"
+        device_class: temperature
+        state: >
+          {% set forecast_map = garden_daily_forecast if garden_daily_forecast is defined else {} %}
+          {% set forecast = forecast_map['weather.forecast_home'].forecast if 'weather.forecast_home' in forecast_map else [] %}
+          {% set ns = namespace(lows=[]) %}
+          {% for item in forecast[:4] %}
+            {% if item.templow is defined and item.templow is number %}
+              {% set ns.lows = ns.lows + [item.templow | float(0)] %}
+            {% endif %}
+          {% endfor %}
+          {{ (ns.lows | min | round(0)) if ns.lows else 'unknown' }}
+        attributes:
+          next_4_lows: >
+            {% set forecast_map = garden_daily_forecast if garden_daily_forecast is defined else {} %}
+            {% set forecast = forecast_map['weather.forecast_home'].forecast if 'weather.forecast_home' in forecast_map else [] %}
+            {% set ns = namespace(labels=[]) %}
+            {% for item in forecast[:4] %}
+              {% if item.templow is defined and item.templow is number %}
+                {% set ns.labels = ns.labels + [((item.templow | float(0)) | round(0) | int) ~ '°'] %}
+              {% endif %}
+            {% endfor %}
+            {{ ns.labels | join(' · ') if ns.labels else 'Forecast unavailable' }}
+
+  - sensor:
+      - name: "Garden Seedlings Total"
+        unique_id: garden_seedlings_total
+        state: 40
+        icon: mdi:sprout-outline
+
+      - name: "Garden Outdoor Seedlings Count"
+        unique_id: garden_outdoor_seedlings_count
+        state: >
+          {{ 0 if is_state('input_boolean.garden_spinach_in_ground', 'on') else 8 }}
+        icon: mdi:flower-outline
+
+      - name: "Garden Outdoor Planted Count"
+        unique_id: garden_outdoor_planted_count
+        state: >
+          {{ 8 if is_state('input_boolean.garden_spinach_in_ground', 'on') else 0 }}
+        icon: mdi:shovel
+
+      - name: "Garden Indoor Seedlings Count"
+        unique_id: garden_indoor_seedlings_count
+        state: >
+          {% set ns = namespace(total=0) %}
+          {% if not is_state('input_boolean.garden_basil_outside', 'on') %}
+            {% set ns.total = ns.total + 16 %}
+          {% endif %}
+          {% if not is_state('input_boolean.garden_marigolds_outside', 'on') %}
+            {% set ns.total = ns.total + 16 %}
+          {% endif %}
+          {{ ns.total }}
+        icon: mdi:home-thermometer-outline
+
+      - name: "Garden Days Since Sowing"
+        unique_id: garden_days_since_sowing
+        unit_of_measurement: "d"
+        state: >
+          {% set started = states('input_datetime.garden_seed_start_date') %}
+          {% if started in ['unknown', 'unavailable', ''] %}
+            0
+          {% else %}
+            {{ [0, (now().date() - as_datetime(started).date()).days] | max }}
+          {% endif %}
+        icon: mdi:calendar-range
+
+      - name: "Garden Check Status"
+        unique_id: garden_check_status
+        state: >
+          {% if not is_state('binary_sensor.garden_indoor_seedlings_active', 'on') %}
+            Outdoor season
+          {% elif is_state('input_boolean.garden_checked_today', 'on') %}
+            Checked today
+          {% else %}
+            Check today
+          {% endif %}
+        icon: mdi:clipboard-check-outline
+
+      - name: "Garden Watering Status"
+        unique_id: garden_watering_status
+        state: >
+          {% if not is_state('binary_sensor.garden_indoor_seedlings_active', 'on') %}
+            Outdoor season
+          {% elif is_state('input_boolean.garden_watered_today', 'on') %}
+            Watered today
+          {% elif now().hour >= 16 %}
+            Moisture review due
+          {% else %}
+            Moisture check later today
+          {% endif %}
+        icon: mdi:watering-can-outline
+
+      - name: "Garden Next Milestone"
+        unique_id: garden_next_milestone
+        state: >
+          {% set started = states('input_datetime.garden_seed_start_date') %}
+          {% if started in ['unknown', 'unavailable', ''] %}
+            Set a seed-start date
+          {% else %}
+            {% set sowed = as_datetime(started).date() %}
+            {% set marigold_harden = sowed + timedelta(days=14) %}
+            {% set basil_harden = sowed + timedelta(days=28) %}
+            {% if not is_state('input_boolean.garden_marigolds_hardening_off', 'on') %}
+              Petite marigolds harden around {{ marigold_harden.strftime('%B %-d') }}
+            {% elif not is_state('input_boolean.garden_marigolds_outside', 'on') %}
+              Marigolds can move out after 5-7 days of hardening
+            {% elif not is_state('input_boolean.garden_basil_hardening_off', 'on') %}
+              Basil hardens around {{ basil_harden.strftime('%B %-d') }}
+            {% elif not is_state('input_boolean.garden_basil_outside', 'on') %}
+              Basil can move out after a warm hardening week
+            {% else %}
+              Outdoor growing season is underway
+            {% endif %}
+          {% endif %}
+        icon: mdi:calendar-star
+
+      - name: "Garden Outdoor Snapshot"
+        unique_id: garden_outdoor_snapshot
+        state: >
+          {% set temp = state_attr('weather.forecast_home', 'temperature') %}
+          {% set humidity = state_attr('weather.forecast_home', 'humidity') %}
+          {% set wind = state_attr('weather.forecast_home', 'wind_speed') %}
+          {% if is_number(temp) and is_number(humidity) and is_number(wind) %}
+            {{ (temp | float(0) | round(0) | int) }}° · {{ humidity | int(0) }}% humidity · {{ (wind | float(0) | round(0) | int) }} mph wind
+          {% else %}
+            Weather unavailable
+          {% endif %}
+        icon: >
+          {% set condition = states('weather.forecast_home') %}
+          {% if condition == 'sunny' %}mdi:weather-sunny
+          {% elif condition in ['partlycloudy', 'cloudy'] %}mdi:weather-partly-cloudy
+          {% elif condition in ['rainy', 'pouring', 'lightning-rainy'] %}mdi:weather-rainy
+          {% else %}mdi:weather-cloudy{% endif %}
+
+      - name: "Garden Weather Readiness"
+        unique_id: garden_weather_readiness
+        state: >
+          {% set temp = state_attr('weather.forecast_home', 'temperature') %}
+          {% set humidity = state_attr('weather.forecast_home', 'humidity') %}
+          {% set wind = state_attr('weather.forecast_home', 'wind_speed') %}
+          {% set condition = states('weather.forecast_home') %}
+          {% set wet = condition in ['rainy', 'pouring', 'lightning', 'lightning-rainy', 'snowy', 'snowy-rainy'] %}
+          {% if is_state('binary_sensor.garden_basil_weather_ready', 'on') %}
+            Warm, calm stretch for basil and marigolds
+          {% elif is_state('binary_sensor.garden_marigolds_weather_ready', 'on') %}
+            Good for marigolds today; basil still wants warmer nights
+          {% elif wet %}
+            Wet or stormy today; keep seedlings sheltered
+          {% elif is_number(wind) and wind | float(0) > 15 %}
+            Too windy today for a first hardening pass
+          {% elif is_number(temp) and temp | float(0) < 55 %}
+            Too cool today for tender starts
+          {% elif is_number(humidity) and humidity | float(0) > 92 %}
+            Very damp outside today; wait for a cleaner window
+          {% else %}
+            Forecast is not warm enough yet for outdoor nights
+          {% endif %}
+        icon: mdi:weather-partly-cloudy
+
+      - name: "Garden Today Focus"
+        unique_id: garden_today_focus
+        state: >
+          {% set marigold_hardening_started = states('input_datetime.garden_marigolds_hardening_started') %}
+          {% set basil_hardening_started = states('input_datetime.garden_basil_hardening_started') %}
+          {% set basil_observation = states('input_select.garden_basil_observation') %}
+          {% set marigold_observation = states('input_select.garden_marigolds_observation') %}
+          {% set spinach_observation = states('input_select.garden_spinach_observation') %}
+          {% set spinach_in_ground = is_state('input_boolean.garden_spinach_in_ground', 'on') %}
+          {% set marigold_days = (now().date() - as_datetime(marigold_hardening_started).date()).days
+            if marigold_hardening_started not in ['unknown', 'unavailable', ''] else 0 %}
+          {% set basil_days = (now().date() - as_datetime(basil_hardening_started).date()).days
+            if basil_hardening_started not in ['unknown', 'unavailable', ''] else 0 %}
+          {% if basil_observation == 'stressed' %}
+            Basil needs a closer look
+          {% elif marigold_observation == 'stressed' %}
+            Marigolds need a closer look
+          {% elif spinach_observation == 'stressed' %}
+            Spinach needs a closer look
+          {% elif basil_observation == 'dry' %}
+            Basil looks dry
+          {% elif marigold_observation == 'dry' %}
+            Marigolds look dry
+          {% elif spinach_observation == 'dry' %}
+            Spinach looks dry
+          {% elif basil_observation == 'leggy' %}
+            Basil looks stretched
+          {% elif marigold_observation == 'leggy' %}
+            Marigolds look stretched
+          {% elif not spinach_in_ground and spinach_observation == 'ready for ground' %}
+            Spinach may be ready for the ground
+          {% elif not spinach_in_ground and spinach_observation == 'true leaves showing' %}
+            Spinach has true leaves now
+          {% elif is_state('input_boolean.garden_marigolds_hardening_off', 'on')
+             and not is_state('input_boolean.garden_marigolds_outside', 'on')
+             and is_state('binary_sensor.garden_marigolds_weather_ready', 'on')
+             and marigold_days >= 5 %}
+            Petite marigolds can likely move outside
+          {% elif is_state('input_boolean.garden_basil_hardening_off', 'on')
+             and not is_state('input_boolean.garden_basil_outside', 'on')
+             and is_state('binary_sensor.garden_basil_weather_ready', 'on')
+             and basil_days >= 7 %}
+            Basil looks ready for outdoor nights
+          {% elif not is_state('input_boolean.garden_marigolds_hardening_off', 'on')
+             and not is_state('input_boolean.garden_marigolds_outside', 'on')
+             and states('sensor.garden_days_since_sowing') | int(0) >= 14
+             and is_state('binary_sensor.garden_marigolds_weather_ready', 'on') %}
+            Start hardening the petite marigolds
+          {% elif not is_state('input_boolean.garden_basil_hardening_off', 'on')
+             and not is_state('input_boolean.garden_basil_outside', 'on')
+             and states('sensor.garden_days_since_sowing') | int(0) >= 28
+             and is_state('binary_sensor.garden_basil_weather_ready', 'on') %}
+            Start hardening the basil trays
+          {% elif is_state('binary_sensor.garden_seedling_check_due', 'on')
+             and is_state('binary_sensor.garden_water_review_due', 'on') %}
+            Check trays and review moisture tonight
+          {% elif is_state('binary_sensor.garden_seedling_check_due', 'on') %}
+            Do a quick seedling check
+          {% elif is_state('binary_sensor.garden_water_review_due', 'on') %}
+            Do an evening moisture pass
+          {% else %}
+            {{ states('sensor.garden_next_milestone') }}
+          {% endif %}
+        icon: mdi:sprout-outline
+
+      - name: "Garden Next Stage Step"
+        unique_id: garden_next_stage_step
+        state: >
+          {% set marigold_hardening_started = states('input_datetime.garden_marigolds_hardening_started') %}
+          {% set basil_hardening_started = states('input_datetime.garden_basil_hardening_started') %}
+          {% set marigold_days = (now().date() - as_datetime(marigold_hardening_started).date()).days
+            if marigold_hardening_started not in ['unknown', 'unavailable', ''] else 0 %}
+          {% set basil_days = (now().date() - as_datetime(basil_hardening_started).date()).days
+            if basil_hardening_started not in ['unknown', 'unavailable', ''] else 0 %}
+          {% if is_state('input_boolean.garden_marigolds_hardening_off', 'on')
+             and not is_state('input_boolean.garden_marigolds_outside', 'on')
+             and is_state('binary_sensor.garden_marigolds_weather_ready', 'on')
+             and marigold_days >= 5 %}
+            Move marigolds outside
+          {% elif is_state('input_boolean.garden_basil_hardening_off', 'on')
+             and not is_state('input_boolean.garden_basil_outside', 'on')
+             and is_state('binary_sensor.garden_basil_weather_ready', 'on')
+             and basil_days >= 7 %}
+            Move basil outside
+          {% elif not is_state('input_boolean.garden_marigolds_hardening_off', 'on')
+             and not is_state('input_boolean.garden_marigolds_outside', 'on')
+             and states('sensor.garden_days_since_sowing') | int(0) >= 14
+             and is_state('binary_sensor.garden_marigolds_weather_ready', 'on') %}
+            Start marigold hardening
+          {% elif not is_state('input_boolean.garden_basil_hardening_off', 'on')
+             and not is_state('input_boolean.garden_basil_outside', 'on')
+             and states('sensor.garden_days_since_sowing') | int(0) >= 28
+             and is_state('binary_sensor.garden_basil_weather_ready', 'on') %}
+            Start basil hardening
+          {% else %}
+            No stage step right now
+          {% endif %}
+        icon: >
+          {% set marigold_hardening_started = states('input_datetime.garden_marigolds_hardening_started') %}
+          {% set basil_hardening_started = states('input_datetime.garden_basil_hardening_started') %}
+          {% set marigold_days = (now().date() - as_datetime(marigold_hardening_started).date()).days
+            if marigold_hardening_started not in ['unknown', 'unavailable', ''] else 0 %}
+          {% set basil_days = (now().date() - as_datetime(basil_hardening_started).date()).days
+            if basil_hardening_started not in ['unknown', 'unavailable', ''] else 0 %}
+          {% if (is_state('input_boolean.garden_marigolds_hardening_off', 'on')
+             and not is_state('input_boolean.garden_marigolds_outside', 'on')
+             and is_state('binary_sensor.garden_marigolds_weather_ready', 'on')
+             and marigold_days >= 5)
+             or (is_state('input_boolean.garden_basil_hardening_off', 'on')
+             and not is_state('input_boolean.garden_basil_outside', 'on')
+             and is_state('binary_sensor.garden_basil_weather_ready', 'on')
+             and basil_days >= 7) %}mdi:arrow-right-circle-outline
+          {% elif (not is_state('input_boolean.garden_marigolds_hardening_off', 'on')
+             and not is_state('input_boolean.garden_marigolds_outside', 'on')
+             and states('sensor.garden_days_since_sowing') | int(0) >= 14
+             and is_state('binary_sensor.garden_marigolds_weather_ready', 'on'))
+             or (not is_state('input_boolean.garden_basil_hardening_off', 'on')
+             and not is_state('input_boolean.garden_basil_outside', 'on')
+             and states('sensor.garden_days_since_sowing') | int(0) >= 28
+             and is_state('binary_sensor.garden_basil_weather_ready', 'on')) %}mdi:white-balance-sunny
+          {% else %}mdi:calendar-check-outline{% endif %}
+        attributes:
+          action_id: >
+            {% set marigold_hardening_started = states('input_datetime.garden_marigolds_hardening_started') %}
+            {% set basil_hardening_started = states('input_datetime.garden_basil_hardening_started') %}
+            {% set marigold_days = (now().date() - as_datetime(marigold_hardening_started).date()).days
+              if marigold_hardening_started not in ['unknown', 'unavailable', ''] else 0 %}
+            {% set basil_days = (now().date() - as_datetime(basil_hardening_started).date()).days
+              if basil_hardening_started not in ['unknown', 'unavailable', ''] else 0 %}
+            {% if is_state('input_boolean.garden_marigolds_hardening_off', 'on')
+               and not is_state('input_boolean.garden_marigolds_outside', 'on')
+               and is_state('binary_sensor.garden_marigolds_weather_ready', 'on')
+               and marigold_days >= 5 %}
+              mark_marigolds_outside
+            {% elif is_state('input_boolean.garden_basil_hardening_off', 'on')
+               and not is_state('input_boolean.garden_basil_outside', 'on')
+               and is_state('binary_sensor.garden_basil_weather_ready', 'on')
+               and basil_days >= 7 %}
+              mark_basil_outside
+            {% elif not is_state('input_boolean.garden_marigolds_hardening_off', 'on')
+               and not is_state('input_boolean.garden_marigolds_outside', 'on')
+               and states('sensor.garden_days_since_sowing') | int(0) >= 14
+               and is_state('binary_sensor.garden_marigolds_weather_ready', 'on') %}
+              start_marigolds_hardening
+            {% elif not is_state('input_boolean.garden_basil_hardening_off', 'on')
+               and not is_state('input_boolean.garden_basil_outside', 'on')
+               and states('sensor.garden_days_since_sowing') | int(0) >= 28
+               and is_state('binary_sensor.garden_basil_weather_ready', 'on') %}
+              start_basil_hardening
+            {% else %}
+              none
+            {% endif %}
+          detail: >
+            {% set marigold_hardening_started = states('input_datetime.garden_marigolds_hardening_started') %}
+            {% set basil_hardening_started = states('input_datetime.garden_basil_hardening_started') %}
+            {% set marigold_days = (now().date() - as_datetime(marigold_hardening_started).date()).days
+              if marigold_hardening_started not in ['unknown', 'unavailable', ''] else 0 %}
+            {% set basil_days = (now().date() - as_datetime(basil_hardening_started).date()).days
+              if basil_hardening_started not in ['unknown', 'unavailable', ''] else 0 %}
+            {% if is_state('input_boolean.garden_marigolds_hardening_off', 'on')
+               and not is_state('input_boolean.garden_marigolds_outside', 'on')
+               and is_state('binary_sensor.garden_marigolds_weather_ready', 'on')
+               and marigold_days >= 5 %}
+              The marigolds have had enough hardening time and the weather looks friendly.
+            {% elif is_state('input_boolean.garden_basil_hardening_off', 'on')
+               and not is_state('input_boolean.garden_basil_outside', 'on')
+               and is_state('binary_sensor.garden_basil_weather_ready', 'on')
+               and basil_days >= 7 %}
+              Basil has had a warm hardening week and should be ready for outdoor nights.
+            {% elif not is_state('input_boolean.garden_marigolds_hardening_off', 'on')
+               and not is_state('input_boolean.garden_marigolds_outside', 'on')
+               and states('sensor.garden_days_since_sowing') | int(0) >= 14
+               and is_state('binary_sensor.garden_marigolds_weather_ready', 'on') %}
+              Mild weather today. Start with a short bright-shade session and build up over the week.
+            {% elif not is_state('input_boolean.garden_basil_hardening_off', 'on')
+               and not is_state('input_boolean.garden_basil_outside', 'on')
+               and states('sensor.garden_days_since_sowing') | int(0) >= 28
+               and is_state('binary_sensor.garden_basil_weather_ready', 'on') %}
+              Basil finally has a warm enough window. Start gently and stretch exposure over about a week.
+            {% else %}
+              Notifications will nudge you when timing and weather line up.
+            {% endif %}
+
+      - name: "Garden Spinach Status"
+        unique_id: garden_spinach_status
+        state: >
+          {% if is_state('input_boolean.garden_spinach_in_ground', 'on') %}
+            Raised beds
+          {% else %}
+            Outdoors
+          {% endif %}
+        icon: >
+          {% if is_state('input_boolean.garden_spinach_in_ground', 'on') %}mdi:shovel
+          {% else %}mdi:leaf{% endif %}
+        attributes:
+          count: 8
+          planted_date: >
+            {% set planted = states('input_datetime.garden_spinach_planted_in_ground') %}
+            {% if planted in ['unknown', 'unavailable', ''] %}
+              unknown
+            {% else %}
+              {{ as_datetime(planted).strftime('%B %-d') }}
+            {% endif %}
+          last_watered: >
+            {% set watered = states('input_datetime.garden_spinach_last_watered') %}
+            {% if watered in ['unknown', 'unavailable', ''] %}
+              unknown
+            {% else %}
+              {{ as_datetime(watered).strftime('%B %-d') }}
+            {% endif %}
+          stage_note: >
+            {% set observation = states('input_select.garden_spinach_observation') %}
+            {% set in_ground = is_state('input_boolean.garden_spinach_in_ground', 'on') %}
+            {% set planted = states('input_datetime.garden_spinach_planted_in_ground') %}
+            {% set watered = states('input_datetime.garden_spinach_last_watered') %}
+            {% set planted_label = as_datetime(planted).strftime('%B %-d')
+              if planted not in ['unknown', 'unavailable', ''] else 'recently' %}
+            {% set watered_label = as_datetime(watered).strftime('%B %-d')
+              if watered not in ['unknown', 'unavailable', ''] else planted_label %}
+            {% if in_ground and observation == 'dry' %}
+              In the raised beds since {{ planted_label }} and looking dry. Give them a deeper soak and recheck tonight.
+            {% elif in_ground and observation == 'settling in' %}
+              Planted in the raised beds {{ planted_label }}. Keep moisture even while they settle in.
+            {% elif in_ground and observation == 'stressed' %}
+              Planted in the raised beds {{ planted_label }}. Watch for transplant stress and keep the soil evenly moist.
+            {% elif in_ground %}
+              Planted in the raised beds {{ planted_label }} and watered in {{ watered_label }}.
+            {% elif observation == 'dry' %}
+              Outdoor trays look dry. Water before the surface fully dries out.
+            {% elif observation == 'true leaves showing' %}
+              True leaves are showing. Start watching for a nice planting window.
+            {% elif observation == 'ready for ground' %}
+              Looks ready for the ground when the bed is open and the soil is workable.
+            {% elif observation == 'stressed' %}
+              Looks stressed outside. Recheck moisture and sun exposure.
+            {% else %}
+              Sprouting outside, but not planted in the ground yet.
+            {% endif %}
+          move_rule: >
+            {% if is_state('input_boolean.garden_spinach_in_ground', 'on') %}
+              Already planted out in the raised beds.
+            {% else %}
+              Already outside as a cool-season crop.
+            {% endif %}
+
+      - name: "Garden Basil Genovese Status"
+        unique_id: garden_basil_genovese_status
+        state: >
+          {% if is_state('input_boolean.garden_basil_outside', 'on') %}
+            Outside
+          {% elif is_state('input_boolean.garden_basil_hardening_off', 'on') %}
+            Hardening off
+          {% else %}
+            Indoors
+          {% endif %}
+        icon: >
+          {% if is_state('input_boolean.garden_basil_outside', 'on') %}mdi:leaf
+          {% elif is_state('input_boolean.garden_basil_hardening_off', 'on') %}mdi:white-balance-sunny
+          {% else %}mdi:sprout{% endif %}
+        attributes:
+          count: 8
+          hardening_target: >
+            {% set started = states('input_datetime.garden_seed_start_date') %}
+            {% if started in ['unknown', 'unavailable', ''] %}
+              TBD
+            {% else %}
+              {{ (as_datetime(started).date() + timedelta(days=28)).strftime('%B %-d') }}
+            {% endif %}
+          outdoor_target: >
+            {% set started = states('input_datetime.garden_seed_start_date') %}
+            {% if started in ['unknown', 'unavailable', ''] %}
+              TBD
+            {% else %}
+              {{ (as_datetime(started).date() + timedelta(days=35)).strftime('%B %-d') }}
+            {% endif %}
+          stage_note: >
+            {% set observation = states('input_select.garden_basil_observation') %}
+            {% set hardening_started = states('input_datetime.garden_basil_hardening_started') %}
+            {% set moved_outside = states('input_datetime.garden_basil_moved_outside') %}
+            {% if is_state('input_boolean.garden_basil_outside', 'on') and moved_outside not in ['unknown', 'unavailable', ''] %}
+              Outside since {{ as_datetime(moved_outside).strftime('%B %-d') }}
+            {% elif is_state('input_boolean.garden_basil_hardening_off', 'on') and hardening_started not in ['unknown', 'unavailable', ''] %}
+              Hardening since {{ as_datetime(hardening_started).strftime('%B %-d') }}
+            {% elif observation == 'dry' %}
+              Looks dry. Water gently and recheck the tray weight tonight.
+            {% elif observation == 'leggy' %}
+              Looks a bit stretched. Lower the light or increase intensity.
+            {% elif observation == 'ready for next step' and is_state('binary_sensor.garden_basil_weather_ready', 'on') %}
+              Looks ready for the next step and the weather window is finally warm enough.
+            {% elif observation == 'ready for next step' %}
+              Looks ready for the next step, but still wait for nights above 55°.
+            {% elif observation == 'stressed' %}
+              Looks stressed. Keep conditions steady and avoid big swings.
+            {% else %}
+              Keep indoors until nights stay above 55°
+            {% endif %}
+          move_rule: Wait for nighttime lows above 55°F.
+
+      - name: "Garden Basil Lettuce Status"
+        unique_id: garden_basil_lettuce_status
+        state: >
+          {% if is_state('input_boolean.garden_basil_outside', 'on') %}
+            Outside
+          {% elif is_state('input_boolean.garden_basil_hardening_off', 'on') %}
+            Hardening off
+          {% else %}
+            Indoors
+          {% endif %}
+        icon: >
+          {% if is_state('input_boolean.garden_basil_outside', 'on') %}mdi:leaf
+          {% elif is_state('input_boolean.garden_basil_hardening_off', 'on') %}mdi:white-balance-sunny
+          {% else %}mdi:sprout{% endif %}
+        attributes:
+          count: 8
+          hardening_target: >
+            {% set started = states('input_datetime.garden_seed_start_date') %}
+            {% if started in ['unknown', 'unavailable', ''] %}
+              TBD
+            {% else %}
+              {{ (as_datetime(started).date() + timedelta(days=28)).strftime('%B %-d') }}
+            {% endif %}
+          outdoor_target: >
+            {% set started = states('input_datetime.garden_seed_start_date') %}
+            {% if started in ['unknown', 'unavailable', ''] %}
+              TBD
+            {% else %}
+              {{ (as_datetime(started).date() + timedelta(days=35)).strftime('%B %-d') }}
+            {% endif %}
+          stage_note: >
+            {% set observation = states('input_select.garden_basil_observation') %}
+            {% set hardening_started = states('input_datetime.garden_basil_hardening_started') %}
+            {% set moved_outside = states('input_datetime.garden_basil_moved_outside') %}
+            {% if is_state('input_boolean.garden_basil_outside', 'on') and moved_outside not in ['unknown', 'unavailable', ''] %}
+              Outside since {{ as_datetime(moved_outside).strftime('%B %-d') }}
+            {% elif is_state('input_boolean.garden_basil_hardening_off', 'on') and hardening_started not in ['unknown', 'unavailable', ''] %}
+              Hardening since {{ as_datetime(hardening_started).strftime('%B %-d') }}
+            {% elif observation == 'dry' %}
+              Looks dry. Water gently and recheck the tray weight tonight.
+            {% elif observation == 'leggy' %}
+              Looks a bit stretched. Lower the light or increase intensity.
+            {% elif observation == 'ready for next step' and is_state('binary_sensor.garden_basil_weather_ready', 'on') %}
+              Looks ready for the next step and the weather window is finally warm enough.
+            {% elif observation == 'ready for next step' %}
+              Looks ready for the next step, but still wait for nights above 55°.
+            {% elif observation == 'stressed' %}
+              Looks stressed. Keep conditions steady and avoid big swings.
+            {% else %}
+              Keep indoors until nights stay above 55°
+            {% endif %}
+          move_rule: Wait for nighttime lows above 55°F.
+
+      - name: "Garden Petite Marigolds Status"
+        unique_id: garden_petite_marigolds_status
+        state: >
+          {% if is_state('input_boolean.garden_marigolds_outside', 'on') %}
+            Outside
+          {% elif is_state('input_boolean.garden_marigolds_hardening_off', 'on') %}
+            Hardening off
+          {% else %}
+            Indoors
+          {% endif %}
+        icon: >
+          {% if is_state('input_boolean.garden_marigolds_outside', 'on') %}mdi:flower-outline
+          {% elif is_state('input_boolean.garden_marigolds_hardening_off', 'on') %}mdi:white-balance-sunny
+          {% else %}mdi:sprout{% endif %}
+        attributes:
+          count: 16
+          hardening_target: >
+            {% set started = states('input_datetime.garden_seed_start_date') %}
+            {% if started in ['unknown', 'unavailable', ''] %}
+              TBD
+            {% else %}
+              {{ (as_datetime(started).date() + timedelta(days=14)).strftime('%B %-d') }}
+            {% endif %}
+          outdoor_target: >
+            {% set started = states('input_datetime.garden_seed_start_date') %}
+            {% if started in ['unknown', 'unavailable', ''] %}
+              TBD
+            {% else %}
+              {{ (as_datetime(started).date() + timedelta(days=21)).strftime('%B %-d') }}
+            {% endif %}
+          stage_note: >
+            {% set observation = states('input_select.garden_marigolds_observation') %}
+            {% set hardening_started = states('input_datetime.garden_marigolds_hardening_started') %}
+            {% set moved_outside = states('input_datetime.garden_marigolds_moved_outside') %}
+            {% if is_state('input_boolean.garden_marigolds_outside', 'on') and moved_outside not in ['unknown', 'unavailable', ''] %}
+              Outside since {{ as_datetime(moved_outside).strftime('%B %-d') }}
+            {% elif is_state('input_boolean.garden_marigolds_hardening_off', 'on') and hardening_started not in ['unknown', 'unavailable', ''] %}
+              Hardening since {{ as_datetime(hardening_started).strftime('%B %-d') }}
+            {% elif observation == 'dry' %}
+              Looks dry. Water and let the tray fully rehydrate.
+            {% elif observation == 'leggy' %}
+              Looks a bit stretched. Give it stronger light and a little airflow.
+            {% elif observation == 'ready for next step' and is_state('binary_sensor.garden_marigolds_weather_ready', 'on') %}
+              Looks ready for the next step and the weather window is mild enough.
+            {% elif observation == 'ready for next step' %}
+              Looks ready for the next step, but wait for a milder outdoor window.
+            {% elif observation == 'stressed' %}
+              Looks stressed. Keep moisture even and avoid sudden outdoor exposure.
+            {% else %}
+              Hardening can start around two weeks after sowing
+            {% endif %}
+          move_rule: Wait for forecast lows above 48°F.
+
+  - binary_sensor:
+      - name: "Garden Indoor Seedlings Active"
+        unique_id: garden_indoor_seedlings_active
+        state: >
+          {{ not is_state('input_boolean.garden_marigolds_outside', 'on')
+             or not is_state('input_boolean.garden_basil_outside', 'on') }}
+        icon: >
+          {{ 'mdi:sprout-outline' if is_state('binary_sensor.garden_indoor_seedlings_active', 'on') else 'mdi:flower' }}
+
+      - name: "Garden Seedling Check Due"
+        unique_id: garden_seedling_check_due
+        state: >
+          {% if not is_state('binary_sensor.garden_indoor_seedlings_active', 'on') %}
+            false
+          {% else %}
+            {{ not is_state('input_boolean.garden_checked_today', 'on') }}
+          {% endif %}
+        icon: >
+          {{ 'mdi:clipboard-alert-outline' if is_state('binary_sensor.garden_seedling_check_due', 'on') else 'mdi:clipboard-check-outline' }}
+
+      - name: "Garden Water Review Due"
+        unique_id: garden_water_review_due
+        state: >
+          {% if not is_state('binary_sensor.garden_indoor_seedlings_active', 'on') %}
+            false
+          {% elif now().hour < 16 %}
+            false
+          {% else %}
+            {{ not is_state('input_boolean.garden_watered_today', 'on') }}
+          {% endif %}
+        icon: >
+          {{ 'mdi:watering-can' if is_state('binary_sensor.garden_water_review_due', 'on') else 'mdi:watering-can-outline' }}
+
+      - name: "Garden Marigolds Weather Ready"
+        unique_id: garden_marigolds_weather_ready
+        state: >
+          {% set temp = state_attr('weather.forecast_home', 'temperature') %}
+          {% set humidity = state_attr('weather.forecast_home', 'humidity') %}
+          {% set wind = state_attr('weather.forecast_home', 'wind_speed') %}
+          {% set condition = states('weather.forecast_home') %}
+          {% set fair_weather = condition not in ['rainy', 'pouring', 'lightning', 'lightning-rainy', 'snowy', 'snowy-rainy', 'fog'] %}
+          {{ is_number(states('sensor.garden_lowest_forecast_low_4_day'))
+             and states('sensor.garden_lowest_forecast_low_4_day') | float(0) >= 48
+             and is_number(temp) and temp | float(0) >= 55
+             and is_number(humidity) and humidity | float(0) <= 92
+             and is_number(wind) and wind | float(0) <= 15
+             and fair_weather }}
+        icon: >
+          {{ 'mdi:weather-sunny' if is_state('binary_sensor.garden_marigolds_weather_ready', 'on') else 'mdi:weather-cloudy' }}
+
+      - name: "Garden Basil Weather Ready"
+        unique_id: garden_basil_weather_ready
+        state: >
+          {% set temp = state_attr('weather.forecast_home', 'temperature') %}
+          {% set humidity = state_attr('weather.forecast_home', 'humidity') %}
+          {% set wind = state_attr('weather.forecast_home', 'wind_speed') %}
+          {% set condition = states('weather.forecast_home') %}
+          {% set fair_weather = condition not in ['rainy', 'pouring', 'lightning', 'lightning-rainy', 'snowy', 'snowy-rainy', 'fog'] %}
+          {{ is_number(states('sensor.garden_lowest_forecast_low_4_day'))
+             and states('sensor.garden_lowest_forecast_low_4_day') | float(0) >= 55
+             and is_number(temp) and temp | float(0) >= 60
+             and is_number(humidity) and humidity | float(0) <= 88
+             and is_number(wind) and wind | float(0) <= 12
+             and fair_weather }}
+        icon: >
+          {{ 'mdi:weather-sunny' if is_state('binary_sensor.garden_basil_weather_ready', 'on') else 'mdi:weather-night' }}
 
 # ── 24h Rolling Average Sensors ──────────────────────────
 # These use HA's built-in statistics integration as the source of truth
@@ -335,6 +1727,16 @@ sensor:
       hours: 24
     sampling_size: 1000
     precision: 1
+
+  - platform: statistics
+    name: "Wine Cave Absolute Humidity 24h Stats"
+    unique_id: wine_cave_absolute_humidity_24h_stats
+    entity_id: sensor.wine_cave_absolute_humidity
+    state_characteristic: mean
+    max_age:
+      hours: 24
+    sampling_size: 1000
+    precision: 2
 
   - platform: statistics
     name: "Wine Temperature 7d Stats"
@@ -382,11 +1784,19 @@ light:
     unique_id: interior_test_group
     entities:
       - light.front_foyer_ceiling_lights
+      - light.front_foyer_chandelier
       - light.stairs_front_stairs
       - light.back_stairs_back_stairs
       - light.upstairs_hallway_main_lights
       - light.vestibule_main_lights
       - light.back_patio_light
+  - platform: group
+    name: Family Room
+    unique_id: family_room_group
+    entities:
+      - light.family_room_main_lights_1
+      - light.family_room_main_lights_2
+      - light.family_room_main_lights_3
   - platform: group
     name: Wynn's Room
     unique_id: wynns_room_group
