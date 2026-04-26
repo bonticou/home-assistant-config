@@ -6830,6 +6830,8 @@ views:
           - entity: binary_sensor.downstairs_open_window_eligible
           - entity: binary_sensor.downstairs_temp_spread_high
           - entity: binary_sensor.house_low_battery_alert
+          - entity: binary_sensor.house_battery_replace_soon_alert
+          - entity: binary_sensor.house_battery_critical_alert
           - entity: binary_sensor.environment_primary_bedroom_battery_low_alert
           - entity: binary_sensor.environment_basement_airthings_battery_low_alert
 
@@ -6849,7 +6851,11 @@ views:
           - entity: sensor.house_low_battery_summary
             name: House low batteries
           - entity: binary_sensor.house_low_battery_alert
-            name: House low battery alert
+            name: Battery getting low
+          - entity: binary_sensor.house_battery_replace_soon_alert
+            name: Battery replace soon
+          - entity: binary_sensor.house_battery_critical_alert
+            name: Battery critical
           - entity: sensor.environment_house_status
           - entity: sensor.environment_main_floor_status
           - entity: sensor.environment_second_floor_status

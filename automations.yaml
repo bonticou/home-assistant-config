@@ -1326,36 +1326,47 @@
 
 - id: house_low_battery_notification
   alias: "House — Low Battery Notification"
-  description: Sends one home-maintenance push when any monitored infrastructure battery stays at or below 20%.
+  description: Sends short home-maintenance pushes for monitored infrastructure batteries at 20%, 10%, and 5%.
   triggers:
     - trigger: state
       entity_id: binary_sensor.house_low_battery_alert
       to: "on"
+      id: getting_low
+    - trigger: state
+      entity_id: binary_sensor.house_battery_replace_soon_alert
+      to: "on"
+      id: replace_soon
+    - trigger: state
+      entity_id: binary_sensor.house_battery_critical_alert
+      to: "on"
+      id: critical
     - trigger: homeassistant
       event: start
+      id: startup
   conditions:
     - condition: state
       entity_id: input_boolean.house_battery_alerts_enabled
       state: "on"
-    - condition: state
-      entity_id: binary_sensor.house_low_battery_alert
-      state: "on"
+    - condition: template
+      value_template: "{{ (states('sensor.house_low_battery_summary') | int(0)) > 0 }}"
   actions:
     - variables:
-        low_count: "{{ states('sensor.house_low_battery_summary') | int(0) }}"
-        low_batteries: "{{ state_attr('sensor.house_low_battery_summary', 'low_batteries') }}"
-        unknown_batteries: "{{ state_attr('sensor.house_low_battery_summary', 'unknown_batteries') }}"
+        severity: "{{ state_attr('sensor.house_low_battery_summary', 'severity') | default('getting_low', true) }}"
+        battery_list: >-
+          {% if severity == 'critical' %}
+            {{ state_attr('sensor.house_low_battery_summary', 'critical_batteries') }}
+          {% elif severity == 'replace_soon' %}
+            {{ state_attr('sensor.house_low_battery_summary', 'replace_soon_batteries') }}
+          {% else %}
+            {{ state_attr('sensor.house_low_battery_summary', 'getting_low_batteries') }}
+          {% endif %}
     - action: script.notify_trevor_phone
       data:
         title: >-
-          {% if low_count | int(0) == 1 %}🪫 House battery is low
-          {% else %}🪫 {{ low_count }} house batteries are low{% endif %}
-        message: >-
-          {{ low_batteries }}.
-          Replace or recharge when you can. Alert threshold is 20%.
-          {% if unknown_batteries not in [none, '', 'None'] %}
-          Also not reporting right now: {{ unknown_batteries }}.
-          {% endif %}
+          {% if severity == 'critical' %}🪫 Battery critical
+          {% elif severity == 'replace_soon' %}🪫 Battery replace soon
+          {% else %}🪫 Battery getting low{% endif %}
+        message: "{{ battery_list }}"
         data:
           group: house-maintenance
           tag: house-low-battery
@@ -1369,6 +1380,22 @@
     - trigger: state
       entity_id: binary_sensor.house_low_battery_alert
       to: "off"
+    - trigger: state
+      entity_id: binary_sensor.house_battery_replace_soon_alert
+      to: "off"
+    - trigger: state
+      entity_id: binary_sensor.house_battery_critical_alert
+      to: "off"
+  conditions:
+    - condition: state
+      entity_id: binary_sensor.house_low_battery_alert
+      state: "off"
+    - condition: state
+      entity_id: binary_sensor.house_battery_replace_soon_alert
+      state: "off"
+    - condition: state
+      entity_id: binary_sensor.house_battery_critical_alert
+      state: "off"
   actions:
     - action: script.notify_trevor_phone
       data:

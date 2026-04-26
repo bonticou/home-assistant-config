@@ -910,8 +910,130 @@ template:
           {{ 'mdi:battery-alert' if (states('sensor.house_low_battery_summary') | int(0)) > 0 else 'mdi:battery-check' }}
         attributes:
           threshold: 20
+          getting_low_threshold: 20
+          replace_soon_threshold: 10
+          critical_threshold: 5
           monitored_batteries: 17
           excluded: "Phones, tablets, battery type sensors, and voltage-only sensors."
+          severity: >
+            {% set batteries = {
+              'sensor.aqara_smart_lock_u100_battery': 'Garage entry lock',
+              'sensor.back_patio_battery': 'Back Patio sensor',
+              'sensor.back_stairs_battery': 'Back Stairs sensor',
+              'sensor.basement_air_quality_battery': 'Basement Airthings',
+              'sensor.basement_ejector_leak_detection_battery': 'Basement Ejector leak sensor',
+              'sensor.dishwasher_leak_detection_battery': 'Dishwasher leak sensor',
+              'sensor.electrical_room_leak_detection_battery': 'Electrical Room leak sensor',
+              'sensor.front_door_battery': 'Front Door sensor',
+              'sensor.island_sink_leak_detection_battery': 'Island Sink leak sensor',
+              'sensor.kitchen_fridge_leak_detection_battery': 'Kitchen Fridge leak sensor',
+              'sensor.kitchen_sink_leak_detection_battery': 'Kitchen Sink leak sensor',
+              'sensor.laundry_sink_leak_detection_battery': 'Laundry Sink leak sensor',
+              'sensor.master_sensor_new_battery_2': 'Primary Bedroom room sensor',
+              'sensor.mechanical_room_leak_detection_battery': 'Mechanical Room leak sensor',
+              'sensor.mudroom_door_battery': 'Mudroom Door sensor',
+              'sensor.washing_machine_leak_detection_battery': 'Washing Machine leak sensor',
+              'sensor.wynn_room_battery': 'Wynn Room sensor'
+            } %}
+            {% set ns = namespace(critical=false, replace_soon=false, getting_low=false) %}
+            {% for entity, label in batteries.items() %}
+              {% set value = states(entity) %}
+              {% if is_number(value) %}
+                {% set level = value | float(100) %}
+                {% if level <= 5 %}{% set ns.critical = true %}
+                {% elif level <= 10 %}{% set ns.replace_soon = true %}
+                {% elif level <= 20 %}{% set ns.getting_low = true %}
+                {% endif %}
+              {% endif %}
+            {% endfor %}
+            {% if ns.critical %}critical
+            {% elif ns.replace_soon %}replace_soon
+            {% elif ns.getting_low %}getting_low
+            {% else %}clear{% endif %}
+          critical_batteries: >
+            {% set batteries = {
+              'sensor.aqara_smart_lock_u100_battery': 'Garage entry lock',
+              'sensor.back_patio_battery': 'Back Patio sensor',
+              'sensor.back_stairs_battery': 'Back Stairs sensor',
+              'sensor.basement_air_quality_battery': 'Basement Airthings',
+              'sensor.basement_ejector_leak_detection_battery': 'Basement Ejector leak sensor',
+              'sensor.dishwasher_leak_detection_battery': 'Dishwasher leak sensor',
+              'sensor.electrical_room_leak_detection_battery': 'Electrical Room leak sensor',
+              'sensor.front_door_battery': 'Front Door sensor',
+              'sensor.island_sink_leak_detection_battery': 'Island Sink leak sensor',
+              'sensor.kitchen_fridge_leak_detection_battery': 'Kitchen Fridge leak sensor',
+              'sensor.kitchen_sink_leak_detection_battery': 'Kitchen Sink leak sensor',
+              'sensor.laundry_sink_leak_detection_battery': 'Laundry Sink leak sensor',
+              'sensor.master_sensor_new_battery_2': 'Primary Bedroom room sensor',
+              'sensor.mechanical_room_leak_detection_battery': 'Mechanical Room leak sensor',
+              'sensor.mudroom_door_battery': 'Mudroom Door sensor',
+              'sensor.washing_machine_leak_detection_battery': 'Washing Machine leak sensor',
+              'sensor.wynn_room_battery': 'Wynn Room sensor'
+            } %}
+            {% set ns = namespace(items=[]) %}
+            {% for entity, label in batteries.items() %}
+              {% set value = states(entity) %}
+              {% if is_number(value) and (value | float(100)) <= 5 %}
+                {% set ns.items = ns.items + [label ~ ' ' ~ (value | float(0) | round(0) | int) ~ '%'] %}
+              {% endif %}
+            {% endfor %}
+            {{ ns.items | join(', ') if ns.items else 'Clear' }}
+          replace_soon_batteries: >
+            {% set batteries = {
+              'sensor.aqara_smart_lock_u100_battery': 'Garage entry lock',
+              'sensor.back_patio_battery': 'Back Patio sensor',
+              'sensor.back_stairs_battery': 'Back Stairs sensor',
+              'sensor.basement_air_quality_battery': 'Basement Airthings',
+              'sensor.basement_ejector_leak_detection_battery': 'Basement Ejector leak sensor',
+              'sensor.dishwasher_leak_detection_battery': 'Dishwasher leak sensor',
+              'sensor.electrical_room_leak_detection_battery': 'Electrical Room leak sensor',
+              'sensor.front_door_battery': 'Front Door sensor',
+              'sensor.island_sink_leak_detection_battery': 'Island Sink leak sensor',
+              'sensor.kitchen_fridge_leak_detection_battery': 'Kitchen Fridge leak sensor',
+              'sensor.kitchen_sink_leak_detection_battery': 'Kitchen Sink leak sensor',
+              'sensor.laundry_sink_leak_detection_battery': 'Laundry Sink leak sensor',
+              'sensor.master_sensor_new_battery_2': 'Primary Bedroom room sensor',
+              'sensor.mechanical_room_leak_detection_battery': 'Mechanical Room leak sensor',
+              'sensor.mudroom_door_battery': 'Mudroom Door sensor',
+              'sensor.washing_machine_leak_detection_battery': 'Washing Machine leak sensor',
+              'sensor.wynn_room_battery': 'Wynn Room sensor'
+            } %}
+            {% set ns = namespace(items=[]) %}
+            {% for entity, label in batteries.items() %}
+              {% set value = states(entity) %}
+              {% if is_number(value) and (value | float(100)) > 5 and (value | float(100)) <= 10 %}
+                {% set ns.items = ns.items + [label ~ ' ' ~ (value | float(0) | round(0) | int) ~ '%'] %}
+              {% endif %}
+            {% endfor %}
+            {{ ns.items | join(', ') if ns.items else 'Clear' }}
+          getting_low_batteries: >
+            {% set batteries = {
+              'sensor.aqara_smart_lock_u100_battery': 'Garage entry lock',
+              'sensor.back_patio_battery': 'Back Patio sensor',
+              'sensor.back_stairs_battery': 'Back Stairs sensor',
+              'sensor.basement_air_quality_battery': 'Basement Airthings',
+              'sensor.basement_ejector_leak_detection_battery': 'Basement Ejector leak sensor',
+              'sensor.dishwasher_leak_detection_battery': 'Dishwasher leak sensor',
+              'sensor.electrical_room_leak_detection_battery': 'Electrical Room leak sensor',
+              'sensor.front_door_battery': 'Front Door sensor',
+              'sensor.island_sink_leak_detection_battery': 'Island Sink leak sensor',
+              'sensor.kitchen_fridge_leak_detection_battery': 'Kitchen Fridge leak sensor',
+              'sensor.kitchen_sink_leak_detection_battery': 'Kitchen Sink leak sensor',
+              'sensor.laundry_sink_leak_detection_battery': 'Laundry Sink leak sensor',
+              'sensor.master_sensor_new_battery_2': 'Primary Bedroom room sensor',
+              'sensor.mechanical_room_leak_detection_battery': 'Mechanical Room leak sensor',
+              'sensor.mudroom_door_battery': 'Mudroom Door sensor',
+              'sensor.washing_machine_leak_detection_battery': 'Washing Machine leak sensor',
+              'sensor.wynn_room_battery': 'Wynn Room sensor'
+            } %}
+            {% set ns = namespace(items=[]) %}
+            {% for entity, label in batteries.items() %}
+              {% set value = states(entity) %}
+              {% if is_number(value) and (value | float(100)) > 10 and (value | float(100)) <= 20 %}
+                {% set ns.items = ns.items + [label ~ ' ' ~ (value | float(0) | round(0) | int) ~ '%'] %}
+              {% endif %}
+            {% endfor %}
+            {{ ns.items | join(', ') if ns.items else 'Clear' }}
           low_batteries: >
             {% set batteries = {
               'sensor.aqara_smart_lock_u100_battery': 'Garage entry lock',
@@ -1711,12 +1833,26 @@ template:
         delay_on:
           hours: 6
 
-      - name: "House Low Battery Alert"
+      - name: "House Battery Getting Low Alert"
         unique_id: house_low_battery_alert
         device_class: battery
         state: "{{ (states('sensor.house_low_battery_summary') | int(0)) > 0 }}"
         delay_on:
           hours: 6
+
+      - name: "House Battery Replace Soon Alert"
+        unique_id: house_battery_replace_soon_alert
+        device_class: battery
+        state: "{{ state_attr('sensor.house_low_battery_summary', 'severity') in ['replace_soon', 'critical'] }}"
+        delay_on:
+          hours: 1
+
+      - name: "House Battery Critical Alert"
+        unique_id: house_battery_critical_alert
+        device_class: battery
+        state: "{{ state_attr('sensor.house_low_battery_summary', 'severity') == 'critical' }}"
+        delay_on:
+          minutes: 10
 
       - name: "Environment Kitchen Sensor Unavailable"
         unique_id: environment_kitchen_sensor_unavailable
