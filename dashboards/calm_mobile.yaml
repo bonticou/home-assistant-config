@@ -6351,7 +6351,8 @@ views:
             primary: Second Floor
             secondary: >-
               Primary Bedroom {{ states('sensor.master_temperature') | float(0) | round(0) }}° ·
-              {{ states('sensor.master_humidity') | float(0) | round(0) }}% · Office pending
+              {{ states('sensor.master_humidity') | float(0) | round(0) }}% ·
+              Battery {{ states('sensor.master_sensor_new_battery_2') }}%
             icon: mdi:home-floor-2
             icon_color: >-
               {% set s = states('sensor.environment_second_floor_status') %}
@@ -6364,7 +6365,8 @@ views:
             secondary: >-
               {{ states('sensor.mechanical_room_temperature') | float(0) | round(0) }}° ·
               {{ states('sensor.mechanical_room_humidity') | float(0) | round(0) }}% ·
-              radon {{ states('sensor.basement_radon_24h_stats') if is_number(states('sensor.basement_radon_24h_stats')) else states('sensor.basement_air_quality_radon') }}
+              radon {{ states('sensor.basement_radon_24h_stats') if is_number(states('sensor.basement_radon_24h_stats')) else states('sensor.basement_air_quality_radon') }} ·
+              Bat {{ states('sensor.basement_air_quality_battery') }}%
             icon: mdi:stairs-down
             icon_color: >-
               {% set s = states('sensor.environment_basement_status') %}
@@ -6604,7 +6606,8 @@ views:
             primary: Primary Bedroom
             secondary: >-
               {{ states('sensor.master_temperature') }}° ·
-              {{ states('sensor.master_humidity') }}% · SensorPush
+              {{ states('sensor.master_humidity') }}% ·
+              Battery {{ states('sensor.master_sensor_new_battery_2') }}%
             icon: mdi:bed-king-outline
             icon_color: >-
               {% set s = states('sensor.environment_primary_bedroom_status') %}
@@ -6826,6 +6829,9 @@ views:
           - entity: sensor.downstairs_away_watch
           - entity: binary_sensor.downstairs_open_window_eligible
           - entity: binary_sensor.downstairs_temp_spread_high
+          - entity: binary_sensor.house_low_battery_alert
+          - entity: binary_sensor.environment_primary_bedroom_battery_low_alert
+          - entity: binary_sensor.environment_basement_airthings_battery_low_alert
 
       - type: entities
         title: Advanced Signals
@@ -6838,12 +6844,26 @@ views:
             name: Main Floor alerts
           - entity: input_boolean.environment_alerts_enabled
             name: Environment alerts
+          - entity: input_boolean.house_battery_alerts_enabled
+            name: House battery alerts
+          - entity: sensor.house_low_battery_summary
+            name: House low batteries
+          - entity: binary_sensor.house_low_battery_alert
+            name: House low battery alert
           - entity: sensor.environment_house_status
           - entity: sensor.environment_main_floor_status
           - entity: sensor.environment_second_floor_status
           - entity: sensor.environment_basement_status
           - entity: sensor.environment_garage_status
           - entity: sensor.environment_attic_status
+          - entity: sensor.master_sensor_new_battery_2
+            name: Primary Bedroom sensor battery
+          - entity: sensor.basement_air_quality_battery
+            name: Basement Airthings battery
+          - entity: binary_sensor.environment_primary_bedroom_battery_low_alert
+            name: Primary Bedroom low battery alert
+          - entity: binary_sensor.environment_basement_airthings_battery_low_alert
+            name: Basement Airthings low battery alert
           - entity: sensor.environment_source_map
           - entity: sensor.downstairs_active_season
           - entity: sensor.downstairs_time_period

@@ -1225,6 +1225,7 @@ environment_send_alert:
           {% elif kind == 'radon_high' %}⚠️
           {% elif kind == 'source_disagreement' %}📍
           {% elif kind == 'sensor_unavailable' %}📡
+          {% elif kind == 'battery_low' %}🪫
           {% else %}🏠{% endif %}
         title_issue: >-
           {% if kind == 'temp_high' %}is too warm
@@ -1234,6 +1235,7 @@ environment_send_alert:
           {% elif kind == 'radon_high' %}radon is elevated
           {% elif kind == 'source_disagreement' %}readings disagree
           {% elif kind == 'sensor_unavailable' %}sensor unavailable
+          {% elif kind == 'battery_low' %}battery is low
           {% elif kind == 'recovered' %}recovered
           {% else %}needs a look{% endif %}
         sticky_alert: "{{ kind in ['radon_high', 'sensor_unavailable'] }}"

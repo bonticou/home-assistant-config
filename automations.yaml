@@ -1324,6 +1324,59 @@
         clear: true
   mode: parallel
 
+- id: house_low_battery_notification
+  alias: "House — Low Battery Notification"
+  description: Sends one home-maintenance push when any monitored infrastructure battery stays at or below 20%.
+  triggers:
+    - trigger: state
+      entity_id: binary_sensor.house_low_battery_alert
+      to: "on"
+    - trigger: homeassistant
+      event: start
+  conditions:
+    - condition: state
+      entity_id: input_boolean.house_battery_alerts_enabled
+      state: "on"
+    - condition: state
+      entity_id: binary_sensor.house_low_battery_alert
+      state: "on"
+  actions:
+    - variables:
+        low_count: "{{ states('sensor.house_low_battery_summary') | int(0) }}"
+        low_batteries: "{{ state_attr('sensor.house_low_battery_summary', 'low_batteries') }}"
+        unknown_batteries: "{{ state_attr('sensor.house_low_battery_summary', 'unknown_batteries') }}"
+    - action: script.notify_trevor_phone
+      data:
+        title: >-
+          {% if low_count | int(0) == 1 %}🪫 House battery is low
+          {% else %}🪫 {{ low_count }} house batteries are low{% endif %}
+        message: >-
+          {{ low_batteries }}.
+          Replace or recharge when you can. Alert threshold is 20%.
+          {% if unknown_batteries not in [none, '', 'None'] %}
+          Also not reporting right now: {{ unknown_batteries }}.
+          {% endif %}
+        data:
+          group: house-maintenance
+          tag: house-low-battery
+          url: /calm-mobile/climate
+  mode: single
+
+- id: house_low_battery_clear_notification
+  alias: "House — Clear Low Battery Notification"
+  description: Clears the home-maintenance low-battery push once all monitored infrastructure batteries recover.
+  triggers:
+    - trigger: state
+      entity_id: binary_sensor.house_low_battery_alert
+      to: "off"
+  actions:
+    - action: script.notify_trevor_phone
+      data:
+        message: clear_notification
+        data:
+          tag: house-low-battery
+  mode: single
+
 - id: garden_seedling_morning_check_notification
   alias: "Garden — Morning Seedling Check"
   description: Sends a gentle morning reminder to inspect the indoor starts.

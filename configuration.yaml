@@ -128,6 +128,10 @@ input_boolean:
     name: Environment Alerts Enabled
     icon: mdi:home-thermometer-outline
     initial: true
+  house_battery_alerts_enabled:
+    name: House Battery Alerts Enabled
+    icon: mdi:battery-heart-variant
+    initial: true
   garden_tracking_enabled:
     name: Garden Tracking Enabled
     icon: mdi:sprout-outline
@@ -872,6 +876,125 @@ template:
           {% else %}
             0
           {% endif %}
+      - name: "House Low Battery Summary"
+        unique_id: house_low_battery_summary
+        state: >
+          {% set batteries = {
+            'sensor.aqara_smart_lock_u100_battery': 'Garage entry lock',
+            'sensor.back_patio_battery': 'Back Patio sensor',
+            'sensor.back_stairs_battery': 'Back Stairs sensor',
+            'sensor.basement_air_quality_battery': 'Basement Airthings',
+            'sensor.basement_ejector_leak_detection_battery': 'Basement Ejector leak sensor',
+            'sensor.dishwasher_leak_detection_battery': 'Dishwasher leak sensor',
+            'sensor.electrical_room_leak_detection_battery': 'Electrical Room leak sensor',
+            'sensor.front_door_battery': 'Front Door sensor',
+            'sensor.island_sink_leak_detection_battery': 'Island Sink leak sensor',
+            'sensor.kitchen_fridge_leak_detection_battery': 'Kitchen Fridge leak sensor',
+            'sensor.kitchen_sink_leak_detection_battery': 'Kitchen Sink leak sensor',
+            'sensor.laundry_sink_leak_detection_battery': 'Laundry Sink leak sensor',
+            'sensor.master_sensor_new_battery_2': 'Primary Bedroom room sensor',
+            'sensor.mechanical_room_leak_detection_battery': 'Mechanical Room leak sensor',
+            'sensor.mudroom_door_battery': 'Mudroom Door sensor',
+            'sensor.washing_machine_leak_detection_battery': 'Washing Machine leak sensor',
+            'sensor.wynn_room_battery': 'Wynn Room sensor'
+          } %}
+          {% set ns = namespace(count=0) %}
+          {% for entity, label in batteries.items() %}
+            {% set value = states(entity) %}
+            {% if is_number(value) and (value | float(100)) <= 20 %}
+              {% set ns.count = ns.count + 1 %}
+            {% endif %}
+          {% endfor %}
+          {{ ns.count }}
+        icon: >
+          {{ 'mdi:battery-alert' if (states('sensor.house_low_battery_summary') | int(0)) > 0 else 'mdi:battery-check' }}
+        attributes:
+          threshold: 20
+          monitored_batteries: 17
+          excluded: "Phones, tablets, battery type sensors, and voltage-only sensors."
+          low_batteries: >
+            {% set batteries = {
+              'sensor.aqara_smart_lock_u100_battery': 'Garage entry lock',
+              'sensor.back_patio_battery': 'Back Patio sensor',
+              'sensor.back_stairs_battery': 'Back Stairs sensor',
+              'sensor.basement_air_quality_battery': 'Basement Airthings',
+              'sensor.basement_ejector_leak_detection_battery': 'Basement Ejector leak sensor',
+              'sensor.dishwasher_leak_detection_battery': 'Dishwasher leak sensor',
+              'sensor.electrical_room_leak_detection_battery': 'Electrical Room leak sensor',
+              'sensor.front_door_battery': 'Front Door sensor',
+              'sensor.island_sink_leak_detection_battery': 'Island Sink leak sensor',
+              'sensor.kitchen_fridge_leak_detection_battery': 'Kitchen Fridge leak sensor',
+              'sensor.kitchen_sink_leak_detection_battery': 'Kitchen Sink leak sensor',
+              'sensor.laundry_sink_leak_detection_battery': 'Laundry Sink leak sensor',
+              'sensor.master_sensor_new_battery_2': 'Primary Bedroom room sensor',
+              'sensor.mechanical_room_leak_detection_battery': 'Mechanical Room leak sensor',
+              'sensor.mudroom_door_battery': 'Mudroom Door sensor',
+              'sensor.washing_machine_leak_detection_battery': 'Washing Machine leak sensor',
+              'sensor.wynn_room_battery': 'Wynn Room sensor'
+            } %}
+            {% set ns = namespace(items=[]) %}
+            {% for entity, label in batteries.items() %}
+              {% set value = states(entity) %}
+              {% if is_number(value) and (value | float(100)) <= 20 %}
+                {% set ns.items = ns.items + [label ~ ' ' ~ (value | float(0) | round(0) | int) ~ '%'] %}
+              {% endif %}
+            {% endfor %}
+            {{ ns.items | join(', ') if ns.items else 'Clear' }}
+          low_battery_entities: >
+            {% set batteries = [
+              'sensor.aqara_smart_lock_u100_battery',
+              'sensor.back_patio_battery',
+              'sensor.back_stairs_battery',
+              'sensor.basement_air_quality_battery',
+              'sensor.basement_ejector_leak_detection_battery',
+              'sensor.dishwasher_leak_detection_battery',
+              'sensor.electrical_room_leak_detection_battery',
+              'sensor.front_door_battery',
+              'sensor.island_sink_leak_detection_battery',
+              'sensor.kitchen_fridge_leak_detection_battery',
+              'sensor.kitchen_sink_leak_detection_battery',
+              'sensor.laundry_sink_leak_detection_battery',
+              'sensor.master_sensor_new_battery_2',
+              'sensor.mechanical_room_leak_detection_battery',
+              'sensor.mudroom_door_battery',
+              'sensor.washing_machine_leak_detection_battery',
+              'sensor.wynn_room_battery'
+            ] %}
+            {% set ns = namespace(items=[]) %}
+            {% for entity in batteries %}
+              {% set value = states(entity) %}
+              {% if is_number(value) and (value | float(100)) <= 20 %}
+                {% set ns.items = ns.items + [entity] %}
+              {% endif %}
+            {% endfor %}
+            {{ ns.items | join(', ') if ns.items else 'Clear' }}
+          unknown_batteries: >
+            {% set batteries = {
+              'sensor.aqara_smart_lock_u100_battery': 'Garage entry lock',
+              'sensor.back_patio_battery': 'Back Patio sensor',
+              'sensor.back_stairs_battery': 'Back Stairs sensor',
+              'sensor.basement_air_quality_battery': 'Basement Airthings',
+              'sensor.basement_ejector_leak_detection_battery': 'Basement Ejector leak sensor',
+              'sensor.dishwasher_leak_detection_battery': 'Dishwasher leak sensor',
+              'sensor.electrical_room_leak_detection_battery': 'Electrical Room leak sensor',
+              'sensor.front_door_battery': 'Front Door sensor',
+              'sensor.island_sink_leak_detection_battery': 'Island Sink leak sensor',
+              'sensor.kitchen_fridge_leak_detection_battery': 'Kitchen Fridge leak sensor',
+              'sensor.kitchen_sink_leak_detection_battery': 'Kitchen Sink leak sensor',
+              'sensor.laundry_sink_leak_detection_battery': 'Laundry Sink leak sensor',
+              'sensor.master_sensor_new_battery_2': 'Primary Bedroom room sensor',
+              'sensor.mechanical_room_leak_detection_battery': 'Mechanical Room leak sensor',
+              'sensor.mudroom_door_battery': 'Mudroom Door sensor',
+              'sensor.washing_machine_leak_detection_battery': 'Washing Machine leak sensor',
+              'sensor.wynn_room_battery': 'Wynn Room sensor'
+            } %}
+            {% set ns = namespace(items=[]) %}
+            {% for entity, label in batteries.items() %}
+              {% if states(entity) in ['unknown', 'unavailable', 'none', ''] %}
+                {% set ns.items = ns.items + [label] %}
+              {% endif %}
+            {% endfor %}
+            {{ ns.items | join(', ') if ns.items else 'None' }}
 
   - binary_sensor:
       - name: "Wine Cave Sensor Unavailable"
@@ -1073,6 +1196,7 @@ template:
           main_floor: "Kitchen uses sensor.main_floor_temperature/humidity; Dining Room uses sensor.main_floor_2_temperature/humidity plus Dining Room Ecobee context."
           second_floor: "Primary Bedroom uses sensor.master_temperature/humidity. Office and Primary Bedroom Ecobee context remain pending until live entity IDs are confirmed."
           special_zones: "Basement uses mechanical room temperature/humidity and Airthings radon. Garage and Attic use their dedicated temperature/humidity sensors."
+          battery_sources: "Primary Bedroom uses sensor.master_sensor_new_battery_2. Basement Airthings uses sensor.basement_air_quality_battery. Other environment battery entities are not exposed yet."
           wine_cave: "Excluded. Wine cave has its own alert stack."
 
       - name: "Environment Kitchen Status"
@@ -1162,10 +1286,13 @@ template:
         state: >
           {% set t = states('sensor.master_temperature') %}
           {% set h = states('sensor.master_humidity') %}
+          {% set b = states('sensor.master_sensor_new_battery_2') %}
           {% if not is_number(t) or not is_number(h) %}
             unavailable
           {% elif (t | float(0)) < 60 or (t | float(0)) > 80 or (h | float(0)) < 28 or (h | float(0)) > 65 %}
             attention
+          {% elif is_number(b) and (b | float(100)) <= 20 %}
+            watch
           {% elif (t | float(0)) < 64 or (t | float(0)) > 76 or (h | float(0)) < 32 or (h | float(0)) > 60 %}
             watch
           {% else %}
@@ -1179,16 +1306,20 @@ template:
           control_context: "Ecobee pending live entity discovery"
           temperature_entity: sensor.master_temperature
           humidity_entity: sensor.master_humidity
+          battery_entity: sensor.master_sensor_new_battery_2
           temperature: "{{ states('sensor.master_temperature') }}"
           humidity: "{{ states('sensor.master_humidity') }}"
+          battery: "{{ states('sensor.master_sensor_new_battery_2') }}"
           issue: >
             {% set t = states('sensor.master_temperature') %}
             {% set h = states('sensor.master_humidity') %}
+            {% set b = states('sensor.master_sensor_new_battery_2') %}
             {% if not is_number(t) or not is_number(h) %}Sensor unavailable
             {% elif (t | float(0)) < 60 %}Too cool
             {% elif (t | float(0)) > 80 %}Too warm
             {% elif (h | float(0)) < 28 %}Very dry
             {% elif (h | float(0)) > 65 %}Very humid
+            {% elif is_number(b) and (b | float(100)) <= 20 %}Battery low
             {% elif (t | float(0)) < 64 or (t | float(0)) > 76 or (h | float(0)) < 32 or (h | float(0)) > 60 %}Comfort watch
             {% else %}Steady{% endif %}
 
@@ -1210,12 +1341,13 @@ template:
           {% set h = states('sensor.mechanical_room_humidity') %}
           {% set r24 = states('sensor.basement_radon_24h_stats') %}
           {% set r = states('sensor.basement_air_quality_radon') %}
+          {% set b = states('sensor.basement_air_quality_battery') %}
           {% set radon_value = r24 if is_number(r24) else r %}
           {% if not is_number(t) or not is_number(h) %}
             unavailable
           {% elif (t | float(0)) < 55 or (t | float(0)) > 78 or (h | float(0)) >= 60 or (is_number(radon_value) and (radon_value | float(0)) >= 150) %}
             attention
-          {% elif (h | float(0)) >= 55 or (is_number(radon_value) and (radon_value | float(0)) >= 75) %}
+          {% elif (h | float(0)) >= 55 or (is_number(radon_value) and (radon_value | float(0)) >= 75) or (is_number(b) and (b | float(100)) <= 20) %}
             watch
           {% else %}
             steady
@@ -1229,15 +1361,18 @@ template:
           humidity_entity: sensor.mechanical_room_humidity
           radon_entity: sensor.basement_air_quality_radon
           radon_24h_entity: sensor.basement_radon_24h_stats
+          battery_entity: sensor.basement_air_quality_battery
           temperature: "{{ states('sensor.mechanical_room_temperature') }}"
           humidity: "{{ states('sensor.mechanical_room_humidity') }}"
           radon: "{{ states('sensor.basement_air_quality_radon') }}"
           radon_24h: "{{ states('sensor.basement_radon_24h_stats') }}"
+          battery: "{{ states('sensor.basement_air_quality_battery') }}"
           issue: >
             {% set t = states('sensor.mechanical_room_temperature') %}
             {% set h = states('sensor.mechanical_room_humidity') %}
             {% set r24 = states('sensor.basement_radon_24h_stats') %}
             {% set r = states('sensor.basement_air_quality_radon') %}
+            {% set b = states('sensor.basement_air_quality_battery') %}
             {% set radon_value = r24 if is_number(r24) else r %}
             {% if not is_number(t) or not is_number(h) %}Sensor unavailable
             {% elif is_number(radon_value) and (radon_value | float(0)) >= 150 %}Radon high
@@ -1246,6 +1381,7 @@ template:
             {% elif (t | float(0)) < 55 %}Too cool
             {% elif (t | float(0)) > 78 %}Too warm
             {% elif is_number(radon_value) and (radon_value | float(0)) >= 75 %}Radon watch
+            {% elif is_number(b) and (b | float(100)) <= 20 %}Battery low
             {% else %}Steady{% endif %}
 
       - name: "Environment Garage Status"
@@ -1475,6 +1611,13 @@ template:
         delay_off:
           minutes: 30
 
+      - name: "Environment Primary Bedroom Battery Low Alert"
+        unique_id: environment_primary_bedroom_battery_low_alert
+        device_class: battery
+        state: "{{ is_number(states('sensor.master_sensor_new_battery_2')) and (states('sensor.master_sensor_new_battery_2') | float(100)) <= 20 }}"
+        delay_on:
+          hours: 6
+
       - name: "Environment Basement Temp High Alert"
         unique_id: environment_basement_temp_high_alert
         state: "{{ is_number(states('sensor.mechanical_room_temperature')) and (states('sensor.mechanical_room_temperature') | float(0)) > 78 }}"
@@ -1559,6 +1702,20 @@ template:
         unique_id: environment_basement_radon_high_alert
         state: "{{ is_number(states('sensor.basement_radon_24h_stats')) and (states('sensor.basement_radon_24h_stats') | float(0)) >= 150 }}"
         delay_off:
+          hours: 6
+
+      - name: "Environment Basement Airthings Battery Low Alert"
+        unique_id: environment_basement_airthings_battery_low_alert
+        device_class: battery
+        state: "{{ is_number(states('sensor.basement_air_quality_battery')) and (states('sensor.basement_air_quality_battery') | float(100)) <= 20 }}"
+        delay_on:
+          hours: 6
+
+      - name: "House Low Battery Alert"
+        unique_id: house_low_battery_alert
+        device_class: battery
+        state: "{{ (states('sensor.house_low_battery_summary') | int(0)) > 0 }}"
+        delay_on:
           hours: 6
 
       - name: "Environment Kitchen Sensor Unavailable"
