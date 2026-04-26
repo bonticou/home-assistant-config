@@ -745,7 +745,7 @@ views:
                 [[[
                   const temp = Number(states['sensor.master_temperature']?.state ?? 0);
                   const humidity = Number(states['sensor.master_humidity']?.state ?? 0);
-                  return `<div class="tile-copy"><div class="tile-label">Master</div><div class="tile-meta">${Math.round(temp)}° · ${Math.round(humidity)}%</div></div>`;
+                  return `<div class="tile-copy"><div class="tile-label">Primary Bedroom</div><div class="tile-meta">${Math.round(temp)}° · ${Math.round(humidity)}%</div></div>`;
                 ]]]
             tap_action:
               action: more-info
@@ -1399,7 +1399,7 @@ views:
       - type: custom:popup-card
         target:
           entity_id: sensor.master_temperature
-        title: Master
+        title: Primary Bedroom
         dismiss_icon: mdi:close
         initial_style: wide
         popup_styles: *calm_popup_styles
@@ -6321,26 +6321,97 @@ views:
               target:
                 entity_id: script.spotify_bedtime_fade
 
-  - title: Climate
+  - title: Environment
     path: climate
     icon: mdi:home-thermometer-outline
     cards:
       - type: custom:mushroom-title-card
-        title: Downstairs Climate
-        subtitle: Dining room and main floor observatory
+        title: Environment
+        subtitle: Main Floor, Second Floor, basement, garage, and attic
+
+      - type: grid
+        columns: 2
+        square: false
+        cards:
+          - type: custom:mushroom-template-card
+            entity: sensor.environment_main_floor_status
+            primary: Main Floor
+            secondary: >-
+              Kitchen {{ states('sensor.main_floor_temperature') | float(0) | round(0) }}° ·
+              Dining {{ states('sensor.main_floor_2_temperature') | float(0) | round(0) }}° ·
+              {{ states('sensor.downstairs_humidity_avg') | float(0) | round(0) }}% avg
+            icon: mdi:home-floor-1
+            icon_color: >-
+              {% set s = states('sensor.environment_main_floor_status') %}
+              {% if s == 'attention' %}red{% elif s == 'watch' %}amber{% else %}green{% endif %}
+            tap_action:
+              action: more-info
+          - type: custom:mushroom-template-card
+            entity: sensor.environment_second_floor_status
+            primary: Second Floor
+            secondary: >-
+              Primary Bedroom {{ states('sensor.master_temperature') | float(0) | round(0) }}° ·
+              {{ states('sensor.master_humidity') | float(0) | round(0) }}% · Office pending
+            icon: mdi:home-floor-2
+            icon_color: >-
+              {% set s = states('sensor.environment_second_floor_status') %}
+              {% if s == 'attention' %}red{% elif s in ['watch', 'partial'] %}amber{% else %}green{% endif %}
+            tap_action:
+              action: more-info
+          - type: custom:mushroom-template-card
+            entity: sensor.environment_basement_status
+            primary: Basement
+            secondary: >-
+              {{ states('sensor.mechanical_room_temperature') | float(0) | round(0) }}° ·
+              {{ states('sensor.mechanical_room_humidity') | float(0) | round(0) }}% ·
+              radon {{ states('sensor.basement_radon_24h_stats') if is_number(states('sensor.basement_radon_24h_stats')) else states('sensor.basement_air_quality_radon') }}
+            icon: mdi:stairs-down
+            icon_color: >-
+              {% set s = states('sensor.environment_basement_status') %}
+              {% if s == 'attention' %}red{% elif s == 'watch' %}amber{% else %}green{% endif %}
+            tap_action:
+              action: more-info
+          - type: custom:mushroom-template-card
+            entity: sensor.environment_garage_status
+            primary: Garage
+            secondary: >-
+              {{ states('sensor.garage_temperature') | float(0) | round(0) }}° ·
+              {{ states('sensor.garage_humidity') | float(0) | round(0) }}%
+            icon: mdi:garage
+            icon_color: >-
+              {% set s = states('sensor.environment_garage_status') %}
+              {% if s == 'attention' %}red{% elif s == 'watch' %}amber{% else %}green{% endif %}
+            tap_action:
+              action: more-info
+          - type: custom:mushroom-template-card
+            entity: sensor.environment_attic_status
+            primary: Attic
+            secondary: >-
+              {{ states('sensor.attic_temperature') | float(0) | round(0) }}° ·
+              {{ states('sensor.attic_humidity') | float(0) | round(0) }}%
+            icon: mdi:home-roof
+            icon_color: >-
+              {% set s = states('sensor.environment_attic_status') %}
+              {% if s == 'attention' %}red{% elif s == 'watch' %}amber{% else %}green{% endif %}
+            tap_action:
+              action: more-info
+
+      - type: custom:mushroom-title-card
+        title: Main Floor Climate
+        subtitle: Kitchen, Dining Room, and Dining Room Ecobee context
 
       - type: custom:mushroom-template-card
         entity: sensor.downstairs_climate_status
         primary: >-
           {% set status = states('sensor.downstairs_climate_status') %}
-          {% if status == 'warming' %}Downstairs is warming
-          {% elif status == 'cooling' %}Downstairs is cooling
-          {% elif status == 'too_warm' %}Downstairs is running warm
-          {% elif status == 'too_cool' %}Downstairs is running cool
-          {% elif status == 'humid' %}Downstairs feels humid
-          {% elif status == 'dry' %}Downstairs feels dry
-          {% elif status == 'uneven' %}Downstairs is uneven
-          {% else %}Downstairs feels steady{% endif %}
+          {% if status == 'warming' %}Main Floor is warming
+          {% elif status == 'cooling' %}Main Floor is cooling
+          {% elif status == 'too_warm' %}Main Floor is running warm
+          {% elif status == 'too_cool' %}Main Floor is running cool
+          {% elif status == 'humid' %}Main Floor feels humid
+          {% elif status == 'dry' %}Main Floor feels dry
+          {% elif status == 'uneven' %}Main Floor is uneven
+          {% else %}Main Floor feels steady{% endif %}
         secondary: >-
           {{ states('sensor.downstairs_climate_insight') }}
         multiline_secondary: true
@@ -6386,7 +6457,7 @@ views:
             .primary {
               font-size: 28px !important;
               font-weight: 560 !important;
-              letter-spacing: -0.04em;
+              letter-spacing: 0;
               color: rgba(15, 23, 42, 0.92) !important;
             }
             .secondary {
@@ -6398,15 +6469,22 @@ views:
 
       - type: markdown
         content: >-
-          **Control lives in ecobee.** This tab is for visibility, trends, and high-signal climate alerts:
-          open-window nights, away drift, profile mismatches while both phones are away, and sensor issues.
+          **Room sensors are the source of truth.** Ecobees provide HVAC context and disagreement checks.
+          Pushes are reserved for sustained action-level issues; softer watch states stay here.
 
       - type: custom:mushroom-chips-card
         alignment: left
         chips:
           - type: template
-            entity: input_boolean.downstairs_pilot_enabled
+            entity: input_boolean.environment_alerts_enabled
             icon: mdi:home-thermometer-outline
+            icon_color: >-
+              {{ 'teal' if is_state('input_boolean.environment_alerts_enabled', 'on') else 'grey' }}
+            content: >-
+              {{ 'Environment alerts on' if is_state('input_boolean.environment_alerts_enabled', 'on') else 'Environment alerts off' }}
+          - type: template
+            entity: input_boolean.downstairs_pilot_enabled
+            icon: mdi:home-floor-1
             icon_color: >-
               {{ 'teal' if is_state('input_boolean.downstairs_pilot_enabled', 'on') else 'grey' }}
             content: >-
@@ -6439,7 +6517,7 @@ views:
             icon: mdi:home-switch-outline
             icon_color: blue-grey
             content: >-
-              Ecobee {{ states('select.dining_room_current_mode') | title }}
+              Dining Ecobee {{ states('select.dining_room_current_mode') | title }}
           - type: template
             entity: climate.dining_room
             icon: >-
@@ -6454,7 +6532,7 @@ views:
               {% else %}grey{% endif %}
             content: >-
               {% set action = state_attr('climate.dining_room', 'hvac_action') | default('idle', true) %}
-              Ecobee {{ action | replace('_', ' ') | title }}
+              Dining Ecobee {{ action | replace('_', ' ') | title }}
           - type: template
             entity: binary_sensor.downstairs_open_window_eligible
             icon: >-
@@ -6491,6 +6569,58 @@ views:
               {% else %}Home occupied{% endif %}
 
       - type: custom:mushroom-title-card
+        title: Rooms
+
+      - type: grid
+        columns: 2
+        square: false
+        cards:
+          - type: custom:mushroom-template-card
+            entity: sensor.environment_kitchen_status
+            primary: Kitchen
+            secondary: >-
+              {{ states('sensor.main_floor_temperature') }}° ·
+              {{ states('sensor.main_floor_humidity') }}% · SensorPush
+            icon: mdi:countertop-outline
+            icon_color: >-
+              {% set s = states('sensor.environment_kitchen_status') %}
+              {% if s == 'attention' %}red{% elif s == 'watch' %}amber{% elif s == 'unavailable' %}grey{% else %}green{% endif %}
+            tap_action:
+              action: more-info
+          - type: custom:mushroom-template-card
+            entity: sensor.environment_dining_room_status
+            primary: Dining Room
+            secondary: >-
+              {{ states('sensor.main_floor_2_temperature') }}° ·
+              {{ states('sensor.main_floor_2_humidity') }}% · Ecobee context
+            icon: mdi:silverware-fork-knife
+            icon_color: >-
+              {% set s = states('sensor.environment_dining_room_status') %}
+              {% if s == 'attention' %}red{% elif s == 'watch' %}amber{% elif s == 'unavailable' %}grey{% else %}green{% endif %}
+            tap_action:
+              action: more-info
+          - type: custom:mushroom-template-card
+            entity: sensor.environment_primary_bedroom_status
+            primary: Primary Bedroom
+            secondary: >-
+              {{ states('sensor.master_temperature') }}° ·
+              {{ states('sensor.master_humidity') }}% · SensorPush
+            icon: mdi:bed-king-outline
+            icon_color: >-
+              {% set s = states('sensor.environment_primary_bedroom_status') %}
+              {% if s == 'attention' %}red{% elif s == 'watch' %}amber{% elif s == 'unavailable' %}grey{% else %}green{% endif %}
+            tap_action:
+              action: more-info
+          - type: custom:mushroom-template-card
+            entity: sensor.environment_office_status
+            primary: Office
+            secondary: Source discovery pending
+            icon: mdi:desk
+            icon_color: blue-grey
+            tap_action:
+              action: more-info
+
+      - type: custom:mushroom-title-card
         title: Now
 
       - type: entities
@@ -6502,17 +6632,17 @@ views:
           - entity: sensor.downstairs_humidity_avg
             name: Main floor avg humidity
           - entity: sensor.downstairs_temp_spread
-            name: Sensor spread
+            name: Kitchen to Dining spread
           - entity: sensor.downstairs_climate_status
-            name: Climate status
+            name: Main Floor status
           - entity: sensor.dining_room_current_temperature
-            name: Ecobee temp
+            name: Dining Ecobee temp
           - entity: sensor.downstairs_ecobee_setpoint
-            name: Ecobee setpoint
+            name: Dining Ecobee setpoint
           - entity: sensor.dining_room_current_humidity
-            name: Ecobee humidity
+            name: Dining Ecobee humidity
           - entity: select.dining_room_current_mode
-            name: Ecobee comfort profile
+            name: Dining Ecobee comfort profile
           - entity: sensor.downstairs_source_policy
             name: Winter source zone
 
@@ -6548,7 +6678,7 @@ views:
           {% elif watch == 'too_cold' %}Too cool while away
           {% elif watch == 'too_humid' %}Humidity is climbing while away
           {% elif watch == 'too_dry' %}Air is getting dry while away
-          {% elif watch == 'profile_check' %}Ecobee still looks occupied
+          {% elif watch == 'profile_check' %}Dining Ecobee still looks occupied
           {% elif watch == 'grace_period' %}Away watch is waiting
           {% elif watch == 'all_clear' %}Away watch is clear
           {% else %}Home is occupied{% endif %}
@@ -6585,7 +6715,7 @@ views:
           - entity: sensor.downstairs_away_minutes
             name: Away minutes
           - entity: select.dining_room_current_mode
-            name: Actual ecobee profile
+            name: Dining Ecobee profile
           - entity: sensor.downstairs_away_watch
             name: Away watch
           - entity: sensor.downstairs_away_watch_reason
@@ -6597,7 +6727,7 @@ views:
       - type: custom:apexcharts-card
         header:
           show: true
-          title: Downstairs Temperature · 24h
+          title: Main Floor Temperature · 24h
           show_states: true
         graph_span: 24h
         span:
@@ -6610,24 +6740,24 @@ views:
           type: line
         series:
           - entity: sensor.main_floor_temperature
-            name: Main Floor
+            name: Kitchen
             color: '#0ea5e9'
           - entity: sensor.main_floor_2_temperature
-            name: Main Floor 2
+            name: Dining Room
             color: '#14b8a6'
           - entity: sensor.downstairs_temp_avg
             name: Avg
             color: '#0f172a'
             stroke_width: 3
           - entity: sensor.dining_room_current_temperature
-            name: Ecobee
+            name: Dining Ecobee
             color: '#f59e0b'
             stroke_width: 2
 
       - type: custom:apexcharts-card
         header:
           show: true
-          title: Downstairs Humidity · 24h
+          title: Main Floor Humidity · 24h
           show_states: true
         graph_span: 24h
         span:
@@ -6639,17 +6769,17 @@ views:
           type: line
         series:
           - entity: sensor.main_floor_humidity
-            name: Main Floor
+            name: Kitchen
             color: '#60a5fa'
           - entity: sensor.main_floor_2_humidity
-            name: Main Floor 2
+            name: Dining Room
             color: '#2dd4bf'
           - entity: sensor.downstairs_humidity_avg
             name: Avg
             color: '#0f172a'
             stroke_width: 3
           - entity: sensor.dining_room_current_humidity
-            name: Ecobee
+            name: Dining Ecobee
             color: '#f59e0b'
             stroke_width: 2
 
@@ -6690,7 +6820,7 @@ views:
           - entity: binary_sensor.downstairs_everyone_away
 
       - type: history-graph
-        title: Climate Exceptions · 24h
+        title: Environment Exceptions · 24h
         hours_to_show: 24
         entities:
           - entity: sensor.downstairs_away_watch
@@ -6703,9 +6833,18 @@ views:
         state_color: true
         entities:
           - entity: input_boolean.downstairs_pilot_enabled
-            name: Climate insights
+            name: Main Floor insights
           - entity: input_boolean.downstairs_mobile_alerts_enabled
-            name: Climate alerts
+            name: Main Floor alerts
+          - entity: input_boolean.environment_alerts_enabled
+            name: Environment alerts
+          - entity: sensor.environment_house_status
+          - entity: sensor.environment_main_floor_status
+          - entity: sensor.environment_second_floor_status
+          - entity: sensor.environment_basement_status
+          - entity: sensor.environment_garage_status
+          - entity: sensor.environment_attic_status
+          - entity: sensor.environment_source_map
           - entity: sensor.downstairs_active_season
           - entity: sensor.downstairs_time_period
           - entity: sensor.downstairs_outdoor_temp

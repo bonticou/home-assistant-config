@@ -96,6 +96,10 @@ input_datetime:
     name: Latest Camera Motion At
     has_date: true
     has_time: true
+  environment_radon_last_alert:
+    name: Environment Radon Last Alert
+    has_date: true
+    has_time: true
 
 input_text:
   latest_camera_motion_label:
@@ -113,12 +117,16 @@ input_boolean:
     name: Front Stairs Sleep Override
     icon: mdi:stairs
   downstairs_pilot_enabled:
-    name: Downstairs Pilot Enabled
+    name: Main Floor Pilot Enabled
     icon: mdi:home-thermometer-outline
     initial: true
   downstairs_mobile_alerts_enabled:
-    name: Downstairs Mobile Alerts Enabled
+    name: Main Floor Mobile Alerts Enabled
     icon: mdi:cellphone-message
+    initial: true
+  environment_alerts_enabled:
+    name: Environment Alerts Enabled
+    icon: mdi:home-thermometer-outline
     initial: true
   garden_tracking_enabled:
     name: Garden Tracking Enabled
@@ -163,7 +171,7 @@ input_boolean:
 
 input_select:
   downstairs_season_mode:
-    name: Downstairs Season Mode
+    name: Main Floor Season Mode
     options:
       - auto
       - winter
@@ -205,7 +213,7 @@ input_select:
 
 input_number:
   downstairs_aux_cutover_temp:
-    name: Downstairs Aux Max Outdoor Temp
+    name: Main Floor Aux Max Outdoor Temp
     min: 20
     max: 60
     step: 1
@@ -214,7 +222,7 @@ input_number:
     icon: mdi:thermometer-chevron-down
     initial: 45
   downstairs_compressor_lockout_temp:
-    name: Downstairs Compressor Lockout Temp
+    name: Main Floor Compressor Lockout Temp
     min: 20
     max: 60
     step: 1
@@ -223,7 +231,7 @@ input_number:
     icon: mdi:thermometer-low
     initial: 40
   downstairs_open_window_advantage:
-    name: Downstairs Open Window Advantage
+    name: Main Floor Open Window Advantage
     min: 1
     max: 8
     step: 1
@@ -232,7 +240,7 @@ input_number:
     icon: mdi:window-open-variant
     initial: 3
   downstairs_away_profile_delay_minutes:
-    name: Downstairs Away Profile Delay
+    name: Main Floor Away Profile Delay
     min: 0
     max: 240
     step: 5
@@ -263,8 +271,8 @@ template:
         unique_id: radon_level_status
         state: >
           {% set r = states('sensor.basement_air_quality_radon') | float(0) %}
-          {% if r < 100 %}Good
-          {% elif r < 148 %}Fair
+          {% if r < 75 %}Good
+          {% elif r < 150 %}Fair
           {% else %}Poor
           {% endif %}
         icon: mdi:radioactive
@@ -601,7 +609,7 @@ template:
           {{ is_state('binary_sensor.front_stairs_schedule_active', 'on') }}
 
   - sensor:
-      - name: "Downstairs Temp Avg"
+      - name: "Main Floor Temp Avg"
         unique_id: downstairs_temp_avg
         unit_of_measurement: "°F"
         device_class: temperature
@@ -620,7 +628,7 @@ template:
             unknown
           {% endif %}
 
-      - name: "Downstairs Humidity Avg"
+      - name: "Main Floor Humidity Avg"
         unique_id: downstairs_humidity_avg
         unit_of_measurement: "%"
         state_class: measurement
@@ -638,7 +646,7 @@ template:
             unknown
           {% endif %}
 
-      - name: "Downstairs Temp Spread"
+      - name: "Main Floor Temp Spread"
         unique_id: downstairs_temp_spread
         unit_of_measurement: "°F"
         device_class: temperature
@@ -652,7 +660,7 @@ template:
             unknown
           {% endif %}
 
-      - name: "Downstairs Time Period"
+      - name: "Main Floor Time Period"
         unique_id: downstairs_time_period
         state: >
           {% set current = now().strftime('%H:%M') %}
@@ -660,7 +668,7 @@ template:
         icon: >
           {{ 'mdi:weather-sunny' if states('sensor.downstairs_time_period') == 'day' else 'mdi:weather-night' }}
 
-      - name: "Downstairs Active Season"
+      - name: "Main Floor Active Season"
         unique_id: downstairs_active_season
         state: >
           {% set selected = states('input_select.downstairs_season_mode') %}
@@ -682,7 +690,7 @@ template:
           {% elif season == 'summer' %}mdi:white-balance-sunny
           {% else %}mdi:leaf{% endif %}
 
-      - name: "Downstairs Outdoor Temp"
+      - name: "Main Floor Outdoor Temp"
         unique_id: downstairs_outdoor_temp
         unit_of_measurement: "°F"
         device_class: temperature
@@ -691,7 +699,7 @@ template:
           {% set outdoor = state_attr('weather.forecast_home', 'temperature') %}
           {{ outdoor | round(1) if outdoor is number else 'unknown' }}
 
-      - name: "Downstairs Outdoor Humidity"
+      - name: "Main Floor Outdoor Humidity"
         unique_id: downstairs_outdoor_humidity
         unit_of_measurement: "%"
         state_class: measurement
@@ -699,7 +707,7 @@ template:
           {% set humidity = state_attr('weather.forecast_home', 'humidity') %}
           {{ humidity | round(0) if humidity is number else 'unknown' }}
 
-      - name: "Downstairs Outdoor Wind Speed"
+      - name: "Main Floor Outdoor Wind Speed"
         unique_id: downstairs_outdoor_wind_speed
         unit_of_measurement: "mph"
         state_class: measurement
@@ -707,7 +715,7 @@ template:
           {% set wind = state_attr('weather.forecast_home', 'wind_speed') %}
           {{ wind | round(1) if wind is number else 'unknown' }}
 
-      - name: "Downstairs Source Policy"
+      - name: "Main Floor Source Policy"
         unique_id: downstairs_source_policy
         state: >
           {% if is_number(states('sensor.downstairs_outdoor_temp')) %}
@@ -730,7 +738,7 @@ template:
           {% elif policy == 'transition' %}mdi:swap-horizontal
           {% else %}mdi:fan-chevron-down{% endif %}
 
-      - name: "Downstairs Ecobee Setpoint"
+      - name: "Dining Room Ecobee Setpoint"
         unique_id: downstairs_ecobee_setpoint
         unit_of_measurement: "°F"
         device_class: temperature
@@ -739,7 +747,7 @@ template:
           {% set setpoint = state_attr('climate.dining_room', 'temperature') %}
           {{ setpoint | round(0) if setpoint is number else 'unknown' }}
 
-      - name: "Downstairs Climate Status"
+      - name: "Main Floor Climate Status"
         unique_id: downstairs_climate_status
         state: >
           {% set spread = states('sensor.downstairs_temp_spread') %}
@@ -775,7 +783,7 @@ template:
           {% elif status == 'uneven' %}mdi:thermometer-alert
           {% else %}mdi:home-thermometer-outline{% endif %}
 
-      - name: "Downstairs Climate Insight"
+      - name: "Main Floor Climate Insight"
         unique_id: downstairs_climate_insight
         state: >
           {% set avg_temp = states('sensor.downstairs_temp_avg') %}
@@ -786,12 +794,12 @@ template:
           {% set profile = states('select.dining_room_current_mode') | replace('_', ' ') %}
           {% set action = state_attr('climate.dining_room', 'hvac_action') | default('idle', true) | replace('_', ' ') %}
           {% set open_window = is_state('binary_sensor.downstairs_open_window_eligible', 'on') %}
-          Main floor averages {{ avg_temp }}°F and {{ humidity }}% humidity.
-          Ecobee is {{ action }} in {{ profile }} with a setpoint of {{ setpoint }}°F.
+          Main Floor averages {{ avg_temp }}°F and {{ humidity }}% humidity.
+          Dining Room Ecobee is {{ action }} in {{ profile }} with a setpoint of {{ setpoint }}°F.
           Sensor spread is {{ spread }}°F and outdoor air is {{ outdoor }}°F.
           {% if open_window %}Tonight looks favorable for opening windows and coasting.{% endif %}
 
-      - name: "Downstairs Away Watch"
+      - name: "Main Floor Away Watch"
         unique_id: downstairs_away_watch
         state: >
           {% set away = is_state('binary_sensor.downstairs_everyone_away', 'on') %}
@@ -828,7 +836,7 @@ template:
           {% elif watch == 'all_clear' %}mdi:shield-home-outline
           {% else %}mdi:home-export-outline{% endif %}
 
-      - name: "Downstairs Away Watch Reason"
+      - name: "Main Floor Away Watch Reason"
         unique_id: downstairs_away_watch_reason
         state: >
           {% set watch = states('sensor.downstairs_away_watch') %}
@@ -841,20 +849,20 @@ template:
           {% elif watch == 'grace_period' %}
             Both phones are away, but only for {{ away_minutes }} minutes so the away grace period is still active.
           {% elif watch == 'too_hot' %}
-            Both phones have been away for {{ away_minutes }} minutes and downstairs is running hot at {{ avg_temp }}°F.
+            Both phones have been away for {{ away_minutes }} minutes and the Main Floor is running hot at {{ avg_temp }}°F.
           {% elif watch == 'too_cold' %}
-            Both phones have been away for {{ away_minutes }} minutes and downstairs has drifted down to {{ avg_temp }}°F.
+            Both phones have been away for {{ away_minutes }} minutes and the Main Floor has drifted down to {{ avg_temp }}°F.
           {% elif watch == 'too_humid' %}
-            Both phones have been away for {{ away_minutes }} minutes and downstairs humidity is elevated at {{ humidity }}%.
+            Both phones have been away for {{ away_minutes }} minutes and Main Floor humidity is elevated at {{ humidity }}%.
           {% elif watch == 'too_dry' %}
             Both phones have been away for {{ away_minutes }} minutes and winter humidity has fallen to {{ humidity }}%.
           {% elif watch == 'profile_check' %}
-            Both phones have been away for {{ away_minutes }} minutes, but the dining room ecobee is still in the {{ profile }} comfort profile.
+            Both phones have been away for {{ away_minutes }} minutes, but the Dining Room Ecobee is still in the {{ profile }} comfort profile.
           {% else %}
-            Both phones are away and the downstairs zone looks stable right now.
+            Both phones are away and the Main Floor looks stable right now.
           {% endif %}
 
-      - name: "Downstairs Away Minutes"
+      - name: "Main Floor Away Minutes"
         unique_id: downstairs_away_minutes
         unit_of_measurement: "min"
         state_class: measurement
@@ -994,7 +1002,7 @@ template:
           {{ 'mdi:alert-circle-outline' if is_state('binary_sensor.wine_cave_actionable_alert', 'on') else 'mdi:check-circle-outline' }}
 
   - binary_sensor:
-      - name: "Downstairs Temp Spread High"
+      - name: "Main Floor Temp Spread High"
         unique_id: downstairs_temp_spread_high
         state: >
           {{ is_number(states('sensor.downstairs_temp_spread'))
@@ -1002,7 +1010,7 @@ template:
         icon: >
           {{ 'mdi:thermometer-alert' if is_state('binary_sensor.downstairs_temp_spread_high', 'on') else 'mdi:thermometer' }}
 
-      - name: "Downstairs Open Window Eligible"
+      - name: "Main Floor Open Window Eligible"
         unique_id: downstairs_open_window_eligible
         state: >
           {% set season = states('sensor.downstairs_active_season') %}
@@ -1036,7 +1044,7 @@ template:
         icon: >
           {{ 'mdi:window-open-variant' if is_state('binary_sensor.downstairs_open_window_eligible', 'on') else 'mdi:window-closed-variant' }}
 
-      - name: "Downstairs Someone Home"
+      - name: "Main Floor Someone Home"
         unique_id: downstairs_someone_home
         state: >
           {{
@@ -1046,7 +1054,7 @@ template:
         icon: >
           {{ 'mdi:home-heart' if is_state('binary_sensor.downstairs_someone_home', 'on') else 'mdi:home-off-outline' }}
 
-      - name: "Downstairs Everyone Away"
+      - name: "Main Floor Everyone Away"
         unique_id: downstairs_everyone_away
         state: >
           {{
@@ -1055,6 +1063,551 @@ template:
           }}
         icon: >
           {{ 'mdi:home-export-outline' if is_state('binary_sensor.downstairs_everyone_away', 'on') else 'mdi:home-account' }}
+
+  - sensor:
+      - name: "Environment Source Map"
+        unique_id: environment_source_map
+        state: "7"
+        icon: mdi:map-marker-radius-outline
+        attributes:
+          main_floor: "Kitchen uses sensor.main_floor_temperature/humidity; Dining Room uses sensor.main_floor_2_temperature/humidity plus Dining Room Ecobee context."
+          second_floor: "Primary Bedroom uses sensor.master_temperature/humidity. Office and Primary Bedroom Ecobee context remain pending until live entity IDs are confirmed."
+          special_zones: "Basement uses mechanical room temperature/humidity and Airthings radon. Garage and Attic use their dedicated temperature/humidity sensors."
+          wine_cave: "Excluded. Wine cave has its own alert stack."
+
+      - name: "Environment Kitchen Status"
+        unique_id: environment_kitchen_status
+        state: >
+          {% set t = states('sensor.main_floor_temperature') %}
+          {% set h = states('sensor.main_floor_humidity') %}
+          {% if not is_number(t) or not is_number(h) %}
+            unavailable
+          {% elif (t | float(0)) < 60 or (t | float(0)) > 80 or (h | float(0)) < 28 or (h | float(0)) > 65 %}
+            attention
+          {% elif (t | float(0)) < 64 or (t | float(0)) > 76 or (h | float(0)) < 32 or (h | float(0)) > 60 %}
+            watch
+          {% else %}
+            steady
+          {% endif %}
+        icon: mdi:countertop-outline
+        attributes:
+          area: Main Floor
+          room: Kitchen
+          primary_source: SensorPush
+          temperature_entity: sensor.main_floor_temperature
+          humidity_entity: sensor.main_floor_humidity
+          temperature: "{{ states('sensor.main_floor_temperature') }}"
+          humidity: "{{ states('sensor.main_floor_humidity') }}"
+          issue: >
+            {% set t = states('sensor.main_floor_temperature') %}
+            {% set h = states('sensor.main_floor_humidity') %}
+            {% if not is_number(t) or not is_number(h) %}Sensor unavailable
+            {% elif (t | float(0)) < 60 %}Too cool
+            {% elif (t | float(0)) > 80 %}Too warm
+            {% elif (h | float(0)) < 28 %}Very dry
+            {% elif (h | float(0)) > 65 %}Very humid
+            {% elif (t | float(0)) < 64 or (t | float(0)) > 76 or (h | float(0)) < 32 or (h | float(0)) > 60 %}Comfort watch
+            {% else %}Steady{% endif %}
+
+      - name: "Environment Dining Room Status"
+        unique_id: environment_dining_room_status
+        state: >
+          {% set t = states('sensor.main_floor_2_temperature') %}
+          {% set h = states('sensor.main_floor_2_humidity') %}
+          {% if not is_number(t) or not is_number(h) %}
+            unavailable
+          {% elif (t | float(0)) < 60 or (t | float(0)) > 80 or (h | float(0)) < 28 or (h | float(0)) > 65 %}
+            attention
+          {% elif (t | float(0)) < 64 or (t | float(0)) > 76 or (h | float(0)) < 32 or (h | float(0)) > 60 %}
+            watch
+          {% else %}
+            steady
+          {% endif %}
+        icon: mdi:silverware-fork-knife
+        attributes:
+          area: Main Floor
+          room: Dining Room
+          primary_source: SensorPush
+          control_context: Dining Room Ecobee
+          temperature_entity: sensor.main_floor_2_temperature
+          humidity_entity: sensor.main_floor_2_humidity
+          ecobee_temperature_entity: sensor.dining_room_current_temperature
+          ecobee_humidity_entity: sensor.dining_room_current_humidity
+          temperature: "{{ states('sensor.main_floor_2_temperature') }}"
+          humidity: "{{ states('sensor.main_floor_2_humidity') }}"
+          ecobee_temperature: "{{ states('sensor.dining_room_current_temperature') }}"
+          ecobee_humidity: "{{ states('sensor.dining_room_current_humidity') }}"
+          temperature_delta_vs_ecobee: >
+            {% set a = states('sensor.main_floor_2_temperature') %}
+            {% set b = states('sensor.dining_room_current_temperature') %}
+            {{ ((a | float(0)) - (b | float(0))) | abs | round(1) if is_number(a) and is_number(b) else 'unknown' }}
+          humidity_delta_vs_ecobee: >
+            {% set a = states('sensor.main_floor_2_humidity') %}
+            {% set b = states('sensor.dining_room_current_humidity') %}
+            {{ ((a | float(0)) - (b | float(0))) | abs | round(0) if is_number(a) and is_number(b) else 'unknown' }}
+          issue: >
+            {% set t = states('sensor.main_floor_2_temperature') %}
+            {% set h = states('sensor.main_floor_2_humidity') %}
+            {% if not is_number(t) or not is_number(h) %}Sensor unavailable
+            {% elif (t | float(0)) < 60 %}Too cool
+            {% elif (t | float(0)) > 80 %}Too warm
+            {% elif (h | float(0)) < 28 %}Very dry
+            {% elif (h | float(0)) > 65 %}Very humid
+            {% elif is_state('binary_sensor.environment_dining_room_ecobee_temp_disagreement', 'on') or is_state('binary_sensor.environment_dining_room_ecobee_humidity_disagreement', 'on') %}Ecobee disagreement
+            {% elif (t | float(0)) < 64 or (t | float(0)) > 76 or (h | float(0)) < 32 or (h | float(0)) > 60 %}Comfort watch
+            {% else %}Steady{% endif %}
+
+      - name: "Environment Primary Bedroom Status"
+        unique_id: environment_primary_bedroom_status
+        state: >
+          {% set t = states('sensor.master_temperature') %}
+          {% set h = states('sensor.master_humidity') %}
+          {% if not is_number(t) or not is_number(h) %}
+            unavailable
+          {% elif (t | float(0)) < 60 or (t | float(0)) > 80 or (h | float(0)) < 28 or (h | float(0)) > 65 %}
+            attention
+          {% elif (t | float(0)) < 64 or (t | float(0)) > 76 or (h | float(0)) < 32 or (h | float(0)) > 60 %}
+            watch
+          {% else %}
+            steady
+          {% endif %}
+        icon: mdi:bed-king-outline
+        attributes:
+          area: Second Floor
+          room: Primary Bedroom
+          primary_source: SensorPush
+          control_context: "Ecobee pending live entity discovery"
+          temperature_entity: sensor.master_temperature
+          humidity_entity: sensor.master_humidity
+          temperature: "{{ states('sensor.master_temperature') }}"
+          humidity: "{{ states('sensor.master_humidity') }}"
+          issue: >
+            {% set t = states('sensor.master_temperature') %}
+            {% set h = states('sensor.master_humidity') %}
+            {% if not is_number(t) or not is_number(h) %}Sensor unavailable
+            {% elif (t | float(0)) < 60 %}Too cool
+            {% elif (t | float(0)) > 80 %}Too warm
+            {% elif (h | float(0)) < 28 %}Very dry
+            {% elif (h | float(0)) > 65 %}Very humid
+            {% elif (t | float(0)) < 64 or (t | float(0)) > 76 or (h | float(0)) < 32 or (h | float(0)) > 60 %}Comfort watch
+            {% else %}Steady{% endif %}
+
+      - name: "Environment Office Status"
+        unique_id: environment_office_status
+        state: source_pending
+        icon: mdi:desk
+        attributes:
+          area: Second Floor
+          room: Office
+          primary_source: "Pending live entity discovery"
+          control_context: "Office Ecobee pending live entity discovery"
+          issue: "Office environment source IDs are not present in this repo checkout."
+
+      - name: "Environment Basement Status"
+        unique_id: environment_basement_status
+        state: >
+          {% set t = states('sensor.mechanical_room_temperature') %}
+          {% set h = states('sensor.mechanical_room_humidity') %}
+          {% set r24 = states('sensor.basement_radon_24h_stats') %}
+          {% set r = states('sensor.basement_air_quality_radon') %}
+          {% set radon_value = r24 if is_number(r24) else r %}
+          {% if not is_number(t) or not is_number(h) %}
+            unavailable
+          {% elif (t | float(0)) < 55 or (t | float(0)) > 78 or (h | float(0)) >= 60 or (is_number(radon_value) and (radon_value | float(0)) >= 150) %}
+            attention
+          {% elif (h | float(0)) >= 55 or (is_number(radon_value) and (radon_value | float(0)) >= 75) %}
+            watch
+          {% else %}
+            steady
+          {% endif %}
+        icon: mdi:stairs-down
+        attributes:
+          area: Basement
+          room: Mechanical Room
+          primary_source: Airthings
+          temperature_entity: sensor.mechanical_room_temperature
+          humidity_entity: sensor.mechanical_room_humidity
+          radon_entity: sensor.basement_air_quality_radon
+          radon_24h_entity: sensor.basement_radon_24h_stats
+          temperature: "{{ states('sensor.mechanical_room_temperature') }}"
+          humidity: "{{ states('sensor.mechanical_room_humidity') }}"
+          radon: "{{ states('sensor.basement_air_quality_radon') }}"
+          radon_24h: "{{ states('sensor.basement_radon_24h_stats') }}"
+          issue: >
+            {% set t = states('sensor.mechanical_room_temperature') %}
+            {% set h = states('sensor.mechanical_room_humidity') %}
+            {% set r24 = states('sensor.basement_radon_24h_stats') %}
+            {% set r = states('sensor.basement_air_quality_radon') %}
+            {% set radon_value = r24 if is_number(r24) else r %}
+            {% if not is_number(t) or not is_number(h) %}Sensor unavailable
+            {% elif is_number(radon_value) and (radon_value | float(0)) >= 150 %}Radon high
+            {% elif (h | float(0)) >= 60 %}Humidity urgent
+            {% elif (h | float(0)) >= 55 %}Humidity watch
+            {% elif (t | float(0)) < 55 %}Too cool
+            {% elif (t | float(0)) > 78 %}Too warm
+            {% elif is_number(radon_value) and (radon_value | float(0)) >= 75 %}Radon watch
+            {% else %}Steady{% endif %}
+
+      - name: "Environment Garage Status"
+        unique_id: environment_garage_status
+        state: >
+          {% set t = states('sensor.garage_temperature') %}
+          {% set h = states('sensor.garage_humidity') %}
+          {% if not is_number(t) or not is_number(h) %}
+            unavailable
+          {% elif (t | float(0)) < 25 or (t | float(0)) > 115 or (h | float(0)) > 75 %}
+            attention
+          {% elif (t | float(0)) < 32 or (t | float(0)) > 105 or (h | float(0)) > 65 %}
+            watch
+          {% else %}
+            steady
+          {% endif %}
+        icon: mdi:garage
+        attributes:
+          area: Garage
+          room: Garage
+          primary_source: SensorPush
+          temperature_entity: sensor.garage_temperature
+          humidity_entity: sensor.garage_humidity
+          temperature: "{{ states('sensor.garage_temperature') }}"
+          humidity: "{{ states('sensor.garage_humidity') }}"
+          issue: >
+            {% set t = states('sensor.garage_temperature') %}
+            {% set h = states('sensor.garage_humidity') %}
+            {% if not is_number(t) or not is_number(h) %}Sensor unavailable
+            {% elif (t | float(0)) < 25 %}Too cold
+            {% elif (t | float(0)) > 115 %}Too hot
+            {% elif (h | float(0)) > 75 %}Very humid
+            {% elif (t | float(0)) < 32 or (t | float(0)) > 105 or (h | float(0)) > 65 %}Watch
+            {% else %}Steady{% endif %}
+
+      - name: "Environment Attic Status"
+        unique_id: environment_attic_status
+        state: >
+          {% set t = states('sensor.attic_temperature') %}
+          {% set h = states('sensor.attic_humidity') %}
+          {% if not is_number(t) or not is_number(h) %}
+            unavailable
+          {% elif (t | float(0)) > 145 or (h | float(0)) > 80 %}
+            attention
+          {% elif (t | float(0)) > 130 or (h | float(0)) > 70 %}
+            watch
+          {% else %}
+            steady
+          {% endif %}
+        icon: mdi:home-roof
+        attributes:
+          area: Attic
+          room: Attic
+          primary_source: SensorPush
+          temperature_entity: sensor.attic_temperature
+          humidity_entity: sensor.attic_humidity
+          temperature: "{{ states('sensor.attic_temperature') }}"
+          humidity: "{{ states('sensor.attic_humidity') }}"
+          issue: >
+            {% set t = states('sensor.attic_temperature') %}
+            {% set h = states('sensor.attic_humidity') %}
+            {% if not is_number(t) or not is_number(h) %}Sensor unavailable
+            {% elif (t | float(0)) > 145 %}Very hot
+            {% elif (h | float(0)) > 80 %}Very humid
+            {% elif (t | float(0)) > 130 or (h | float(0)) > 70 %}Watch
+            {% else %}Steady{% endif %}
+
+      - name: "Environment Main Floor Status"
+        unique_id: environment_main_floor_status
+        state: >
+          {% set rooms = [states('sensor.environment_kitchen_status'), states('sensor.environment_dining_room_status')] %}
+          {% if 'attention' in rooms or 'unavailable' in rooms %}
+            attention
+          {% elif 'watch' in rooms or is_state('binary_sensor.downstairs_temp_spread_high', 'on')
+             or is_state('binary_sensor.environment_dining_room_ecobee_temp_disagreement', 'on')
+             or is_state('binary_sensor.environment_dining_room_ecobee_humidity_disagreement', 'on') %}
+            watch
+          {% else %}
+            steady
+          {% endif %}
+        icon: mdi:home-floor-1
+        attributes:
+          rooms: Kitchen, Dining Room
+          summary: >
+            Kitchen is {{ states('sensor.environment_kitchen_status') }}.
+            Dining Room is {{ states('sensor.environment_dining_room_status') }}.
+            Main Floor average is {{ states('sensor.downstairs_temp_avg') }}°F and {{ states('sensor.downstairs_humidity_avg') }}% humidity.
+
+      - name: "Environment Second Floor Status"
+        unique_id: environment_second_floor_status
+        state: >
+          {% set primary = states('sensor.environment_primary_bedroom_status') %}
+          {% if primary in ['attention', 'unavailable'] %}
+            attention
+          {% elif primary == 'watch' %}
+            watch
+          {% else %}
+            steady
+          {% endif %}
+        icon: mdi:home-floor-2
+        attributes:
+          rooms: Primary Bedroom, Office
+          source_quality: partial
+          summary: >
+            Primary Bedroom is {{ states('sensor.environment_primary_bedroom_status') }}.
+            Office source IDs are pending live discovery.
+
+      - name: "Environment House Status"
+        unique_id: environment_house_status
+        state: >
+          {% set statuses = [
+            states('sensor.environment_main_floor_status'),
+            states('sensor.environment_second_floor_status'),
+            states('sensor.environment_basement_status'),
+            states('sensor.environment_garage_status'),
+            states('sensor.environment_attic_status')
+          ] %}
+          {% if 'attention' in statuses or 'unavailable' in statuses %}
+            attention
+          {% elif 'watch' in statuses %}
+            watch
+          {% else %}
+            steady
+          {% endif %}
+        icon: mdi:home-thermometer-outline
+        attributes:
+          main_floor: "{{ states('sensor.environment_main_floor_status') }}"
+          second_floor: "{{ states('sensor.environment_second_floor_status') }}"
+          basement: "{{ states('sensor.environment_basement_status') }}"
+          garage: "{{ states('sensor.environment_garage_status') }}"
+          attic: "{{ states('sensor.environment_attic_status') }}"
+
+  - binary_sensor:
+      - name: "Environment Kitchen Temp High Alert"
+        unique_id: environment_kitchen_temp_high_alert
+        state: "{{ is_number(states('sensor.main_floor_temperature')) and (states('sensor.main_floor_temperature') | float(0)) > 80 }}"
+        delay_on:
+          minutes: 45
+        delay_off:
+          minutes: 15
+
+      - name: "Environment Kitchen Temp Low Alert"
+        unique_id: environment_kitchen_temp_low_alert
+        state: "{{ is_number(states('sensor.main_floor_temperature')) and (states('sensor.main_floor_temperature') | float(0)) < 60 }}"
+        delay_on:
+          minutes: 45
+        delay_off:
+          minutes: 15
+
+      - name: "Environment Kitchen Humidity High Alert"
+        unique_id: environment_kitchen_humidity_high_alert
+        state: "{{ is_number(states('sensor.main_floor_humidity')) and (states('sensor.main_floor_humidity') | float(0)) > 65 }}"
+        delay_on:
+          minutes: 90
+        delay_off:
+          minutes: 30
+
+      - name: "Environment Kitchen Humidity Low Alert"
+        unique_id: environment_kitchen_humidity_low_alert
+        state: "{{ is_number(states('sensor.main_floor_humidity')) and (states('sensor.main_floor_humidity') | float(0)) < 28 }}"
+        delay_on:
+          hours: 6
+        delay_off:
+          minutes: 30
+
+      - name: "Environment Dining Room Temp High Alert"
+        unique_id: environment_dining_room_temp_high_alert
+        state: "{{ is_number(states('sensor.main_floor_2_temperature')) and (states('sensor.main_floor_2_temperature') | float(0)) > 80 }}"
+        delay_on:
+          minutes: 45
+        delay_off:
+          minutes: 15
+
+      - name: "Environment Dining Room Temp Low Alert"
+        unique_id: environment_dining_room_temp_low_alert
+        state: "{{ is_number(states('sensor.main_floor_2_temperature')) and (states('sensor.main_floor_2_temperature') | float(0)) < 60 }}"
+        delay_on:
+          minutes: 45
+        delay_off:
+          minutes: 15
+
+      - name: "Environment Dining Room Humidity High Alert"
+        unique_id: environment_dining_room_humidity_high_alert
+        state: "{{ is_number(states('sensor.main_floor_2_humidity')) and (states('sensor.main_floor_2_humidity') | float(0)) > 65 }}"
+        delay_on:
+          minutes: 90
+        delay_off:
+          minutes: 30
+
+      - name: "Environment Dining Room Humidity Low Alert"
+        unique_id: environment_dining_room_humidity_low_alert
+        state: "{{ is_number(states('sensor.main_floor_2_humidity')) and (states('sensor.main_floor_2_humidity') | float(0)) < 28 }}"
+        delay_on:
+          hours: 6
+        delay_off:
+          minutes: 30
+
+      - name: "Environment Primary Bedroom Temp High Alert"
+        unique_id: environment_primary_bedroom_temp_high_alert
+        state: "{{ is_number(states('sensor.master_temperature')) and (states('sensor.master_temperature') | float(0)) > 80 }}"
+        delay_on:
+          minutes: 45
+        delay_off:
+          minutes: 15
+
+      - name: "Environment Primary Bedroom Temp Low Alert"
+        unique_id: environment_primary_bedroom_temp_low_alert
+        state: "{{ is_number(states('sensor.master_temperature')) and (states('sensor.master_temperature') | float(0)) < 60 }}"
+        delay_on:
+          minutes: 45
+        delay_off:
+          minutes: 15
+
+      - name: "Environment Primary Bedroom Humidity High Alert"
+        unique_id: environment_primary_bedroom_humidity_high_alert
+        state: "{{ is_number(states('sensor.master_humidity')) and (states('sensor.master_humidity') | float(0)) > 65 }}"
+        delay_on:
+          minutes: 90
+        delay_off:
+          minutes: 30
+
+      - name: "Environment Primary Bedroom Humidity Low Alert"
+        unique_id: environment_primary_bedroom_humidity_low_alert
+        state: "{{ is_number(states('sensor.master_humidity')) and (states('sensor.master_humidity') | float(0)) < 28 }}"
+        delay_on:
+          hours: 6
+        delay_off:
+          minutes: 30
+
+      - name: "Environment Basement Temp High Alert"
+        unique_id: environment_basement_temp_high_alert
+        state: "{{ is_number(states('sensor.mechanical_room_temperature')) and (states('sensor.mechanical_room_temperature') | float(0)) > 78 }}"
+        delay_on:
+          minutes: 45
+        delay_off:
+          minutes: 15
+
+      - name: "Environment Basement Temp Low Alert"
+        unique_id: environment_basement_temp_low_alert
+        state: "{{ is_number(states('sensor.mechanical_room_temperature')) and (states('sensor.mechanical_room_temperature') | float(0)) < 55 }}"
+        delay_on:
+          minutes: 45
+        delay_off:
+          minutes: 15
+
+      - name: "Environment Garage Temp High Alert"
+        unique_id: environment_garage_temp_high_alert
+        state: "{{ is_number(states('sensor.garage_temperature')) and (states('sensor.garage_temperature') | float(0)) > 115 }}"
+        delay_on:
+          minutes: 45
+        delay_off:
+          minutes: 30
+
+      - name: "Environment Garage Temp Low Alert"
+        unique_id: environment_garage_temp_low_alert
+        state: "{{ is_number(states('sensor.garage_temperature')) and (states('sensor.garage_temperature') | float(0)) < 25 }}"
+        delay_on:
+          minutes: 45
+        delay_off:
+          minutes: 30
+
+      - name: "Environment Garage Humidity High Alert"
+        unique_id: environment_garage_humidity_high_alert
+        state: "{{ is_number(states('sensor.garage_humidity')) and (states('sensor.garage_humidity') | float(0)) > 75 }}"
+        delay_on:
+          hours: 2
+        delay_off:
+          minutes: 30
+
+      - name: "Environment Attic Temp High Alert"
+        unique_id: environment_attic_temp_high_alert
+        state: "{{ is_number(states('sensor.attic_temperature')) and (states('sensor.attic_temperature') | float(0)) > 145 }}"
+        delay_on:
+          minutes: 45
+        delay_off:
+          minutes: 30
+
+      - name: "Environment Attic Humidity High Alert"
+        unique_id: environment_attic_humidity_high_alert
+        state: "{{ is_number(states('sensor.attic_humidity')) and (states('sensor.attic_humidity') | float(0)) > 80 }}"
+        delay_on:
+          hours: 2
+        delay_off:
+          minutes: 30
+
+      - name: "Environment Dining Room Ecobee Temp Disagreement"
+        unique_id: environment_dining_room_ecobee_temp_disagreement
+        state: >
+          {% set primary = states('sensor.main_floor_2_temperature') %}
+          {% set ecobee = states('sensor.dining_room_current_temperature') %}
+          {{ is_number(primary) and is_number(ecobee)
+             and ((primary | float(0)) - (ecobee | float(0))) | abs >= 3 }}
+        delay_on:
+          minutes: 45
+        delay_off:
+          minutes: 15
+
+      - name: "Environment Dining Room Ecobee Humidity Disagreement"
+        unique_id: environment_dining_room_ecobee_humidity_disagreement
+        state: >
+          {% set primary = states('sensor.main_floor_2_humidity') %}
+          {% set ecobee = states('sensor.dining_room_current_humidity') %}
+          {{ is_number(primary) and is_number(ecobee)
+             and ((primary | float(0)) - (ecobee | float(0))) | abs >= 10 }}
+        delay_on:
+          minutes: 90
+        delay_off:
+          minutes: 30
+
+      - name: "Environment Basement Radon High Alert"
+        unique_id: environment_basement_radon_high_alert
+        state: "{{ is_number(states('sensor.basement_radon_24h_stats')) and (states('sensor.basement_radon_24h_stats') | float(0)) >= 150 }}"
+        delay_off:
+          hours: 6
+
+      - name: "Environment Kitchen Sensor Unavailable"
+        unique_id: environment_kitchen_sensor_unavailable
+        state: "{{ not is_number(states('sensor.main_floor_temperature')) or not is_number(states('sensor.main_floor_humidity')) }}"
+        delay_on:
+          minutes: 15
+        delay_off:
+          minutes: 15
+
+      - name: "Environment Dining Room Sensor Unavailable"
+        unique_id: environment_dining_room_sensor_unavailable
+        state: "{{ not is_number(states('sensor.main_floor_2_temperature')) or not is_number(states('sensor.main_floor_2_humidity')) }}"
+        delay_on:
+          minutes: 15
+        delay_off:
+          minutes: 15
+
+      - name: "Environment Primary Bedroom Sensor Unavailable"
+        unique_id: environment_primary_bedroom_sensor_unavailable
+        state: "{{ not is_number(states('sensor.master_temperature')) or not is_number(states('sensor.master_humidity')) }}"
+        delay_on:
+          minutes: 15
+        delay_off:
+          minutes: 15
+
+      - name: "Environment Basement Sensor Unavailable"
+        unique_id: environment_basement_sensor_unavailable
+        state: "{{ not is_number(states('sensor.mechanical_room_temperature')) or not is_number(states('sensor.mechanical_room_humidity')) }}"
+        delay_on:
+          minutes: 15
+        delay_off:
+          minutes: 15
+
+      - name: "Environment Garage Sensor Unavailable"
+        unique_id: environment_garage_sensor_unavailable
+        state: "{{ not is_number(states('sensor.garage_temperature')) or not is_number(states('sensor.garage_humidity')) }}"
+        delay_on:
+          minutes: 15
+        delay_off:
+          minutes: 15
+
+      - name: "Environment Attic Sensor Unavailable"
+        unique_id: environment_attic_sensor_unavailable
+        state: "{{ not is_number(states('sensor.attic_temperature')) or not is_number(states('sensor.attic_humidity')) }}"
+        delay_on:
+          minutes: 15
+        delay_off:
+          minutes: 15
 
   - triggers:
       - trigger: homeassistant
@@ -1778,6 +2331,26 @@ sensor:
     sampling_size: 10000
     precision: 1
     
+  - platform: statistics
+    name: "Basement Radon 24h Stats"
+    unique_id: basement_radon_24h_stats
+    entity_id: sensor.basement_air_quality_radon
+    state_characteristic: mean
+    max_age:
+      hours: 24
+    sampling_size: 1000
+    precision: 0
+
+  - platform: statistics
+    name: "Basement Radon 7d Stats"
+    unique_id: basement_radon_7d_stats
+    entity_id: sensor.basement_air_quality_radon
+    state_characteristic: mean
+    max_age:
+      days: 7
+    sampling_size: 10000
+    precision: 0
+
 light:
   - platform: group
     name: Interior (Test)

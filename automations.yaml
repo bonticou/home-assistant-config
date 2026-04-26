@@ -884,8 +884,8 @@
   mode: single
 
 - id: downstairs_climate_pilot_startup_sync
-  alias: "Climate — Downstairs Pilot Startup Sync"
-  description: Refreshes the downstairs climate observability entities and clears stale advisory notifications on startup.
+  alias: "Environment — Startup Sync"
+  description: Refreshes environment observability entities and clears stale advisory notifications on startup.
   triggers:
     - trigger: homeassistant
       event: start
@@ -912,11 +912,25 @@
           - binary_sensor.downstairs_temp_spread_high
           - binary_sensor.downstairs_someone_home
           - binary_sensor.downstairs_everyone_away
+          - sensor.environment_house_status
+          - sensor.environment_main_floor_status
+          - sensor.environment_second_floor_status
+          - sensor.environment_kitchen_status
+          - sensor.environment_dining_room_status
+          - sensor.environment_primary_bedroom_status
+          - sensor.environment_office_status
+          - sensor.environment_basement_status
+          - sensor.environment_garage_status
+          - sensor.environment_attic_status
+          - binary_sensor.environment_dining_room_ecobee_temp_disagreement
+          - binary_sensor.environment_dining_room_ecobee_humidity_disagreement
+          - binary_sensor.environment_basement_radon_high_alert
     - choose:
         - conditions:
             - condition: template
               value_template: >
-                {{ not is_state('input_boolean.downstairs_mobile_alerts_enabled', 'on')
+                {{ not is_state('input_boolean.environment_alerts_enabled', 'on')
+                   or not is_state('input_boolean.downstairs_mobile_alerts_enabled', 'on')
                    or not is_state('input_boolean.downstairs_pilot_enabled', 'on')
                    or states('sensor.downstairs_away_watch') in ['all_clear', 'grace_period', 'home_occupied', 'unknown', 'unavailable'] }}
           sequence:
@@ -943,8 +957,8 @@
   mode: single
 
 - id: downstairs_climate_recommendation_notification
-  alias: "Climate — Downstairs Open Window Heads-Up"
-  description: Sends a calm evening heads-up when outdoor conditions favor opening windows instead of leaning on HVAC.
+  alias: "Environment — Main Floor Open Window Dashboard Only"
+  description: Keeps the open-window signal dashboard-only and clears the old mobile notification tag if it exists.
   triggers:
     - trigger: state
       entity_id: binary_sensor.downstairs_open_window_eligible
@@ -961,42 +975,16 @@
         - sensor.downstairs_time_period
       id: reevaluate
   actions:
-    - variables:
-        should_send: >
-          {{ is_state('input_boolean.downstairs_pilot_enabled', 'on')
-             and is_state('input_boolean.downstairs_mobile_alerts_enabled', 'on')
-             and is_state('binary_sensor.downstairs_someone_home', 'on')
-             and is_state('binary_sensor.downstairs_open_window_eligible', 'on')
-             and is_state('sensor.downstairs_time_period', 'night') }}
-    - choose:
-        - conditions:
-            - condition: template
-              value_template: "{{ trigger.id == 'send' and should_send }}"
-          sequence:
-            - action: notify.mobile_app_tk_iphone_16_pro
-              data:
-                title: 🪟 Good window night downstairs
-                message: >-
-                  Indoor is {{ states('sensor.downstairs_temp_avg') }}°F with {{ states('sensor.downstairs_humidity_avg') }}% humidity.
-                  Outdoor air is {{ states('sensor.downstairs_outdoor_temp') }}°F with {{ states('sensor.downstairs_outdoor_humidity') }}% humidity and {{ states('sensor.downstairs_outdoor_wind_speed') }} mph wind.
-                  Conditions look good for opening windows and coasting tonight.
-                data:
-                  tag: downstairs-window-night
-                  sticky: false
-                  ttl: 0
-                  priority: normal
-                  url: /calm-mobile/climate
-      default:
-        - action: notify.mobile_app_tk_iphone_16_pro
-          data:
-            message: clear_notification
-            data:
-              tag: downstairs-window-night
+    - action: notify.mobile_app_tk_iphone_16_pro
+      data:
+        message: clear_notification
+        data:
+          tag: downstairs-window-night
   mode: restart
 
 - id: downstairs_climate_profile_recommendation_notification
-  alias: "Climate — Downstairs Away Watch"
-  description: Alerts when both phones are away and the downstairs climate or ecobee profile needs attention.
+  alias: "Environment — Main Floor Away Watch"
+  description: Alerts when both phones are away and the Main Floor climate or Dining Room Ecobee profile needs attention.
   triggers:
     - trigger: state
       entity_id: sensor.downstairs_away_watch
@@ -1048,6 +1036,7 @@
         should_send: >
           {{ is_state('input_boolean.downstairs_pilot_enabled', 'on')
              and is_state('input_boolean.downstairs_mobile_alerts_enabled', 'on')
+             and is_state('input_boolean.environment_alerts_enabled', 'on')
              and watch in ['too_hot', 'too_cold', 'too_humid', 'too_dry', 'profile_check'] }}
     - choose:
         - conditions:
@@ -1057,16 +1046,16 @@
             - action: notify.mobile_app_tk_iphone_16_pro
               data:
                 title: >-
-                  {% if watch == 'too_hot' %}🥵 Downstairs is hot while away
-                  {% elif watch == 'too_cold' %}🥶 Downstairs is cold while away
-                  {% elif watch == 'too_humid' %}💧 Downstairs is humid while away
-                  {% elif watch == 'too_dry' %}🌵 Downstairs is dry while away
-                  {% else %}🏠 Ecobee still looks occupied{% endif %}
+                  {% if watch == 'too_hot' %}🥵 Main Floor is hot while away
+                  {% elif watch == 'too_cold' %}🥶 Main Floor is cold while away
+                  {% elif watch == 'too_humid' %}💧 Main Floor is humid while away
+                  {% elif watch == 'too_dry' %}🌵 Main Floor is dry while away
+                  {% else %}🏠 Dining Room Ecobee still looks occupied{% endif %}
                 message: >-
                   {{ reason }}
                   Indoor {{ states('sensor.downstairs_temp_avg') }}°F / {{ states('sensor.downstairs_humidity_avg') }}%.
                   Outdoor {{ states('sensor.downstairs_outdoor_temp') }}°F.
-                  Ecobee profile {{ states('select.dining_room_current_mode') }}.
+                  Dining Room Ecobee profile {{ states('select.dining_room_current_mode') }}.
                 data:
                   tag: downstairs-away-watch
                   sticky: true
@@ -1082,8 +1071,8 @@
   mode: restart
 
 - id: downstairs_climate_sensor_spread_watch
-  alias: "Climate — Downstairs Sensor Spread Watch"
-  description: Warns when the two downstairs sensors disagree for an extended period and the average may be less trustworthy.
+  alias: "Environment — Main Floor Sensor Spread Watch"
+  description: Warns when the Kitchen and Dining Room sensors disagree for an extended period and the average may be less trustworthy.
   triggers:
     - trigger: state
       entity_id: binary_sensor.downstairs_temp_spread_high
@@ -1097,16 +1086,243 @@
     - condition: state
       entity_id: input_boolean.downstairs_mobile_alerts_enabled
       state: "on"
+    - condition: state
+      entity_id: input_boolean.environment_alerts_enabled
+      state: "on"
   actions:
-    - action: notify.mobile_app_tk_iphone_16_pro
+    - action: script.environment_send_alert
       data:
-        title: 🌡️ Downstairs sensors need a look
+        room: Main Floor
+        alert_kind: source_disagreement
         message: >-
-          Main Floor and Main Floor 2 are still {{ states('sensor.downstairs_temp_spread') }}°F apart.
-          That likely means the space is uneven or one sensor placement needs a second look before trusting the average too heavily.
-        data:
-          tag: downstairs-climate-spread
+          Kitchen and Dining Room are still {{ states('sensor.downstairs_temp_spread') }}°F apart.
+          That likely means the Main Floor is uneven or one sensor placement needs a second look before trusting the average too heavily.
   mode: single
+
+- id: environment_room_actionable_alerts
+  alias: "Environment — Room Actionable Alerts"
+  description: Sends specific room environment pushes after red-band conditions have persisted long enough to matter.
+  triggers:
+    - trigger: state
+      entity_id: binary_sensor.environment_kitchen_temp_high_alert
+      to: "on"
+      id: kitchen_temp_high
+    - trigger: state
+      entity_id: binary_sensor.environment_kitchen_temp_low_alert
+      to: "on"
+      id: kitchen_temp_low
+    - trigger: state
+      entity_id: binary_sensor.environment_kitchen_humidity_high_alert
+      to: "on"
+      id: kitchen_humidity_high
+    - trigger: state
+      entity_id: binary_sensor.environment_kitchen_humidity_low_alert
+      to: "on"
+      id: kitchen_humidity_low
+    - trigger: state
+      entity_id: binary_sensor.environment_dining_room_temp_high_alert
+      to: "on"
+      id: dining_temp_high
+    - trigger: state
+      entity_id: binary_sensor.environment_dining_room_temp_low_alert
+      to: "on"
+      id: dining_temp_low
+    - trigger: state
+      entity_id: binary_sensor.environment_dining_room_humidity_high_alert
+      to: "on"
+      id: dining_humidity_high
+    - trigger: state
+      entity_id: binary_sensor.environment_dining_room_humidity_low_alert
+      to: "on"
+      id: dining_humidity_low
+    - trigger: state
+      entity_id: binary_sensor.environment_primary_bedroom_temp_high_alert
+      to: "on"
+      id: primary_temp_high
+    - trigger: state
+      entity_id: binary_sensor.environment_primary_bedroom_temp_low_alert
+      to: "on"
+      id: primary_temp_low
+    - trigger: state
+      entity_id: binary_sensor.environment_primary_bedroom_humidity_high_alert
+      to: "on"
+      id: primary_humidity_high
+    - trigger: state
+      entity_id: binary_sensor.environment_primary_bedroom_humidity_low_alert
+      to: "on"
+      id: primary_humidity_low
+    - trigger: state
+      entity_id: binary_sensor.environment_basement_temp_high_alert
+      to: "on"
+      id: basement_temp_high
+    - trigger: state
+      entity_id: binary_sensor.environment_basement_temp_low_alert
+      to: "on"
+      id: basement_temp_low
+    - trigger: state
+      entity_id: binary_sensor.environment_garage_temp_high_alert
+      to: "on"
+      id: garage_temp_high
+    - trigger: state
+      entity_id: binary_sensor.environment_garage_temp_low_alert
+      to: "on"
+      id: garage_temp_low
+    - trigger: state
+      entity_id: binary_sensor.environment_garage_humidity_high_alert
+      to: "on"
+      id: garage_humidity_high
+    - trigger: state
+      entity_id: binary_sensor.environment_attic_temp_high_alert
+      to: "on"
+      id: attic_temp_high
+    - trigger: state
+      entity_id: binary_sensor.environment_attic_humidity_high_alert
+      to: "on"
+      id: attic_humidity_high
+    - trigger: state
+      entity_id: binary_sensor.environment_dining_room_ecobee_temp_disagreement
+      to: "on"
+      id: dining_temp_disagreement
+    - trigger: state
+      entity_id: binary_sensor.environment_dining_room_ecobee_humidity_disagreement
+      to: "on"
+      id: dining_humidity_disagreement
+    - trigger: state
+      entity_id:
+        - binary_sensor.environment_kitchen_sensor_unavailable
+        - binary_sensor.environment_dining_room_sensor_unavailable
+        - binary_sensor.environment_primary_bedroom_sensor_unavailable
+        - binary_sensor.environment_basement_sensor_unavailable
+        - binary_sensor.environment_garage_sensor_unavailable
+        - binary_sensor.environment_attic_sensor_unavailable
+      to: "on"
+      id: sensor_unavailable
+  conditions:
+    - condition: state
+      entity_id: input_boolean.environment_alerts_enabled
+      state: "on"
+  actions:
+    - variables:
+        entity: "{{ trigger.to_state.entity_id }}"
+        trigger_name: "{{ trigger.id }}"
+    - variables:
+        room: >-
+          {% if 'kitchen' in trigger_name or entity == 'binary_sensor.environment_kitchen_sensor_unavailable' %}Kitchen
+          {% elif 'dining' in trigger_name or entity == 'binary_sensor.environment_dining_room_sensor_unavailable' %}Dining Room
+          {% elif 'primary' in trigger_name or entity == 'binary_sensor.environment_primary_bedroom_sensor_unavailable' %}Primary Bedroom
+          {% elif 'basement' in trigger_name or entity == 'binary_sensor.environment_basement_sensor_unavailable' %}Basement
+          {% elif 'garage' in trigger_name or entity == 'binary_sensor.environment_garage_sensor_unavailable' %}Garage
+          {% elif 'attic' in trigger_name or entity == 'binary_sensor.environment_attic_sensor_unavailable' %}Attic
+          {% else %}Environment{% endif %}
+        kind: >-
+          {% if trigger_name == 'sensor_unavailable' %}sensor_unavailable
+          {% elif 'disagreement' in trigger_name %}source_disagreement
+          {% elif 'temp_high' in trigger_name %}temp_high
+          {% elif 'temp_low' in trigger_name %}temp_low
+          {% elif 'humidity_high' in trigger_name %}humidity_high
+          {% elif 'humidity_low' in trigger_name %}humidity_low
+          {% else %}status{% endif %}
+    - variables:
+        message: >-
+          {% set room_name = room %}
+          {% if kind == 'sensor_unavailable' %}
+            {{ room_name }} environment sensor has been unavailable for 15 minutes.
+            Check battery, Bluetooth gateway reachability, or the room sensor placement.
+          {% elif room_name == 'Kitchen' %}
+            {% set t = states('sensor.main_floor_temperature') %}
+            {% set h = states('sensor.main_floor_humidity') %}
+            Kitchen is at {{ t }}°F and {{ h }}% humidity. This has stayed outside the action range long enough to deserve a look.
+          {% elif room_name == 'Dining Room' and kind == 'source_disagreement' %}
+            Dining Room SensorPush and Ecobee readings have been apart long enough to check placement or airflow.
+            SensorPush is {{ states('sensor.main_floor_2_temperature') }}°F / {{ states('sensor.main_floor_2_humidity') }}%.
+            Ecobee is {{ states('sensor.dining_room_current_temperature') }}°F / {{ states('sensor.dining_room_current_humidity') }}%.
+          {% elif room_name == 'Dining Room' %}
+            Dining Room is at {{ states('sensor.main_floor_2_temperature') }}°F and {{ states('sensor.main_floor_2_humidity') }}% humidity.
+            Dining Room Ecobee is {{ states('sensor.dining_room_current_temperature') }}°F and {{ states('sensor.dining_room_current_humidity') }}%.
+          {% elif room_name == 'Primary Bedroom' %}
+            Primary Bedroom is at {{ states('sensor.master_temperature') }}°F and {{ states('sensor.master_humidity') }}% humidity.
+            This alert uses the room sensor as the source of truth.
+          {% elif room_name == 'Basement' %}
+            Basement is at {{ states('sensor.mechanical_room_temperature') }}°F and {{ states('sensor.mechanical_room_humidity') }}% humidity.
+            Worth checking dehumidification, ventilation, or any open-air source if this keeps up.
+          {% elif room_name == 'Garage' %}
+            Garage is at {{ states('sensor.garage_temperature') }}°F and {{ states('sensor.garage_humidity') }}% humidity.
+            This is outside the garage action band.
+          {% elif room_name == 'Attic' %}
+            Attic is at {{ states('sensor.attic_temperature') }}°F and {{ states('sensor.attic_humidity') }}% humidity.
+            This is outside the attic action band.
+          {% else %}
+            One of the environment sensors has been unavailable for 15 minutes. Check the Environment tab for the specific room.
+          {% endif %}
+    - action: script.environment_send_alert
+      data:
+        room: "{{ room }}"
+        alert_kind: "{{ kind }}"
+        message: "{{ message }}"
+  mode: parallel
+
+- id: environment_room_alert_clears
+  alias: "Environment — Clear Room Alerts"
+  description: Clears room environment notifications when the underlying actionable binary sensor recovers.
+  triggers:
+    - trigger: state
+      entity_id:
+        - binary_sensor.environment_kitchen_temp_high_alert
+        - binary_sensor.environment_kitchen_temp_low_alert
+        - binary_sensor.environment_kitchen_humidity_high_alert
+        - binary_sensor.environment_kitchen_humidity_low_alert
+        - binary_sensor.environment_dining_room_temp_high_alert
+        - binary_sensor.environment_dining_room_temp_low_alert
+        - binary_sensor.environment_dining_room_humidity_high_alert
+        - binary_sensor.environment_dining_room_humidity_low_alert
+        - binary_sensor.environment_primary_bedroom_temp_high_alert
+        - binary_sensor.environment_primary_bedroom_temp_low_alert
+        - binary_sensor.environment_primary_bedroom_humidity_high_alert
+        - binary_sensor.environment_primary_bedroom_humidity_low_alert
+        - binary_sensor.environment_basement_temp_high_alert
+        - binary_sensor.environment_basement_temp_low_alert
+        - binary_sensor.environment_garage_temp_high_alert
+        - binary_sensor.environment_garage_temp_low_alert
+        - binary_sensor.environment_garage_humidity_high_alert
+        - binary_sensor.environment_attic_temp_high_alert
+        - binary_sensor.environment_attic_humidity_high_alert
+        - binary_sensor.environment_dining_room_ecobee_temp_disagreement
+        - binary_sensor.environment_dining_room_ecobee_humidity_disagreement
+        - binary_sensor.environment_kitchen_sensor_unavailable
+        - binary_sensor.environment_dining_room_sensor_unavailable
+        - binary_sensor.environment_primary_bedroom_sensor_unavailable
+        - binary_sensor.environment_basement_sensor_unavailable
+        - binary_sensor.environment_garage_sensor_unavailable
+        - binary_sensor.environment_attic_sensor_unavailable
+        - binary_sensor.downstairs_temp_spread_high
+      to: "off"
+  actions:
+    - variables:
+        entity: "{{ trigger.to_state.entity_id }}"
+        room: >-
+          {% if 'kitchen' in entity %}Kitchen
+          {% elif 'dining_room' in entity %}Dining Room
+          {% elif 'primary_bedroom' in entity %}Primary Bedroom
+          {% elif 'basement' in entity %}Basement
+          {% elif 'garage' in entity %}Garage
+          {% elif 'attic' in entity %}Attic
+          {% elif entity == 'binary_sensor.downstairs_temp_spread_high' %}Main Floor
+          {% else %}Environment{% endif %}
+        kind: >-
+          {% if 'sensor_unavailable' in entity %}sensor_unavailable
+          {% elif 'disagreement' in entity %}source_disagreement
+          {% elif entity == 'binary_sensor.downstairs_temp_spread_high' %}source_disagreement
+          {% elif 'temp_high' in entity %}temp_high
+          {% elif 'temp_low' in entity %}temp_low
+          {% elif 'humidity_high' in entity %}humidity_high
+          {% elif 'humidity_low' in entity %}humidity_low
+          {% else %}status{% endif %}
+    - action: script.environment_send_alert
+      data:
+        room: "{{ room }}"
+        alert_kind: "{{ kind }}"
+        clear: true
+  mode: parallel
 
 - id: garden_seedling_morning_check_notification
   alias: "Garden — Morning Seedling Check"
@@ -1703,7 +1919,7 @@
   mode: single
 
 - id: basement_humidity_watch_notification
-  alias: "Climate — Basement Humidity Watch"
+  alias: "Environment — Basement Humidity Watch"
   description: Uses the Airthings-backed basement sensor to warn when the basement stays humid long enough to invite mold, mustiness, or damp-loving bugs.
   triggers:
     - trigger: numeric_state
@@ -1765,12 +1981,23 @@
           {{ is_number(h) and is_number(t) and (h | float(0)) >= 60 and (t | float(0)) >= 68 }}
     - choose:
         - conditions:
+            - condition: state
+              entity_id: input_boolean.environment_alerts_enabled
+              state: "off"
+          sequence:
+            - action: script.environment_send_alert
+              data:
+                room: Basement
+                alert_kind: humidity_high
+                clear: true
+        - conditions:
             - condition: template
               value_template: "{{ alert_kind == 'urgent' }}"
           sequence:
-            - action: script.basement_humidity_send_alert
+            - action: script.environment_send_alert
               data:
-                alert_kind: urgent
+                room: Basement
+                alert_kind: humidity_high
                 message: >-
                   Basement humidity is sitting at {{ humidity | round(0) }}%
                   {% if temp_valid | bool %}with the basement around {{ temp | round(0) }}°F{% endif %}.
@@ -1783,9 +2010,10 @@
             - condition: template
               value_template: "{{ alert_kind == 'watch' }}"
           sequence:
-            - action: script.basement_humidity_send_alert
+            - action: script.environment_send_alert
               data:
-                alert_kind: watch
+                room: Basement
+                alert_kind: humidity_high
                 message: >-
                   Basement humidity has stayed above the safer range long enough to deserve a look:
                   {{ humidity | round(0) }}%
@@ -1794,5 +2022,63 @@
                   mold and damp-bug prevention.
                   Worth checking dehumidification before it turns swampy.
       default:
-        - action: script.basement_humidity_clear_alert
+        - action: script.environment_send_alert
+          data:
+            room: Basement
+            alert_kind: humidity_high
+            clear: true
   mode: restart
+
+- id: environment_basement_radon_notification
+  alias: "Environment — Basement Radon Notification"
+  description: Sends a throttled basement radon push when the 24-hour Airthings average reaches the action band.
+  triggers:
+    - trigger: state
+      entity_id: binary_sensor.environment_basement_radon_high_alert
+      to: "on"
+      id: high
+    - trigger: time
+      at: "09:00:00"
+      id: repeat
+    - trigger: state
+      entity_id: binary_sensor.environment_basement_radon_high_alert
+      to: "off"
+      id: clear
+  actions:
+    - variables:
+        due_again: >-
+          {% set last_ts = as_timestamp(states('input_datetime.environment_radon_last_alert'), 0) %}
+          {{ last_ts == 0 or (as_timestamp(now()) - last_ts) >= 604800 }}
+        should_send: >-
+          {{ is_state('input_boolean.environment_alerts_enabled', 'on')
+             and is_state('binary_sensor.environment_basement_radon_high_alert', 'on')
+             and (trigger.id == 'high' or (trigger.id == 'repeat' and due_again | bool)) }}
+    - choose:
+        - conditions:
+            - condition: template
+              value_template: "{{ trigger.id == 'clear' or not is_state('input_boolean.environment_alerts_enabled', 'on') }}"
+          sequence:
+            - action: script.environment_send_alert
+              data:
+                room: Basement
+                alert_kind: radon_high
+                clear: true
+        - conditions:
+            - condition: template
+              value_template: "{{ should_send }}"
+          sequence:
+            - action: script.environment_send_alert
+              data:
+                room: Basement
+                alert_kind: radon_high
+                message: >-
+                  Basement radon is elevated on the 24-hour average:
+                  {{ states('sensor.basement_radon_24h_stats') }} {{ state_attr('sensor.basement_air_quality_radon', 'unit_of_measurement') or 'Bq/m³' }}.
+                  The dashboard starts watching at 75 Bq/m³ and this push fires around the EPA action band.
+                  Check ventilation or mitigation status if this persists.
+            - action: input_datetime.set_datetime
+              target:
+                entity_id: input_datetime.environment_radon_last_alert
+              data:
+                datetime: "{{ now().strftime('%Y-%m-%d %H:%M:%S') }}"
+  mode: single

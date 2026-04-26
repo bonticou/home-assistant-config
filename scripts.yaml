@@ -1194,6 +1194,72 @@ wine_cave_send_alert:
           tag: "wine-cave-{{ kind }}"
           url: /calm-mobile/wine
 
+environment_send_alert:
+  alias: Environment Send Alert
+  description: Sends room and area environment pushes with consistent titles, tags, grouping, and urgency.
+  icon: mdi:home-thermometer-outline
+  mode: parallel
+  fields:
+    room:
+      description: Human-facing room or area name
+      example: Kitchen
+    alert_kind:
+      description: Environment issue type
+      example: temp_high
+    message:
+      description: Notification body text
+    clear:
+      description: Clear the matching mobile notification tag
+      example: false
+  sequence:
+    - variables:
+        alert_room: "{{ room | default('Environment', true) }}"
+        kind: "{{ alert_kind | default('status', true) }}"
+        notification_message: "{{ message | default('', true) }}"
+        clear_notification: "{{ clear | default(false) }}"
+        slug: "{{ alert_room | lower | replace(' ', '-') | replace('/', '-') }}"
+        tag: "environment-{{ slug }}-{{ kind }}"
+        title_icon: >-
+          {% if kind in ['temp_high', 'temp_low'] %}🌡️
+          {% elif kind in ['humidity_high', 'humidity_low'] %}💧
+          {% elif kind == 'radon_high' %}⚠️
+          {% elif kind == 'source_disagreement' %}📍
+          {% elif kind == 'sensor_unavailable' %}📡
+          {% else %}🏠{% endif %}
+        title_issue: >-
+          {% if kind == 'temp_high' %}is too warm
+          {% elif kind == 'temp_low' %}is too cool
+          {% elif kind == 'humidity_high' %}is too humid
+          {% elif kind == 'humidity_low' %}is too dry
+          {% elif kind == 'radon_high' %}radon is elevated
+          {% elif kind == 'source_disagreement' %}readings disagree
+          {% elif kind == 'sensor_unavailable' %}sensor unavailable
+          {% elif kind == 'recovered' %}recovered
+          {% else %}needs a look{% endif %}
+        sticky_alert: "{{ kind in ['radon_high', 'sensor_unavailable'] }}"
+    - choose:
+        - conditions:
+            - condition: template
+              value_template: "{{ clear_notification | bool }}"
+          sequence:
+            - action: script.notify_trevor_phone
+              data:
+                message: clear_notification
+                data:
+                  tag: "{{ tag }}"
+      default:
+        - action: script.notify_trevor_phone
+          data:
+            title: "{{ title_icon }} {{ alert_room }} {{ title_issue }}"
+            message: "{{ notification_message }}"
+            data:
+              group: environment
+              tag: "{{ tag }}"
+              sticky: "{{ sticky_alert }}"
+              ttl: 0
+              priority: high
+              url: /calm-mobile/climate
+
 basement_humidity_send_alert:
   alias: Basement Humidity Send Alert
   description: Sends Trevor a basement humidity push using the Airthings-backed basement sensor.
@@ -1224,7 +1290,7 @@ basement_humidity_send_alert:
           sticky: "{{ kind == 'urgent' }}"
           ttl: 0
           priority: high
-          url: /calm-mobile/home
+          url: /calm-mobile/climate
 
 basement_humidity_clear_alert:
   alias: Basement Humidity Clear Alert
