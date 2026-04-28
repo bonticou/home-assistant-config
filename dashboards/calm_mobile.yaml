@@ -435,7 +435,7 @@ views:
             custom_fields:
               icon: >-
                 [[[
-                  const status = entity.state;
+                  const status = entity?.state || 'Unknown';
                   const color = ['Optimal', 'Normal', 'Good'].includes(status)
                     ? '#22c55e'
                     : ['Warning', 'Caution'].includes(status)
@@ -516,7 +516,6 @@ views:
             styles:
               <<: *compact_tile_styles
             extra_styles: *compact_tile_extra
-
 
       - type: conditional
         conditions:
@@ -3060,7 +3059,7 @@ views:
 
       - type: custom:mushroom-title-card
         title: Water use
-        subtitle: Last 7 days - gallons including today
+        subtitle: Last 7 days · gallons including today
 
       - type: custom:apexcharts-card
         graph_span: 7d
@@ -3070,7 +3069,7 @@ views:
           show: false
         apex_config:
           chart:
-            height: 216
+            height: 224
             type: line
             parentHeightOffset: 0
             toolbar:
@@ -3079,7 +3078,7 @@ views:
             bar:
               borderRadius: 7
               borderRadiusApplication: end
-              columnWidth: 38%
+              columnWidth: 34%
           dataLabels:
             enabled: false
           stroke:
@@ -3106,9 +3105,9 @@ views:
             borderColor: rgba(148, 163, 184, 0.10)
             strokeDashArray: 4
             padding:
-              top: 4
+              top: 8
               right: 10
-              bottom: 0
+              bottom: 4
               left: 2
           legend:
             show: true
@@ -3147,9 +3146,8 @@ views:
                   const isToday = date.getFullYear() === today.getFullYear()
                     && date.getMonth() === today.getMonth()
                     && date.getDate() === today.getDate();
-                  const day = isToday
-                    ? 'Today'
-                    : date.toLocaleDateString(undefined, { weekday: 'short' });
+                  const weekday = date.toLocaleDateString(undefined, { weekday: 'short' });
+                  const day = isToday ? `Today (${weekday})` : weekday;
                   const month = date.toLocaleDateString(undefined, { month: 'short', day: 'numeric' });
                   return `${day}, ${month}`;
                 }
@@ -3160,7 +3158,7 @@ views:
                   return Number.isFinite(numeric) ? `${Math.round(numeric)} gal` : value;
                 }
           xaxis:
-            tickAmount: 7
+            tickAmount: 6
             axisBorder:
               show: false
             axisTicks:
@@ -3168,7 +3166,10 @@ views:
             labels:
               datetimeUTC: false
               hideOverlappingLabels: false
+              maxHeight: 38
+              rotate: 0
               showDuplicates: true
+              trim: false
               formatter: |
                 EVAL:function(value, timestamp) {
                   const source = timestamp ?? value;
@@ -3179,13 +3180,14 @@ views:
                   if (date.getFullYear() === today.getFullYear()
                     && date.getMonth() === today.getMonth()
                     && date.getDate() === today.getDate()) {
-                    return 'Today';
+                    const weekday = date.toLocaleDateString(undefined, { weekday: 'short' });
+                    return [weekday, 'Today'];
                   }
                   return date.toLocaleDateString(undefined, { weekday: 'short' });
                 }
               style:
                 colors: rgba(226, 232, 240, 0.74)
-                fontSize: 12px
+                fontSize: 11px
                 fontWeight: 500
         yaxis:
           - min: 0
@@ -3205,14 +3207,58 @@ views:
               func: max
               duration: 1d
           - entity: sensor.flo_shutoff_today_s_water_usage
-            name: Daily avg
+            name: 7-day avg
             type: line
-            color: rgba(226, 232, 240, 0.62)
+            color: rgba(226, 232, 240, 0.58)
             stroke_width: 2
             stroke_dash: 5
             float_precision: 0
+            data_generator: |
+              const entityId = entity.entity_id || 'sensor.flo_shutoff_today_s_water_usage';
+              const spanStart = new Date(start);
+              const spanEnd = new Date(end);
+              const path = `history/period/${spanStart.toISOString()}?filter_entity_id=${encodeURIComponent(entityId)}&end_time=${encodeURIComponent(spanEnd.toISOString())}`;
+              const response = await hass.callApi('GET', path);
+              const rows = Array.isArray(response?.[0]) ? response[0] : [];
+              const keyFor = (date) => [
+                date.getFullYear(),
+                String(date.getMonth() + 1).padStart(2, '0'),
+                String(date.getDate()).padStart(2, '0')
+              ].join('-');
+              const buckets = new Map();
+              for (const row of rows) {
+                const value = Number(row.state);
+                if (!Number.isFinite(value)) continue;
+                const changed = row.last_changed || row.last_updated;
+                const date = new Date(changed);
+                if (Number.isNaN(date.getTime())) continue;
+                const key = keyFor(date);
+                const previous = buckets.get(key);
+                buckets.set(key, previous === undefined ? value : Math.max(previous, value));
+              }
+              const now = new Date();
+              const current = Number(entity.state);
+              if (Number.isFinite(current) && now >= spanStart && now < spanEnd) {
+                const key = keyFor(now);
+                const previous = buckets.get(key);
+                buckets.set(key, previous === undefined ? current : Math.max(previous, current));
+              }
+              const firstDay = new Date(spanStart);
+              firstDay.setHours(0, 0, 0, 0);
+              const lastDay = new Date(spanEnd.getTime() - 1);
+              lastDay.setHours(0, 0, 0, 0);
+              const dayStarts = [];
+              for (const day = new Date(firstDay); day <= lastDay; day.setDate(day.getDate() + 1)) {
+                dayStarts.push(new Date(day).getTime());
+              }
+              const values = dayStarts
+                .map((time) => buckets.get(keyFor(new Date(time))))
+                .filter((value) => Number.isFinite(value));
+              if (!values.length) return [];
+              const average = values.reduce((sum, value) => sum + value, 0) / values.length;
+              return dayStarts.map((time) => [time, average]);
             group_by:
-              func: avg
+              func: max
               duration: 1d
         card_mod:
           style: &water_chart_card_style |
@@ -3306,91 +3352,144 @@ views:
         title: Leak Sensors
         subtitle: All dry should be the default
 
-      - type: custom:mushroom-template-card
+      - type: custom:button-card
         entity: binary_sensor.kitchen_sink_leak_detection_water_detected
-        primary: >-
-          {% set sensors = [
-            'binary_sensor.kitchen_sink_leak_detection_water_detected',
-            'binary_sensor.island_sink_leak_detection_water_detected',
-            'binary_sensor.dishwasher_leak_detection_water_detected',
-            'binary_sensor.kitchen_fridge_leak_detection_water_detected',
-            'binary_sensor.washing_machine_leak_detection_water_detected',
-            'binary_sensor.laundry_sink_leak_detection_water_detected',
-            'binary_sensor.mechanical_room_leak_detection_water_detected',
-            'binary_sensor.electrical_room_leak_detection_water_detected',
-            'binary_sensor.basement_ejector_leak_detection_water_detected'
-          ] %}
-          {% set wet = namespace(count=0) %}
-          {% for sensor in sensors %}
-            {% if is_state(sensor, 'on') %}
-              {% set wet.count = wet.count + 1 %}
-            {% endif %}
-          {% endfor %}
-          {{ wet.count ~ ' wet' if wet.count > 0 else (sensors | count) ~ ' dry' }}
-        secondary: >-
-          {% set sensors = [
-            'binary_sensor.kitchen_sink_leak_detection_water_detected',
-            'binary_sensor.island_sink_leak_detection_water_detected',
-            'binary_sensor.dishwasher_leak_detection_water_detected',
-            'binary_sensor.kitchen_fridge_leak_detection_water_detected',
-            'binary_sensor.washing_machine_leak_detection_water_detected',
-            'binary_sensor.laundry_sink_leak_detection_water_detected',
-            'binary_sensor.mechanical_room_leak_detection_water_detected',
-            'binary_sensor.electrical_room_leak_detection_water_detected',
-            'binary_sensor.basement_ejector_leak_detection_water_detected'
-          ] %}
-          {% set wet = namespace(count=0) %}
-          {% for sensor in sensors %}
-            {% if is_state(sensor, 'on') %}
-              {% set wet.count = wet.count + 1 %}
-            {% endif %}
-          {% endfor %}
-          {{ 'Review the highlighted sensors below.' if wet.count > 0 else 'All leak sensors dry.' }}
-        icon: mdi:shield-water-outline
-        icon_color: >-
-          {% set sensors = [
-            'binary_sensor.kitchen_sink_leak_detection_water_detected',
-            'binary_sensor.island_sink_leak_detection_water_detected',
-            'binary_sensor.dishwasher_leak_detection_water_detected',
-            'binary_sensor.kitchen_fridge_leak_detection_water_detected',
-            'binary_sensor.washing_machine_leak_detection_water_detected',
-            'binary_sensor.laundry_sink_leak_detection_water_detected',
-            'binary_sensor.mechanical_room_leak_detection_water_detected',
-            'binary_sensor.electrical_room_leak_detection_water_detected',
-            'binary_sensor.basement_ejector_leak_detection_water_detected'
-          ] %}
-          {% set wet = namespace(count=0) %}
-          {% for sensor in sensors %}
-            {% if is_state(sensor, 'on') %}
-              {% set wet.count = wet.count + 1 %}
-            {% endif %}
-          {% endfor %}
-          {{ 'red' if wet.count > 0 else 'teal' }}
-        fill_container: true
+        show_icon: false
+        show_name: false
+        show_state: false
+        triggers_update:
+          - binary_sensor.kitchen_sink_leak_detection_water_detected
+          - binary_sensor.island_sink_leak_detection_water_detected
+          - binary_sensor.dishwasher_leak_detection_water_detected
+          - binary_sensor.kitchen_fridge_leak_detection_water_detected
+          - binary_sensor.washing_machine_leak_detection_water_detected
+          - binary_sensor.laundry_sink_leak_detection_water_detected
+          - binary_sensor.mechanical_room_leak_detection_water_detected
+          - binary_sensor.electrical_room_leak_detection_water_detected
+          - binary_sensor.basement_ejector_leak_detection_water_detected
+        custom_fields:
+          icon: >-
+            [[[
+              const ids = [
+                'binary_sensor.kitchen_sink_leak_detection_water_detected',
+                'binary_sensor.island_sink_leak_detection_water_detected',
+                'binary_sensor.dishwasher_leak_detection_water_detected',
+                'binary_sensor.kitchen_fridge_leak_detection_water_detected',
+                'binary_sensor.washing_machine_leak_detection_water_detected',
+                'binary_sensor.laundry_sink_leak_detection_water_detected',
+                'binary_sensor.mechanical_room_leak_detection_water_detected',
+                'binary_sensor.electrical_room_leak_detection_water_detected',
+                'binary_sensor.basement_ejector_leak_detection_water_detected'
+              ];
+              const wet = ids.filter((id) => states[id]?.state === 'on').length;
+              const color = wet > 0 ? '#ef4444' : '#14b8a6';
+              const icon = wet > 0 ? 'mdi:water-alert-outline' : 'mdi:shield-check-outline';
+              return `<div class="water-summary-icon"><ha-icon icon="${icon}" style="color:${color}"></ha-icon></div>`;
+            ]]]
+          copy: >-
+            [[[
+              const ids = [
+                'binary_sensor.kitchen_sink_leak_detection_water_detected',
+                'binary_sensor.island_sink_leak_detection_water_detected',
+                'binary_sensor.dishwasher_leak_detection_water_detected',
+                'binary_sensor.kitchen_fridge_leak_detection_water_detected',
+                'binary_sensor.washing_machine_leak_detection_water_detected',
+                'binary_sensor.laundry_sink_leak_detection_water_detected',
+                'binary_sensor.mechanical_room_leak_detection_water_detected',
+                'binary_sensor.electrical_room_leak_detection_water_detected',
+                'binary_sensor.basement_ejector_leak_detection_water_detected'
+              ];
+              const wet = ids.filter((id) => states[id]?.state === 'on').length;
+              const title = wet > 0 ? `${wet} wet` : `${ids.length} dry`;
+              const subtitle = wet > 0 ? 'Review the highlighted sensors below.' : 'All leak sensors dry.';
+              return `<div class="water-summary-copy"><div class="water-summary-title">${title}</div><div class="water-summary-subtitle">${subtitle}</div></div>`;
+            ]]]
+          art: >-
+            [[[
+              const ids = [
+                'binary_sensor.kitchen_sink_leak_detection_water_detected',
+                'binary_sensor.island_sink_leak_detection_water_detected',
+                'binary_sensor.dishwasher_leak_detection_water_detected',
+                'binary_sensor.kitchen_fridge_leak_detection_water_detected',
+                'binary_sensor.washing_machine_leak_detection_water_detected',
+                'binary_sensor.laundry_sink_leak_detection_water_detected',
+                'binary_sensor.mechanical_room_leak_detection_water_detected',
+                'binary_sensor.electrical_room_leak_detection_water_detected',
+                'binary_sensor.basement_ejector_leak_detection_water_detected'
+              ];
+              const wet = ids.filter((id) => states[id]?.state === 'on').length;
+              const icon = wet > 0 ? 'mdi:water-alert' : 'mdi:shield-water-outline';
+              const color = wet > 0 ? 'rgba(239, 68, 68, 0.28)' : 'rgba(20, 184, 166, 0.24)';
+              return `<ha-icon class="water-summary-art" icon="${icon}" style="color:${color}"></ha-icon>`;
+            ]]]
         tap_action:
           action: none
-        card_mod:
-          style: &water_summary_card_style |
-            ha-card {
-              border: 1px solid rgba(20, 184, 166, 0.18);
-              border-radius: 24px;
-              box-shadow: none;
-              padding: 8px 10px;
-              background: linear-gradient(180deg, rgba(20, 184, 166, 0.10), rgba(15, 23, 42, 0.54));
-            }
-            mushroom-shape-icon {
-              --shape-color: rgba(20, 184, 166, 0.14) !important;
-            }
-            .primary {
-              font-size: 20px !important;
-              font-weight: 620 !important;
-              letter-spacing: 0;
-            }
-            .secondary {
-              color: rgba(226, 232, 240, 0.74) !important;
-              font-size: 13px !important;
-              letter-spacing: 0;
-            }
+        styles:
+          card:
+            - min-height: 94px
+            - padding: 14px 16px
+            - border: 1px solid rgba(20, 184, 166, 0.18)
+            - border-radius: 24px
+            - box-shadow: none
+            - background: linear-gradient(180deg, rgba(20, 184, 166, 0.10), rgba(15, 23, 42, 0.54))
+            - overflow: hidden
+            - position: relative
+          grid:
+            - grid-template-areas: '"icon copy art"'
+            - grid-template-columns: 46px 1fr 84px
+            - column-gap: 12px
+            - align-items: center
+          custom_fields:
+            icon:
+              - grid-area: icon
+              - z-index: 1
+            copy:
+              - grid-area: copy
+              - justify-self: start
+              - min-width: 0
+              - z-index: 1
+            art:
+              - grid-area: art
+              - justify-self: end
+              - align-self: center
+              - z-index: 0
+        extra_styles: |
+          .water-summary-icon {
+            align-items: center;
+            background: rgba(255, 255, 255, 0.06);
+            border-radius: 16px;
+            display: flex;
+            height: 42px;
+            justify-content: center;
+            width: 42px;
+          }
+          .water-summary-icon ha-icon {
+            --mdc-icon-size: 24px;
+          }
+          .water-summary-copy {
+            min-width: 0;
+            text-align: left;
+          }
+          .water-summary-title {
+            color: rgba(248, 250, 252, 0.96);
+            font-size: 21px;
+            font-weight: 620;
+            letter-spacing: 0;
+            line-height: 1.15;
+          }
+          .water-summary-subtitle {
+            color: rgba(226, 232, 240, 0.74);
+            font-size: 13px;
+            letter-spacing: 0;
+            line-height: 1.35;
+            margin-top: 4px;
+            white-space: normal;
+          }
+          .water-summary-art {
+            --mdc-icon-size: 84px;
+            height: 84px;
+            width: 84px;
+          }
 
       - type: grid
         columns: 2
