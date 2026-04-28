@@ -1925,6 +1925,66 @@
     - action: script.espresso_send_maintenance_notification
   mode: single
 
+- id: commute_metro_north_first_weekday_departure
+  alias: "Commute — Metro-North First Weekday Departure"
+  description: >
+    Sends Trevor the first weekday NWP to Grand Central train reminder when he
+    leaves home. Only includes trains departing more than 20 minutes later.
+  triggers:
+    - trigger: state
+      entity_id: device_tracker.tk_iphone_16_pro
+      from: "home"
+  conditions:
+    - condition: time
+      weekday:
+        - mon
+        - tue
+        - wed
+        - thu
+        - fri
+    - condition: state
+      entity_id: input_boolean.metro_north_commute_notified_today
+      state: "off"
+    - condition: template
+      value_template: >
+        {{ trigger.to_state is not none
+           and trigger.to_state.state not in ['home', 'unknown', 'unavailable', ''] }}
+  actions:
+    - action: input_boolean.turn_on
+      target:
+        entity_id: input_boolean.metro_north_commute_notified_today
+    - action: homeassistant.update_entity
+      target:
+        entity_id: sensor.metro_north_nwp_to_grand_central
+    - delay:
+        seconds: 4
+    - variables:
+        train_message: >-
+          {% set message = state_attr('sensor.metro_north_nwp_to_grand_central', 'message') %}
+          {{ message if message not in [none, '', 'unknown', 'unavailable'] else 'No Grand Central trains more than 20 minutes out were found.' }}
+    - action: script.notify_trevor_phone
+      data:
+        title: "🚆 NWP to Grand Central"
+        message: "{{ train_message }}"
+        data:
+          group: commute
+          tag: metro-north-nwp-gct
+          url: /calm-mobile/home
+  mode: single
+
+- id: commute_reset_metro_north_daily_notification
+  alias: "Commute — Reset Metro-North Daily Reminder"
+  description: Resets the first-departure commute notification latch before the next day.
+  triggers:
+    - trigger: time
+      at: "03:00:00"
+  conditions: []
+  actions:
+    - action: input_boolean.turn_off
+      target:
+        entity_id: input_boolean.metro_north_commute_notified_today
+  mode: single
+
 - id: espresso_maintenance_notification_actions
   alias: "Espresso — Notification Actions"
   description: Handles the quick actions from Profitec GO cleaning reminders.
