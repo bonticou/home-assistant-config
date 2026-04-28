@@ -2,6 +2,7 @@
 *.tar.gz
 *.zip
 .DS_Store
+/.tmp-*
 .wine_collection_snapshot.json
 __pycache__/
 *.pyc

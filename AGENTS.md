@@ -121,6 +121,26 @@ Avoid charts that are:
 - redundant
 - visually noisy.
 
+For ApexCharts and other dashboard chart edits, follow
+`docs/dashboard-chart-audit.md`. If a phone screenshot looks unchanged after a
+YAML edit, first verify whether Home Assistant is serving the updated dashboard
+before changing chart values again.
+
+---
+
+# Notification Style
+
+Notifications should feel personal, warm, and immediately scannable.
+
+When creating or changing push notifications for Trevor, include a small, appropriate emoji cue in the title. The emoji should match the notification's job:
+
+- use gentle, cute icons for routine care and reminders
+- use clearer attention icons for issues that need prompt action
+- name the specific action or issue in the title so similar reminders are easy to distinguish at a glance
+- avoid excessive emoji or decorative clutter
+
+For coffee and espresso maintenance, prefer concise coffee-themed emoji pairs and explicit titles, such as `☕💧 Profitec GO water backflush` and `☕🧼 Profitec GO Cafiza clean`.
+
 ---
 
 # Code Quality
@@ -139,6 +159,29 @@ When editing configuration:
 
 - avoid clever but fragile solutions
 - avoid large structural refactors unless requested.
+
+---
+
+# Git Hygiene / Commit Cadence
+
+After completing a logical change and running the relevant checks, stage only
+the files or hunks related to that change and commit before moving to unrelated
+work.
+
+Preferred cadence:
+
+1. Inspect `git status --short` before editing.
+2. Make one coherent change.
+3. Run the smallest meaningful YAML, dashboard, script, or config checks.
+4. Inspect the staged diff with `git diff --cached --stat` and `git diff --cached --check`.
+5. Commit the logical slice with a clear message.
+
+When the worktree already contains unrelated edits, preserve them. Use focused
+staging instead of broad whole-file commits until each commit is thematically
+clean.
+
+Do not commit scratch files, local test payloads, `.DS_Store`, caches, logs, or
+secrets.
 
 ---
 
