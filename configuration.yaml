@@ -167,6 +167,53 @@ input_datetime:
     name: Piano Tuning Snooze Until
     has_date: true
     has_time: true
+  # EuroCave La Premiere L Wine Cellar
+  # appliance_slug: eurocave-la-premiere-l-wine-cellar
+  # durable record: ../house-manager/appliances/eurocave-la-premiere-l-wine-cellar.md
+  # manual: ../house-manager/appliances/sources/eurocave-la-premiere-l-wine-cellar/2026-04-26_eurocave_manual_la-premiere-user-manual.pdf
+  wine_cave_purchase_date:
+    name: Wine Cave Purchase Date
+    has_date: true
+    has_time: false
+    initial: "2026-01-06"
+  wine_cave_delivery_date:
+    name: Wine Cave Delivery Date
+    has_date: true
+    has_time: false
+    initial: "2026-01-20"
+  wine_cave_placed_in_service_date:
+    name: Wine Cave Placed In Service Date
+    has_date: true
+    has_time: false
+    initial: "2026-01-25"
+  wine_cave_last_charcoal_filter_check:
+    name: Wine Cave Last Charcoal Filter Check
+    has_date: true
+    has_time: false
+    initial: "2026-01-25"
+  wine_cave_last_cabinet_cleaning:
+    name: Wine Cave Last Cabinet Cleaning
+    has_date: true
+    has_time: false
+    initial: "2026-01-25"
+  wine_cave_last_humidity_cartridge_check:
+    name: Wine Cave Last Humidity Cartridge Check
+    has_date: true
+    has_time: false
+    initial: "2026-01-25"
+  wine_cave_charcoal_filter_snooze_until:
+    name: Wine Cave Charcoal Filter Snooze Until
+    has_date: true
+    has_time: true
+  wine_cave_cabinet_cleaning_snooze_until:
+    name: Wine Cave Cabinet Cleaning Snooze Until
+    has_date: true
+    has_time: true
+  wine_cave_parts_labor_warranty_review:
+    name: Wine Cave Parts Labor Warranty Review
+    has_date: true
+    has_time: false
+    initial: "2027-01-06"
 
 input_text:
   latest_camera_motion_label:
@@ -250,6 +297,18 @@ input_boolean:
     name: Garden Spinach In Ground
     icon: mdi:shovel
     initial: true
+  wine_cave_maintenance_enabled:
+    name: Wine Cave Maintenance Enabled
+    icon: mdi:calendar-check-outline
+    initial: true
+  wine_cave_rating_plate_captured:
+    name: Wine Cave Rating Plate Captured
+    icon: mdi:tag-check-outline
+    initial: false
+  wine_cave_rating_plate_reminder_sent:
+    name: Wine Cave Rating Plate Reminder Sent
+    icon: mdi:bell-check-outline
+    initial: false
 
 input_select:
   downstairs_season_mode:
@@ -512,6 +571,61 @@ template:
           {{ ((states('sensor.wine_humidity_24h_stats') | float(0))
             - (states('sensor.wine_humidity_7d_stats') | float(0))) | round(1) }}
 
+      - name: "Wine Cave Appliance Context"
+        unique_id: wine_cave_appliance_context
+        state: "eurocave-la-premiere-l-wine-cellar"
+        icon: mdi:file-cabinet
+        attributes:
+          appliance_slug: "eurocave-la-premiere-l-wine-cellar"
+          durable_record_path: "../house-manager/appliances/eurocave-la-premiere-l-wine-cellar.md"
+          source_manual_path: "../house-manager/appliances/sources/eurocave-la-premiere-l-wine-cellar/2026-04-26_eurocave_manual_la-premiere-user-manual.pdf"
+          purchase_date: "{{ states('input_datetime.wine_cave_purchase_date') }}"
+          delivery_date: "{{ states('input_datetime.wine_cave_delivery_date') }}"
+          placed_in_service_date: "{{ states('input_datetime.wine_cave_placed_in_service_date') }}"
+          placed_in_service_note: "Approximate; house-manager preserves 2026-01-24 to 2026-01-25."
+          parts_labor_warranty_review_date: "{{ states('input_datetime.wine_cave_parts_labor_warranty_review') }}"
+          warranty_note: "Conservative purchase-date review; warranty start basis is still tracked in house-manager."
+
+      - name: "Wine Cave Next Charcoal Filter Due"
+        unique_id: wine_cave_next_charcoal_filter_due
+        device_class: date
+        icon: mdi:air-filter
+        state: >
+          {% set last = states('input_datetime.wine_cave_last_charcoal_filter_check') %}
+          {% set last_ts = as_timestamp(last, 0) %}
+          {{ (last_ts + 31536000) | timestamp_custom('%Y-%m-%d', true) if last_ts > 0 else 'unknown' }}
+
+      - name: "Wine Cave Next Cleaning Due"
+        unique_id: wine_cave_next_cleaning_due
+        device_class: date
+        icon: mdi:spray-bottle
+        state: >
+          {% set last = states('input_datetime.wine_cave_last_cabinet_cleaning') %}
+          {% set last_ts = as_timestamp(last, 0) %}
+          {{ (last_ts + 31536000) | timestamp_custom('%Y-%m-%d', true) if last_ts > 0 else 'unknown' }}
+
+      - name: "Wine Cave Maintenance Status"
+        unique_id: wine_cave_maintenance_status
+        state: >
+          {% if not is_state('input_boolean.wine_cave_maintenance_enabled', 'on') %}
+            Off
+          {% elif is_state('binary_sensor.wine_cave_charcoal_filter_due', 'on') %}
+            Charcoal filter due
+          {% elif is_state('binary_sensor.wine_cave_cabinet_cleaning_due', 'on') %}
+            Cleaning due
+          {% elif not is_state('input_boolean.wine_cave_rating_plate_captured', 'on') %}
+            Serial pending
+          {% else %}
+            Current
+          {% endif %}
+        icon: >
+          {% if is_state('binary_sensor.wine_cave_maintenance_due', 'on') %}
+            mdi:calendar-alert
+          {% elif is_state('input_boolean.wine_cave_rating_plate_captured', 'off') %}
+            mdi:tag-outline
+          {% else %}
+            mdi:calendar-check-outline
+          {% endif %}
 
       - name: "Piano Next Tuning Due"
         unique_id: piano_next_tuning_due
@@ -778,6 +892,43 @@ template:
              or is_state('binary_sensor.espresso_cafiza_clean_due', 'on')) }}
         icon: >
           {{ 'mdi:coffee-maker-alert-outline' if is_state('binary_sensor.espresso_maintenance_due', 'on') else 'mdi:coffee-maker-check-outline' }}
+
+      - name: "Wine Cave Charcoal Filter Due"
+        unique_id: wine_cave_charcoal_filter_due
+        state: >
+          {% set last = states('input_datetime.wine_cave_last_charcoal_filter_check') %}
+          {% set last_ts = as_timestamp(last, 0) %}
+          {% set snooze = states('input_datetime.wine_cave_charcoal_filter_snooze_until') %}
+          {% set snoozed = snooze not in ['unknown', 'unavailable', '']
+             and as_timestamp(snooze, 0) > as_timestamp(now()) %}
+          {{ last_ts > 0
+             and not snoozed
+             and (as_timestamp(now()) - last_ts) >= 31536000 }}
+        icon: >
+          {{ 'mdi:air-filter' if is_state('binary_sensor.wine_cave_charcoal_filter_due', 'on') else 'mdi:air-filter-check' }}
+
+      - name: "Wine Cave Cabinet Cleaning Due"
+        unique_id: wine_cave_cabinet_cleaning_due
+        state: >
+          {% set last = states('input_datetime.wine_cave_last_cabinet_cleaning') %}
+          {% set last_ts = as_timestamp(last, 0) %}
+          {% set snooze = states('input_datetime.wine_cave_cabinet_cleaning_snooze_until') %}
+          {% set snoozed = snooze not in ['unknown', 'unavailable', '']
+             and as_timestamp(snooze, 0) > as_timestamp(now()) %}
+          {{ last_ts > 0
+             and not snoozed
+             and (as_timestamp(now()) - last_ts) >= 31536000 }}
+        icon: >
+          {{ 'mdi:spray-bottle' if is_state('binary_sensor.wine_cave_cabinet_cleaning_due', 'on') else 'mdi:spray-bottle-variant' }}
+
+      - name: "Wine Cave Maintenance Due"
+        unique_id: wine_cave_maintenance_due
+        state: >
+          {{ is_state('input_boolean.wine_cave_maintenance_enabled', 'on')
+             and (is_state('binary_sensor.wine_cave_charcoal_filter_due', 'on')
+             or is_state('binary_sensor.wine_cave_cabinet_cleaning_due', 'on')) }}
+        icon: >
+          {{ 'mdi:calendar-alert' if is_state('binary_sensor.wine_cave_maintenance_due', 'on') else 'mdi:calendar-check-outline' }}
 
       - name: "Piano Tuning Due"
         unique_id: piano_tuning_due
@@ -1319,24 +1470,39 @@ template:
         unique_id: wine_cave_cooling_cycle
         availability: >
           {{ is_number(states('sensor.wine_temperature'))
-             and is_number(states('sensor.wine_humidity'))
-             and is_number(states('sensor.wine_cave_absolute_humidity_24h_delta'))
-             and is_number(states('sensor.wine_cave_dew_point_margin')) }}
+             and is_number(states('sensor.wine_humidity')) }}
         state: >
           {% set temp = states('sensor.wine_temperature') | float(0) %}
           {% set humidity = states('sensor.wine_humidity') | float(0) %}
-          {% set ah_delta = states('sensor.wine_cave_absolute_humidity_24h_delta') | float(0) %}
-          {% set dew_margin = states('sensor.wine_cave_dew_point_margin') | float(0) %}
           {{ temp >= 50 and temp <= 60
-             and humidity >= 70
-             and (ah_delta | abs) <= 0.35
-             and dew_margin >= 8 }}
+             and humidity >= 42
+             and humidity < 50 }}
         delay_on:
           minutes: 3
         delay_off:
           minutes: 15
         icon: >
           {{ 'mdi:snowflake-thermometer' if is_state('binary_sensor.wine_cave_cooling_cycle', 'on') else 'mdi:snowflake-off' }}
+
+      - name: "Wine Cave Cycle Settled"
+        unique_id: wine_cave_cycle_settled
+        availability: >
+          {{ is_number(states('sensor.wine_temperature'))
+             and is_number(states('sensor.wine_humidity')) }}
+        state: >
+          {% set temp = states('sensor.wine_temperature') | float(0) %}
+          {% set humidity = states('sensor.wine_humidity') | float(0) %}
+          {{ temp >= 50 and temp <= 60
+             and humidity >= 50
+             and humidity <= 65
+             and is_state('binary_sensor.wine_cave_sensor_unavailable', 'off')
+             and is_state('binary_sensor.wine_cave_temp_high_alert', 'off')
+             and is_state('binary_sensor.wine_cave_temp_low_alert', 'off')
+             and is_state('binary_sensor.wine_cave_condensation_risk', 'off') }}
+        delay_on:
+          minutes: 10
+        icon: >
+          {{ 'mdi:check-circle-outline' if is_state('binary_sensor.wine_cave_cycle_settled', 'on') else 'mdi:clock-outline' }}
 
       - name: "Wine Cave Temp High Alert"
         unique_id: wine_cave_temp_high_alert
@@ -1376,13 +1542,17 @@ template:
           {% set humidity = states('sensor.wine_humidity') | float(0) %}
           {% set ah_delta = states('sensor.wine_cave_absolute_humidity_24h_delta') | float(0) %}
           {% set dew_margin = states('sensor.wine_cave_dew_point_margin') | float(0) %}
-          {% set cycle_like = temp >= 50 and temp <= 60
+          {% set normal_dry_cycle = temp >= 50 and temp <= 60
+            and humidity >= 42
+            and humidity < 50 %}
+          {% set cycle_like_high = temp >= 50 and temp <= 60
             and humidity >= 70
             and (ah_delta | abs) <= 0.35
             and dew_margin >= 8 %}
-          {{ humidity < 50
+          {{ humidity < 42
+             or (humidity < 50 and not normal_dry_cycle)
              or (humidity > 70
-             and not cycle_like
+             and not cycle_like_high
              and (ah_delta | abs) >= 0.5) }}
         delay_on:
           minutes: 15
@@ -1819,6 +1989,248 @@ template:
           basement: "{{ states('sensor.environment_basement_status') }}"
           garage: "{{ states('sensor.environment_garage_status') }}"
           attic: "{{ states('sensor.environment_attic_status') }}"
+
+      - name: "House Low Battery Summary"
+        unique_id: house_low_battery_summary
+        state: >
+          {% set batteries = {
+            'sensor.aqara_smart_lock_u100_battery': 'Garage entry lock',
+            'sensor.back_patio_battery': 'Back Patio sensor',
+            'sensor.back_stairs_battery': 'Back Stairs sensor',
+            'sensor.basement_air_quality_battery': 'Basement Airthings',
+            'sensor.basement_ejector_leak_detection_battery': 'Basement Ejector leak sensor',
+            'sensor.dishwasher_leak_detection_battery': 'Dishwasher leak sensor',
+            'sensor.electrical_room_leak_detection_battery': 'Electrical Room leak sensor',
+            'sensor.front_door_battery': 'Front Door sensor',
+            'sensor.island_sink_leak_detection_battery': 'Island Sink leak sensor',
+            'sensor.kitchen_fridge_leak_detection_battery': 'Kitchen Fridge leak sensor',
+            'sensor.kitchen_sink_leak_detection_battery': 'Kitchen Sink leak sensor',
+            'sensor.laundry_sink_leak_detection_battery': 'Laundry Sink leak sensor',
+            'sensor.master_sensor_new_battery_2': 'Primary Bedroom room sensor',
+            'sensor.mechanical_room_leak_detection_battery': 'Mechanical Room leak sensor',
+            'sensor.mudroom_door_battery': 'Mudroom Door sensor',
+            'sensor.washing_machine_leak_detection_battery': 'Washing Machine leak sensor',
+            'sensor.wynn_room_battery': 'Wynn Room sensor'
+          } %}
+          {% set ns = namespace(count=0) %}
+          {% for entity, label in batteries.items() %}
+            {% set value = states(entity) %}
+            {% if is_number(value) and (value | float(100)) <= 20 %}
+              {% set ns.count = ns.count + 1 %}
+            {% endif %}
+          {% endfor %}
+          {{ ns.count }}
+        icon: >
+          {{ 'mdi:battery-alert' if (states('sensor.house_low_battery_summary') | int(0)) > 0 else 'mdi:battery-check' }}
+        attributes:
+          threshold: 20
+          getting_low_threshold: 20
+          replace_soon_threshold: 10
+          critical_threshold: 5
+          monitored_batteries: 17
+          excluded: "Phones, tablets, battery type sensors, and voltage-only sensors."
+          severity: >
+            {% set batteries = {
+              'sensor.aqara_smart_lock_u100_battery': 'Garage entry lock',
+              'sensor.back_patio_battery': 'Back Patio sensor',
+              'sensor.back_stairs_battery': 'Back Stairs sensor',
+              'sensor.basement_air_quality_battery': 'Basement Airthings',
+              'sensor.basement_ejector_leak_detection_battery': 'Basement Ejector leak sensor',
+              'sensor.dishwasher_leak_detection_battery': 'Dishwasher leak sensor',
+              'sensor.electrical_room_leak_detection_battery': 'Electrical Room leak sensor',
+              'sensor.front_door_battery': 'Front Door sensor',
+              'sensor.island_sink_leak_detection_battery': 'Island Sink leak sensor',
+              'sensor.kitchen_fridge_leak_detection_battery': 'Kitchen Fridge leak sensor',
+              'sensor.kitchen_sink_leak_detection_battery': 'Kitchen Sink leak sensor',
+              'sensor.laundry_sink_leak_detection_battery': 'Laundry Sink leak sensor',
+              'sensor.master_sensor_new_battery_2': 'Primary Bedroom room sensor',
+              'sensor.mechanical_room_leak_detection_battery': 'Mechanical Room leak sensor',
+              'sensor.mudroom_door_battery': 'Mudroom Door sensor',
+              'sensor.washing_machine_leak_detection_battery': 'Washing Machine leak sensor',
+              'sensor.wynn_room_battery': 'Wynn Room sensor'
+            } %}
+            {% set ns = namespace(critical=false, replace_soon=false, getting_low=false) %}
+            {% for entity, label in batteries.items() %}
+              {% set value = states(entity) %}
+              {% if is_number(value) %}
+                {% set level = value | float(100) %}
+                {% if level <= 5 %}{% set ns.critical = true %}
+                {% elif level <= 10 %}{% set ns.replace_soon = true %}
+                {% elif level <= 20 %}{% set ns.getting_low = true %}
+                {% endif %}
+              {% endif %}
+            {% endfor %}
+            {% if ns.critical %}critical
+            {% elif ns.replace_soon %}replace_soon
+            {% elif ns.getting_low %}getting_low
+            {% else %}clear{% endif %}
+          critical_batteries: >
+            {% set batteries = {
+              'sensor.aqara_smart_lock_u100_battery': 'Garage entry lock',
+              'sensor.back_patio_battery': 'Back Patio sensor',
+              'sensor.back_stairs_battery': 'Back Stairs sensor',
+              'sensor.basement_air_quality_battery': 'Basement Airthings',
+              'sensor.basement_ejector_leak_detection_battery': 'Basement Ejector leak sensor',
+              'sensor.dishwasher_leak_detection_battery': 'Dishwasher leak sensor',
+              'sensor.electrical_room_leak_detection_battery': 'Electrical Room leak sensor',
+              'sensor.front_door_battery': 'Front Door sensor',
+              'sensor.island_sink_leak_detection_battery': 'Island Sink leak sensor',
+              'sensor.kitchen_fridge_leak_detection_battery': 'Kitchen Fridge leak sensor',
+              'sensor.kitchen_sink_leak_detection_battery': 'Kitchen Sink leak sensor',
+              'sensor.laundry_sink_leak_detection_battery': 'Laundry Sink leak sensor',
+              'sensor.master_sensor_new_battery_2': 'Primary Bedroom room sensor',
+              'sensor.mechanical_room_leak_detection_battery': 'Mechanical Room leak sensor',
+              'sensor.mudroom_door_battery': 'Mudroom Door sensor',
+              'sensor.washing_machine_leak_detection_battery': 'Washing Machine leak sensor',
+              'sensor.wynn_room_battery': 'Wynn Room sensor'
+            } %}
+            {% set ns = namespace(items=[]) %}
+            {% for entity, label in batteries.items() %}
+              {% set value = states(entity) %}
+              {% if is_number(value) and (value | float(100)) <= 5 %}
+                {% set ns.items = ns.items + [label ~ ' ' ~ (value | float(0) | round(0) | int) ~ '%'] %}
+              {% endif %}
+            {% endfor %}
+            {{ ns.items | join(', ') if ns.items else 'Clear' }}
+          replace_soon_batteries: >
+            {% set batteries = {
+              'sensor.aqara_smart_lock_u100_battery': 'Garage entry lock',
+              'sensor.back_patio_battery': 'Back Patio sensor',
+              'sensor.back_stairs_battery': 'Back Stairs sensor',
+              'sensor.basement_air_quality_battery': 'Basement Airthings',
+              'sensor.basement_ejector_leak_detection_battery': 'Basement Ejector leak sensor',
+              'sensor.dishwasher_leak_detection_battery': 'Dishwasher leak sensor',
+              'sensor.electrical_room_leak_detection_battery': 'Electrical Room leak sensor',
+              'sensor.front_door_battery': 'Front Door sensor',
+              'sensor.island_sink_leak_detection_battery': 'Island Sink leak sensor',
+              'sensor.kitchen_fridge_leak_detection_battery': 'Kitchen Fridge leak sensor',
+              'sensor.kitchen_sink_leak_detection_battery': 'Kitchen Sink leak sensor',
+              'sensor.laundry_sink_leak_detection_battery': 'Laundry Sink leak sensor',
+              'sensor.master_sensor_new_battery_2': 'Primary Bedroom room sensor',
+              'sensor.mechanical_room_leak_detection_battery': 'Mechanical Room leak sensor',
+              'sensor.mudroom_door_battery': 'Mudroom Door sensor',
+              'sensor.washing_machine_leak_detection_battery': 'Washing Machine leak sensor',
+              'sensor.wynn_room_battery': 'Wynn Room sensor'
+            } %}
+            {% set ns = namespace(items=[]) %}
+            {% for entity, label in batteries.items() %}
+              {% set value = states(entity) %}
+              {% if is_number(value) and (value | float(100)) > 5 and (value | float(100)) <= 10 %}
+                {% set ns.items = ns.items + [label ~ ' ' ~ (value | float(0) | round(0) | int) ~ '%'] %}
+              {% endif %}
+            {% endfor %}
+            {{ ns.items | join(', ') if ns.items else 'Clear' }}
+          getting_low_batteries: >
+            {% set batteries = {
+              'sensor.aqara_smart_lock_u100_battery': 'Garage entry lock',
+              'sensor.back_patio_battery': 'Back Patio sensor',
+              'sensor.back_stairs_battery': 'Back Stairs sensor',
+              'sensor.basement_air_quality_battery': 'Basement Airthings',
+              'sensor.basement_ejector_leak_detection_battery': 'Basement Ejector leak sensor',
+              'sensor.dishwasher_leak_detection_battery': 'Dishwasher leak sensor',
+              'sensor.electrical_room_leak_detection_battery': 'Electrical Room leak sensor',
+              'sensor.front_door_battery': 'Front Door sensor',
+              'sensor.island_sink_leak_detection_battery': 'Island Sink leak sensor',
+              'sensor.kitchen_fridge_leak_detection_battery': 'Kitchen Fridge leak sensor',
+              'sensor.kitchen_sink_leak_detection_battery': 'Kitchen Sink leak sensor',
+              'sensor.laundry_sink_leak_detection_battery': 'Laundry Sink leak sensor',
+              'sensor.master_sensor_new_battery_2': 'Primary Bedroom room sensor',
+              'sensor.mechanical_room_leak_detection_battery': 'Mechanical Room leak sensor',
+              'sensor.mudroom_door_battery': 'Mudroom Door sensor',
+              'sensor.washing_machine_leak_detection_battery': 'Washing Machine leak sensor',
+              'sensor.wynn_room_battery': 'Wynn Room sensor'
+            } %}
+            {% set ns = namespace(items=[]) %}
+            {% for entity, label in batteries.items() %}
+              {% set value = states(entity) %}
+              {% if is_number(value) and (value | float(100)) > 10 and (value | float(100)) <= 20 %}
+                {% set ns.items = ns.items + [label ~ ' ' ~ (value | float(0) | round(0) | int) ~ '%'] %}
+              {% endif %}
+            {% endfor %}
+            {{ ns.items | join(', ') if ns.items else 'Clear' }}
+          low_batteries: >
+            {% set batteries = {
+              'sensor.aqara_smart_lock_u100_battery': 'Garage entry lock',
+              'sensor.back_patio_battery': 'Back Patio sensor',
+              'sensor.back_stairs_battery': 'Back Stairs sensor',
+              'sensor.basement_air_quality_battery': 'Basement Airthings',
+              'sensor.basement_ejector_leak_detection_battery': 'Basement Ejector leak sensor',
+              'sensor.dishwasher_leak_detection_battery': 'Dishwasher leak sensor',
+              'sensor.electrical_room_leak_detection_battery': 'Electrical Room leak sensor',
+              'sensor.front_door_battery': 'Front Door sensor',
+              'sensor.island_sink_leak_detection_battery': 'Island Sink leak sensor',
+              'sensor.kitchen_fridge_leak_detection_battery': 'Kitchen Fridge leak sensor',
+              'sensor.kitchen_sink_leak_detection_battery': 'Kitchen Sink leak sensor',
+              'sensor.laundry_sink_leak_detection_battery': 'Laundry Sink leak sensor',
+              'sensor.master_sensor_new_battery_2': 'Primary Bedroom room sensor',
+              'sensor.mechanical_room_leak_detection_battery': 'Mechanical Room leak sensor',
+              'sensor.mudroom_door_battery': 'Mudroom Door sensor',
+              'sensor.washing_machine_leak_detection_battery': 'Washing Machine leak sensor',
+              'sensor.wynn_room_battery': 'Wynn Room sensor'
+            } %}
+            {% set ns = namespace(items=[]) %}
+            {% for entity, label in batteries.items() %}
+              {% set value = states(entity) %}
+              {% if is_number(value) and (value | float(100)) <= 20 %}
+                {% set ns.items = ns.items + [label ~ ' ' ~ (value | float(0) | round(0) | int) ~ '%'] %}
+              {% endif %}
+            {% endfor %}
+            {{ ns.items | join(', ') if ns.items else 'Clear' }}
+          low_battery_entities: >
+            {% set batteries = [
+              'sensor.aqara_smart_lock_u100_battery',
+              'sensor.back_patio_battery',
+              'sensor.back_stairs_battery',
+              'sensor.basement_air_quality_battery',
+              'sensor.basement_ejector_leak_detection_battery',
+              'sensor.dishwasher_leak_detection_battery',
+              'sensor.electrical_room_leak_detection_battery',
+              'sensor.front_door_battery',
+              'sensor.island_sink_leak_detection_battery',
+              'sensor.kitchen_fridge_leak_detection_battery',
+              'sensor.kitchen_sink_leak_detection_battery',
+              'sensor.laundry_sink_leak_detection_battery',
+              'sensor.master_sensor_new_battery_2',
+              'sensor.mechanical_room_leak_detection_battery',
+              'sensor.mudroom_door_battery',
+              'sensor.washing_machine_leak_detection_battery',
+              'sensor.wynn_room_battery'
+            ] %}
+            {% set ns = namespace(items=[]) %}
+            {% for entity in batteries %}
+              {% set value = states(entity) %}
+              {% if is_number(value) and (value | float(100)) <= 20 %}
+                {% set ns.items = ns.items + [entity] %}
+              {% endif %}
+            {% endfor %}
+            {{ ns.items | join(', ') if ns.items else 'Clear' }}
+          unknown_batteries: >
+            {% set batteries = {
+              'sensor.aqara_smart_lock_u100_battery': 'Garage entry lock',
+              'sensor.back_patio_battery': 'Back Patio sensor',
+              'sensor.back_stairs_battery': 'Back Stairs sensor',
+              'sensor.basement_air_quality_battery': 'Basement Airthings',
+              'sensor.basement_ejector_leak_detection_battery': 'Basement Ejector leak sensor',
+              'sensor.dishwasher_leak_detection_battery': 'Dishwasher leak sensor',
+              'sensor.electrical_room_leak_detection_battery': 'Electrical Room leak sensor',
+              'sensor.front_door_battery': 'Front Door sensor',
+              'sensor.island_sink_leak_detection_battery': 'Island Sink leak sensor',
+              'sensor.kitchen_fridge_leak_detection_battery': 'Kitchen Fridge leak sensor',
+              'sensor.kitchen_sink_leak_detection_battery': 'Kitchen Sink leak sensor',
+              'sensor.laundry_sink_leak_detection_battery': 'Laundry Sink leak sensor',
+              'sensor.master_sensor_new_battery_2': 'Primary Bedroom room sensor',
+              'sensor.mechanical_room_leak_detection_battery': 'Mechanical Room leak sensor',
+              'sensor.mudroom_door_battery': 'Mudroom Door sensor',
+              'sensor.washing_machine_leak_detection_battery': 'Washing Machine leak sensor',
+              'sensor.wynn_room_battery': 'Wynn Room sensor'
+            } %}
+            {% set ns = namespace(items=[]) %}
+            {% for entity, label in batteries.items() %}
+              {% if states(entity) in ['unknown', 'unavailable', 'none', ''] %}
+                {% set ns.items = ns.items + [label] %}
+              {% endif %}
+            {% endfor %}
+            {{ ns.items | join(', ') if ns.items else 'None' }}
 
   - binary_sensor:
       - name: "Environment Kitchen Temp High Alert"

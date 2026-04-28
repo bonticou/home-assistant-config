@@ -1418,6 +1418,187 @@ entry_camera_send_alert:
             entry-{{ zone }}-{{ kind }}
           url: /calm-mobile/home
 
+wine_cave_send_charcoal_filter_reminder:
+  alias: Wine Cave Send Charcoal Filter Reminder
+  description: Sends the annual wine cave charcoal filter reminder with quick actions.
+  icon: mdi:air-filter
+  mode: restart
+  sequence:
+    - action: script.notify_trevor_phone
+      data:
+        title: "🍷🌬️ Wine cave charcoal filter"
+        message: >-
+          The wine cave charcoal filter is due for its annual check or replacement.
+          Replace the active charcoal filter if needed, then reset the filter meter.
+          House-manager record: ../house-manager/appliances/eurocave-la-premiere-l-wine-cellar.md.
+        data:
+          group: wine-cave-maintenance
+          tag: wine-cave-charcoal-filter
+          url: /calm-mobile/wine
+          actions:
+            - action: WINE_CAVE_CHARCOAL_REPLACED
+              title: Replaced
+            - action: WINE_CAVE_CHARCOAL_SNOOZE_30
+              title: Snooze 30d
+            - action: URI
+              title: Open wine cave
+              uri: /calm-mobile/wine
+
+wine_cave_mark_charcoal_filter_replaced:
+  alias: Wine Cave Mark Charcoal Filter Replaced
+  description: Stamps the wine cave charcoal filter check/replacement date.
+  icon: mdi:air-filter-check
+  mode: restart
+  sequence:
+    - variables:
+        wine_cave_today: "{{ now().strftime('%Y-%m-%d') }}"
+        wine_cave_now: "{{ now().strftime('%Y-%m-%d %H:%M:%S') }}"
+    - action: input_datetime.set_datetime
+      target:
+        entity_id: input_datetime.wine_cave_last_charcoal_filter_check
+      data:
+        date: "{{ wine_cave_today }}"
+    - action: input_datetime.set_datetime
+      target:
+        entity_id: input_datetime.wine_cave_charcoal_filter_snooze_until
+      data:
+        datetime: "{{ wine_cave_now }}"
+    - action: script.wine_cave_clear_charcoal_filter_notification
+
+wine_cave_snooze_charcoal_filter:
+  alias: Wine Cave Snooze Charcoal Filter
+  description: Snoozes the wine cave charcoal filter reminder for 30 days.
+  icon: mdi:alarm-snooze
+  mode: restart
+  sequence:
+    - action: input_datetime.set_datetime
+      target:
+        entity_id: input_datetime.wine_cave_charcoal_filter_snooze_until
+      data:
+        datetime: "{{ (now() + timedelta(days=30)).strftime('%Y-%m-%d %H:%M:%S') }}"
+    - action: script.wine_cave_clear_charcoal_filter_notification
+
+wine_cave_clear_charcoal_filter_notification:
+  alias: Wine Cave Clear Charcoal Filter Notification
+  description: Clears the active wine cave charcoal filter notification tag.
+  icon: mdi:air-filter-check
+  mode: restart
+  sequence:
+    - action: script.notify_trevor_phone
+      data:
+        message: clear_notification
+        data:
+          tag: wine-cave-charcoal-filter
+
+wine_cave_send_cabinet_cleaning_reminder:
+  alias: Wine Cave Send Cabinet Cleaning Reminder
+  description: Sends the annual wine cave cabinet cleaning reminder with quick actions.
+  icon: mdi:spray-bottle
+  mode: restart
+  sequence:
+    - action: script.notify_trevor_phone
+      data:
+        title: "🍷🧼 Wine cave cabinet cleaning"
+        message: >-
+          Time for the annual wine cave cabinet cleaning.
+          Clean the cabinet surfaces and check for stale moisture, odors, or mold risk.
+          Keep the full appliance history in house-manager, not Home Assistant.
+        data:
+          group: wine-cave-maintenance
+          tag: wine-cave-cabinet-cleaning
+          url: /calm-mobile/wine
+          actions:
+            - action: WINE_CAVE_CLEANING_DONE
+              title: Cleaning done
+            - action: WINE_CAVE_CLEANING_SNOOZE_30
+              title: Snooze 30d
+
+wine_cave_mark_cabinet_cleaning_done:
+  alias: Wine Cave Mark Cabinet Cleaning Done
+  description: Stamps the wine cave cabinet cleaning date.
+  icon: mdi:spray-bottle-variant
+  mode: restart
+  sequence:
+    - variables:
+        wine_cave_today: "{{ now().strftime('%Y-%m-%d') }}"
+        wine_cave_now: "{{ now().strftime('%Y-%m-%d %H:%M:%S') }}"
+    - action: input_datetime.set_datetime
+      target:
+        entity_id: input_datetime.wine_cave_last_cabinet_cleaning
+      data:
+        date: "{{ wine_cave_today }}"
+    - action: input_datetime.set_datetime
+      target:
+        entity_id: input_datetime.wine_cave_cabinet_cleaning_snooze_until
+      data:
+        datetime: "{{ wine_cave_now }}"
+    - action: script.wine_cave_clear_cabinet_cleaning_notification
+
+wine_cave_snooze_cabinet_cleaning:
+  alias: Wine Cave Snooze Cabinet Cleaning
+  description: Snoozes the wine cave cabinet cleaning reminder for 30 days.
+  icon: mdi:alarm-snooze
+  mode: restart
+  sequence:
+    - action: input_datetime.set_datetime
+      target:
+        entity_id: input_datetime.wine_cave_cabinet_cleaning_snooze_until
+      data:
+        datetime: "{{ (now() + timedelta(days=30)).strftime('%Y-%m-%d %H:%M:%S') }}"
+    - action: script.wine_cave_clear_cabinet_cleaning_notification
+
+wine_cave_clear_cabinet_cleaning_notification:
+  alias: Wine Cave Clear Cabinet Cleaning Notification
+  description: Clears the active wine cave cabinet cleaning notification tag.
+  icon: mdi:spray-bottle-variant
+  mode: restart
+  sequence:
+    - action: script.notify_trevor_phone
+      data:
+        message: clear_notification
+        data:
+          tag: wine-cave-cabinet-cleaning
+
+wine_cave_send_rating_plate_reminder:
+  alias: Wine Cave Send Rating Plate Reminder
+  description: Sends a one-time prompt to capture the wine cave rating plate and serial number.
+  icon: mdi:tag-outline
+  mode: single
+  sequence:
+    - action: script.notify_trevor_phone
+      data:
+        title: "🍷🏷️ Wine cave serial number"
+        message: >-
+          When it is convenient, capture the wine cave rating plate and serial number
+          so the house-manager appliance record has the exact support identity.
+        data:
+          group: wine-cave-maintenance
+          tag: wine-cave-rating-plate
+          url: /calm-mobile/wine
+          actions:
+            - action: WINE_CAVE_RATING_PLATE_CAPTURED
+              title: Captured
+            - action: URI
+              title: Open wine cave
+              uri: /calm-mobile/wine
+
+wine_cave_mark_rating_plate_captured:
+  alias: Wine Cave Mark Rating Plate Captured
+  description: Marks the wine cave rating plate/serial number task as captured.
+  icon: mdi:tag-check-outline
+  mode: restart
+  sequence:
+    - action: input_boolean.turn_on
+      target:
+        entity_id:
+          - input_boolean.wine_cave_rating_plate_captured
+          - input_boolean.wine_cave_rating_plate_reminder_sent
+    - action: script.notify_trevor_phone
+      data:
+        message: clear_notification
+        data:
+          tag: wine-cave-rating-plate
+
 wine_cave_send_alert:
   alias: Wine Cave Send Alert
   description: Sends a mobile notification for wine cave cycles, anomalies, and recovery with a consistent calm format.
@@ -1429,15 +1610,32 @@ wine_cave_send_alert:
       example: cycle
     message:
       description: Notification body text
+    severity:
+      description: Optional severity override
+      example: urgent
   sequence:
     - variables:
         kind: "{{ alert_kind | default('status') }}"
         notification_message: "{{ message | default('', true) }}"
-    - action: script.notify_trevor_phone
-      data:
-        title: >-
+        resolved_severity: >-
+          {% if severity is defined and severity | default('', true) != '' %}
+            {{ severity }}
+          {% elif kind in ['temp_high', 'temp_low'] %}
+            urgent
+          {% elif kind in ['cycle', 'cycle_settled'] %}
+            info
+          {% else %}
+            watch
+          {% endif %}
+        notification_title: >-
           {% if kind == 'cycle' %}
             ❄️ Wine cave cooling cycle
+          {% elif kind == 'cycle_settled' %}
+            ✅ Wine cave cycle settled
+          {% elif kind == 'cycle_overdue' %}
+            ⚠️ Wine cave cycle is still recovering
+          {% elif kind == 'unresolved' %}
+            🚨 Wine cave still needs attention
           {% elif kind == 'temp_high' %}
             🌡️ Wine cave is running warm
           {% elif kind == 'temp_low' %}
@@ -1457,11 +1655,42 @@ wine_cave_send_alert:
           {% else %}
             🍷 Wine cave update
           {% endif %}
-        message: "{{ notification_message }}"
-        data:
-          group: wine-cave
-          tag: "wine-cave-{{ kind }}"
-          url: /calm-mobile/wine
+        notification_tag: >-
+          {% if kind in ['cycle', 'cycle_settled'] %}
+            wine-cave-cycle
+          {% elif kind == 'cycle_overdue' %}
+            wine-cave-overdue
+          {% elif kind == 'unresolved' %}
+            wine-cave-unresolved
+          {% else %}
+            wine-cave-{{ kind }}
+          {% endif %}
+    - choose:
+        - conditions:
+            - condition: template
+              value_template: "{{ resolved_severity == 'urgent' }}"
+          sequence:
+            - action: script.notify_trevor_phone
+              data:
+                title: "{{ notification_title }}"
+                message: "{{ notification_message }}"
+                data:
+                  group: wine-cave
+                  tag: "{{ notification_tag }}"
+                  url: /calm-mobile/wine
+                  sticky: true
+                  ttl: 0
+                  priority: high
+      default:
+        - action: script.notify_trevor_phone
+          data:
+            title: "{{ notification_title }}"
+            message: "{{ notification_message }}"
+            data:
+              group: wine-cave
+              tag: "{{ notification_tag }}"
+              url: /calm-mobile/wine
+              sticky: false
 
 environment_send_alert:
   alias: Environment Send Alert

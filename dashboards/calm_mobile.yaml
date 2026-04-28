@@ -4991,6 +4991,93 @@ views:
               action: more-info
 
       - type: custom:mushroom-title-card
+        title: Appliance
+
+      - type: custom:mushroom-template-card
+        entity: sensor.wine_cave_appliance_context
+        primary: Wine cave
+        secondary: >-
+          {% set slug = state_attr('sensor.wine_cave_appliance_context', 'appliance_slug') %}
+          {% set record = state_attr('sensor.wine_cave_appliance_context', 'durable_record_path') %}
+          house-manager: {{ slug }}
+          · in service ~{{ states('input_datetime.wine_cave_placed_in_service_date') }}
+          Record: {{ record }}
+        icon: mdi:file-cabinet
+        icon_color: blue-grey
+        multiline_secondary: true
+        fill_container: true
+        tap_action:
+          action: more-info
+        card_mod:
+          style: |
+            ha-card {
+              border: 1px solid rgba(148, 163, 184, 0.18);
+              box-shadow: none;
+              border-radius: 18px;
+              background: rgba(15, 23, 42, 0.36) !important;
+            }
+            .primary {
+              font-size: 16px !important;
+              font-weight: 520 !important;
+            }
+            .secondary {
+              font-size: 12px !important;
+              line-height: 1.45 !important;
+              opacity: 0.72 !important;
+            }
+
+      - type: custom:mushroom-chips-card
+        alignment: left
+        chips:
+          - type: template
+            entity: sensor.wine_cave_next_charcoal_filter_due
+            icon: mdi:air-filter
+            icon_color: >-
+              {{ 'orange' if is_state('binary_sensor.wine_cave_charcoal_filter_due', 'on') else 'teal' }}
+            content: >-
+              {% set due = states('sensor.wine_cave_next_charcoal_filter_due') %}
+              {{ 'Charcoal ' ~ due if due not in ['unknown', 'unavailable', ''] else 'Charcoal pending' }}
+            tap_action:
+              action: more-info
+          - type: template
+            entity: sensor.wine_cave_next_cleaning_due
+            icon: mdi:spray-bottle
+            icon_color: >-
+              {{ 'orange' if is_state('binary_sensor.wine_cave_cabinet_cleaning_due', 'on') else 'teal' }}
+            content: >-
+              {% set due = states('sensor.wine_cave_next_cleaning_due') %}
+              {{ 'Cleaning ' ~ due if due not in ['unknown', 'unavailable', ''] else 'Cleaning pending' }}
+            tap_action:
+              action: more-info
+          - type: template
+            entity: sensor.wine_cave_maintenance_status
+            icon: mdi:calendar-check-outline
+            icon_color: >-
+              {{ 'orange' if is_state('binary_sensor.wine_cave_maintenance_due', 'on') else 'blue-grey' }}
+            content: >-
+              {{ states('sensor.wine_cave_maintenance_status') }}
+            tap_action:
+              action: more-info
+          - type: template
+            entity: input_datetime.wine_cave_parts_labor_warranty_review
+            icon: mdi:shield-check-outline
+            icon_color: blue
+            content: >-
+              Warranty {{ states('input_datetime.wine_cave_parts_labor_warranty_review') }}
+            tap_action:
+              action: more-info
+          - type: template
+            entity: input_boolean.wine_cave_rating_plate_captured
+            icon: >-
+              {{ 'mdi:tag-check-outline' if is_state('input_boolean.wine_cave_rating_plate_captured', 'on') else 'mdi:tag-outline' }}
+            icon_color: >-
+              {{ 'teal' if is_state('input_boolean.wine_cave_rating_plate_captured', 'on') else 'amber' }}
+            content: >-
+              {{ 'Serial captured' if is_state('input_boolean.wine_cave_rating_plate_captured', 'on') else 'Serial pending' }}
+            tap_action:
+              action: more-info
+
+      - type: custom:mushroom-title-card
         title: 24-hour trends
       - type: custom:button-card
         show_icon: false
@@ -5038,7 +5125,7 @@ views:
             height: 240
             background: transparent
           stroke:
-            curve: smooth
+            curve: straight
           xaxis:
             tickAmount: 6
             labels:
@@ -5079,14 +5166,16 @@ views:
                 }
         yaxis:
           - id: temp
-            min: 55
-            max: 57.55
+            min: "~52"
+            max: "~60"
+            align_to: 1
             decimals: 1
             apex_config:
               tickAmount: 4
           - id: humidity
-            min: 48.5
-            max: 55
+            min: "~45"
+            max: "~72"
+            align_to: 1
             opposite: true
             decimals: 0
             apex_config:
@@ -5101,6 +5190,7 @@ views:
             group_by:
               func: avg
               duration: 10min
+              fill: last
           - entity: sensor.wine_humidity
             name: Humidity
             yaxis_id: humidity
@@ -5110,6 +5200,7 @@ views:
             group_by:
               func: avg
               duration: 10min
+              fill: last
         card_mod:
           style: |
             ha-card {
@@ -5163,7 +5254,7 @@ views:
             height: 240
             background: transparent
           stroke:
-            curve: smooth
+            curve: straight
           grid:
             borderColor: rgba(120, 120, 120, 0.16)
           legend:
@@ -5172,12 +5263,14 @@ views:
             theme: dark
         yaxis:
           - id: temp
-            min: 55
-            max: 57.7
+            min: "~50"
+            max: "~62"
+            align_to: 1
             decimals: 1
           - id: humidity
-            min: 49.8
-            max: 54.2
+            min: "~45"
+            max: "~72"
+            align_to: 1
             opposite: true
             decimals: 0
         series:
@@ -5189,7 +5282,8 @@ views:
             stroke_width: 1.5
             group_by:
               func: avg
-              duration: 1h
+              duration: 2h
+              fill: last
           - entity: sensor.wine_humidity
             name: Humidity
             yaxis_id: humidity
@@ -5198,7 +5292,8 @@ views:
             stroke_width: 1.5
             group_by:
               func: avg
-              duration: 1h
+              duration: 2h
+              fill: last
 
       - type: custom:mushroom-title-card
         title: 30-day trends
@@ -5228,7 +5323,7 @@ views:
             height: 240
             background: transparent
           stroke:
-            curve: smooth
+            curve: straight
           xaxis:
             tickAmount: 6
             labels:
@@ -5241,12 +5336,14 @@ views:
             theme: dark
         yaxis:
           - id: temp
-            min: 55
-            max: 57.7
+            min: "~50"
+            max: "~62"
+            align_to: 1
             decimals: 1
           - id: humidity
-            min: 49.8
-            max: 54.2
+            min: "~45"
+            max: "~72"
+            align_to: 1
             opposite: true
             decimals: 0
         series:
@@ -5258,7 +5355,8 @@ views:
             stroke_width: 1.5
             group_by:
               func: avg
-              duration: 6h
+              duration: 12h
+              fill: last
           - entity: sensor.wine_humidity
             name: Humidity
             yaxis_id: humidity
@@ -5267,7 +5365,8 @@ views:
             stroke_width: 1.5
             group_by:
               func: avg
-              duration: 6h
+              duration: 12h
+              fill: last
         card_mod:
           style: |
             ha-card {
@@ -5895,7 +5994,7 @@ views:
                   height: 280
                   background: transparent
                 stroke:
-                  curve: smooth
+                  curve: straight
                   dashArray:
                     - 0
                     - 0
@@ -5941,14 +6040,16 @@ views:
                       }
               yaxis:
                 - id: temp
-                  min: 55
-                  max: 57.55
+                  min: "~52"
+                  max: "~60"
+                  align_to: 1
                   decimals: 1
                   apex_config:
                     tickAmount: 4
                 - id: humidity
-                  min: 48.5
-                  max: 55
+                  min: "~45"
+                  max: "~72"
+                  align_to: 1
                   opposite: true
                   decimals: 0
                   apex_config:
@@ -5963,6 +6064,7 @@ views:
                   group_by:
                     func: avg
                     duration: 5min
+                    fill: last
                 - entity: sensor.wine_humidity
                   name: Humidity
                   yaxis_id: humidity
@@ -5972,6 +6074,7 @@ views:
                   group_by:
                     func: avg
                     duration: 5min
+                    fill: last
                 - entity: sensor.wine_temp_24h_mean
                   name: Temp avg
                   yaxis_id: temp
@@ -6040,7 +6143,7 @@ views:
                   height: 260
                   background: transparent
                 stroke:
-                  curve: smooth
+                  curve: straight
                   dashArray:
                     - 0
                     - 0
@@ -6054,12 +6157,14 @@ views:
                   theme: dark
               yaxis:
                 - id: temp
-                  min: 55
-                  max: 57.7
+                  min: "~50"
+                  max: "~62"
+                  align_to: 1
                   decimals: 1
                 - id: humidity
-                  min: 49.8
-                  max: 54.2
+                  min: "~45"
+                  max: "~72"
+                  align_to: 1
                   opposite: true
                   decimals: 0
               series:
@@ -6071,7 +6176,8 @@ views:
                   stroke_width: 1.5
                   group_by:
                     func: avg
-                    duration: 30min
+                    duration: 2h
+                    fill: last
                 - entity: sensor.wine_humidity
                   name: Humidity
                   yaxis_id: humidity
@@ -6080,7 +6186,8 @@ views:
                   stroke_width: 1.5
                   group_by:
                     func: avg
-                    duration: 30min
+                    duration: 2h
+                    fill: last
                 - entity: sensor.wine_temp_24h_mean
                   name: Temp avg
                   yaxis_id: temp
@@ -6174,7 +6281,7 @@ views:
                   height: 260
                   background: transparent
                 stroke:
-                  curve: smooth
+                  curve: straight
                   dashArray:
                     - 0
                     - 6
@@ -6225,6 +6332,7 @@ views:
                   group_by:
                     func: avg
                     duration: 5min
+                    fill: last
                 - entity: sensor.wine_temp_24h_mean
                   name: Temp avg
                   type: line
@@ -6239,8 +6347,9 @@ views:
                     const start = end - 24 * 60 * 60 * 1000;
                     return [[start, value], [end, value]];
               yaxis:
-                min: 55
-                max: 57.55
+                min: "~52"
+                max: "~60"
+                align_to: 1
                 decimals: 1
                 apex_config:
                   tickAmount: 4
@@ -6314,7 +6423,7 @@ views:
                   height: 260
                   background: transparent
                 stroke:
-                  curve: smooth
+                  curve: straight
                   dashArray:
                     - 0
                     - 6
@@ -6364,6 +6473,7 @@ views:
                   group_by:
                     func: avg
                     duration: 5min
+                    fill: last
                 - entity: sensor.wine_humidity_24h_mean
                   name: Humidity avg
                   type: line
@@ -6378,8 +6488,9 @@ views:
                     const start = end - 24 * 60 * 60 * 1000;
                     return [[start, value], [end, value]];
               yaxis:
-                min: 48.5
-                max: 55
+                min: "~45"
+                max: "~72"
+                align_to: 1
                 decimals: 0
                 apex_config:
                   tickAmount: 4
@@ -6421,7 +6532,7 @@ views:
                   height: 260
                   background: transparent
                 stroke:
-                  curve: smooth
+                  curve: straight
                 xaxis:
                   labels:
                     formatter: |
@@ -6480,9 +6591,11 @@ views:
                   group_by:
                     func: avg
                     duration: 10min
+                    fill: last
               yaxis:
-                min: 38
-                max: 41
+                min: "~34"
+                max: "~46"
+                align_to: 0.5
                 decimals: 1
                 apex_config:
                   tickAmount: 4

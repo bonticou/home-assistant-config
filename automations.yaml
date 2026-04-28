@@ -2127,6 +2127,113 @@
   mode: parallel
   max: 5
 
+- id: wine_cave_charcoal_filter_reminder
+  alias: "Wine Cave — Charcoal Filter Reminder"
+  description: Sends the annual wine cave charcoal filter reminder without changing environmental alerts.
+  triggers:
+    - trigger: time
+      at: "09:15:00"
+  conditions:
+    - condition: state
+      entity_id: input_boolean.wine_cave_maintenance_enabled
+      state: "on"
+    - condition: state
+      entity_id: binary_sensor.wine_cave_charcoal_filter_due
+      state: "on"
+  actions:
+    - action: script.wine_cave_send_charcoal_filter_reminder
+  mode: single
+
+- id: wine_cave_cabinet_cleaning_reminder
+  alias: "Wine Cave — Cabinet Cleaning Reminder"
+  description: Sends the annual wine cave cabinet cleaning reminder without changing environmental alerts.
+  triggers:
+    - trigger: time
+      at: "09:20:00"
+  conditions:
+    - condition: state
+      entity_id: input_boolean.wine_cave_maintenance_enabled
+      state: "on"
+    - condition: state
+      entity_id: binary_sensor.wine_cave_cabinet_cleaning_due
+      state: "on"
+  actions:
+    - action: script.wine_cave_send_cabinet_cleaning_reminder
+  mode: single
+
+- id: wine_cave_rating_plate_one_time_reminder
+  alias: "Wine Cave — Rating Plate One-Time Reminder"
+  description: Sends one prompt to capture the wine cave rating plate and serial number for house-manager.
+  triggers:
+    - trigger: time
+      at: "10:00:00"
+  conditions:
+    - condition: state
+      entity_id: input_boolean.wine_cave_maintenance_enabled
+      state: "on"
+    - condition: state
+      entity_id: input_boolean.wine_cave_rating_plate_captured
+      state: "off"
+    - condition: state
+      entity_id: input_boolean.wine_cave_rating_plate_reminder_sent
+      state: "off"
+  actions:
+    - action: script.wine_cave_send_rating_plate_reminder
+    - action: input_boolean.turn_on
+      target:
+        entity_id: input_boolean.wine_cave_rating_plate_reminder_sent
+  mode: single
+
+- id: wine_cave_maintenance_notification_actions
+  alias: "Wine Cave — Maintenance Notification Actions"
+  description: Handles quick actions from wine cave lifecycle and maintenance reminders.
+  triggers:
+    - trigger: event
+      event_type: mobile_app_notification_action
+  conditions:
+    - condition: template
+      value_template: >
+        {{ trigger.event.data.action in [
+          'WINE_CAVE_CHARCOAL_REPLACED',
+          'WINE_CAVE_CHARCOAL_SNOOZE_30',
+          'WINE_CAVE_CLEANING_DONE',
+          'WINE_CAVE_CLEANING_SNOOZE_30',
+          'WINE_CAVE_RATING_PLATE_CAPTURED'
+        ] }}
+  actions:
+    - choose:
+        - conditions:
+            - condition: template
+              value_template: "{{ trigger.event.data.action == 'WINE_CAVE_CHARCOAL_REPLACED' }}"
+          sequence:
+            - action: script.wine_cave_mark_charcoal_filter_replaced
+
+        - conditions:
+            - condition: template
+              value_template: "{{ trigger.event.data.action == 'WINE_CAVE_CHARCOAL_SNOOZE_30' }}"
+          sequence:
+            - action: script.wine_cave_snooze_charcoal_filter
+
+        - conditions:
+            - condition: template
+              value_template: "{{ trigger.event.data.action == 'WINE_CAVE_CLEANING_DONE' }}"
+          sequence:
+            - action: script.wine_cave_mark_cabinet_cleaning_done
+
+        - conditions:
+            - condition: template
+              value_template: "{{ trigger.event.data.action == 'WINE_CAVE_CLEANING_SNOOZE_30' }}"
+          sequence:
+            - action: script.wine_cave_snooze_cabinet_cleaning
+
+        - conditions:
+            - condition: template
+              value_template: "{{ trigger.event.data.action == 'WINE_CAVE_RATING_PLATE_CAPTURED' }}"
+          sequence:
+            - action: script.wine_cave_mark_rating_plate_captured
+  mode: parallel
+  max: 10
+
 - id: wine_cave_cooling_cycle_notification
   alias: "Wine Cave — Cooling Cycle Notification"
   description: Sends one calm push when the cave looks like it entered a normal refrigeration cycle.
@@ -2142,12 +2249,209 @@
     - action: script.wine_cave_send_alert
       data:
         alert_kind: cycle
+        severity: info
         message: >-
-          Humidity bumped because the refrigeration cycle started.
+          Humidity dipped because the refrigeration cycle started.
           {{ states('sensor.wine_temperature') | float(0) | round(1) }}°F
           · {{ states('sensor.wine_humidity') | float(0) | round(0) }}% RH
           · {{ states('sensor.wine_cave_absolute_humidity') | float(0) | round(2) }} g/m³.
-          This looks normal.
+          This looks like a normal cycle while it recovers.
+  mode: single
+
+- id: wine_cave_cooling_cycle_settled_notification
+  alias: "Wine Cave — Cooling Cycle Settled Notification"
+  description: Confirms that a normal wine cave cycle recovered once humidity returns to the target band.
+  triggers:
+    - trigger: state
+      entity_id: binary_sensor.wine_cave_cooling_cycle
+      to: "off"
+      for:
+        minutes: 10
+  conditions:
+    - condition: state
+      entity_id: binary_sensor.wine_cave_cycle_settled
+      state: "on"
+    - condition: state
+      entity_id: binary_sensor.wine_cave_sensor_unavailable
+      state: "off"
+  actions:
+    - action: script.notify_trevor_phone
+      data:
+        message: clear_notification
+        data:
+          tag: wine-cave-overdue
+    - action: script.notify_trevor_phone
+      data:
+        message: clear_notification
+        data:
+          tag: wine-cave-unresolved
+    - action: script.wine_cave_send_alert
+      data:
+        alert_kind: cycle_settled
+        severity: info
+        message: >-
+          Humidity has recovered to {{ states('sensor.wine_humidity') | float(0) | round(0) }}% RH
+          after the cooling cycle.
+          Wine cave is {{ states('sensor.wine_temperature') | float(0) | round(1) }}°F.
+  mode: single
+
+- id: wine_cave_cooling_cycle_overdue_notification
+  alias: "Wine Cave — Cooling Cycle Overdue Notification"
+  description: Sends a watch-level push when a normal cycle has not recovered in the expected window.
+  triggers:
+    - trigger: state
+      entity_id: binary_sensor.wine_cave_cooling_cycle
+      to: "on"
+      for:
+        minutes: 90
+  conditions:
+    - condition: state
+      entity_id: binary_sensor.wine_cave_sensor_unavailable
+      state: "off"
+    - condition: state
+      entity_id: binary_sensor.wine_cave_actionable_alert
+      state: "off"
+  actions:
+    - action: script.wine_cave_send_alert
+      data:
+        alert_kind: cycle_overdue
+        severity: watch
+        message: >-
+          Humidity is still below the normal band after 90 minutes.
+          Current reading is {{ states('sensor.wine_humidity') | float(0) | round(0) }}% RH
+          at {{ states('sensor.wine_temperature') | float(0) | round(1) }}°F.
+          This may still resolve, but it is no longer just a quick cycle.
+          If the cabinet is closed and powered, check the humidity cartridge next.
+  mode: single
+
+- id: wine_cave_cooling_cycle_unresolved_urgent
+  alias: "Wine Cave — Cooling Cycle Unresolved Urgent"
+  description: Escalates if a dry cooling-cycle condition is still unresolved after several hours.
+  triggers:
+    - trigger: state
+      entity_id: binary_sensor.wine_cave_cooling_cycle
+      to: "on"
+      for:
+        hours: 3
+  conditions:
+    - condition: state
+      entity_id: binary_sensor.wine_cave_sensor_unavailable
+      state: "off"
+  actions:
+    - action: script.wine_cave_send_alert
+      data:
+        alert_kind: cycle_overdue
+        severity: urgent
+        message: >-
+          Wine cave humidity has stayed low for 3 hours.
+          Current reading is {{ states('sensor.wine_humidity') | float(0) | round(0) }}% RH
+          at {{ states('sensor.wine_temperature') | float(0) | round(1) }}°F.
+          Check the fridge, door, power circuit, and humidity cartridge when you can.
+  mode: single
+
+- id: wine_cave_unresolved_attention_reminder
+  alias: "Wine Cave — Unresolved Attention Reminder"
+  description: Escalates unresolved wine cave issues on a tighter cadence the longer they remain active.
+  triggers:
+    - trigger: time
+      at: "08:30:00"
+      id: morning
+    - trigger: time
+      at: "20:30:00"
+      id: evening
+    - trigger: time_pattern
+      hours: "/6"
+      minutes: 30
+      id: six_hour
+    - trigger: time_pattern
+      hours: "/3"
+      minutes: 30
+      id: three_hour
+  conditions:
+    - condition: template
+      value_template: >-
+        {% set now_ts = as_timestamp(now()) %}
+        {% set ns = namespace(active=false, oldest=now_ts) %}
+        {% if is_state('binary_sensor.wine_cave_actionable_alert', 'on') %}
+          {% set ns.active = true %}
+          {% set ns.oldest = [ns.oldest, as_timestamp(states.binary_sensor.wine_cave_actionable_alert.last_changed, now())] | min %}
+        {% endif %}
+        {% if is_state('binary_sensor.wine_cave_sensor_unavailable', 'on') %}
+          {% set ns.active = true %}
+          {% set ns.oldest = [ns.oldest, as_timestamp(states.binary_sensor.wine_cave_sensor_unavailable.last_changed, now())] | min %}
+        {% endif %}
+        {% if is_state('binary_sensor.wine_cave_cooling_cycle', 'on')
+           and (now_ts - as_timestamp(states.binary_sensor.wine_cave_cooling_cycle.last_changed, now())) >= 10800 %}
+          {% set ns.active = true %}
+          {% set ns.oldest = [ns.oldest, as_timestamp(states.binary_sensor.wine_cave_cooling_cycle.last_changed, now())] | min %}
+        {% endif %}
+        {% set unresolved_seconds = now_ts - ns.oldest %}
+        {% if trigger.id in ['morning', 'evening'] %}
+          {{ ns.active and unresolved_seconds >= 43200 and unresolved_seconds < 86400 }}
+        {% elif trigger.id == 'six_hour' %}
+          {{ ns.active and unresolved_seconds >= 86400 and unresolved_seconds < 172800 }}
+        {% elif trigger.id == 'three_hour' %}
+          {{ ns.active and unresolved_seconds >= 172800 }}
+        {% else %}
+          false
+        {% endif %}
+  actions:
+    - variables:
+        unresolved_hours: >-
+          {% set now_ts = as_timestamp(now()) %}
+          {% set ns = namespace(oldest=now_ts) %}
+          {% if is_state('binary_sensor.wine_cave_actionable_alert', 'on') %}
+            {% set ns.oldest = [ns.oldest, as_timestamp(states.binary_sensor.wine_cave_actionable_alert.last_changed, now())] | min %}
+          {% endif %}
+          {% if is_state('binary_sensor.wine_cave_sensor_unavailable', 'on') %}
+            {% set ns.oldest = [ns.oldest, as_timestamp(states.binary_sensor.wine_cave_sensor_unavailable.last_changed, now())] | min %}
+          {% endif %}
+          {% if is_state('binary_sensor.wine_cave_cooling_cycle', 'on') %}
+            {% set ns.oldest = [ns.oldest, as_timestamp(states.binary_sensor.wine_cave_cooling_cycle.last_changed, now())] | min %}
+          {% endif %}
+          {{ ((now_ts - ns.oldest) / 3600) | round(0) | int }}
+        active_issue_summary: >-
+          {% set ns = namespace(items=[]) %}
+          {% if is_state('binary_sensor.wine_cave_sensor_unavailable', 'on') %}
+            {% set ns.items = ns.items + ['telemetry is missing'] %}
+          {% endif %}
+          {% if is_state('binary_sensor.wine_cave_temp_high_alert', 'on') %}
+            {% set ns.items = ns.items + ['temperature is high'] %}
+          {% endif %}
+          {% if is_state('binary_sensor.wine_cave_temp_low_alert', 'on') %}
+            {% set ns.items = ns.items + ['temperature is low'] %}
+          {% endif %}
+          {% if is_state('binary_sensor.wine_cave_moisture_anomaly', 'on') %}
+            {% set ns.items = ns.items + ['humidity/moisture is abnormal'] %}
+          {% endif %}
+          {% if is_state('binary_sensor.wine_cave_condensation_risk', 'on') %}
+            {% set ns.items = ns.items + ['condensation risk is active'] %}
+          {% endif %}
+          {% if is_state('binary_sensor.wine_cave_cooling_cycle', 'on') %}
+            {% set ns.items = ns.items + ['cycle recovery is still unresolved'] %}
+          {% endif %}
+          {{ ns.items | join(', ') if ns.items else 'the wine cave still has an unresolved condition' }}
+        escalation_context: >-
+          {% set hours = unresolved_hours | int(0) %}
+          {% if hours >= 48 %}
+            This has been unresolved for more than two days, so reminders now repeat every 3 hours until it recovers.
+          {% elif hours >= 24 %}
+            This has been unresolved for more than a day, so reminders now repeat every 6 hours until it recovers.
+          {% else %}
+            If this is still unresolved after 24 hours, reminders will repeat every 6 hours.
+          {% endif %}
+    - action: script.wine_cave_send_alert
+      data:
+        alert_kind: unresolved
+        severity: urgent
+        message: >-
+          Wine cave has been unresolved for about {{ unresolved_hours }} hours:
+          {{ active_issue_summary }}.
+          Current readings are {{ states('sensor.wine_temperature') | float(0) | round(1) }}°F
+          and {{ states('sensor.wine_humidity') | float(0) | round(0) }}% RH when telemetry is available.
+          {{ escalation_context }}
+          Confirm the fridge has power, the door is closed, the sensor is online,
+          and the circuit has not tripped.
   mode: single
 
 - id: wine_cave_temperature_alerts
@@ -2175,6 +2479,7 @@
             - action: script.wine_cave_send_alert
               data:
                 alert_kind: temp_high
+                severity: urgent
                 message: >-
                   Wine cave is at {{ states('sensor.wine_temperature') | float(0) | round(1) }}°F,
                   above your 60°F ceiling.
@@ -2186,6 +2491,7 @@
             - action: script.wine_cave_send_alert
               data:
                 alert_kind: temp_low
+                severity: urgent
                 message: >-
                   Wine cave is at {{ states('sensor.wine_temperature') | float(0) | round(1) }}°F,
                   below your 50°F floor.
@@ -2220,6 +2526,7 @@
           {% if humidity < 50 %}
             Humidity is {{ humidity }}%, below your 50% floor.
             Actual moisture is {{ ah }} g/m³, so this looks drier than a normal cycle.
+            If the door and power look normal, check the wine cave humidity cartridge.
           {% else %}
             Humidity is {{ humidity }}% and actual moisture is {{ ah }} g/m³,
             {{ (ah_delta | abs) | round(2) }} g/m³ above the 24-hour average.
@@ -2292,6 +2599,25 @@
           so condition alerts may be incomplete right now.
   mode: single
 
+- id: wine_cave_sensor_unavailable_urgent
+  alias: "Wine Cave — Sensor Unavailable Urgent"
+  description: Escalates when wine cave telemetry stays missing long enough to suggest power or sensor trouble.
+  triggers:
+    - trigger: state
+      entity_id: binary_sensor.wine_cave_sensor_unavailable
+      to: "on"
+      for:
+        minutes: 45
+  actions:
+    - action: script.wine_cave_send_alert
+      data:
+        alert_kind: sensor_unavailable
+        severity: urgent
+        message: >-
+          Wine cave temperature or humidity data has been missing for 45 minutes.
+          Check the fridge, sensor, and power circuit.
+  mode: single
+
 - id: wine_cave_sensor_unavailable_clear
   alias: "Wine Cave — Clear Sensor Unavailable Notification"
   description: Clears the stale wine cave sensor-health push once telemetry has recovered.
@@ -2307,6 +2633,20 @@
         message: clear_notification
         data:
           tag: wine-cave-sensor_unavailable
+    - choose:
+        - conditions:
+            - condition: state
+              entity_id: binary_sensor.wine_cave_actionable_alert
+              state: "off"
+            - condition: state
+              entity_id: binary_sensor.wine_cave_cooling_cycle
+              state: "off"
+          sequence:
+            - action: script.notify_trevor_phone
+              data:
+                message: clear_notification
+                data:
+                  tag: wine-cave-unresolved
   mode: single
 
 - id: wine_cave_abrupt_change_notification
@@ -2337,6 +2677,9 @@
         {% set delta = (to_value - from_value) | abs %}
         {{ (trigger.id == 'temperature' and delta >= 3)
            or (trigger.id == 'humidity' and delta >= 15) }}
+    - condition: state
+      entity_id: binary_sensor.wine_cave_cooling_cycle
+      state: "off"
   actions:
     - action: script.wine_cave_send_alert
       data:
@@ -2392,6 +2735,16 @@
         message: clear_notification
         data:
           tag: wine-cave-condensation
+    - action: script.notify_trevor_phone
+      data:
+        message: clear_notification
+        data:
+          tag: wine-cave-overdue
+    - action: script.notify_trevor_phone
+      data:
+        message: clear_notification
+        data:
+          tag: wine-cave-unresolved
     - action: script.wine_cave_send_alert
       data:
         alert_kind: recovery
