@@ -17,30 +17,3 @@ liquid_glass:
   state-icon-color: "#94a3b8"
   state-icon-active-color: "#f8fafc"
   mush-rgb-state-light: "248, 250, 252"
-  card-mod-theme: "liquid_glass"
-  card-mod-root: |
-    :host,
-    ha-app-layout,
-    .content,
-    hui-view {
-      scrollbar-width: none !important;
-      -ms-overflow-style: none !important;
-    }
-    :host::-webkit-scrollbar,
-    ha-app-layout::-webkit-scrollbar,
-    .content::-webkit-scrollbar,
-    hui-view::-webkit-scrollbar {
-      display: none !important;
-      width: 0 !important;
-      height: 0 !important;
-    }
-  card-mod-view: |
-    :host {
-      scrollbar-width: none !important;
-      -ms-overflow-style: none !important;
-    }
-    :host::-webkit-scrollbar {
-      display: none !important;
-      width: 0 !important;
-      height: 0 !important;
-    }
