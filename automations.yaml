@@ -1724,6 +1724,55 @@
   mode: parallel
   max: 10
 
+
+- id: piano_annual_tuning_reminder
+  alias: "Piano — Annual Tuning Reminder"
+  description: Sends the annual Steinway tuning check when piano care is due.
+  triggers:
+    - trigger: time
+      at: "09:25:00"
+    - trigger: time
+      at: input_datetime.piano_tuning_snooze_until
+  conditions:
+    - condition: state
+      entity_id: input_boolean.piano_care_enabled
+      state: "on"
+    - condition: state
+      entity_id: binary_sensor.piano_tuning_due
+      state: "on"
+  actions:
+    - action: script.piano_send_tuning_reminder
+  mode: single
+
+- id: piano_tuning_notification_actions
+  alias: "Piano — Tuning Notification Actions"
+  description: Handles quick actions from Steinway tuning reminders.
+  triggers:
+    - trigger: event
+      event_type: mobile_app_notification_action
+  conditions:
+    - condition: template
+      value_template: >
+        {{ trigger.event.data.action in [
+          'PIANO_TUNING_DONE',
+          'PIANO_TUNING_SCHEDULED'
+        ] }}
+  actions:
+    - choose:
+        - conditions:
+            - condition: template
+              value_template: "{{ trigger.event.data.action == 'PIANO_TUNING_DONE' }}"
+          sequence:
+            - action: script.piano_mark_tuning_done
+
+        - conditions:
+            - condition: template
+              value_template: "{{ trigger.event.data.action == 'PIANO_TUNING_SCHEDULED' }}"
+          sequence:
+            - action: script.piano_snooze_tuning
+  mode: parallel
+  max: 5
+
 - id: wine_cave_cooling_cycle_notification
   alias: "Wine Cave — Cooling Cycle Notification"
   description: Sends one calm push when the cave looks like it entered a normal refrigeration cycle.

@@ -673,6 +673,79 @@ notify_trevor_phone:
         message: "{{ notification_message }}"
         data: "{{ notification_data }}"
 
+piano_send_tuning_reminder:
+  alias: Piano Send Tuning Reminder
+  description: Sends the annual Steinway tuning reminder with quick actions.
+  icon: mdi:piano
+  mode: restart
+  sequence:
+    - action: script.notify_trevor_phone
+      data:
+        title: "🎹🛠️ Steinway tuning check"
+        message: >-
+          Last tuning/appraisal: September 26, 2025.
+          Ask Gary Bauchman about tuning the Steinway again:
+          914-325-0003 · artiststouchpiano@gmail.com.
+          Record: ../house-manager/assets/antique-steinway-piano.md.
+        data:
+          group: piano-care
+          tag: steinway-tuning-check
+          url: /calm-mobile/home
+          actions:
+            - action: URI
+              title: Call Gary
+              uri: tel:9143250003
+            - action: PIANO_TUNING_SCHEDULED
+              title: Tuning scheduled
+            - action: PIANO_TUNING_DONE
+              title: Tuning done
+
+piano_mark_tuning_done:
+  alias: Piano Mark Tuning Done
+  description: Stamps today's Steinway tuning date and clears the reminder.
+  icon: mdi:piano
+  mode: restart
+  sequence:
+    - variables:
+        piano_today: "{{ now().strftime('%Y-%m-%d') }}"
+        piano_now: "{{ now().strftime('%Y-%m-%d %H:%M:%S') }}"
+    - action: input_datetime.set_datetime
+      target:
+        entity_id: input_datetime.piano_last_tuned
+      data:
+        date: "{{ piano_today }}"
+    - action: input_datetime.set_datetime
+      target:
+        entity_id: input_datetime.piano_tuning_snooze_until
+      data:
+        datetime: "{{ piano_now }}"
+    - action: script.piano_clear_tuning_notification
+
+piano_snooze_tuning:
+  alias: Piano Mark Tuning Scheduled
+  description: Snoozes the Steinway tuning reminder for 24 hours after scheduling.
+  icon: mdi:alarm-snooze
+  mode: restart
+  sequence:
+    - action: input_datetime.set_datetime
+      target:
+        entity_id: input_datetime.piano_tuning_snooze_until
+      data:
+        datetime: "{{ (now() + timedelta(hours=24)).strftime('%Y-%m-%d %H:%M:%S') }}"
+    - action: script.piano_clear_tuning_notification
+
+piano_clear_tuning_notification:
+  alias: Piano Clear Tuning Notification
+  description: Clears the active Steinway tuning reminder notification tag.
+  icon: mdi:piano
+  mode: restart
+  sequence:
+    - action: script.notify_trevor_phone
+      data:
+        message: clear_notification
+        data:
+          tag: steinway-tuning-check
+
 water_send_alert:
   alias: Water Send Alert
   description: Sends water alerts with consistent titles, tags, grouping, and urgency.

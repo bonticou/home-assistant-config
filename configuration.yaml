@@ -100,6 +100,17 @@ input_datetime:
     name: Environment Radon Last Alert
     has_date: true
     has_time: true
+  # Antique Steinway piano care
+  # durable record: ../house-manager/assets/antique-steinway-piano.md
+  piano_last_tuned:
+    name: Piano Last Tuned
+    has_date: true
+    has_time: false
+    initial: "2025-09-26"
+  piano_tuning_snooze_until:
+    name: Piano Tuning Snooze Until
+    has_date: true
+    has_time: true
 
 input_text:
   latest_camera_motion_label:
@@ -131,6 +142,10 @@ input_boolean:
   house_battery_alerts_enabled:
     name: House Battery Alerts Enabled
     icon: mdi:battery-heart-variant
+    initial: true
+  piano_care_enabled:
+    name: Piano Care Enabled
+    icon: mdi:piano
     initial: true
   garden_tracking_enabled:
     name: Garden Tracking Enabled
@@ -434,6 +449,41 @@ template:
           {{ ((states('sensor.wine_humidity_24h_stats') | float(0))
             - (states('sensor.wine_humidity_7d_stats') | float(0))) | round(1) }}
 
+
+      - name: "Piano Next Tuning Due"
+        unique_id: piano_next_tuning_due
+        device_class: date
+        icon: mdi:piano
+        state: >
+          {% set last = states('input_datetime.piano_last_tuned') %}
+          {% if last not in ['unknown', 'unavailable', ''] %}
+            {{ (strptime(last, '%Y-%m-%d') + timedelta(days=365)).strftime('%Y-%m-%d') }}
+          {% else %}
+            unknown
+          {% endif %}
+
+      - name: "Piano Care Status"
+        unique_id: piano_care_status
+        state: >
+          {% set snooze = states('input_datetime.piano_tuning_snooze_until') %}
+          {% set snoozed = snooze not in ['unknown', 'unavailable', '']
+             and as_timestamp(snooze, 0) > as_timestamp(now()) %}
+          {% if not is_state('input_boolean.piano_care_enabled', 'on') %}
+            Off
+          {% elif snoozed %}
+            Snoozed
+          {% elif is_state('binary_sensor.piano_tuning_due', 'on') %}
+            Tuning due
+          {% else %}
+            Current
+          {% endif %}
+        icon: >
+          {% if is_state('binary_sensor.piano_tuning_due', 'on') %}
+            mdi:piano
+          {% else %}
+            mdi:calendar-check-outline
+          {% endif %}
+
       - name: "front_stairs_schedule_brightness"
         unique_id: front_stairs_schedule_brightness
         unit_of_measurement: "%"
@@ -611,6 +661,23 @@ template:
         icon: mdi:chandelier
         state: >
           {{ is_state('binary_sensor.front_stairs_schedule_active', 'on') }}
+
+      - name: "Piano Tuning Due"
+        unique_id: piano_tuning_due
+        state: >
+          {% set last = states('input_datetime.piano_last_tuned') %}
+          {% set snooze = states('input_datetime.piano_tuning_snooze_until') %}
+          {% set snoozed = snooze not in ['unknown', 'unavailable', '']
+             and as_timestamp(snooze, 0) > as_timestamp(now()) %}
+          {% if last in ['unknown', 'unavailable', ''] %}
+            false
+          {% else %}
+            {% set due = (strptime(last, '%Y-%m-%d') + timedelta(days=365)).strftime('%Y-%m-%d') %}
+            {{ is_state('input_boolean.piano_care_enabled', 'on')
+               and not snoozed
+               and now().strftime('%Y-%m-%d') >= due }}
+          {% endif %}
+        icon: mdi:piano
 
   - sensor:
       - name: "Main Floor Temp Avg"

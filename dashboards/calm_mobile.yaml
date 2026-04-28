@@ -486,6 +486,48 @@ views:
               <<: *compact_tile_styles
             extra_styles: *compact_tile_extra
 
+
+      - type: conditional
+        conditions:
+          - entity: input_boolean.piano_care_enabled
+            state: "on"
+          - entity: binary_sensor.piano_tuning_due
+            state: "on"
+        card:
+          type: custom:mushroom-template-card
+          entity: sensor.piano_care_status
+          primary: Steinway tuning check
+          secondary: >-
+            {% set due = states('sensor.piano_next_tuning_due') %}
+            {% set due_ts = as_timestamp(due, 0) %}
+            {{ 'Annual tuning check due ' ~ (due_ts | timestamp_custom('%B %-d, %Y', true)) if due_ts > 0 else 'Annual tuning check due soon' }}
+          icon: mdi:piano
+          icon_color: amber
+          fill_container: true
+          tap_action:
+            action: more-info
+          card_mod:
+            style: |
+              ha-card {
+                border: 1px solid rgba(148, 163, 184, 0.16);
+                box-shadow: none;
+                border-radius: 18px;
+                background: rgba(15, 23, 42, 0.32) !important;
+              }
+              .primary {
+                font-size: 16px !important;
+                font-weight: 520 !important;
+              }
+              .secondary {
+                font-size: 13px !important;
+                line-height: 1.4 !important;
+                opacity: 0.72 !important;
+              }
+              mushroom-shape-icon {
+                --shape-color: rgba(245, 158, 11, 0.16) !important;
+                --shape-color-disabled: rgba(245, 158, 11, 0.16) !important;
+              }
+
       - type: custom:mushroom-title-card
         title: Cameras
 
