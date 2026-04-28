@@ -909,6 +909,99 @@ piano_clear_tuning_notification:
         data:
           tag: steinway-tuning-check
 
+passport_send_renewal_reminder:
+  alias: Passport Send Renewal Reminder
+  description: Sends the passport renewal reminder with applied and snooze actions.
+  icon: mdi:passport
+  mode: restart
+  sequence:
+    - variables:
+        expires: "{{ states('input_datetime.passport_expiration_date') }}"
+        expires_label: >-
+          {% if expires not in ['unknown', 'unavailable', ''] %}
+            {{ strptime(expires, '%Y-%m-%d').strftime('%B %d, %Y') }}
+          {% else %}
+            the saved expiration date
+          {% endif %}
+        renewal_opens_label: >-
+          {% if expires not in ['unknown', 'unavailable', ''] %}
+            {{ (strptime(expires, '%Y-%m-%d') - timedelta(days=365)).strftime('%B %d, %Y') }}
+          {% else %}
+            the one-year renewal window
+          {% endif %}
+    - action: script.notify_trevor_phone
+      data:
+        title: "🇺🇸 Passport renewal"
+        message: >-
+          Your passport expires {{ expires_label | trim }}.
+          Start the renewal now so there is plenty of runway before travel.
+          This reminder opened on {{ renewal_opens_label | trim }}.
+          Tap Applied once the renewal application is submitted.
+        data:
+          group: personal-admin
+          tag: passport-renewal
+          url: /calm-mobile/home
+          actions:
+            - action: PASSPORT_RENEWAL_APPLIED
+              title: Applied
+            - action: PASSPORT_RENEWAL_SNOOZE_30
+              title: Snooze 30d
+            - action: PASSPORT_RENEWAL_SNOOZE_90
+              title: Snooze 90d
+    - action: input_datetime.set_datetime
+      target:
+        entity_id: input_datetime.passport_renewal_snooze_until
+      data:
+        datetime: "{{ (today_at('09:00:00') + timedelta(days=30)).strftime('%Y-%m-%d %H:%M:%S') }}"
+
+passport_mark_renewal_applied:
+  alias: Passport Mark Renewal Applied
+  description: Stamps the passport renewal application date and clears the reminder.
+  icon: mdi:passport
+  mode: restart
+  sequence:
+    - variables:
+        passport_now: "{{ now().strftime('%Y-%m-%d %H:%M:%S') }}"
+    - action: input_datetime.set_datetime
+      target:
+        entity_id:
+          - input_datetime.passport_renewal_applied_at
+          - input_datetime.passport_renewal_snooze_until
+      data:
+        datetime: "{{ passport_now }}"
+    - action: script.passport_clear_renewal_notification
+
+passport_snooze_renewal:
+  alias: Passport Snooze Renewal
+  description: Snoozes the passport renewal reminder for a selected number of days.
+  icon: mdi:alarm-snooze
+  mode: restart
+  fields:
+    days:
+      description: Days to snooze the passport renewal reminder
+      example: 30
+  sequence:
+    - variables:
+        snooze_days: "{{ days | default(30) | int(30) }}"
+    - action: input_datetime.set_datetime
+      target:
+        entity_id: input_datetime.passport_renewal_snooze_until
+      data:
+        datetime: "{{ (today_at('09:00:00') + timedelta(days=snooze_days)).strftime('%Y-%m-%d %H:%M:%S') }}"
+    - action: script.passport_clear_renewal_notification
+
+passport_clear_renewal_notification:
+  alias: Passport Clear Renewal Notification
+  description: Clears the active passport renewal notification tag.
+  icon: mdi:passport
+  mode: restart
+  sequence:
+    - action: script.notify_trevor_phone
+      data:
+        message: clear_notification
+        data:
+          tag: passport-renewal
+
 water_send_alert:
   alias: Water Send Alert
   description: Sends water alerts with consistent titles, tags, grouping, and urgency.

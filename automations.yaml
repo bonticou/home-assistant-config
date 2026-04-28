@@ -2127,6 +2127,65 @@
   mode: parallel
   max: 5
 
+- id: passport_renewal_reminder
+  alias: "Passport — Renewal Reminder"
+  description: Sends passport renewal reminders starting one year before expiration.
+  triggers:
+    - trigger: time
+      at: "09:10:00"
+    - trigger: time
+      at: input_datetime.passport_renewal_snooze_until
+  conditions:
+    - condition: state
+      entity_id: input_boolean.passport_renewal_enabled
+      state: "on"
+    - condition: state
+      entity_id: binary_sensor.passport_renewal_due
+      state: "on"
+  actions:
+    - action: script.passport_send_renewal_reminder
+  mode: single
+
+- id: passport_renewal_notification_actions
+  alias: "Passport — Renewal Notification Actions"
+  description: Handles quick actions from passport renewal reminders.
+  triggers:
+    - trigger: event
+      event_type: mobile_app_notification_action
+  conditions:
+    - condition: template
+      value_template: >
+        {{ trigger.event.data.action in [
+          'PASSPORT_RENEWAL_APPLIED',
+          'PASSPORT_RENEWAL_SNOOZE_30',
+          'PASSPORT_RENEWAL_SNOOZE_90'
+        ] }}
+  actions:
+    - choose:
+        - conditions:
+            - condition: template
+              value_template: "{{ trigger.event.data.action == 'PASSPORT_RENEWAL_APPLIED' }}"
+          sequence:
+            - action: script.passport_mark_renewal_applied
+
+        - conditions:
+            - condition: template
+              value_template: "{{ trigger.event.data.action == 'PASSPORT_RENEWAL_SNOOZE_30' }}"
+          sequence:
+            - action: script.passport_snooze_renewal
+              data:
+                days: 30
+
+        - conditions:
+            - condition: template
+              value_template: "{{ trigger.event.data.action == 'PASSPORT_RENEWAL_SNOOZE_90' }}"
+          sequence:
+            - action: script.passport_snooze_renewal
+              data:
+                days: 90
+  mode: parallel
+  max: 5
+
 - id: wine_cave_charcoal_filter_reminder
   alias: "Wine Cave — Charcoal Filter Reminder"
   description: Sends the annual wine cave charcoal filter reminder without changing environmental alerts.
