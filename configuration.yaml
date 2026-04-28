@@ -57,6 +57,20 @@ input_datetime:
     name: Water Pressure Snooze Until
     has_date: true
     has_time: true
+  espresso_last_water_backflush:
+    name: Espresso Last Water Backflush
+    has_date: true
+    has_time: true
+    initial: "2026-04-25 07:00:00"
+  espresso_last_cafiza_clean:
+    name: Espresso Last Cafiza Clean
+    has_date: true
+    has_time: true
+    initial: "2026-04-25 07:00:00"
+  espresso_maintenance_snooze_until:
+    name: Espresso Maintenance Snooze Until
+    has_date: true
+    has_time: true
   garden_seed_start_date:
     name: Garden Seed Start Date
     has_date: true
@@ -104,6 +118,10 @@ input_datetime:
     name: Environment Radon Last Alert
     has_date: true
     has_time: true
+  robison_oil_price_check_last_done:
+    name: Robison Oil Price Check Last Done
+    has_date: true
+    has_time: true
   # Antique Steinway piano care
   # durable record: ../house-manager/assets/antique-steinway-piano.md
   piano_last_tuned:
@@ -146,6 +164,10 @@ input_boolean:
   house_battery_alerts_enabled:
     name: House Battery Alerts Enabled
     icon: mdi:battery-heart-variant
+    initial: true
+  espresso_maintenance_enabled:
+    name: Espresso Maintenance Enabled
+    icon: mdi:coffee-maker-outline
     initial: true
   piano_care_enabled:
     name: Piano Care Enabled
@@ -612,6 +634,30 @@ template:
             mdi:shield-home-outline
           {% endif %}
 
+      - name: "Espresso Maintenance Status"
+        unique_id: espresso_maintenance_status
+        state: >
+          {% set snooze = states('input_datetime.espresso_maintenance_snooze_until') %}
+          {% set snoozed = snooze not in ['unknown', 'unavailable', '']
+             and as_timestamp(snooze, 0) > as_timestamp(now()) %}
+          {% if not is_state('input_boolean.espresso_maintenance_enabled', 'on') %}
+            Off
+          {% elif snoozed %}
+            Snoozed
+          {% elif is_state('binary_sensor.espresso_cafiza_clean_due', 'on') %}
+            Cafiza due
+          {% elif is_state('binary_sensor.espresso_water_backflush_due', 'on') %}
+            Water due
+          {% else %}
+            Clean
+          {% endif %}
+        icon: >
+          {% if is_state('binary_sensor.espresso_maintenance_due', 'on') %}
+            mdi:coffee-maker-alert-outline
+          {% else %}
+            mdi:coffee-maker-check-outline
+          {% endif %}
+
     binary_sensor:
       - name: "house_unsecured_while_away"
         unique_id: house_unsecured_while_away
@@ -665,6 +711,36 @@ template:
         icon: mdi:chandelier
         state: >
           {{ is_state('binary_sensor.front_stairs_schedule_active', 'on') }}
+
+      - name: "Espresso Water Backflush Due"
+        unique_id: espresso_water_backflush_due
+        state: >
+          {% set last = states('input_datetime.espresso_last_water_backflush') %}
+          {% set last_ts = as_timestamp(last, 0) %}
+          {{ last_ts > 0 and (as_timestamp(now()) - last_ts) >= 604800 }}
+        icon: >
+          {{ 'mdi:water-sync' if is_state('binary_sensor.espresso_water_backflush_due', 'on') else 'mdi:water-check-outline' }}
+
+      - name: "Espresso Cafiza Clean Due"
+        unique_id: espresso_cafiza_clean_due
+        state: >
+          {% set last = states('input_datetime.espresso_last_cafiza_clean') %}
+          {% set last_ts = as_timestamp(last, 0) %}
+          {{ last_ts > 0 and (as_timestamp(now()) - last_ts) >= 5184000 }}
+        icon: >
+          {{ 'mdi:coffee-maker-alert-outline' if is_state('binary_sensor.espresso_cafiza_clean_due', 'on') else 'mdi:coffee-maker-check-outline' }}
+
+      - name: "Espresso Maintenance Due"
+        unique_id: espresso_maintenance_due
+        state: >
+          {% set snooze = states('input_datetime.espresso_maintenance_snooze_until') %}
+          {% set snooze_expired = snooze in ['unknown', 'unavailable', '']
+             or as_timestamp(snooze, 0) <= as_timestamp(now()) %}
+          {{ snooze_expired
+             and (is_state('binary_sensor.espresso_water_backflush_due', 'on')
+             or is_state('binary_sensor.espresso_cafiza_clean_due', 'on')) }}
+        icon: >
+          {{ 'mdi:coffee-maker-alert-outline' if is_state('binary_sensor.espresso_maintenance_due', 'on') else 'mdi:coffee-maker-check-outline' }}
 
       - name: "Piano Tuning Due"
         unique_id: piano_tuning_due

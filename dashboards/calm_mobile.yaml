@@ -464,6 +464,37 @@ views:
               <<: *compact_tile_styles
             extra_styles: *compact_tile_extra
           - type: custom:button-card
+            entity: sensor.espresso_maintenance_status
+            show_icon: false
+            show_name: false
+            show_state: false
+            custom_fields:
+              icon: >-
+                [[[
+                  const status = entity.state;
+                  const cafizaDue = states['binary_sensor.espresso_cafiza_clean_due']?.state === 'on';
+                  const maintenanceDue = states['binary_sensor.espresso_maintenance_due']?.state === 'on';
+                  const enabled = states['input_boolean.espresso_maintenance_enabled']?.state !== 'off';
+                  const color = !enabled || status === 'Snoozed'
+                    ? '#94a3b8'
+                    : cafizaDue
+                      ? '#ef4444'
+                      : maintenanceDue
+                        ? '#f59e0b'
+                        : '#22c55e';
+                  return `<div class="tile-icon"><ha-icon icon="mdi:coffee-maker-outline" style="color:${color}"></ha-icon></div>`;
+                ]]]
+              text: >-
+                [[[
+                  const status = entity?.state || 'Unknown';
+                  return `<div class="tile-copy"><div class="tile-label">Espresso</div><div class="tile-meta">${status}</div></div>`;
+                ]]]
+            tap_action:
+              action: more-info
+            styles:
+              <<: *compact_tile_styles
+            extra_styles: *compact_tile_extra
+          - type: custom:button-card
             entity: media_player.kitchen_speakers
             show_icon: false
             show_name: false
@@ -486,6 +517,57 @@ views:
               <<: *compact_tile_styles
             extra_styles: *compact_tile_extra
 
+
+      - type: conditional
+        conditions:
+          - entity: input_boolean.espresso_maintenance_enabled
+            state: "on"
+          - entity: binary_sensor.espresso_maintenance_due
+            state: "on"
+        card:
+          type: custom:mushroom-chips-card
+          alignment: left
+          chips:
+            - type: template
+              icon: mdi:water-check-outline
+              icon_color: blue
+              content: Water done
+              tap_action:
+                action: call-service
+                service: script.turn_on
+                target:
+                  entity_id: script.espresso_mark_water_backflush_done
+            - type: template
+              icon: mdi:coffee-maker-check-outline
+              icon_color: amber
+              content: Cafiza done
+              tap_action:
+                action: call-service
+                service: script.turn_on
+                target:
+                  entity_id: script.espresso_mark_cafiza_clean_done
+            - type: template
+              icon: mdi:alarm-snooze
+              icon_color: grey
+              content: Snooze
+              tap_action:
+                action: call-service
+                service: script.turn_on
+                target:
+                  entity_id: script.espresso_snooze_maintenance
+          card_mod:
+            style: |
+              ha-card {
+                border: none;
+                box-shadow: none;
+                --chip-spacing: 10px;
+                margin-top: -4px;
+              }
+              mushroom-template-chip {
+                --chip-background: rgba(15, 23, 42, 0.72);
+                --chip-border-width: 1px;
+                --chip-border-color: rgba(148, 163, 184, 0.14);
+              }
 
       - type: conditional
         conditions:

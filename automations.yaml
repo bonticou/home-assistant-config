@@ -1905,6 +1905,120 @@
   max: 10
 
 
+- id: espresso_morning_maintenance_reminder
+  alias: "Espresso — Morning Maintenance Reminder"
+  description: Sends the Profitec GO cleaning reminder at 7 AM only when Trevor is home.
+  triggers:
+    - trigger: time
+      at: "07:00:00"
+  conditions:
+    - condition: state
+      entity_id: input_boolean.espresso_maintenance_enabled
+      state: "on"
+    - condition: state
+      entity_id: binary_sensor.espresso_maintenance_due
+      state: "on"
+    - condition: state
+      entity_id: device_tracker.tk_iphone_16_pro
+      state: "home"
+  actions:
+    - action: script.espresso_send_maintenance_notification
+  mode: single
+
+- id: espresso_maintenance_notification_actions
+  alias: "Espresso — Notification Actions"
+  description: Handles the quick actions from Profitec GO cleaning reminders.
+  triggers:
+    - trigger: event
+      event_type: mobile_app_notification_action
+  conditions:
+    - condition: template
+      value_template: >
+        {{ trigger.event.data.action in [
+          'ESPRESSO_WATER_BACKFLUSH_DONE',
+          'ESPRESSO_CAFIZA_CLEAN_DONE',
+          'ESPRESSO_SNOOZE_TOMORROW'
+        ] }}
+  actions:
+    - choose:
+        - conditions:
+            - condition: template
+              value_template: "{{ trigger.event.data.action == 'ESPRESSO_WATER_BACKFLUSH_DONE' }}"
+          sequence:
+            - action: script.espresso_mark_water_backflush_done
+
+        - conditions:
+            - condition: template
+              value_template: "{{ trigger.event.data.action == 'ESPRESSO_CAFIZA_CLEAN_DONE' }}"
+          sequence:
+            - action: script.espresso_mark_cafiza_clean_done
+
+        - conditions:
+            - condition: template
+              value_template: "{{ trigger.event.data.action == 'ESPRESSO_SNOOZE_TOMORROW' }}"
+          sequence:
+            - action: script.espresso_snooze_maintenance
+  mode: parallel
+  max: 10
+
+- id: robison_oil_annual_tune_up_reminder
+  alias: "Robison Oil — Annual Tune-Up Reminder"
+  description: Sends the late-March reminder to schedule or confirm the annual Robison Oil tune-up.
+  triggers:
+    - trigger: time
+      at: "09:00:00"
+  conditions:
+    - condition: template
+      value_template: "{{ now().month == 3 and now().day == 25 }}"
+  actions:
+    - action: script.robison_oil_send_tune_up_reminder
+  mode: single
+
+- id: robison_oil_annual_price_check_reminder
+  alias: "Robison Oil — Annual Price Check Reminder"
+  description: Sends the late-summer Robison Oil price-check reminder.
+  triggers:
+    - trigger: time
+      at: "09:00:00"
+  conditions:
+    - condition: template
+      value_template: "{{ now().month == 8 and now().day == 20 }}"
+  actions:
+    - action: script.robison_oil_send_price_check_reminder
+  mode: single
+
+- id: robison_oil_price_check_follow_up
+  alias: "Robison Oil — Price Check Follow-Up"
+  description: Sends the September follow-up if this year's Robison Oil price check has not been marked done.
+  triggers:
+    - trigger: time
+      at: "09:00:00"
+  conditions:
+    - condition: template
+      value_template: "{{ now().month == 9 and now().day == 5 }}"
+    - condition: template
+      value_template: >-
+        {% set last = states('input_datetime.robison_oil_price_check_last_done') %}
+        {% set last_ts = as_timestamp(last, 0) %}
+        {{ last_ts == 0 or (last_ts | timestamp_custom('%Y', true) | int(0)) != now().year }}
+  actions:
+    - action: script.robison_oil_send_price_check_reminder
+  mode: single
+
+- id: robison_oil_notification_actions
+  alias: "Robison Oil — Notification Actions"
+  description: Handles quick actions from Robison Oil reminders.
+  triggers:
+    - trigger: event
+      event_type: mobile_app_notification_action
+  conditions:
+    - condition: template
+      value_template: "{{ trigger.event.data.action == 'ROBISON_OIL_PRICE_CHECK_DONE' }}"
+  actions:
+    - action: script.robison_oil_mark_price_check_done
+  mode: parallel
+  max: 5
+
 - id: piano_annual_tuning_reminder
   alias: "Piano — Annual Tuning Reminder"
   description: Sends the annual Steinway tuning check when piano care is due.

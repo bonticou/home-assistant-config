@@ -673,6 +673,169 @@ notify_trevor_phone:
         message: "{{ notification_message }}"
         data: "{{ notification_data }}"
 
+espresso_send_maintenance_notification:
+  alias: Espresso Send Maintenance Notification
+  description: Sends the next Profitec GO cleaning reminder with quick actions.
+  icon: mdi:coffee-maker-outline
+  mode: restart
+  sequence:
+    - variables:
+        cafiza_due: "{{ is_state('binary_sensor.espresso_cafiza_clean_due', 'on') }}"
+    - choose:
+        - conditions:
+            - condition: template
+              value_template: "{{ cafiza_due | bool }}"
+          sequence:
+            - action: script.notify_trevor_phone
+              data:
+                title: "☕🧼 Profitec GO Cafiza clean"
+                message: >-
+                  Time for a Cafiza brew-group clean.
+                  Use the blind basket with cleaner, rinse thoroughly, and toss the first shot.
+                  Marking this done also resets the weekly water backflush cadence.
+                data:
+                  group: espresso
+                  tag: espresso-maintenance
+                  url: /calm-mobile/home
+                  actions:
+                    - action: ESPRESSO_CAFIZA_CLEAN_DONE
+                      title: Cafiza done
+                    - action: ESPRESSO_SNOOZE_TOMORROW
+                      title: Snooze
+      default:
+        - action: script.notify_trevor_phone
+          data:
+            title: "☕💧 Profitec GO water backflush"
+            message: >-
+              Weekly water backflush for the Profitec GO.
+              Use the blind basket with water only, run a few short pump cycles,
+              then wipe the group clean.
+            data:
+              group: espresso
+              tag: espresso-maintenance
+              url: /calm-mobile/home
+              actions:
+                - action: ESPRESSO_WATER_BACKFLUSH_DONE
+                  title: Water done
+                - action: ESPRESSO_SNOOZE_TOMORROW
+                  title: Snooze
+
+espresso_mark_water_backflush_done:
+  alias: Espresso Mark Water Backflush Done
+  description: Stamp the last Profitec GO water backflush.
+  icon: mdi:water-check-outline
+  mode: restart
+  sequence:
+    - variables:
+        espresso_now: "{{ now().strftime('%Y-%m-%d %H:%M:%S') }}"
+    - action: input_datetime.set_datetime
+      target:
+        entity_id:
+          - input_datetime.espresso_last_water_backflush
+          - input_datetime.espresso_maintenance_snooze_until
+      data:
+        datetime: "{{ espresso_now }}"
+    - action: script.espresso_clear_maintenance_notification
+
+espresso_mark_cafiza_clean_done:
+  alias: Espresso Mark Cafiza Clean Done
+  description: Stamp the last Profitec GO Cafiza clean and water backflush.
+  icon: mdi:coffee-maker-check-outline
+  mode: restart
+  sequence:
+    - variables:
+        espresso_now: "{{ now().strftime('%Y-%m-%d %H:%M:%S') }}"
+    - action: input_datetime.set_datetime
+      target:
+        entity_id:
+          - input_datetime.espresso_last_cafiza_clean
+          - input_datetime.espresso_last_water_backflush
+          - input_datetime.espresso_maintenance_snooze_until
+      data:
+        datetime: "{{ espresso_now }}"
+    - action: script.espresso_clear_maintenance_notification
+
+espresso_snooze_maintenance:
+  alias: Espresso Snooze Maintenance
+  description: Snooze the Profitec GO cleaning reminder until tomorrow morning.
+  icon: mdi:alarm-snooze
+  mode: restart
+  sequence:
+    - action: input_datetime.set_datetime
+      target:
+        entity_id: input_datetime.espresso_maintenance_snooze_until
+      data:
+        datetime: "{{ (today_at('07:00:00') + timedelta(days=1)).strftime('%Y-%m-%d %H:%M:%S') }}"
+    - action: script.espresso_clear_maintenance_notification
+
+espresso_clear_maintenance_notification:
+  alias: Espresso Clear Maintenance Notification
+  description: Clears the active Profitec GO maintenance notification tag.
+  icon: mdi:coffee-maker-check-outline
+  mode: restart
+  sequence:
+    - action: script.notify_trevor_phone
+      data:
+        message: clear_notification
+        data:
+          tag: espresso-maintenance
+
+robison_oil_send_tune_up_reminder:
+  alias: Robison Oil Send Tune-Up Reminder
+  description: Sends the annual Robison Oil tune-up scheduling reminder.
+  icon: mdi:oil
+  mode: restart
+  sequence:
+    - action: script.notify_trevor_phone
+      data:
+        title: "🛢️🛠️ Robison Oil tune-up"
+        message: >-
+          Time to schedule or confirm the annual Robison Oil tune-up.
+          The plan is active, so this is just the yearly late-March check-in.
+        data:
+          group: house-maintenance
+          tag: robison-oil-tune-up
+          url: /calm-mobile/home
+
+robison_oil_send_price_check_reminder:
+  alias: Robison Oil Send Price Check Reminder
+  description: Sends the late-summer Robison Oil price-check reminder.
+  icon: mdi:currency-usd
+  mode: restart
+  sequence:
+    - action: script.notify_trevor_phone
+      data:
+        title: "🛢️💸 Robison Oil price check"
+        message: >-
+          Check or confirm the Robison Oil pricing plan for the season.
+          Mark this done once the rate or plan is settled.
+        data:
+          group: house-maintenance
+          tag: robison-oil-price-check
+          url: /calm-mobile/home
+          actions:
+            - action: ROBISON_OIL_PRICE_CHECK_DONE
+              title: Done
+
+robison_oil_mark_price_check_done:
+  alias: Robison Oil Mark Price Check Done
+  description: Stamps this year's Robison Oil price check and clears the reminder.
+  icon: mdi:check-circle-outline
+  mode: restart
+  sequence:
+    - variables:
+        robison_now: "{{ now().strftime('%Y-%m-%d %H:%M:%S') }}"
+    - action: input_datetime.set_datetime
+      target:
+        entity_id: input_datetime.robison_oil_price_check_last_done
+      data:
+        datetime: "{{ robison_now }}"
+    - action: script.notify_trevor_phone
+      data:
+        message: clear_notification
+        data:
+          tag: robison-oil-price-check
+
 piano_send_tuning_reminder:
   alias: Piano Send Tuning Reminder
   description: Sends the annual Steinway tuning reminder with quick actions.
