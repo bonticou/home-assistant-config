@@ -764,19 +764,25 @@ water_send_alert:
     - variables:
         kind: "{{ alert_kind | default('status') }}"
         notification_message: "{{ message | default('', true) }}"
+        expected_action: >-
+          {{ 'WATER_LOW_PRESSURE_EXPECTED'
+             if kind in ['low_pressure', 'low_pressure_persistent']
+             else 'WATER_OVERNIGHT_FLOW_EXPECTED'
+             if kind == 'overnight_flow'
+             else 'WATER_SUSTAINED_FLOW_EXPECTED' }}
         resolved_severity: >-
           {% if severity is defined and severity | default('', true) != '' %}
             {{ severity }}
-          {% elif kind in ['burst_day', 'burst_night', 'leak', 'valve_closed'] %}
+          {% elif kind in ['burst_day', 'burst_night', 'leak', 'valve_closed', 'low_pressure_urgent'] %}
             critical
           {% else %}
             warning
           {% endif %}
         notification_title: >-
           {% if kind == 'overnight_flow' %}
-            🌙 Water running overnight
+            🌙 Water running overnight?
           {% elif kind == 'sustained_flow' %}
-            🚰 Sustained water flow
+            🚰 Water still running?
           {% elif kind == 'burst_day' %}
             🚨 Very high water flow
           {% elif kind == 'burst_night' %}
@@ -784,7 +790,13 @@ water_send_alert:
           {% elif kind == 'pressure_drop' %}
             📉 Sudden water pressure drop
           {% elif kind == 'low_pressure' %}
-            🚿 Low water pressure
+            🚿 Low water pressure?
+          {% elif kind == 'low_pressure_persistent' %}
+            🚿 Low pressure still active
+          {% elif kind == 'low_pressure_very_low' %}
+            ⚠️ Very low water pressure
+          {% elif kind == 'low_pressure_urgent' %}
+            🚨 Very low pressure still active
           {% elif kind == 'high_pressure' %}
             📈 High water pressure
           {% elif kind == 'usage_high' %}
@@ -815,15 +827,36 @@ water_send_alert:
                   ttl: 0
                   priority: high
       default:
-        - action: script.notify_trevor_phone
-          data:
-            title: "{{ notification_title }}"
-            message: "{{ notification_message }}"
-            data:
-              group: water
-              tag: "water-{{ kind }}"
-              url: /calm-mobile/water
-              sticky: false
+        - choose:
+            - conditions:
+                - condition: template
+                  value_template: "{{ kind in ['overnight_flow', 'sustained_flow', 'low_pressure', 'low_pressure_persistent'] }}"
+              sequence:
+                - action: script.notify_trevor_phone
+                  data:
+                    title: "{{ notification_title }}"
+                    message: "{{ notification_message }}"
+                    data:
+                      group: water
+                      tag: "water-{{ kind }}"
+                      url: /calm-mobile/water
+                      sticky: false
+                      actions:
+                        - action: "{{ expected_action }}"
+                          title: Expected
+                        - action: URI
+                          title: Open Water
+                          uri: /calm-mobile/water
+          default:
+            - action: script.notify_trevor_phone
+              data:
+                title: "{{ notification_title }}"
+                message: "{{ notification_message }}"
+                data:
+                  group: water
+                  tag: "water-{{ kind }}"
+                  url: /calm-mobile/water
+                  sticky: false
 
 garden_mark_seedlings_checked:
   alias: Garden Mark Seedlings Checked

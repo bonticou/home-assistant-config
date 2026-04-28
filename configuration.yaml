@@ -53,6 +53,10 @@ input_datetime:
     name: Away Security Snooze Until
     has_date: true
     has_time: true
+  water_pressure_snooze_until:
+    name: Water Pressure Snooze Until
+    has_date: true
+    has_time: true
   garden_seed_start_date:
     name: Garden Seed Start Date
     has_date: true

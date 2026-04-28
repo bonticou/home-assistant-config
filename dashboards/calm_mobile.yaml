@@ -2915,6 +2915,30 @@ views:
               {% if flow > 8 %}red
               {% elif flow > 1 %}blue
               {% else %}green{% endif %}
+            card_mod:
+              style: &water_status_card_style |
+                ha-card {
+                  border: 1px solid rgba(148, 163, 184, 0.16);
+                  border-radius: 20px;
+                  box-shadow: none;
+                  padding: 6px 8px;
+                  background: linear-gradient(180deg, rgba(15, 23, 42, 0.72), rgba(15, 23, 42, 0.52));
+                }
+                mushroom-shape-icon {
+                  --shape-color: rgba(255, 255, 255, 0.06) !important;
+                  width: 42px;
+                  height: 42px;
+                }
+                .primary {
+                  font-size: 16px !important;
+                  font-weight: 620 !important;
+                  letter-spacing: 0;
+                }
+                .secondary {
+                  color: rgba(226, 232, 240, 0.82) !important;
+                  font-size: 13px !important;
+                  letter-spacing: 0;
+                }
           - type: custom:mushroom-template-card
             entity: sensor.flo_shutoff_water_pressure
             primary: Pressure
@@ -2926,6 +2950,8 @@ views:
               {% if pressure < 40 or pressure > 80 %}orange
               {% elif pressure < 50 %}amber
               {% else %}blue{% endif %}
+            card_mod:
+              style: *water_status_card_style
           - type: custom:mushroom-template-card
             entity: sensor.flo_shutoff_today_s_water_usage
             primary: Daily usage
@@ -2935,6 +2961,8 @@ views:
             icon_color: >-
               {% set gallons = states('sensor.flo_shutoff_today_s_water_usage') | float(0) %}
               {{ 'orange' if gallons > 400 else 'blue' }}
+            card_mod:
+              style: *water_status_card_style
           - type: custom:mushroom-template-card
             entity: switch.flo_shutoff_shutoff_valve
             primary: Shutoff valve
@@ -2945,52 +2973,181 @@ views:
               {{ 'red' if is_state('switch.flo_shutoff_shutoff_valve', 'off') else 'green' }}
             tap_action:
               action: more-info
+            card_mod:
+              style: *water_status_card_style
 
       - type: custom:mushroom-title-card
-        title: Last 7 Days
-        subtitle: Daily water usage including today
+        title: Water use
+        subtitle: Last 7 days - gallons including today
 
       - type: custom:apexcharts-card
         graph_span: 7d
+        span:
+          end: day
         header:
           show: false
         apex_config:
           chart:
-            height: 220
-            type: bar
+            height: 216
+            type: line
+            parentHeightOffset: 0
+            toolbar:
+              show: false
           plotOptions:
             bar:
-              borderRadius: 8
-              columnWidth: 48%
+              borderRadius: 7
+              borderRadiusApplication: end
+              columnWidth: 38%
+          dataLabels:
+            enabled: false
+          stroke:
+            curve: straight
+            width:
+              - 0
+              - 2
+            dashArray:
+              - 0
+              - 5
+          fill:
+            opacity:
+              - 0.82
+              - 1
+            type:
+              - gradient
+              - solid
+            gradient:
+              shade: dark
+              type: vertical
+              opacityFrom: 0.95
+              opacityTo: 0.58
           grid:
-            borderColor: rgba(120, 120, 120, 0.16)
+            borderColor: rgba(148, 163, 184, 0.10)
+            strokeDashArray: 4
+            padding:
+              top: 4
+              right: 10
+              bottom: 0
+              left: 2
           legend:
-            show: false
+            show: true
+            position: top
+            horizontalAlign: left
+            fontSize: 11px
+            labels:
+              colors: rgba(226, 232, 240, 0.64)
+            markers:
+              width: 7
+              height: 7
+              radius: 7
+          markers:
+            size:
+              - 0
+              - 0
+          states:
+            hover:
+              filter:
+                type: lighten
+                value: 0.08
           tooltip:
             theme: dark
+            shared: true
+            intersect: false
             x:
-              format: ddd
+              formatter: |
+                EVAL:function(value, opts) {
+                  const seriesIndex = opts?.seriesIndex ?? 0;
+                  const dataPointIndex = opts?.dataPointIndex ?? 0;
+                  const source = opts?.w?.globals?.seriesX?.[seriesIndex]?.[dataPointIndex] ?? value;
+                  const numeric = typeof source === 'number' ? source : Number(source);
+                  const date = Number.isFinite(numeric) ? new Date(numeric) : new Date(source);
+                  if (Number.isNaN(date.getTime())) return value ?? '';
+                  const today = new Date();
+                  const isToday = date.getFullYear() === today.getFullYear()
+                    && date.getMonth() === today.getMonth()
+                    && date.getDate() === today.getDate();
+                  const day = isToday
+                    ? 'Today'
+                    : date.toLocaleDateString(undefined, { weekday: 'short' });
+                  const month = date.toLocaleDateString(undefined, { month: 'short', day: 'numeric' });
+                  return `${day}, ${month}`;
+                }
+            'y':
+              formatter: |
+                EVAL:function(value) {
+                  const numeric = Number(value);
+                  return Number.isFinite(numeric) ? `${Math.round(numeric)} gal` : value;
+                }
           xaxis:
+            tickAmount: 7
+            axisBorder:
+              show: false
+            axisTicks:
+              show: false
             labels:
-              format: ddd
+              datetimeUTC: false
+              hideOverlappingLabels: false
+              showDuplicates: true
+              formatter: |
+                EVAL:function(value, timestamp) {
+                  const source = timestamp ?? value;
+                  const numeric = typeof source === 'number' ? source : Number(source);
+                  const date = Number.isFinite(numeric) ? new Date(numeric) : new Date(source);
+                  if (Number.isNaN(date.getTime())) return value ?? '';
+                  const today = new Date();
+                  if (date.getFullYear() === today.getFullYear()
+                    && date.getMonth() === today.getMonth()
+                    && date.getDate() === today.getDate()) {
+                    return 'Today';
+                  }
+                  return date.toLocaleDateString(undefined, { weekday: 'short' });
+                }
               style:
                 colors: rgba(226, 232, 240, 0.74)
                 fontSize: 12px
                 fontWeight: 500
         yaxis:
           - min: 0
+            max: "~400"
+            align_to: 100
             decimals: 0
             apex_config:
               tickAmount: 4
         series:
           - entity: sensor.flo_shutoff_today_s_water_usage
-            name: Usage
+            name: Daily total
             type: column
-            color: '#4da3ff'
+            color: '#60a5fa'
             stroke_width: 0
+            float_precision: 0
             group_by:
               func: max
               duration: 1d
+          - entity: sensor.flo_shutoff_today_s_water_usage
+            name: Daily avg
+            type: line
+            color: rgba(226, 232, 240, 0.62)
+            stroke_width: 2
+            stroke_dash: 5
+            float_precision: 0
+            group_by:
+              func: avg
+              duration: 1d
+        card_mod:
+          style: &water_chart_card_style |
+            ha-card {
+              border: 1px solid rgba(148, 163, 184, 0.08);
+              border-radius: 18px;
+              box-shadow: none;
+              padding: 0;
+              background: rgba(15, 23, 42, 0.46);
+            }
+            .apexcharts-gridline {
+              stroke: rgba(148, 163, 184, 0.10) !important;
+            }
+            .apexcharts-xaxis-label,
+            .apexcharts-yaxis-label {
+              fill: rgba(226, 232, 240, 0.68) !important;
+            }
 
       - type: custom:mushroom-title-card
         title: Last 24 Hours
@@ -3004,14 +3161,30 @@ views:
         apex_config:
           chart:
             height: 220
+            parentHeightOffset: 0
+            toolbar:
+              show: false
           stroke:
-            curve: smooth
+            curve: straight
           grid:
-            borderColor: rgba(120, 120, 120, 0.16)
+            borderColor: rgba(148, 163, 184, 0.12)
           legend:
-            show: false
+            show: true
+            position: top
+            horizontalAlign: left
+            fontSize: 12px
+            labels:
+              colors: rgba(226, 232, 240, 0.72)
+            markers:
+              width: 8
+              height: 8
+              radius: 8
           tooltip:
             theme: dark
+          fill:
+            opacity:
+              - 0.22
+              - 1
         yaxis:
           - id: flow
             min: 0
@@ -3044,10 +3217,98 @@ views:
             group_by:
               func: avg
               duration: 10min
+        card_mod:
+          style: *water_chart_card_style
 
       - type: custom:mushroom-title-card
         title: Leak Sensors
         subtitle: All dry should be the default
+
+      - type: custom:mushroom-template-card
+        entity: binary_sensor.kitchen_sink_leak_detection_water_detected
+        primary: >-
+          {% set sensors = [
+            'binary_sensor.kitchen_sink_leak_detection_water_detected',
+            'binary_sensor.island_sink_leak_detection_water_detected',
+            'binary_sensor.dishwasher_leak_detection_water_detected',
+            'binary_sensor.kitchen_fridge_leak_detection_water_detected',
+            'binary_sensor.washing_machine_leak_detection_water_detected',
+            'binary_sensor.laundry_sink_leak_detection_water_detected',
+            'binary_sensor.mechanical_room_leak_detection_water_detected',
+            'binary_sensor.electrical_room_leak_detection_water_detected',
+            'binary_sensor.basement_ejector_leak_detection_water_detected'
+          ] %}
+          {% set wet = namespace(count=0) %}
+          {% for sensor in sensors %}
+            {% if is_state(sensor, 'on') %}
+              {% set wet.count = wet.count + 1 %}
+            {% endif %}
+          {% endfor %}
+          {{ wet.count ~ ' wet' if wet.count > 0 else (sensors | count) ~ ' dry' }}
+        secondary: >-
+          {% set sensors = [
+            'binary_sensor.kitchen_sink_leak_detection_water_detected',
+            'binary_sensor.island_sink_leak_detection_water_detected',
+            'binary_sensor.dishwasher_leak_detection_water_detected',
+            'binary_sensor.kitchen_fridge_leak_detection_water_detected',
+            'binary_sensor.washing_machine_leak_detection_water_detected',
+            'binary_sensor.laundry_sink_leak_detection_water_detected',
+            'binary_sensor.mechanical_room_leak_detection_water_detected',
+            'binary_sensor.electrical_room_leak_detection_water_detected',
+            'binary_sensor.basement_ejector_leak_detection_water_detected'
+          ] %}
+          {% set wet = namespace(count=0) %}
+          {% for sensor in sensors %}
+            {% if is_state(sensor, 'on') %}
+              {% set wet.count = wet.count + 1 %}
+            {% endif %}
+          {% endfor %}
+          {{ 'Review the highlighted sensors below.' if wet.count > 0 else 'All leak sensors dry.' }}
+        icon: mdi:shield-water-outline
+        icon_color: >-
+          {% set sensors = [
+            'binary_sensor.kitchen_sink_leak_detection_water_detected',
+            'binary_sensor.island_sink_leak_detection_water_detected',
+            'binary_sensor.dishwasher_leak_detection_water_detected',
+            'binary_sensor.kitchen_fridge_leak_detection_water_detected',
+            'binary_sensor.washing_machine_leak_detection_water_detected',
+            'binary_sensor.laundry_sink_leak_detection_water_detected',
+            'binary_sensor.mechanical_room_leak_detection_water_detected',
+            'binary_sensor.electrical_room_leak_detection_water_detected',
+            'binary_sensor.basement_ejector_leak_detection_water_detected'
+          ] %}
+          {% set wet = namespace(count=0) %}
+          {% for sensor in sensors %}
+            {% if is_state(sensor, 'on') %}
+              {% set wet.count = wet.count + 1 %}
+            {% endif %}
+          {% endfor %}
+          {{ 'red' if wet.count > 0 else 'teal' }}
+        fill_container: true
+        tap_action:
+          action: none
+        card_mod:
+          style: &water_summary_card_style |
+            ha-card {
+              border: 1px solid rgba(20, 184, 166, 0.18);
+              border-radius: 24px;
+              box-shadow: none;
+              padding: 8px 10px;
+              background: linear-gradient(180deg, rgba(20, 184, 166, 0.10), rgba(15, 23, 42, 0.54));
+            }
+            mushroom-shape-icon {
+              --shape-color: rgba(20, 184, 166, 0.14) !important;
+            }
+            .primary {
+              font-size: 20px !important;
+              font-weight: 620 !important;
+              letter-spacing: 0;
+            }
+            .secondary {
+              color: rgba(226, 232, 240, 0.74) !important;
+              font-size: 13px !important;
+              letter-spacing: 0;
+            }
 
       - type: grid
         columns: 2
@@ -3272,77 +3533,27 @@ views:
             custom_fields:
               icon: >-
                 [[[
-                  const enabled = entity.state === 'on';
-                  const color = enabled ? '#14b8a6' : '#94a3b8';
-                  return `<div class="tile-icon"><ha-icon icon="mdi:shield-moon-outline" style="color:${color}"></ha-icon></div>`;
+                  const ids = [
+                    'automation.water_overnight_continuous_flow_running_toilet',
+                    'automation.water_daytime_sustained_low_flow',
+                    'automation.water_high_flow_burst_daytime',
+                    'automation.water_high_flow_burst_overnight'
+                  ];
+                  const active = ids.every((id) => states[id]?.state === 'on');
+                  const color = active ? '#14b8a6' : '#94a3b8';
+                  return `<div class="tile-icon"><ha-icon icon="mdi:shield-water-outline" style="color:${color}"></ha-icon></div>`;
                 ]]]
               text: >-
                 [[[
-                  const meta = entity.state === 'on' ? 'Enabled' : 'Disabled';
-                  return `<div class="tile-copy"><div class="tile-label">Overnight Flow</div><div class="tile-meta">${meta}</div></div>`;
-                ]]]
-            tap_action:
-              action: more-info
-            styles: *water_compact_button_styles
-            extra_styles: *compact_tile_extra
-          - type: custom:button-card
-            entity: automation.water_daytime_sustained_low_flow
-            show_icon: false
-            show_name: false
-            show_state: false
-            custom_fields:
-              icon: >-
-                [[[
-                  const enabled = entity.state === 'on';
-                  const color = enabled ? '#14b8a6' : '#94a3b8';
-                  return `<div class="tile-icon"><ha-icon icon="mdi:water-check-outline" style="color:${color}"></ha-icon></div>`;
-                ]]]
-              text: >-
-                [[[
-                  const meta = entity.state === 'on' ? 'Enabled' : 'Disabled';
-                  return `<div class="tile-copy"><div class="tile-label">Daytime Flow</div><div class="tile-meta">${meta}</div></div>`;
-                ]]]
-            tap_action:
-              action: more-info
-            styles: *water_compact_button_styles
-            extra_styles: *compact_tile_extra
-          - type: custom:button-card
-            entity: automation.water_high_flow_burst_daytime
-            show_icon: false
-            show_name: false
-            show_state: false
-            custom_fields:
-              icon: >-
-                [[[
-                  const enabled = entity.state === 'on';
-                  const color = enabled ? '#14b8a6' : '#94a3b8';
-                  return `<div class="tile-icon"><ha-icon icon="mdi:shield-alert-outline" style="color:${color}"></ha-icon></div>`;
-                ]]]
-              text: >-
-                [[[
-                  const meta = entity.state === 'on' ? 'Enabled' : 'Disabled';
-                  return `<div class="tile-copy"><div class="tile-label">Day Burst</div><div class="tile-meta">${meta}</div></div>`;
-                ]]]
-            tap_action:
-              action: more-info
-            styles: *water_compact_button_styles
-            extra_styles: *compact_tile_extra
-          - type: custom:button-card
-            entity: automation.water_high_flow_burst_overnight
-            show_icon: false
-            show_name: false
-            show_state: false
-            custom_fields:
-              icon: >-
-                [[[
-                  const enabled = entity.state === 'on';
-                  const color = enabled ? '#14b8a6' : '#94a3b8';
-                  return `<div class="tile-icon"><ha-icon icon="mdi:weather-night" style="color:${color}"></ha-icon></div>`;
-                ]]]
-              text: >-
-                [[[
-                  const meta = entity.state === 'on' ? 'Enabled' : 'Disabled';
-                  return `<div class="tile-copy"><div class="tile-label">Night Burst</div><div class="tile-meta">${meta}</div></div>`;
+                  const ids = [
+                    'automation.water_overnight_continuous_flow_running_toilet',
+                    'automation.water_daytime_sustained_low_flow',
+                    'automation.water_high_flow_burst_daytime',
+                    'automation.water_high_flow_burst_overnight'
+                  ];
+                  const active = ids.every((id) => states[id]?.state === 'on');
+                  const meta = active ? 'Active' : 'Disabled';
+                  return `<div class="tile-copy"><div class="tile-label">Flow guard</div><div class="tile-meta">${meta}</div></div>`;
                 ]]]
             tap_action:
               action: more-info
@@ -3356,77 +3567,33 @@ views:
             custom_fields:
               icon: >-
                 [[[
-                  const enabled = entity.state === 'on';
-                  const color = enabled ? '#14b8a6' : '#94a3b8';
+                  const ids = [
+                    'automation.water_low_pressure',
+                    'automation.water_low_pressure_persistent',
+                    'automation.water_very_low_pressure',
+                    'automation.water_very_low_pressure_persistent',
+                    'automation.water_pressure_recovered',
+                    'automation.water_pressure_drop_sudden',
+                    'automation.water_high_pressure'
+                  ];
+                  const active = ids.every((id) => states[id]?.state === 'on');
+                  const color = active ? '#14b8a6' : '#94a3b8';
                   return `<div class="tile-icon"><ha-icon icon="mdi:gauge-low" style="color:${color}"></ha-icon></div>`;
                 ]]]
               text: >-
                 [[[
-                  const meta = entity.state === 'on' ? 'Enabled' : 'Disabled';
-                  return `<div class="tile-copy"><div class="tile-label">Low Pressure</div><div class="tile-meta">${meta}</div></div>`;
-                ]]]
-            tap_action:
-              action: more-info
-            styles: *water_compact_button_styles
-            extra_styles: *compact_tile_extra
-          - type: custom:button-card
-            entity: automation.water_pressure_drop_sudden
-            show_icon: false
-            show_name: false
-            show_state: false
-            custom_fields:
-              icon: >-
-                [[[
-                  const enabled = entity.state === 'on';
-                  const color = enabled ? '#14b8a6' : '#94a3b8';
-                  return `<div class="tile-icon"><ha-icon icon="mdi:gauge-empty" style="color:${color}"></ha-icon></div>`;
-                ]]]
-              text: >-
-                [[[
-                  const meta = entity.state === 'on' ? 'Enabled' : 'Disabled';
-                  return `<div class="tile-copy"><div class="tile-label">Sudden Drop</div><div class="tile-meta">${meta}</div></div>`;
-                ]]]
-            tap_action:
-              action: more-info
-            styles: *water_compact_button_styles
-            extra_styles: *compact_tile_extra
-          - type: custom:button-card
-            entity: automation.water_high_pressure
-            show_icon: false
-            show_name: false
-            show_state: false
-            custom_fields:
-              icon: >-
-                [[[
-                  const enabled = entity.state === 'on';
-                  const color = enabled ? '#14b8a6' : '#94a3b8';
-                  return `<div class="tile-icon"><ha-icon icon="mdi:gauge-full" style="color:${color}"></ha-icon></div>`;
-                ]]]
-              text: >-
-                [[[
-                  const meta = entity.state === 'on' ? 'Enabled' : 'Disabled';
-                  return `<div class="tile-copy"><div class="tile-label">High Pressure</div><div class="tile-meta">${meta}</div></div>`;
-                ]]]
-            tap_action:
-              action: more-info
-            styles: *water_compact_button_styles
-            extra_styles: *compact_tile_extra
-          - type: custom:button-card
-            entity: automation.water_high_daily_usage
-            show_icon: false
-            show_name: false
-            show_state: false
-            custom_fields:
-              icon: >-
-                [[[
-                  const enabled = entity.state === 'on';
-                  const color = enabled ? '#14b8a6' : '#94a3b8';
-                  return `<div class="tile-icon"><ha-icon icon="mdi:water-sync" style="color:${color}"></ha-icon></div>`;
-                ]]]
-              text: >-
-                [[[
-                  const meta = entity.state === 'on' ? 'Enabled' : 'Disabled';
-                  return `<div class="tile-copy"><div class="tile-label">High Usage</div><div class="tile-meta">${meta}</div></div>`;
+                  const ids = [
+                    'automation.water_low_pressure',
+                    'automation.water_low_pressure_persistent',
+                    'automation.water_very_low_pressure',
+                    'automation.water_very_low_pressure_persistent',
+                    'automation.water_pressure_recovered',
+                    'automation.water_pressure_drop_sudden',
+                    'automation.water_high_pressure'
+                  ];
+                  const active = ids.every((id) => states[id]?.state === 'on');
+                  const meta = active ? 'Active' : 'Disabled';
+                  return `<div class="tile-copy"><div class="tile-label">Pressure guard</div><div class="tile-meta">${meta}</div></div>`;
                 ]]]
             tap_action:
               action: more-info
@@ -3447,7 +3614,7 @@ views:
               text: >-
                 [[[
                   const meta = entity.state === 'on' ? 'Enabled' : 'Disabled';
-                  return `<div class="tile-copy"><div class="tile-label">Leak Alerts</div><div class="tile-meta">${meta}</div></div>`;
+                  return `<div class="tile-copy"><div class="tile-label">Leak guard</div><div class="tile-meta">${meta === 'Enabled' ? 'Active' : 'Disabled'}</div></div>`;
                 ]]]
             tap_action:
               action: more-info
@@ -3461,21 +3628,30 @@ views:
             custom_fields:
               icon: >-
                 [[[
-                  const enabled = entity.state === 'on';
-                  const color = enabled ? '#14b8a6' : '#94a3b8';
+                  const ids = [
+                    'automation.water_shutoff_valve_closed',
+                    'automation.water_flo_system_alert'
+                  ];
+                  const active = ids.every((id) => states[id]?.state === 'on');
+                  const color = active ? '#14b8a6' : '#94a3b8';
                   return `<div class="tile-icon"><ha-icon icon="mdi:pipe-valve" style="color:${color}"></ha-icon></div>`;
                 ]]]
               text: >-
                 [[[
-                  const meta = entity.state === 'on' ? 'Enabled' : 'Disabled';
-                  return `<div class="tile-copy"><div class="tile-label">Valve Closed</div><div class="tile-meta">${meta}</div></div>`;
+                  const ids = [
+                    'automation.water_shutoff_valve_closed',
+                    'automation.water_flo_system_alert'
+                  ];
+                  const active = ids.every((id) => states[id]?.state === 'on');
+                  const meta = active ? 'Active' : 'Disabled';
+                  return `<div class="tile-copy"><div class="tile-label">Valve / Flo</div><div class="tile-meta">${meta}</div></div>`;
                 ]]]
             tap_action:
               action: more-info
             styles: *water_compact_button_styles
             extra_styles: *compact_tile_extra
           - type: custom:button-card
-            entity: automation.water_flo_system_alert
+            entity: automation.water_high_daily_usage
             show_icon: false
             show_name: false
             show_state: false
@@ -3484,12 +3660,12 @@ views:
                 [[[
                   const enabled = entity.state === 'on';
                   const color = enabled ? '#14b8a6' : '#94a3b8';
-                  return `<div class="tile-icon"><ha-icon icon="mdi:shield-alert-outline" style="color:${color}"></ha-icon></div>`;
+                  return `<div class="tile-icon"><ha-icon icon="mdi:water-sync" style="color:${color}"></ha-icon></div>`;
                 ]]]
               text: >-
                 [[[
                   const meta = entity.state === 'on' ? 'Enabled' : 'Disabled';
-                  return `<div class="tile-copy"><div class="tile-label">Flo Alert</div><div class="tile-meta">${meta}</div></div>`;
+                  return `<div class="tile-copy"><div class="tile-label">Usage guard</div><div class="tile-meta">${meta === 'Enabled' ? 'Active' : 'Disabled'}</div></div>`;
                 ]]]
             tap_action:
               action: more-info
@@ -3850,7 +4026,7 @@ views:
       - type: custom:popup-card
         target:
           entity_id: automation.water_overnight_continuous_flow_running_toilet
-        title: Overnight Flow Guard
+        title: Flow Guard
         dismiss_icon: mdi:close
         initial_style: wide
         popup_styles: *calm_popup_styles
@@ -3860,12 +4036,22 @@ views:
             - type: custom:mushroom-template-card
               entity: automation.water_overnight_continuous_flow_running_toilet
               primary: >-
-                {{ 'Armed' if is_state('automation.water_overnight_continuous_flow_running_toilet', 'on') else 'Disabled' }}
+                {{ 'Armed'
+                   if is_state('automation.water_overnight_continuous_flow_running_toilet', 'on')
+                   and is_state('automation.water_daytime_sustained_low_flow', 'on')
+                   and is_state('automation.water_high_flow_burst_daytime', 'on')
+                   and is_state('automation.water_high_flow_burst_overnight', 'on')
+                   else 'Disabled' }}
               secondary: >-
-                Watches for overnight continuous flow that suggests a running toilet.
-              icon: mdi:shield-moon-outline
+                Watches quiet overnight flow, sustained daytime flow, and high-flow bursts.
+              icon: mdi:shield-water-outline
               icon_color: >-
-                {{ 'teal' if is_state('automation.water_overnight_continuous_flow_running_toilet', 'on') else 'grey' }}
+                {{ 'teal'
+                   if is_state('automation.water_overnight_continuous_flow_running_toilet', 'on')
+                   and is_state('automation.water_daytime_sustained_low_flow', 'on')
+                   and is_state('automation.water_high_flow_burst_daytime', 'on')
+                   and is_state('automation.water_high_flow_burst_overnight', 'on')
+                   else 'grey' }}
               fill_container: true
               tap_action:
                 action: none
@@ -3878,9 +4064,19 @@ views:
                   entity: automation.water_overnight_continuous_flow_running_toilet
                   icon: mdi:power
                   icon_color: >-
-                    {{ 'teal' if is_state('automation.water_overnight_continuous_flow_running_toilet', 'on') else 'grey' }}
+                    {{ 'teal'
+                       if is_state('automation.water_overnight_continuous_flow_running_toilet', 'on')
+                       and is_state('automation.water_daytime_sustained_low_flow', 'on')
+                       and is_state('automation.water_high_flow_burst_daytime', 'on')
+                       and is_state('automation.water_high_flow_burst_overnight', 'on')
+                       else 'grey' }}
                   content: >-
-                    {{ 'Enabled' if is_state('automation.water_overnight_continuous_flow_running_toilet', 'on') else 'Disabled' }}
+                    {{ 'Active'
+                       if is_state('automation.water_overnight_continuous_flow_running_toilet', 'on')
+                       and is_state('automation.water_daytime_sustained_low_flow', 'on')
+                       and is_state('automation.water_high_flow_burst_daytime', 'on')
+                       and is_state('automation.water_high_flow_burst_overnight', 'on')
+                       else 'Disabled' }}
                   tap_action:
                     action: none
                 - type: template
@@ -4042,7 +4238,7 @@ views:
       - type: custom:popup-card
         target:
           entity_id: automation.water_low_pressure
-        title: Low Pressure Guard
+        title: Pressure Guard
         dismiss_icon: mdi:close
         initial_style: wide
         popup_styles: *calm_popup_styles
@@ -4052,12 +4248,30 @@ views:
             - type: custom:mushroom-template-card
               entity: automation.water_low_pressure
               primary: >-
-                {{ 'Armed' if is_state('automation.water_low_pressure', 'on') else 'Disabled' }}
+                {{ 'Armed'
+                   if is_state('automation.water_low_pressure', 'on')
+                   and is_state('automation.water_low_pressure_persistent', 'on')
+                   and is_state('automation.water_very_low_pressure', 'on')
+                   and is_state('automation.water_very_low_pressure_persistent', 'on')
+                   and is_state('automation.water_pressure_recovered', 'on')
+                   and is_state('automation.water_pressure_drop_sudden', 'on')
+                   and is_state('automation.water_high_pressure', 'on')
+                   else 'Disabled' }}
               secondary: >-
-                Watches for sustained pressure below 40 psi that lasts long enough to suggest a real fault.
+                Uses a calibrated ladder: low-pressure nudge after 10 minutes,
+                persistent follow-up after 30 minutes, very-low warnings at 25 psi,
+                urgent very-low persistence, and recovery clearing above 42 psi.
               icon: mdi:gauge-low
               icon_color: >-
-                {{ 'teal' if is_state('automation.water_low_pressure', 'on') else 'grey' }}
+                {{ 'teal'
+                   if is_state('automation.water_low_pressure', 'on')
+                   and is_state('automation.water_low_pressure_persistent', 'on')
+                   and is_state('automation.water_very_low_pressure', 'on')
+                   and is_state('automation.water_very_low_pressure_persistent', 'on')
+                   and is_state('automation.water_pressure_recovered', 'on')
+                   and is_state('automation.water_pressure_drop_sudden', 'on')
+                   and is_state('automation.water_high_pressure', 'on')
+                   else 'grey' }}
               fill_container: true
               tap_action:
                 action: none
@@ -4070,9 +4284,25 @@ views:
                   entity: automation.water_low_pressure
                   icon: mdi:power
                   icon_color: >-
-                    {{ 'teal' if is_state('automation.water_low_pressure', 'on') else 'grey' }}
+                    {{ 'teal'
+                       if is_state('automation.water_low_pressure', 'on')
+                       and is_state('automation.water_low_pressure_persistent', 'on')
+                       and is_state('automation.water_very_low_pressure', 'on')
+                       and is_state('automation.water_very_low_pressure_persistent', 'on')
+                       and is_state('automation.water_pressure_recovered', 'on')
+                       and is_state('automation.water_pressure_drop_sudden', 'on')
+                       and is_state('automation.water_high_pressure', 'on')
+                       else 'grey' }}
                   content: >-
-                    {{ 'Enabled' if is_state('automation.water_low_pressure', 'on') else 'Disabled' }}
+                    {{ 'Active'
+                       if is_state('automation.water_low_pressure', 'on')
+                       and is_state('automation.water_low_pressure_persistent', 'on')
+                       and is_state('automation.water_very_low_pressure', 'on')
+                       and is_state('automation.water_very_low_pressure_persistent', 'on')
+                       and is_state('automation.water_pressure_recovered', 'on')
+                       and is_state('automation.water_pressure_drop_sudden', 'on')
+                       and is_state('automation.water_high_pressure', 'on')
+                       else 'Disabled' }}
                   tap_action:
                     action: none
                 - type: template
@@ -4102,7 +4332,7 @@ views:
               primary: >-
                 {{ 'Armed' if is_state('automation.water_pressure_drop_sudden', 'on') else 'Disabled' }}
               secondary: >-
-                Watches for a sharp drop below 50 psi so you get an earlier heads-up before sustained low pressure.
+                Logs sharp drops below 50 psi for review; phone alerts wait for sustained low pressure.
               icon: mdi:gauge-empty
               icon_color: >-
                 {{ 'teal' if is_state('automation.water_pressure_drop_sudden', 'on') else 'grey' }}
@@ -4186,7 +4416,7 @@ views:
       - type: custom:popup-card
         target:
           entity_id: automation.water_high_daily_usage
-        title: High Usage Guard
+        title: Usage Guard
         dismiss_icon: mdi:close
         initial_style: wide
         popup_styles: *calm_popup_styles
@@ -4234,7 +4464,7 @@ views:
       - type: custom:popup-card
         target:
           entity_id: automation.water_leak_sensor_triggered
-        title: Leak Alerts Guard
+        title: Leak Guard
         dismiss_icon: mdi:close
         initial_style: wide
         popup_styles: *calm_popup_styles
@@ -4282,7 +4512,7 @@ views:
       - type: custom:popup-card
         target:
           entity_id: automation.water_shutoff_valve_closed
-        title: Valve Closed Guard
+        title: Valve / Flo Guard
         dismiss_icon: mdi:close
         initial_style: wide
         popup_styles: *calm_popup_styles
@@ -4292,12 +4522,18 @@ views:
             - type: custom:mushroom-template-card
               entity: automation.water_shutoff_valve_closed
               primary: >-
-                {{ 'Armed' if is_state('automation.water_shutoff_valve_closed', 'on') else 'Disabled' }}
+                {{ 'Armed'
+                   if is_state('automation.water_shutoff_valve_closed', 'on')
+                   and is_state('automation.water_flo_system_alert', 'on')
+                   else 'Disabled' }}
               secondary: >-
-                Watches for the Flo shutoff valve closing for any reason so you can verify whether it was intentional.
+                Watches for shutoff valve closure and passes through native Flo system alerts.
               icon: mdi:pipe-valve
               icon_color: >-
-                {{ 'teal' if is_state('automation.water_shutoff_valve_closed', 'on') else 'grey' }}
+                {{ 'teal'
+                   if is_state('automation.water_shutoff_valve_closed', 'on')
+                   and is_state('automation.water_flo_system_alert', 'on')
+                   else 'grey' }}
               fill_container: true
               tap_action:
                 action: none
@@ -4310,9 +4546,15 @@ views:
                   entity: automation.water_shutoff_valve_closed
                   icon: mdi:power
                   icon_color: >-
-                    {{ 'teal' if is_state('automation.water_shutoff_valve_closed', 'on') else 'grey' }}
+                    {{ 'teal'
+                       if is_state('automation.water_shutoff_valve_closed', 'on')
+                       and is_state('automation.water_flo_system_alert', 'on')
+                       else 'grey' }}
                   content: >-
-                    {{ 'Enabled' if is_state('automation.water_shutoff_valve_closed', 'on') else 'Disabled' }}
+                    {{ 'Active'
+                       if is_state('automation.water_shutoff_valve_closed', 'on')
+                       and is_state('automation.water_flo_system_alert', 'on')
+                       else 'Disabled' }}
                   tap_action:
                     action: none
                 - type: template

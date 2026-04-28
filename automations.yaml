@@ -99,7 +99,7 @@
         message: >
           Flow has been {{ states('sensor.flo_shutoff_water_flow_rate') }} gal/min
           for 10+ minutes. Possible running toilet or dripping fixture.
-          Check Water tab in HA.
+          Is this expected? If not, check toilets, faucets, and the Water tab.
   mode: single
 
 - id: water_daytime_sustained_flow
@@ -124,7 +124,8 @@
         message: >
           Water has been flowing at
           {{ states('sensor.flo_shutoff_water_flow_rate') }} gal/min
-          for 20+ minutes. Could be a running toilet or left-on fixture.
+          for 20+ minutes. Is this expected? If not, check for a running
+          toilet, hose, or left-on fixture.
   mode: single
 
 - id: water_burst_daytime
@@ -177,7 +178,7 @@
 
 - id: water_pressure_drop_sudden
   alias: "Water — Pressure Drop (Sudden)"
-  description: Early warning when water pressure falls sharply while the valve is open.
+  description: Logs a sharp pressure drop for dashboard history without sending a phone alert.
   triggers:
     - trigger: numeric_state
       entity_id: sensor.flo_shutoff_water_pressure
@@ -203,24 +204,121 @@
           {% set previous_pressure = trigger.from_state.state | float(0) if trigger.from_state is not none else 0 %}
           {% set current_pressure = states('sensor.flo_shutoff_water_pressure') | float(0) %}
           {{ (previous_pressure - current_pressure) | round(0) }}
-    - action: script.water_send_alert
+    - action: logbook.log
       data:
-        alert_kind: pressure_drop
+        name: Water pressure drop
+        entity_id: sensor.flo_shutoff_water_pressure
         message: >-
           Pressure fell from {{ previous_pressure }} psi to {{ current_pressure }} psi
           (down {{ pressure_drop }} psi) with flow at {{ current_flow }} gal/min.
-          This was a sudden drop below 50 psi. Check for a developing water issue.{% if current_flow | float(0) > 1.5 %} Sprinklers on?{% endif %}
   mode: single
 
 - id: water_low_pressure
   alias: "Water — Low Pressure"
-  description: Sustained low pressure indicates pump issues, blockage, or large leak.
+  description: Calm first nudge for pressure low enough to be noticeable during normal use.
   triggers:
     - trigger: numeric_state
       entity_id: sensor.flo_shutoff_water_pressure
       below: 40
       for:
-        minutes: 5
+        minutes: 10
+  conditions:
+    - condition: state
+      entity_id: switch.flo_shutoff_shutoff_valve
+      state: "on"
+    - condition: template
+      value_template: >-
+        {% set snooze = states('input_datetime.water_pressure_snooze_until') %}
+        {{ snooze in ['unknown', 'unavailable', 'none', '']
+           or as_timestamp(snooze, 0) <= as_timestamp(now()) }}
+  actions:
+    - variables:
+        current_pressure: "{{ states('sensor.flo_shutoff_water_pressure') | float(0) | round(0) }}"
+        current_flow: "{{ states('sensor.flo_shutoff_water_flow_rate') | float(0) | round(2) }}"
+    - action: script.water_send_alert
+      data:
+        alert_kind: low_pressure
+        message: >-
+          Pressure is down to {{ current_pressure }} psi with flow at {{ current_flow }} gal/min.
+          It has stayed below 40 psi for 10+ minutes. Is this expected water use?
+          If not, check sprinklers, showers, toilets, and the Water tab.
+  mode: single
+
+- id: water_low_pressure_persistent
+  alias: "Water — Low Pressure Persistent"
+  description: Follow-up when low pressure continues beyond normal short fixture use.
+  triggers:
+    - trigger: numeric_state
+      entity_id: sensor.flo_shutoff_water_pressure
+      below: 40
+      for:
+        minutes: 30
+  conditions:
+    - condition: state
+      entity_id: switch.flo_shutoff_shutoff_valve
+      state: "on"
+    - condition: template
+      value_template: >-
+        {% set snooze = states('input_datetime.water_pressure_snooze_until') %}
+        {{ snooze in ['unknown', 'unavailable', 'none', '']
+           or as_timestamp(snooze, 0) <= as_timestamp(now()) }}
+  actions:
+    - variables:
+        current_pressure: "{{ states('sensor.flo_shutoff_water_pressure') | float(0) | round(0) }}"
+        current_flow: "{{ states('sensor.flo_shutoff_water_flow_rate') | float(0) | round(2) }}"
+    - action: script.water_send_alert
+      data:
+        alert_kind: low_pressure_persistent
+        message: >-
+          Pressure is still around {{ current_pressure }} psi after 30+ minutes,
+          with flow at {{ current_flow }} gal/min. If sprinklers or a long shower
+          explain it, tap Expected. Otherwise check for a running toilet or open fixture.
+  mode: single
+
+- id: water_very_low_pressure
+  alias: "Water — Very Low Pressure"
+  description: Stronger warning when pressure is very low, with urgency only for active flow or overnight context.
+  triggers:
+    - trigger: numeric_state
+      entity_id: sensor.flo_shutoff_water_pressure
+      below: 25
+      for:
+        minutes: 10
+  conditions:
+    - condition: state
+      entity_id: switch.flo_shutoff_shutoff_valve
+      state: "on"
+  actions:
+    - variables:
+        current_pressure: "{{ states('sensor.flo_shutoff_water_pressure') | float(0) | round(0) }}"
+        current_flow: "{{ states('sensor.flo_shutoff_water_flow_rate') | float(0) | round(2) }}"
+        overnight_context: "{{ now().hour < 6 }}"
+        pressure_severity: >-
+          {{ 'critical' if (current_flow | float(0) > 1.5) or (overnight_context | bool) else 'warning' }}
+    - action: script.water_send_alert
+      data:
+        alert_kind: low_pressure_very_low
+        severity: "{{ pressure_severity }}"
+        message: >-
+          Pressure is very low at {{ current_pressure }} psi for 10+ minutes,
+          with flow at {{ current_flow }} gal/min.
+          {% if pressure_severity == 'critical' %}
+            This is more concerning because {% if current_flow | float(0) > 1.5 %}flow is active above 1.5 gal/min{% else %}it is overnight{% endif %}.
+          {% else %}
+            This may still be normal fixture use, but it is low enough to review.
+          {% endif %}
+          Check the Water tab and obvious fixtures.
+  mode: single
+
+- id: water_very_low_pressure_persistent
+  alias: "Water — Very Low Pressure Persistent"
+  description: Urgent pressure alert when very low pressure persists without recovering.
+  triggers:
+    - trigger: numeric_state
+      entity_id: sensor.flo_shutoff_water_pressure
+      below: 25
+      for:
+        minutes: 20
   conditions:
     - condition: state
       entity_id: switch.flo_shutoff_shutoff_valve
@@ -231,11 +329,12 @@
         current_flow: "{{ states('sensor.flo_shutoff_water_flow_rate') | float(0) | round(2) }}"
     - action: script.water_send_alert
       data:
-        alert_kind: low_pressure
+        alert_kind: low_pressure_urgent
+        severity: critical
         message: >-
-          Pressure is down to {{ current_pressure }} psi with flow at {{ current_flow }} gal/min.
-          It has stayed below 40 psi for 5+ minutes. Could indicate pump issue,
-          blockage, or a significant leak.{% if current_flow | float(0) > 1.5 %} Sprinklers on?{% endif %}
+          Pressure has stayed very low at {{ current_pressure }} psi for 20+ minutes,
+          with flow at {{ current_flow }} gal/min. Check the Water tab, fixtures,
+          sprinkler zones, and the Flo app.
   mode: single
 
 - id: water_high_pressure
@@ -336,6 +435,87 @@
       data:
         alert_kind: flo_system
         message: Flo has flagged a system alert. Check the Flo app for details.
+  mode: single
+
+- id: water_notification_actions
+  alias: "Water — Notification Actions"
+  description: Handles quick actions from water monitoring notifications.
+  triggers:
+    - trigger: event
+      event_type: mobile_app_notification_action
+  conditions:
+    - condition: template
+      value_template: >
+        {{ trigger.event.data.action in [
+          'WATER_OVERNIGHT_FLOW_EXPECTED',
+          'WATER_SUSTAINED_FLOW_EXPECTED',
+          'WATER_LOW_PRESSURE_EXPECTED'
+        ] }}
+  actions:
+    - choose:
+        - conditions:
+            - condition: template
+              value_template: "{{ trigger.event.data.action == 'WATER_LOW_PRESSURE_EXPECTED' }}"
+          sequence:
+            - action: input_datetime.set_datetime
+              target:
+                entity_id: input_datetime.water_pressure_snooze_until
+              data:
+                datetime: "{{ (now() + timedelta(hours=1)).strftime('%Y-%m-%d %H:%M:%S') }}"
+            - repeat:
+                for_each:
+                  - water-low_pressure
+                  - water-low_pressure_persistent
+                  - water-low_pressure_very_low
+                  - water-low_pressure_urgent
+                  - water-pressure_drop
+                sequence:
+                  - action: script.notify_trevor_phone
+                    data:
+                      message: clear_notification
+                      data:
+                        tag: "{{ repeat.item }}"
+      default:
+        - action: script.notify_trevor_phone
+          data:
+            message: clear_notification
+            data:
+              tag: >-
+                {{ 'water-overnight_flow'
+                   if trigger.event.data.action == 'WATER_OVERNIGHT_FLOW_EXPECTED'
+                   else 'water-sustained_flow' }}
+  mode: parallel
+  max: 5
+
+- id: water_pressure_recovered
+  alias: "Water — Pressure Recovered"
+  description: Clears pressure notifications once pressure is back in a stable normal range.
+  triggers:
+    - trigger: numeric_state
+      entity_id: sensor.flo_shutoff_water_pressure
+      above: 42
+      for:
+        minutes: 5
+  conditions: []
+  actions:
+    - action: input_datetime.set_datetime
+      target:
+        entity_id: input_datetime.water_pressure_snooze_until
+      data:
+        datetime: "{{ now().strftime('%Y-%m-%d %H:%M:%S') }}"
+    - repeat:
+        for_each:
+          - water-low_pressure
+          - water-low_pressure_persistent
+          - water-low_pressure_very_low
+          - water-low_pressure_urgent
+          - water-pressure_drop
+        sequence:
+          - action: script.notify_trevor_phone
+            data:
+              message: clear_notification
+              data:
+                tag: "{{ repeat.item }}"
   mode: single
 
 - id: door_lights_schedule_sync
