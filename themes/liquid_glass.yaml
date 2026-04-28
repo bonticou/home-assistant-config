@@ -21,12 +21,14 @@ liquid_glass:
   card-mod-root: |
     :host,
     ha-app-layout,
+    .content,
     hui-view {
       scrollbar-width: none !important;
       -ms-overflow-style: none !important;
     }
     :host::-webkit-scrollbar,
     ha-app-layout::-webkit-scrollbar,
+    .content::-webkit-scrollbar,
     hui-view::-webkit-scrollbar {
       display: none !important;
       width: 0 !important;
