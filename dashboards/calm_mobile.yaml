@@ -1825,9 +1825,14 @@ views:
                   position: relative;
                   max-height: 240px;
                   overflow-y: auto;
+                  scrollbar-width: none;
+                  -ms-overflow-style: none;
                   display: grid;
                   gap: 12px;
                   padding-left: 4px;
+                }
+                .camera-events::-webkit-scrollbar {
+                  display: none;
                 }
                 .camera-events:before {
                   content: '';
@@ -2061,9 +2066,14 @@ views:
                   position: relative;
                   max-height: 240px;
                   overflow-y: auto;
+                  scrollbar-width: none;
+                  -ms-overflow-style: none;
                   display: grid;
                   gap: 12px;
                   padding-left: 4px;
+                }
+                .camera-events::-webkit-scrollbar {
+                  display: none;
                 }
                 .camera-events:before {
                   content: '';
@@ -2300,9 +2310,14 @@ views:
                   position: relative;
                   max-height: 240px;
                   overflow-y: auto;
+                  scrollbar-width: none;
+                  -ms-overflow-style: none;
                   display: grid;
                   gap: 12px;
                   padding-left: 4px;
+                }
+                .camera-events::-webkit-scrollbar {
+                  display: none;
                 }
                 .camera-events:before {
                   content: '';
@@ -2539,9 +2554,14 @@ views:
                   position: relative;
                   max-height: 240px;
                   overflow-y: auto;
+                  scrollbar-width: none;
+                  -ms-overflow-style: none;
                   display: grid;
                   gap: 12px;
                   padding-left: 4px;
+                }
+                .camera-events::-webkit-scrollbar {
+                  display: none;
                 }
                 .camera-events:before {
                   content: '';
