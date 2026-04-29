@@ -2195,6 +2195,74 @@
   mode: parallel
   max: 5
 
+- id: driver_license_renewal_reminder
+  alias: "Driver License — Renewal Reminder"
+  description: Sends driver license renewal reminders starting one year before expiration.
+  triggers:
+    - trigger: time
+      at: "09:12:00"
+    - trigger: time
+      at: input_datetime.driver_license_renewal_snooze_until
+  conditions:
+    - condition: state
+      entity_id: input_boolean.driver_license_renewal_enabled
+      state: "on"
+    - condition: state
+      entity_id: binary_sensor.driver_license_renewal_due
+      state: "on"
+  actions:
+    - action: script.driver_license_send_renewal_reminder
+  mode: single
+
+- id: driver_license_renewal_notification_actions
+  alias: "Driver License — Renewal Notification Actions"
+  description: Handles quick actions from driver license renewal reminders.
+  triggers:
+    - trigger: event
+      event_type: mobile_app_notification_action
+  conditions:
+    - condition: template
+      value_template: >
+        {{ trigger.event.data.action in [
+          'DRIVER_LICENSE_RENEWED',
+          'DRIVER_LICENSE_SNOOZE_7',
+          'DRIVER_LICENSE_SNOOZE_14',
+          'DRIVER_LICENSE_SNOOZE_30'
+        ] }}
+  actions:
+    - choose:
+        - conditions:
+            - condition: template
+              value_template: "{{ trigger.event.data.action == 'DRIVER_LICENSE_RENEWED' }}"
+          sequence:
+            - action: script.driver_license_mark_renewed
+
+        - conditions:
+            - condition: template
+              value_template: "{{ trigger.event.data.action == 'DRIVER_LICENSE_SNOOZE_7' }}"
+          sequence:
+            - action: script.driver_license_snooze_renewal
+              data:
+                days: 7
+
+        - conditions:
+            - condition: template
+              value_template: "{{ trigger.event.data.action == 'DRIVER_LICENSE_SNOOZE_14' }}"
+          sequence:
+            - action: script.driver_license_snooze_renewal
+              data:
+                days: 14
+
+        - conditions:
+            - condition: template
+              value_template: "{{ trigger.event.data.action == 'DRIVER_LICENSE_SNOOZE_30' }}"
+          sequence:
+            - action: script.driver_license_snooze_renewal
+              data:
+                days: 30
+  mode: parallel
+  max: 5
+
 - id: wine_cave_charcoal_filter_reminder
   alias: "Wine Cave — Charcoal Filter Reminder"
   description: Sends the annual wine cave charcoal filter reminder without changing environmental alerts.

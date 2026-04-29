@@ -230,6 +230,19 @@ input_datetime:
     name: Passport Renewal Applied At
     has_date: true
     has_time: true
+  driver_license_expiration_date:
+    name: Driver License Expiration Date
+    has_date: true
+    has_time: false
+    initial: "2029-12-11"
+  driver_license_renewal_snooze_until:
+    name: Driver License Renewal Snooze Until
+    has_date: true
+    has_time: true
+  driver_license_renewed_at:
+    name: Driver License Renewed At
+    has_date: true
+    has_time: true
 
 input_text:
   latest_camera_motion_label:
@@ -273,6 +286,10 @@ input_boolean:
   passport_renewal_enabled:
     name: Passport Renewal Enabled
     icon: mdi:passport
+    initial: true
+  driver_license_renewal_enabled:
+    name: Driver License Renewal Enabled
+    icon: mdi:card-account-details-outline
     initial: true
   metro_north_commute_notified_today:
     name: Metro-North Commute Notified Today
@@ -726,6 +743,51 @@ template:
             {% endif %}
           {% endif %}
 
+      - name: "Driver License Renewal Opens"
+        unique_id: driver_license_renewal_opens
+        device_class: date
+        icon: mdi:card-account-details-outline
+        state: >
+          {% set expires = states('input_datetime.driver_license_expiration_date') %}
+          {% if expires not in ['unknown', 'unavailable', ''] %}
+            {{ (strptime(expires, '%Y-%m-%d') - timedelta(days=365)).strftime('%Y-%m-%d') }}
+          {% else %}
+            unknown
+          {% endif %}
+
+      - name: "Driver License Renewal Status"
+        unique_id: driver_license_renewal_status
+        icon: >
+          {% if is_state('binary_sensor.driver_license_renewal_due', 'on') %}
+            mdi:calendar-alert
+          {% else %}
+            mdi:card-account-details-outline
+          {% endif %}
+        state: >
+          {% set expires = states('input_datetime.driver_license_expiration_date') %}
+          {% set renewed = states('input_datetime.driver_license_renewed_at') %}
+          {% set snooze = states('input_datetime.driver_license_renewal_snooze_until') %}
+          {% set snoozed = snooze not in ['unknown', 'unavailable', '']
+             and as_timestamp(snooze, 0) > as_timestamp(now()) %}
+          {% if not is_state('input_boolean.driver_license_renewal_enabled', 'on') %}
+            Off
+          {% elif expires in ['unknown', 'unavailable', ''] %}
+            Missing expiry
+          {% else %}
+            {% set renewal_opens = strptime(expires, '%Y-%m-%d') - timedelta(days=365) %}
+            {% set renewed_after_open = renewed not in ['unknown', 'unavailable', '']
+               and renewed[:10] >= renewal_opens.strftime('%Y-%m-%d') %}
+            {% if renewed_after_open %}
+              Renewed
+            {% elif snoozed %}
+              Snoozed
+            {% elif is_state('binary_sensor.driver_license_renewal_due', 'on') %}
+              Renew now
+            {% else %}
+              Opens {{ renewal_opens.strftime('%b %d, %Y') }}
+            {% endif %}
+          {% endif %}
+
       - name: "front_stairs_schedule_brightness"
         unique_id: front_stairs_schedule_brightness
         unit_of_measurement: "%"
@@ -1033,6 +1095,28 @@ template:
           {% endif %}
         icon: >
           {{ 'mdi:calendar-alert' if is_state('binary_sensor.passport_renewal_due', 'on') else 'mdi:passport' }}
+
+      - name: "Driver License Renewal Due"
+        unique_id: driver_license_renewal_due
+        state: >
+          {% set expires = states('input_datetime.driver_license_expiration_date') %}
+          {% set renewed = states('input_datetime.driver_license_renewed_at') %}
+          {% set snooze = states('input_datetime.driver_license_renewal_snooze_until') %}
+          {% set snoozed = snooze not in ['unknown', 'unavailable', '']
+             and as_timestamp(snooze, 0) > as_timestamp(now()) %}
+          {% if not is_state('input_boolean.driver_license_renewal_enabled', 'on')
+             or expires in ['unknown', 'unavailable', ''] %}
+            false
+          {% else %}
+            {% set renewal_opens = strptime(expires, '%Y-%m-%d') - timedelta(days=365) %}
+            {% set renewed_after_open = renewed not in ['unknown', 'unavailable', '']
+               and renewed[:10] >= renewal_opens.strftime('%Y-%m-%d') %}
+            {{ not snoozed
+               and not renewed_after_open
+               and now().strftime('%Y-%m-%d') >= renewal_opens.strftime('%Y-%m-%d') }}
+          {% endif %}
+        icon: >
+          {{ 'mdi:calendar-alert' if is_state('binary_sensor.driver_license_renewal_due', 'on') else 'mdi:card-account-details-outline' }}
 
   - sensor:
       - name: "Main Floor Temp Avg"

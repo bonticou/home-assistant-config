@@ -1004,6 +1004,101 @@ passport_clear_renewal_notification:
         data:
           tag: passport-renewal
 
+driver_license_send_renewal_reminder:
+  alias: Driver License Send Renewal Reminder
+  description: Sends the driver license renewal reminder with renewed and snooze actions.
+  icon: mdi:card-account-details-outline
+  mode: restart
+  sequence:
+    - variables:
+        expires: "{{ states('input_datetime.driver_license_expiration_date') }}"
+        expires_label: >-
+          {% if expires not in ['unknown', 'unavailable', ''] %}
+            {{ strptime(expires, '%Y-%m-%d').strftime('%B %d, %Y') }}
+          {% else %}
+            the saved expiration date
+          {% endif %}
+        renewal_opens_label: >-
+          {% if expires not in ['unknown', 'unavailable', ''] %}
+            {{ (strptime(expires, '%Y-%m-%d') - timedelta(days=365)).strftime('%B %d, %Y') }}
+          {% else %}
+            the one-year renewal window
+          {% endif %}
+    - action: script.notify_trevor_phone
+      data:
+        title: "🪪 Driver's license renewal"
+        message: >-
+          Your driver's license expires {{ expires_label | trim }}.
+          Start the renewal when the window opens so there is plenty of runway.
+          This reminder opened on {{ renewal_opens_label | trim }}.
+          Tap Renewed once the renewal is complete.
+        data:
+          group: personal-admin
+          tag: driver-license-renewal
+          url: /calm-mobile/home
+          actions:
+            - action: DRIVER_LICENSE_RENEWED
+              title: Renewed
+            - action: DRIVER_LICENSE_SNOOZE_7
+              title: Snooze 7d
+            - action: DRIVER_LICENSE_SNOOZE_14
+              title: Snooze 2w
+            - action: DRIVER_LICENSE_SNOOZE_30
+              title: Snooze 30d
+    - action: input_datetime.set_datetime
+      target:
+        entity_id: input_datetime.driver_license_renewal_snooze_until
+      data:
+        datetime: "{{ (today_at('09:00:00') + timedelta(days=30)).strftime('%Y-%m-%d %H:%M:%S') }}"
+
+driver_license_mark_renewed:
+  alias: Driver License Mark Renewed
+  description: Stamps the driver license renewal date and clears the reminder.
+  icon: mdi:card-account-details-outline
+  mode: restart
+  sequence:
+    - variables:
+        driver_license_now: "{{ now().strftime('%Y-%m-%d %H:%M:%S') }}"
+    - action: input_datetime.set_datetime
+      target:
+        entity_id:
+          - input_datetime.driver_license_renewed_at
+          - input_datetime.driver_license_renewal_snooze_until
+      data:
+        datetime: "{{ driver_license_now }}"
+    - action: script.driver_license_clear_renewal_notification
+
+driver_license_snooze_renewal:
+  alias: Driver License Snooze Renewal
+  description: Snoozes the driver license renewal reminder for a selected number of days.
+  icon: mdi:alarm-snooze
+  mode: restart
+  fields:
+    days:
+      description: Days to snooze the driver license renewal reminder
+      example: 14
+  sequence:
+    - variables:
+        snooze_days: "{{ days | default(30) | int(30) }}"
+    - action: input_datetime.set_datetime
+      target:
+        entity_id: input_datetime.driver_license_renewal_snooze_until
+      data:
+        datetime: "{{ (today_at('09:00:00') + timedelta(days=snooze_days)).strftime('%Y-%m-%d %H:%M:%S') }}"
+    - action: script.driver_license_clear_renewal_notification
+
+driver_license_clear_renewal_notification:
+  alias: Driver License Clear Renewal Notification
+  description: Clears the active driver license renewal notification tag.
+  icon: mdi:card-account-details-outline
+  mode: restart
+  sequence:
+    - action: script.notify_trevor_phone
+      data:
+        message: clear_notification
+        data:
+          tag: driver-license-renewal
+
 water_send_alert:
   alias: Water Send Alert
   description: Sends water alerts with consistent titles, tags, grouping, and urgency.
