@@ -9,11 +9,6 @@
   let attachShadowPatched = false;
 
   const documentCss = `
-    html.${ACTIVE_CLASS},
-    html.${ACTIVE_CLASS} body {
-      height: 100% !important;
-      overflow: hidden !important;
-    }
     html.${ACTIVE_CLASS} *,
     html.${ACTIVE_CLASS} {
       scrollbar-width: none !important;
@@ -41,20 +36,6 @@
       width: 0 !important;
       height: 0 !important;
       background: transparent !important;
-    }
-    ha-panel-lovelace,
-    hui-root,
-    ha-app-layout {
-      height: 100% !important;
-      overflow: hidden !important;
-    }
-    .content,
-    #view {
-      overflow-x: hidden !important;
-      overflow-y: auto !important;
-      -webkit-overflow-scrolling: touch !important;
-      scrollbar-width: none !important;
-      -ms-overflow-style: none !important;
     }
     .content::-webkit-scrollbar,
     #view::-webkit-scrollbar {
