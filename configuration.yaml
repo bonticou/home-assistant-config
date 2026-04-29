@@ -243,6 +243,32 @@ input_datetime:
     name: Driver License Renewed At
     has_date: true
     has_time: true
+  casey_passport_expiration_date:
+    name: Casey Passport Expiration Date
+    has_date: true
+    has_time: false
+    initial: "2029-05-15"
+  casey_passport_renewal_snooze_until:
+    name: Casey Passport Renewal Snooze Until
+    has_date: true
+    has_time: true
+  casey_passport_renewal_applied_at:
+    name: Casey Passport Renewal Applied At
+    has_date: true
+    has_time: true
+  casey_driver_license_expiration_date:
+    name: Casey Driver License Expiration Date
+    has_date: true
+    has_time: false
+    initial: "2029-11-30"
+  casey_driver_license_renewal_snooze_until:
+    name: Casey Driver License Renewal Snooze Until
+    has_date: true
+    has_time: true
+  casey_driver_license_renewed_at:
+    name: Casey Driver License Renewed At
+    has_date: true
+    has_time: true
 
 input_text:
   latest_camera_motion_label:
@@ -289,6 +315,14 @@ input_boolean:
     initial: true
   driver_license_renewal_enabled:
     name: Driver License Renewal Enabled
+    icon: mdi:card-account-details-outline
+    initial: true
+  casey_passport_renewal_enabled:
+    name: Casey Passport Renewal Enabled
+    icon: mdi:passport
+    initial: true
+  casey_driver_license_renewal_enabled:
+    name: Casey Driver License Renewal Enabled
     icon: mdi:card-account-details-outline
     initial: true
   metro_north_commute_notified_today:
@@ -788,6 +822,96 @@ template:
             {% endif %}
           {% endif %}
 
+      - name: "Casey Passport Renewal Opens"
+        unique_id: casey_passport_renewal_opens
+        device_class: date
+        icon: mdi:passport
+        state: >
+          {% set expires = states('input_datetime.casey_passport_expiration_date') %}
+          {% if expires not in ['unknown', 'unavailable', ''] %}
+            {{ (strptime(expires, '%Y-%m-%d') - timedelta(days=365)).strftime('%Y-%m-%d') }}
+          {% else %}
+            unknown
+          {% endif %}
+
+      - name: "Casey Passport Renewal Status"
+        unique_id: casey_passport_renewal_status
+        icon: >
+          {% if is_state('binary_sensor.casey_passport_renewal_due', 'on') %}
+            mdi:calendar-alert
+          {% else %}
+            mdi:passport
+          {% endif %}
+        state: >
+          {% set expires = states('input_datetime.casey_passport_expiration_date') %}
+          {% set applied = states('input_datetime.casey_passport_renewal_applied_at') %}
+          {% set snooze = states('input_datetime.casey_passport_renewal_snooze_until') %}
+          {% set snoozed = snooze not in ['unknown', 'unavailable', '']
+             and as_timestamp(snooze, 0) > as_timestamp(now()) %}
+          {% if not is_state('input_boolean.casey_passport_renewal_enabled', 'on') %}
+            Off
+          {% elif expires in ['unknown', 'unavailable', ''] %}
+            Missing expiry
+          {% else %}
+            {% set renewal_opens = strptime(expires, '%Y-%m-%d') - timedelta(days=365) %}
+            {% set applied_after_open = applied not in ['unknown', 'unavailable', '']
+               and applied[:10] >= renewal_opens.strftime('%Y-%m-%d') %}
+            {% if applied_after_open %}
+              Applied
+            {% elif snoozed %}
+              Snoozed
+            {% elif is_state('binary_sensor.casey_passport_renewal_due', 'on') %}
+              Renew now
+            {% else %}
+              Opens {{ renewal_opens.strftime('%b %d, %Y') }}
+            {% endif %}
+          {% endif %}
+
+      - name: "Casey Driver License Renewal Opens"
+        unique_id: casey_driver_license_renewal_opens
+        device_class: date
+        icon: mdi:card-account-details-outline
+        state: >
+          {% set expires = states('input_datetime.casey_driver_license_expiration_date') %}
+          {% if expires not in ['unknown', 'unavailable', ''] %}
+            {{ (strptime(expires, '%Y-%m-%d') - timedelta(days=365)).strftime('%Y-%m-%d') }}
+          {% else %}
+            unknown
+          {% endif %}
+
+      - name: "Casey Driver License Renewal Status"
+        unique_id: casey_driver_license_renewal_status
+        icon: >
+          {% if is_state('binary_sensor.casey_driver_license_renewal_due', 'on') %}
+            mdi:calendar-alert
+          {% else %}
+            mdi:card-account-details-outline
+          {% endif %}
+        state: >
+          {% set expires = states('input_datetime.casey_driver_license_expiration_date') %}
+          {% set renewed = states('input_datetime.casey_driver_license_renewed_at') %}
+          {% set snooze = states('input_datetime.casey_driver_license_renewal_snooze_until') %}
+          {% set snoozed = snooze not in ['unknown', 'unavailable', '']
+             and as_timestamp(snooze, 0) > as_timestamp(now()) %}
+          {% if not is_state('input_boolean.casey_driver_license_renewal_enabled', 'on') %}
+            Off
+          {% elif expires in ['unknown', 'unavailable', ''] %}
+            Missing expiry
+          {% else %}
+            {% set renewal_opens = strptime(expires, '%Y-%m-%d') - timedelta(days=365) %}
+            {% set renewed_after_open = renewed not in ['unknown', 'unavailable', '']
+               and renewed[:10] >= renewal_opens.strftime('%Y-%m-%d') %}
+            {% if renewed_after_open %}
+              Renewed
+            {% elif snoozed %}
+              Snoozed
+            {% elif is_state('binary_sensor.casey_driver_license_renewal_due', 'on') %}
+              Renew now
+            {% else %}
+              Opens {{ renewal_opens.strftime('%b %d, %Y') }}
+            {% endif %}
+          {% endif %}
+
       - name: "front_stairs_schedule_brightness"
         unique_id: front_stairs_schedule_brightness
         unit_of_measurement: "%"
@@ -1117,6 +1241,50 @@ template:
           {% endif %}
         icon: >
           {{ 'mdi:calendar-alert' if is_state('binary_sensor.driver_license_renewal_due', 'on') else 'mdi:card-account-details-outline' }}
+
+      - name: "Casey Passport Renewal Due"
+        unique_id: casey_passport_renewal_due
+        state: >
+          {% set expires = states('input_datetime.casey_passport_expiration_date') %}
+          {% set applied = states('input_datetime.casey_passport_renewal_applied_at') %}
+          {% set snooze = states('input_datetime.casey_passport_renewal_snooze_until') %}
+          {% set snoozed = snooze not in ['unknown', 'unavailable', '']
+             and as_timestamp(snooze, 0) > as_timestamp(now()) %}
+          {% if not is_state('input_boolean.casey_passport_renewal_enabled', 'on')
+             or expires in ['unknown', 'unavailable', ''] %}
+            false
+          {% else %}
+            {% set renewal_opens = strptime(expires, '%Y-%m-%d') - timedelta(days=365) %}
+            {% set applied_after_open = applied not in ['unknown', 'unavailable', '']
+               and applied[:10] >= renewal_opens.strftime('%Y-%m-%d') %}
+            {{ not snoozed
+               and not applied_after_open
+               and now().strftime('%Y-%m-%d') >= renewal_opens.strftime('%Y-%m-%d') }}
+          {% endif %}
+        icon: >
+          {{ 'mdi:calendar-alert' if is_state('binary_sensor.casey_passport_renewal_due', 'on') else 'mdi:passport' }}
+
+      - name: "Casey Driver License Renewal Due"
+        unique_id: casey_driver_license_renewal_due
+        state: >
+          {% set expires = states('input_datetime.casey_driver_license_expiration_date') %}
+          {% set renewed = states('input_datetime.casey_driver_license_renewed_at') %}
+          {% set snooze = states('input_datetime.casey_driver_license_renewal_snooze_until') %}
+          {% set snoozed = snooze not in ['unknown', 'unavailable', '']
+             and as_timestamp(snooze, 0) > as_timestamp(now()) %}
+          {% if not is_state('input_boolean.casey_driver_license_renewal_enabled', 'on')
+             or expires in ['unknown', 'unavailable', ''] %}
+            false
+          {% else %}
+            {% set renewal_opens = strptime(expires, '%Y-%m-%d') - timedelta(days=365) %}
+            {% set renewed_after_open = renewed not in ['unknown', 'unavailable', '']
+               and renewed[:10] >= renewal_opens.strftime('%Y-%m-%d') %}
+            {{ not snoozed
+               and not renewed_after_open
+               and now().strftime('%Y-%m-%d') >= renewal_opens.strftime('%Y-%m-%d') }}
+          {% endif %}
+        icon: >
+          {{ 'mdi:calendar-alert' if is_state('binary_sensor.casey_driver_license_renewal_due', 'on') else 'mdi:card-account-details-outline' }}
 
   - sensor:
       - name: "Main Floor Temp Avg"

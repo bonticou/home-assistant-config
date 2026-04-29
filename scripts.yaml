@@ -1099,6 +1099,196 @@ driver_license_clear_renewal_notification:
         data:
           tag: driver-license-renewal
 
+casey_passport_send_renewal_reminder:
+  alias: Casey Passport Send Renewal Reminder
+  description: Sends Casey's passport renewal reminder with applied and snooze actions.
+  icon: mdi:passport
+  mode: restart
+  sequence:
+    - variables:
+        expires: "{{ states('input_datetime.casey_passport_expiration_date') }}"
+        expires_label: >-
+          {% if expires not in ['unknown', 'unavailable', ''] %}
+            {{ strptime(expires, '%Y-%m-%d').strftime('%B %d, %Y') }}
+          {% else %}
+            the saved expiration date
+          {% endif %}
+        renewal_opens_label: >-
+          {% if expires not in ['unknown', 'unavailable', ''] %}
+            {{ (strptime(expires, '%Y-%m-%d') - timedelta(days=365)).strftime('%B %d, %Y') }}
+          {% else %}
+            the one-year renewal window
+          {% endif %}
+    - action: script.notify_trevor_phone
+      data:
+        title: "🇺🇸 Casey passport renewal"
+        message: >-
+          Casey's passport expires {{ expires_label | trim }}.
+          Start the renewal when the window opens so there is plenty of runway.
+          This reminder opened on {{ renewal_opens_label | trim }}.
+          Tap Applied once the renewal application is submitted.
+        data:
+          group: personal-admin
+          tag: casey-passport-renewal
+          url: /calm-mobile/home
+          actions:
+            - action: CASEY_PASSPORT_RENEWAL_APPLIED
+              title: Applied
+            - action: CASEY_PASSPORT_SNOOZE_7
+              title: Snooze 7d
+            - action: CASEY_PASSPORT_SNOOZE_14
+              title: Snooze 2w
+            - action: CASEY_PASSPORT_SNOOZE_30
+              title: Snooze 30d
+    - action: input_datetime.set_datetime
+      target:
+        entity_id: input_datetime.casey_passport_renewal_snooze_until
+      data:
+        datetime: "{{ (today_at('09:00:00') + timedelta(days=30)).strftime('%Y-%m-%d %H:%M:%S') }}"
+
+casey_passport_mark_renewal_applied:
+  alias: Casey Passport Mark Renewal Applied
+  description: Stamps Casey's passport renewal application date and clears the reminder.
+  icon: mdi:passport
+  mode: restart
+  sequence:
+    - variables:
+        passport_now: "{{ now().strftime('%Y-%m-%d %H:%M:%S') }}"
+    - action: input_datetime.set_datetime
+      target:
+        entity_id:
+          - input_datetime.casey_passport_renewal_applied_at
+          - input_datetime.casey_passport_renewal_snooze_until
+      data:
+        datetime: "{{ passport_now }}"
+    - action: script.casey_passport_clear_renewal_notification
+
+casey_passport_snooze_renewal:
+  alias: Casey Passport Snooze Renewal
+  description: Snoozes Casey's passport renewal reminder for a selected number of days.
+  icon: mdi:alarm-snooze
+  mode: restart
+  fields:
+    days:
+      description: Days to snooze Casey's passport renewal reminder
+      example: 14
+  sequence:
+    - variables:
+        snooze_days: "{{ days | default(30) | int(30) }}"
+    - action: input_datetime.set_datetime
+      target:
+        entity_id: input_datetime.casey_passport_renewal_snooze_until
+      data:
+        datetime: "{{ (today_at('09:00:00') + timedelta(days=snooze_days)).strftime('%Y-%m-%d %H:%M:%S') }}"
+    - action: script.casey_passport_clear_renewal_notification
+
+casey_passport_clear_renewal_notification:
+  alias: Casey Passport Clear Renewal Notification
+  description: Clears the active Casey passport renewal notification tag.
+  icon: mdi:passport
+  mode: restart
+  sequence:
+    - action: script.notify_trevor_phone
+      data:
+        message: clear_notification
+        data:
+          tag: casey-passport-renewal
+
+casey_driver_license_send_renewal_reminder:
+  alias: Casey Driver License Send Renewal Reminder
+  description: Sends Casey's driver license renewal reminder with renewed and snooze actions.
+  icon: mdi:card-account-details-outline
+  mode: restart
+  sequence:
+    - variables:
+        expires: "{{ states('input_datetime.casey_driver_license_expiration_date') }}"
+        expires_label: >-
+          {% if expires not in ['unknown', 'unavailable', ''] %}
+            {{ strptime(expires, '%Y-%m-%d').strftime('%B %d, %Y') }}
+          {% else %}
+            the saved expiration date
+          {% endif %}
+        renewal_opens_label: >-
+          {% if expires not in ['unknown', 'unavailable', ''] %}
+            {{ (strptime(expires, '%Y-%m-%d') - timedelta(days=365)).strftime('%B %d, %Y') }}
+          {% else %}
+            the one-year renewal window
+          {% endif %}
+    - action: script.notify_trevor_phone
+      data:
+        title: "🪪 Casey driver's license renewal"
+        message: >-
+          Casey's driver's license expires {{ expires_label | trim }}.
+          Start the renewal when the window opens so there is plenty of runway.
+          This reminder opened on {{ renewal_opens_label | trim }}.
+          Tap Renewed once the renewal is complete.
+        data:
+          group: personal-admin
+          tag: casey-driver-license-renewal
+          url: /calm-mobile/home
+          actions:
+            - action: CASEY_DRIVER_LICENSE_RENEWED
+              title: Renewed
+            - action: CASEY_DRIVER_LICENSE_SNOOZE_7
+              title: Snooze 7d
+            - action: CASEY_DRIVER_LICENSE_SNOOZE_14
+              title: Snooze 2w
+            - action: CASEY_DRIVER_LICENSE_SNOOZE_30
+              title: Snooze 30d
+    - action: input_datetime.set_datetime
+      target:
+        entity_id: input_datetime.casey_driver_license_renewal_snooze_until
+      data:
+        datetime: "{{ (today_at('09:00:00') + timedelta(days=30)).strftime('%Y-%m-%d %H:%M:%S') }}"
+
+casey_driver_license_mark_renewed:
+  alias: Casey Driver License Mark Renewed
+  description: Stamps Casey's driver license renewal date and clears the reminder.
+  icon: mdi:card-account-details-outline
+  mode: restart
+  sequence:
+    - variables:
+        driver_license_now: "{{ now().strftime('%Y-%m-%d %H:%M:%S') }}"
+    - action: input_datetime.set_datetime
+      target:
+        entity_id:
+          - input_datetime.casey_driver_license_renewed_at
+          - input_datetime.casey_driver_license_renewal_snooze_until
+      data:
+        datetime: "{{ driver_license_now }}"
+    - action: script.casey_driver_license_clear_renewal_notification
+
+casey_driver_license_snooze_renewal:
+  alias: Casey Driver License Snooze Renewal
+  description: Snoozes Casey's driver license renewal reminder for a selected number of days.
+  icon: mdi:alarm-snooze
+  mode: restart
+  fields:
+    days:
+      description: Days to snooze Casey's driver license renewal reminder
+      example: 14
+  sequence:
+    - variables:
+        snooze_days: "{{ days | default(30) | int(30) }}"
+    - action: input_datetime.set_datetime
+      target:
+        entity_id: input_datetime.casey_driver_license_renewal_snooze_until
+      data:
+        datetime: "{{ (today_at('09:00:00') + timedelta(days=snooze_days)).strftime('%Y-%m-%d %H:%M:%S') }}"
+    - action: script.casey_driver_license_clear_renewal_notification
+
+casey_driver_license_clear_renewal_notification:
+  alias: Casey Driver License Clear Renewal Notification
+  description: Clears the active Casey driver license renewal notification tag.
+  icon: mdi:card-account-details-outline
+  mode: restart
+  sequence:
+    - action: script.notify_trevor_phone
+      data:
+        message: clear_notification
+        data:
+          tag: casey-driver-license-renewal
+
 water_send_alert:
   alias: Water Send Alert
   description: Sends water alerts with consistent titles, tags, grouping, and urgency.
