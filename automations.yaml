@@ -2127,6 +2127,52 @@
   mode: parallel
   max: 5
 
+- id: dryer_vent_annual_cleaning_reminder
+  alias: "Dryer Vent — Annual Cleaning Reminder"
+  description: Sends the annual LG dryer vent cleaning reminder when due.
+  triggers:
+    - trigger: time
+      at: "09:25:00"
+  conditions:
+    - condition: state
+      entity_id: input_boolean.dryer_vent_maintenance_enabled
+      state: "on"
+    - condition: state
+      entity_id: binary_sensor.dryer_vent_cleaning_due
+      state: "on"
+  actions:
+    - action: script.dryer_vent_send_cleaning_reminder
+  mode: single
+
+- id: dryer_vent_maintenance_notification_actions
+  alias: "Dryer Vent — Maintenance Notification Actions"
+  description: Handles quick actions from dryer vent cleaning reminders.
+  triggers:
+    - trigger: event
+      event_type: mobile_app_notification_action
+  conditions:
+    - condition: template
+      value_template: >
+        {{ trigger.event.data.action in [
+          'DRYER_VENT_CLEANING_DONE',
+          'DRYER_VENT_CLEANING_SNOOZE_30'
+        ] }}
+  actions:
+    - choose:
+        - conditions:
+            - condition: template
+              value_template: "{{ trigger.event.data.action == 'DRYER_VENT_CLEANING_DONE' }}"
+          sequence:
+            - action: script.dryer_vent_mark_cleaning_done
+
+        - conditions:
+            - condition: template
+              value_template: "{{ trigger.event.data.action == 'DRYER_VENT_CLEANING_SNOOZE_30' }}"
+          sequence:
+            - action: script.dryer_vent_snooze_cleaning
+  mode: parallel
+  max: 5
+
 - id: passport_renewal_reminder
   alias: "Passport — Renewal Reminder"
   description: Sends passport renewal reminders starting one year before expiration.

@@ -170,6 +170,17 @@ input_datetime:
     name: Piano Tuning Snooze Until
     has_date: true
     has_time: true
+  # LG dryer vent cleaning
+  # durable record: ../house-manager/appliances/lg-dryer.md
+  dryer_vent_last_cleaned:
+    name: Dryer Vent Last Cleaned
+    has_date: true
+    has_time: false
+    initial: "2026-04-29"
+  dryer_vent_cleaning_snooze_until:
+    name: Dryer Vent Cleaning Snooze Until
+    has_date: true
+    has_time: true
   # EuroCave La Premiere L Wine Cellar
   # appliance_slug: eurocave-la-premiere-l-wine-cellar
   # durable record: ../house-manager/appliances/eurocave-la-premiere-l-wine-cellar.md
@@ -308,6 +319,10 @@ input_boolean:
   piano_care_enabled:
     name: Piano Care Enabled
     icon: mdi:piano
+    initial: true
+  dryer_vent_maintenance_enabled:
+    name: Dryer Vent Maintenance Enabled
+    icon: mdi:tumble-dryer
     initial: true
   passport_renewal_enabled:
     name: Passport Renewal Enabled
@@ -730,6 +745,40 @@ template:
             mdi:piano
           {% else %}
             mdi:calendar-check-outline
+          {% endif %}
+
+      - name: "Dryer Vent Next Cleaning Due"
+        unique_id: dryer_vent_next_cleaning_due
+        device_class: date
+        icon: mdi:tumble-dryer
+        state: >
+          {% set last = states('input_datetime.dryer_vent_last_cleaned') %}
+          {% if last not in ['unknown', 'unavailable', 'none', ''] %}
+            {{ (strptime(last, '%Y-%m-%d') + timedelta(days=365)).strftime('%Y-%m-%d') }}
+          {% else %}
+            unknown
+          {% endif %}
+
+      - name: "Dryer Vent Maintenance Status"
+        unique_id: dryer_vent_maintenance_status
+        state: >
+          {% set snooze = states('input_datetime.dryer_vent_cleaning_snooze_until') %}
+          {% set snoozed = snooze not in ['unknown', 'unavailable', 'none', '']
+             and as_timestamp(snooze, 0) > as_timestamp(now()) %}
+          {% if not is_state('input_boolean.dryer_vent_maintenance_enabled', 'on') %}
+            Off
+          {% elif snoozed %}
+            Snoozed
+          {% elif is_state('binary_sensor.dryer_vent_cleaning_due', 'on') %}
+            Cleaning due
+          {% else %}
+            Current
+          {% endif %}
+        icon: >
+          {% if is_state('binary_sensor.dryer_vent_cleaning_due', 'on') %}
+            mdi:tumble-dryer-alert
+          {% else %}
+            mdi:tumble-dryer
           {% endif %}
 
       - name: "Passport Renewal Opens"
@@ -1197,6 +1246,20 @@ template:
                and now().strftime('%Y-%m-%d') >= due }}
           {% endif %}
         icon: mdi:piano
+
+      - name: "Dryer Vent Cleaning Due"
+        unique_id: dryer_vent_cleaning_due
+        state: >
+          {% set due = states('sensor.dryer_vent_next_cleaning_due') %}
+          {% set snooze = states('input_datetime.dryer_vent_cleaning_snooze_until') %}
+          {% set snoozed = snooze not in ['unknown', 'unavailable', 'none', '']
+             and as_timestamp(snooze, 0) > as_timestamp(now()) %}
+          {{ is_state('input_boolean.dryer_vent_maintenance_enabled', 'on')
+             and not snoozed
+             and due not in ['unknown', 'unavailable', 'none', '']
+             and now().strftime('%Y-%m-%d') >= due }}
+        icon: >
+          {{ 'mdi:tumble-dryer-alert' if is_state('binary_sensor.dryer_vent_cleaning_due', 'on') else 'mdi:tumble-dryer' }}
 
       - name: "Passport Renewal Due"
         unique_id: passport_renewal_due

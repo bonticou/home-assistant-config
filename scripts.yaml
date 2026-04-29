@@ -909,6 +909,78 @@ piano_clear_tuning_notification:
         data:
           tag: steinway-tuning-check
 
+dryer_vent_send_cleaning_reminder:
+  alias: Dryer Vent Send Cleaning Reminder
+  description: Sends the annual LG dryer vent cleaning reminder with quick actions.
+  icon: mdi:tumble-dryer
+  mode: restart
+  sequence:
+    - action: script.notify_trevor_phone
+      data:
+        title: "🧺🌬️ Dryer vent cleaning"
+        message: >-
+          The dryer vent was last cleaned April 29, 2026 by Amazon Air.
+          Annual professional cleaning is due for fire safety and airflow.
+          Durable record: ../house-manager/appliances/lg-dryer.md.
+        data:
+          group: house-maintenance
+          tag: dryer-vent-cleaning
+          url: /calm-mobile/home
+          actions:
+            - action: DRYER_VENT_CLEANING_DONE
+              title: Cleaning done
+            - action: DRYER_VENT_CLEANING_SNOOZE_30
+              title: Snooze 30d
+            - action: URI
+              title: Call Amazon Air
+              uri: tel:8004828224
+
+dryer_vent_mark_cleaning_done:
+  alias: Dryer Vent Mark Cleaning Done
+  description: Stamps today's dryer vent cleaning date and clears the reminder.
+  icon: mdi:tumble-dryer
+  mode: restart
+  sequence:
+    - variables:
+        dryer_vent_today: "{{ now().strftime('%Y-%m-%d') }}"
+        dryer_vent_now: "{{ now().strftime('%Y-%m-%d %H:%M:%S') }}"
+    - action: input_datetime.set_datetime
+      target:
+        entity_id: input_datetime.dryer_vent_last_cleaned
+      data:
+        date: "{{ dryer_vent_today }}"
+    - action: input_datetime.set_datetime
+      target:
+        entity_id: input_datetime.dryer_vent_cleaning_snooze_until
+      data:
+        datetime: "{{ dryer_vent_now }}"
+    - action: script.dryer_vent_clear_cleaning_notification
+
+dryer_vent_snooze_cleaning:
+  alias: Dryer Vent Snooze Cleaning
+  description: Snoozes the annual dryer vent cleaning reminder for 30 days.
+  icon: mdi:alarm-snooze
+  mode: restart
+  sequence:
+    - action: input_datetime.set_datetime
+      target:
+        entity_id: input_datetime.dryer_vent_cleaning_snooze_until
+      data:
+        datetime: "{{ (now() + timedelta(days=30)).strftime('%Y-%m-%d %H:%M:%S') }}"
+    - action: script.dryer_vent_clear_cleaning_notification
+
+dryer_vent_clear_cleaning_notification:
+  alias: Dryer Vent Clear Cleaning Notification
+  description: Clears the active dryer vent cleaning notification tag.
+  icon: mdi:tumble-dryer
+  mode: restart
+  sequence:
+    - action: script.notify_trevor_phone
+      data:
+        message: clear_notification
+        data:
+          tag: dryer-vent-cleaning
+
 passport_send_renewal_reminder:
   alias: Passport Send Renewal Reminder
   description: Sends the passport renewal reminder with applied and snooze actions.
