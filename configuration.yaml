@@ -7,7 +7,7 @@ frontend:
 
 lovelace:
   resources:
-    - url: /local/calm-mobile-scrollbars.js?v=1
+    - url: /local/calm-mobile-scrollbars.js?v=2
       type: module
   dashboards:
     calm-mobile:

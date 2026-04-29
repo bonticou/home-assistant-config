@@ -208,7 +208,16 @@
     return `${element.localName || element.nodeName}${id}${classes}`;
   };
 
-  const collectScrollers = (root, label = "document", results = []) => {
+  const collectScrollers = (
+    root,
+    label = "document",
+    results = [],
+    seenRoots = new WeakSet(),
+    seenElements = new WeakSet(),
+  ) => {
+    if (!root || seenRoots.has(root)) return results;
+    seenRoots.add(root);
+
     const elements = [];
     if (root === document) {
       elements.push(document.documentElement, document.body, document.scrollingElement);
@@ -220,7 +229,10 @@
       elements.push(...root.querySelectorAll("*"));
     }
 
-    for (const element of new Set(elements.filter(Boolean))) {
+    for (const element of elements.filter(Boolean)) {
+      if (seenElements.has(element)) continue;
+      seenElements.add(element);
+
       const style = getComputedStyle(element);
       const overflowY = style.overflowY;
       const scrollable = element.scrollHeight > element.clientHeight + 1;
@@ -236,7 +248,13 @@
         });
       }
       if (element.shadowRoot) {
-        collectScrollers(element.shadowRoot, `${label} > ${describeElement(element)}#shadowRoot`, results);
+        collectScrollers(
+          element.shadowRoot,
+          `${label} > ${describeElement(element)}#shadowRoot`,
+          results,
+          seenRoots,
+          seenElements,
+        );
       }
     }
     return results;
