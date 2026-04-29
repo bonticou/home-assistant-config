@@ -2157,8 +2157,9 @@
       value_template: >
         {{ trigger.event.data.action in [
           'PASSPORT_RENEWAL_APPLIED',
-          'PASSPORT_RENEWAL_SNOOZE_30',
-          'PASSPORT_RENEWAL_SNOOZE_90'
+          'PASSPORT_RENEWAL_SNOOZE_7',
+          'PASSPORT_RENEWAL_SNOOZE_14',
+          'PASSPORT_RENEWAL_SNOOZE_30'
         ] }}
   actions:
     - choose:
@@ -2170,19 +2171,27 @@
 
         - conditions:
             - condition: template
+              value_template: "{{ trigger.event.data.action == 'PASSPORT_RENEWAL_SNOOZE_7' }}"
+          sequence:
+            - action: script.passport_snooze_renewal
+              data:
+                days: 7
+
+        - conditions:
+            - condition: template
+              value_template: "{{ trigger.event.data.action == 'PASSPORT_RENEWAL_SNOOZE_14' }}"
+          sequence:
+            - action: script.passport_snooze_renewal
+              data:
+                days: 14
+
+        - conditions:
+            - condition: template
               value_template: "{{ trigger.event.data.action == 'PASSPORT_RENEWAL_SNOOZE_30' }}"
           sequence:
             - action: script.passport_snooze_renewal
               data:
                 days: 30
-
-        - conditions:
-            - condition: template
-              value_template: "{{ trigger.event.data.action == 'PASSPORT_RENEWAL_SNOOZE_90' }}"
-          sequence:
-            - action: script.passport_snooze_renewal
-              data:
-                days: 90
   mode: parallel
   max: 5
 

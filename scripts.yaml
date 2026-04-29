@@ -944,10 +944,12 @@ passport_send_renewal_reminder:
           actions:
             - action: PASSPORT_RENEWAL_APPLIED
               title: Applied
+            - action: PASSPORT_RENEWAL_SNOOZE_7
+              title: Snooze 7d
+            - action: PASSPORT_RENEWAL_SNOOZE_14
+              title: Snooze 2w
             - action: PASSPORT_RENEWAL_SNOOZE_30
               title: Snooze 30d
-            - action: PASSPORT_RENEWAL_SNOOZE_90
-              title: Snooze 90d
     - action: input_datetime.set_datetime
       target:
         entity_id: input_datetime.passport_renewal_snooze_until
