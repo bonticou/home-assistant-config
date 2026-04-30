@@ -14,11 +14,11 @@
     entity_id: person.bonticou
     zone: zone.home
   actions:
-  - action: notify.mobile_app_tk_iphone_16_pro
+  - action: script.notify_trevor_phone
     metadata: {}
     data:
       message: Check on Wynn
-      title: Noise Detected
+      title: "👂 Noise detected"
   mode: single
 
 - id: camera_latest_motion_tracker
@@ -437,6 +437,50 @@
         message: Flo has flagged a system alert. Check the Flo app for details.
   mode: single
 
+- id: house_notice_action_history
+  alias: "Notices — Notification Action History"
+  description: Records mobile notification actions so the Notices tab can show recent taps like Paid, Done, Snoozed, and Applied.
+  triggers:
+    - trigger: event
+      event_type: mobile_app_notification_action
+  conditions: []
+  actions:
+    - variables:
+        action_id: "{{ trigger.event.data.action | default('unknown', true) }}"
+        action_label: >-
+          {% if 'SNOOZE' in action_id %}
+            Snoozed
+          {% elif 'PAID' in action_id %}
+            Paid
+          {% elif 'DONE' in action_id or 'REPLACED' in action_id or 'CAPTURED' in action_id %}
+            Done
+          {% elif 'APPLIED' in action_id %}
+            Applied
+          {% elif 'RENEWED' in action_id %}
+            Renewed
+          {% elif action_id == 'URI' %}
+            Opened
+          {% elif 'LOCK' in action_id or 'TURN_OFF' in action_id or 'SECURE' in action_id %}
+            Acted
+          {% else %}
+            Action
+          {% endif %}
+        tag: "{{ trigger.event.data.tag | default('', true) }}"
+    - event: house_notice_event_recorded
+      event_data:
+        at: "{{ now().strftime('%Y-%m-%d %H:%M:%S') }}"
+        kind: action
+        title: "{{ action_label }}"
+        message: "{{ action_id }}"
+        group: "{{ trigger.event.data.group | default('mobile-action', true) }}"
+        tag: "{{ tag }}"
+        url: "{{ trigger.event.data.url | default('', true) }}"
+        severity: info
+        action: "{{ action_id }}"
+        source: mobile_app_notification_action
+  mode: parallel
+  max: 20
+
 - id: water_notification_actions
   alias: "Water — Notification Actions"
   description: Handles quick actions from water monitoring notifications.
@@ -462,6 +506,9 @@
                 entity_id: input_datetime.water_pressure_snooze_until
               data:
                 datetime: "{{ (now() + timedelta(hours=1)).strftime('%Y-%m-%d %H:%M:%S') }}"
+            - action: input_boolean.turn_off
+              target:
+                entity_id: input_boolean.water_pressure_alert_active
             - repeat:
                 for_each:
                   - water-low_pressure
@@ -476,6 +523,9 @@
                       data:
                         tag: "{{ repeat.item }}"
       default:
+        - action: input_boolean.turn_off
+          target:
+            entity_id: input_boolean.water_flow_alert_active
         - action: script.notify_trevor_phone
           data:
             message: clear_notification
@@ -503,6 +553,9 @@
         entity_id: input_datetime.water_pressure_snooze_until
       data:
         datetime: "{{ now().strftime('%Y-%m-%d %H:%M:%S') }}"
+    - action: input_boolean.turn_off
+      target:
+        entity_id: input_boolean.water_pressure_alert_active
     - repeat:
         for_each:
           - water-low_pressure
@@ -516,6 +569,149 @@
               message: clear_notification
               data:
                 tag: "{{ repeat.item }}"
+  mode: single
+
+- id: water_notification_state_clear_when_normal
+  alias: "Water — Clear Notification State When Normal"
+  description: Clears dashboard notification state when the underlying water condition is quiet again.
+  triggers:
+    - trigger: numeric_state
+      entity_id: sensor.flo_shutoff_water_flow_rate
+      below: 0.02
+      for:
+        minutes: 5
+      id: flow_quiet
+    - trigger: state
+      entity_id:
+        - binary_sensor.kitchen_sink_leak_detection_water_detected
+        - binary_sensor.island_sink_leak_detection_water_detected
+        - binary_sensor.dishwasher_leak_detection_water_detected
+        - binary_sensor.kitchen_fridge_leak_detection_water_detected
+        - binary_sensor.washing_machine_leak_detection_water_detected
+        - binary_sensor.laundry_sink_leak_detection_water_detected
+        - binary_sensor.mechanical_room_leak_detection_water_detected
+        - binary_sensor.electrical_room_leak_detection_water_detected
+        - binary_sensor.basement_ejector_leak_detection_water_detected
+      to: "off"
+      for:
+        minutes: 5
+      id: leaks_clear
+    - trigger: state
+      entity_id: switch.flo_shutoff_shutoff_valve
+      to: "on"
+      for:
+        minutes: 2
+      id: valve_open
+    - trigger: state
+      entity_id: binary_sensor.flo_shutoff_pending_system_alerts
+      to: "off"
+      for:
+        minutes: 2
+      id: flo_clear
+    - trigger: numeric_state
+      entity_id: sensor.flo_shutoff_water_pressure
+      below: 80
+      for:
+        minutes: 5
+      id: high_pressure_normal
+    - trigger: time
+      at: "00:05:00"
+      id: usage_reset
+  actions:
+    - choose:
+        - conditions:
+            - condition: trigger
+              id: flow_quiet
+            - condition: template
+              value_template: "{{ states('input_text.water_latest_alert_kind') not in ['burst_day', 'burst_night'] }}"
+          sequence:
+            - action: input_boolean.turn_off
+              target:
+                entity_id: input_boolean.water_flow_alert_active
+            - repeat:
+                for_each:
+                  - water-overnight_flow
+                  - water-sustained_flow
+                sequence:
+                  - action: script.notify_trevor_phone
+                    data:
+                      message: clear_notification
+                      data:
+                        tag: "{{ repeat.item }}"
+        - conditions:
+            - condition: trigger
+              id: leaks_clear
+            - condition: template
+              value_template: >-
+                {{ expand([
+                  'binary_sensor.kitchen_sink_leak_detection_water_detected',
+                  'binary_sensor.island_sink_leak_detection_water_detected',
+                  'binary_sensor.dishwasher_leak_detection_water_detected',
+                  'binary_sensor.kitchen_fridge_leak_detection_water_detected',
+                  'binary_sensor.washing_machine_leak_detection_water_detected',
+                  'binary_sensor.laundry_sink_leak_detection_water_detected',
+                  'binary_sensor.mechanical_room_leak_detection_water_detected',
+                  'binary_sensor.electrical_room_leak_detection_water_detected',
+                  'binary_sensor.basement_ejector_leak_detection_water_detected'
+                ]) | selectattr('state', 'eq', 'on') | list | count == 0 }}
+          sequence:
+            - action: input_boolean.turn_off
+              target:
+                entity_id: input_boolean.water_leak_alert_active
+            - action: script.notify_trevor_phone
+              data:
+                message: clear_notification
+                data:
+                  tag: water-leak
+        - conditions:
+            - condition: template
+              value_template: "{{ trigger.id in ['valve_open', 'flo_clear'] }}"
+            - condition: state
+              entity_id: switch.flo_shutoff_shutoff_valve
+              state: "on"
+            - condition: state
+              entity_id: binary_sensor.flo_shutoff_pending_system_alerts
+              state: "off"
+          sequence:
+            - action: input_boolean.turn_off
+              target:
+                entity_id: input_boolean.water_valve_alert_active
+            - repeat:
+                for_each:
+                  - water-valve_closed
+                  - water-flo_system
+                sequence:
+                  - action: script.notify_trevor_phone
+                    data:
+                      message: clear_notification
+                      data:
+                        tag: "{{ repeat.item }}"
+        - conditions:
+            - condition: trigger
+              id: high_pressure_normal
+            - condition: template
+              value_template: "{{ states('input_text.water_latest_alert_kind') == 'high_pressure' }}"
+          sequence:
+            - action: input_boolean.turn_off
+              target:
+                entity_id: input_boolean.water_pressure_alert_active
+            - action: script.notify_trevor_phone
+              data:
+                message: clear_notification
+                data:
+                  tag: water-high_pressure
+        - conditions:
+            - condition: trigger
+              id: usage_reset
+          sequence:
+            - action: input_boolean.turn_off
+              target:
+                entity_id: input_boolean.water_usage_alert_active
+            - action: script.notify_trevor_phone
+              data:
+                message: clear_notification
+                data:
+                  tag: water-usage_high
   mode: single
 
 - id: door_lights_schedule_sync
@@ -883,7 +1079,7 @@
               data:
                 datetime: "{{ (now() + timedelta(minutes=30)).strftime('%Y-%m-%d %H:%M:%S') }}"
             - action: script.away_security_clear_alert
-            - action: notify.mobile_app_tk_iphone_16_pro
+            - action: script.notify_trevor_phone
               data:
                 title: House reminder sleeping
                 message: Away security reminders paused for 30 minutes.
@@ -900,7 +1096,7 @@
               data:
                 datetime: "{{ (now() + timedelta(hours=2)).strftime('%Y-%m-%d %H:%M:%S') }}"
             - action: script.away_security_clear_alert
-            - action: notify.mobile_app_tk_iphone_16_pro
+            - action: script.notify_trevor_phone
               data:
                 title: House reminder sleeping
                 message: Away security reminders paused for 2 hours.
@@ -1114,7 +1310,7 @@
                    or not is_state('input_boolean.downstairs_pilot_enabled', 'on')
                    or states('sensor.downstairs_away_watch') in ['all_clear', 'grace_period', 'home_occupied', 'unknown', 'unavailable'] }}
           sequence:
-            - action: notify.mobile_app_tk_iphone_16_pro
+            - action: script.notify_trevor_phone
               data:
                 message: clear_notification
                 data:
@@ -1129,7 +1325,7 @@
                    or not is_state('binary_sensor.downstairs_someone_home', 'on')
                    or not is_state('sensor.downstairs_time_period', 'night') }}
           sequence:
-            - action: notify.mobile_app_tk_iphone_16_pro
+            - action: script.notify_trevor_phone
               data:
                 message: clear_notification
                 data:
@@ -1155,7 +1351,7 @@
         - sensor.downstairs_time_period
       id: reevaluate
   actions:
-    - action: notify.mobile_app_tk_iphone_16_pro
+    - action: script.notify_trevor_phone
       data:
         message: clear_notification
         data:
@@ -1223,7 +1419,7 @@
             - condition: template
               value_template: "{{ trigger.id != 'clear' and should_send }}"
           sequence:
-            - action: notify.mobile_app_tk_iphone_16_pro
+            - action: script.notify_trevor_phone
               data:
                 title: >-
                   {% if watch == 'too_hot' %}🥵 Main Floor is hot while away
@@ -1243,7 +1439,7 @@
                   priority: high
                   url: /calm-mobile/climate
       default:
-        - action: notify.mobile_app_tk_iphone_16_pro
+        - action: script.notify_trevor_phone
           data:
             message: clear_notification
             data:
@@ -1896,14 +2092,13 @@
               value_template: "{{ trigger.event.data.action == 'GARDEN_MARK_BASIL_OUTSIDE' }}"
           sequence:
             - action: script.garden_mark_basil_outside
-    - action: notify.mobile_app_tk_iphone_16_pro
+    - action: script.notify_trevor_phone
       data:
         message: clear_notification
         data:
           tag: "{{ 'garden-daily-check' if trigger.event.data.action in ['GARDEN_MARK_CHECKED', 'GARDEN_MARK_WATERED'] else 'garden-marigolds-stage' if trigger.event.data.action in ['GARDEN_START_MARIGOLDS_HARDENING', 'GARDEN_MARK_MARIGOLDS_OUTSIDE'] else 'garden-basil-stage' }}"
   mode: parallel
   max: 10
-
 
 - id: espresso_morning_maintenance_reminder
   alias: "Espresso — Morning Maintenance Reminder"
@@ -2076,6 +2271,214 @@
       value_template: "{{ trigger.event.data.action == 'ROBISON_OIL_PRICE_CHECK_DONE' }}"
   actions:
     - action: script.robison_oil_mark_price_check_done
+  mode: parallel
+  max: 5
+
+- id: property_tax_reminders
+  alias: "Property Tax - Bill And Due Week Reminders"
+  description: Sends bill-ready notices and daily due-week reminders until the matching tax bill is marked paid.
+  triggers:
+    - trigger: time
+      at: "08:55:00"
+      id: daily
+    - trigger: homeassistant
+      event: start
+      id: startup
+    - trigger: event
+      event_type: automation_reloaded
+      id: automation_reloaded
+  conditions:
+    - condition: state
+      entity_id: input_boolean.tax_reminders_enabled
+      state: "on"
+  actions:
+    - if:
+        - condition: trigger
+          id: startup
+      then:
+        - delay:
+            minutes: 2
+    - variables:
+        today: "{{ now().strftime('%Y-%m-%d') }}"
+        school_january_bill_date: "{{ now().year }}-01-01"
+        town_bill_date: "{{ now().year }}-04-01"
+        school_september_bill_date: "{{ now().year }}-09-01"
+        school_january_due: "{{ states('sensor.school_tax_january_due_date') }}"
+        town_due: "{{ states('sensor.town_tax_due_date') }}"
+        school_september_due: "{{ states('sensor.school_tax_september_due_date') }}"
+        school_january_last_paid: "{{ states('input_datetime.school_tax_january_last_paid_at') }}"
+        school_september_last_paid: "{{ states('input_datetime.school_tax_september_last_paid_at') }}"
+        town_last_paid: "{{ states('input_datetime.town_tax_last_paid_at') }}"
+        school_january_paid: >-
+          {{ school_january_last_paid not in ['unknown', 'unavailable', 'none', '']
+             and school_january_last_paid[:10] >= school_january_bill_date }}
+        town_paid: >-
+          {{ town_last_paid not in ['unknown', 'unavailable', 'none', '']
+             and town_last_paid[:10] >= town_bill_date }}
+        school_september_paid: >-
+          {{ school_september_last_paid not in ['unknown', 'unavailable', 'none', '']
+             and school_september_last_paid[:10] >= school_september_bill_date }}
+        school_january_due_week: >-
+          {% if school_january_due in ['unknown', 'unavailable', 'none', ''] or now().weekday() >= 5 %}
+            false
+          {% else %}
+            {% set due_date = strptime(school_january_due, '%Y-%m-%d') %}
+            {% set today_date = strptime(today, '%Y-%m-%d') %}
+            {% set days = (as_timestamp(due_date) - as_timestamp(today_date)) // 86400 %}
+            {% set ns = namespace(business_days=0) %}
+            {% for offset in range(1, (days | int) + 1) %}
+              {% set day = today_date + timedelta(days=offset) %}
+              {% if day.weekday() < 5 %}
+                {% set ns.business_days = ns.business_days + 1 %}
+              {% endif %}
+            {% endfor %}
+            {{ days >= 0 and days <= 10 and ns.business_days <= 5 }}
+          {% endif %}
+        town_due_week: >-
+          {% if town_due in ['unknown', 'unavailable', 'none', ''] or now().weekday() >= 5 %}
+            false
+          {% else %}
+            {% set due_date = strptime(town_due, '%Y-%m-%d') %}
+            {% set today_date = strptime(today, '%Y-%m-%d') %}
+            {% set days = (as_timestamp(due_date) - as_timestamp(today_date)) // 86400 %}
+            {% set ns = namespace(business_days=0) %}
+            {% for offset in range(1, (days | int) + 1) %}
+              {% set day = today_date + timedelta(days=offset) %}
+              {% if day.weekday() < 5 %}
+                {% set ns.business_days = ns.business_days + 1 %}
+              {% endif %}
+            {% endfor %}
+            {{ days >= 0 and days <= 10 and ns.business_days <= 5 }}
+          {% endif %}
+        school_september_due_week: >-
+          {% if school_september_due in ['unknown', 'unavailable', 'none', ''] or now().weekday() >= 5 %}
+            false
+          {% else %}
+            {% set due_date = strptime(school_september_due, '%Y-%m-%d') %}
+            {% set today_date = strptime(today, '%Y-%m-%d') %}
+            {% set days = (as_timestamp(due_date) - as_timestamp(today_date)) // 86400 %}
+            {% set ns = namespace(business_days=0) %}
+            {% for offset in range(1, (days | int) + 1) %}
+              {% set day = today_date + timedelta(days=offset) %}
+              {% if day.weekday() < 5 %}
+                {% set ns.business_days = ns.business_days + 1 %}
+              {% endif %}
+            {% endfor %}
+            {{ days >= 0 and days <= 10 and ns.business_days <= 5 }}
+          {% endif %}
+    - choose:
+        - conditions:
+            - condition: template
+              value_template: "{{ today == school_january_bill_date and not school_january_paid }}"
+          sequence:
+            - action: script.property_tax_send_reminder
+              data:
+                tax_type: school
+                bill_month: 1
+                stage: bill_ready
+                due_date: "{{ school_january_due }}"
+
+        - conditions:
+            - condition: template
+              value_template: "{{ school_january_due_week and not school_january_paid }}"
+          sequence:
+            - action: script.property_tax_send_reminder
+              data:
+                tax_type: school
+                bill_month: 1
+                stage: countdown
+                due_date: "{{ school_january_due }}"
+
+        - conditions:
+            - condition: template
+              value_template: "{{ today == town_bill_date and not town_paid }}"
+          sequence:
+            - action: script.property_tax_send_reminder
+              data:
+                tax_type: town
+                bill_month: 4
+                stage: bill_ready
+                due_date: "{{ town_due }}"
+
+        - conditions:
+            - condition: template
+              value_template: "{{ town_due_week and not town_paid }}"
+          sequence:
+            - action: script.property_tax_send_reminder
+              data:
+                tax_type: town
+                bill_month: 4
+                stage: countdown
+                due_date: "{{ town_due }}"
+
+        - conditions:
+            - condition: template
+              value_template: "{{ today == school_september_bill_date and not school_september_paid }}"
+          sequence:
+            - action: script.property_tax_send_reminder
+              data:
+                tax_type: school
+                bill_month: 9
+                stage: bill_ready
+                due_date: "{{ school_september_due }}"
+
+        - conditions:
+            - condition: template
+              value_template: "{{ school_september_due_week and not school_september_paid }}"
+          sequence:
+            - action: script.property_tax_send_reminder
+              data:
+                tax_type: school
+                bill_month: 9
+                stage: countdown
+                due_date: "{{ school_september_due }}"
+  mode: single
+
+- id: property_tax_notification_actions
+  alias: "Property Tax - Notification Actions"
+  description: Handles Paid actions from property tax reminder notifications.
+  triggers:
+    - trigger: event
+      event_type: mobile_app_notification_action
+  conditions:
+    - condition: template
+      value_template: >
+        {{ trigger.event.data.action in [
+          'PROPERTY_TAX_SCHOOL_JAN_PAID',
+          'PROPERTY_TAX_TOWN_APR_PAID',
+          'PROPERTY_TAX_SCHOOL_SEP_PAID'
+        ] }}
+  actions:
+    - choose:
+        - conditions:
+            - condition: template
+              value_template: "{{ trigger.event.data.action == 'PROPERTY_TAX_SCHOOL_JAN_PAID' }}"
+          sequence:
+            - action: script.property_tax_mark_paid
+              data:
+                tax_type: school
+                bill_month: 1
+                due_date: "{{ states('sensor.school_tax_january_due_date') }}"
+
+        - conditions:
+            - condition: template
+              value_template: "{{ trigger.event.data.action == 'PROPERTY_TAX_TOWN_APR_PAID' }}"
+          sequence:
+            - action: script.property_tax_mark_paid
+              data:
+                tax_type: town
+                bill_month: 4
+                due_date: "{{ states('sensor.town_tax_due_date') }}"
+
+        - conditions:
+            - condition: template
+              value_template: "{{ trigger.event.data.action == 'PROPERTY_TAX_SCHOOL_SEP_PAID' }}"
+          sequence:
+            - action: script.property_tax_mark_paid
+              data:
+                tax_type: school
+                bill_month: 9
+                due_date: "{{ states('sensor.school_tax_september_due_date') }}"
   mode: parallel
   max: 5
 
@@ -2569,11 +2972,8 @@
         alert_kind: cycle
         severity: info
         message: >-
-          Humidity dipped because the refrigeration cycle started.
-          {{ states('sensor.wine_temperature') | float(0) | round(1) }}°F
-          · {{ states('sensor.wine_humidity') | float(0) | round(0) }}% RH
-          · {{ states('sensor.wine_cave_absolute_humidity') | float(0) | round(2) }} g/m³.
-          This looks like a normal cycle while it recovers.
+          We'll keep an eye on it to make sure the pattern matches a normal cycle.
+          Keep you posted!
   mode: single
 
 - id: wine_cave_cooling_cycle_settled_notification

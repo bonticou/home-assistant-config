@@ -301,6 +301,24 @@ views:
             content: Radon
             tap_action:
               action: more-info
+          - type: template
+            entity: sensor.house_notice_timeline
+            icon: >-
+              {% set count = state_attr('sensor.house_notice_timeline', 'attention_count') | int(0) %}
+              {{ 'mdi:bell-badge-outline' if count > 0 else 'mdi:bell-outline' }}
+            icon_color: >-
+              {% set count = state_attr('sensor.house_notice_timeline', 'attention_count') | int(0) %}
+              {{ 'amber' if count > 0 else 'grey' }}
+            content: >-
+              {% set count = state_attr('sensor.house_notice_timeline', 'attention_count') | int(0) %}
+              {% if count > 0 %}
+                {{ count }} need attention
+              {% else %}
+                {{ state_attr('sensor.house_notice_timeline', 'next_short') | default('All quiet', true) }}
+              {% endif %}
+            tap_action:
+              action: navigate
+              navigation_path: /calm-mobile/notices
 
       - type: grid
         columns: 2
@@ -2617,6 +2635,14 @@ views:
                   padding: 4px 0;
                 }
 
+  - title: Notices
+    path: notices
+    icon: mdi:bell-outline
+    cards:
+      - type: custom:house-notices-card
+        timeline_entity: sensor.house_notice_timeline
+        history_entity: sensor.house_notice_history
+
   - title: Lights
     path: lights
     icon: mdi:lightbulb-outline
@@ -3178,7 +3204,7 @@ views:
                   return Number.isFinite(numeric) ? `${Math.round(numeric)} gal` : value;
                 }
           xaxis:
-            tickAmount: 6
+            tickAmount: 7
             axisBorder:
               show: false
             axisTicks:
@@ -3197,11 +3223,14 @@ views:
                   const date = Number.isFinite(numeric) ? new Date(numeric) : new Date(source);
                   if (Number.isNaN(date.getTime())) return value ?? '';
                   const today = new Date();
+                  today.setHours(0, 0, 0, 0);
+                  const tomorrow = new Date(today);
+                  tomorrow.setDate(tomorrow.getDate() + 1);
+                  if (date >= tomorrow) return '';
                   if (date.getFullYear() === today.getFullYear()
                     && date.getMonth() === today.getMonth()
                     && date.getDate() === today.getDate()) {
-                    const weekday = date.toLocaleDateString(undefined, { weekday: 'short' });
-                    return [weekday, 'Today'];
+                    return 'Today';
                   }
                   return date.toLocaleDateString(undefined, { weekday: 'short' });
                 }
@@ -3223,21 +3252,15 @@ views:
             color: '#60a5fa'
             stroke_width: 0
             float_precision: 0
-            group_by:
-              func: max
-              duration: 1d
-          - entity: sensor.flo_shutoff_today_s_water_usage
-            name: 7-day avg
-            type: line
-            color: rgba(226, 232, 240, 0.58)
-            stroke_width: 2
-            stroke_dash: 5
-            float_precision: 0
             data_generator: |
               const entityId = entity.entity_id || 'sensor.flo_shutoff_today_s_water_usage';
-              const spanStart = new Date(start);
-              const spanEnd = new Date(end);
-              const path = `history/period/${spanStart.toISOString()}?filter_entity_id=${encodeURIComponent(entityId)}&end_time=${encodeURIComponent(spanEnd.toISOString())}`;
+              const dayMs = 24 * 60 * 60 * 1000;
+              const today = new Date();
+              today.setHours(0, 0, 0, 0);
+              const firstDay = new Date(today);
+              firstDay.setDate(firstDay.getDate() - 6);
+              const spanEnd = new Date(today.getTime() + dayMs);
+              const path = `history/period/${firstDay.toISOString()}?filter_entity_id=${encodeURIComponent(entityId)}&end_time=${encodeURIComponent(spanEnd.toISOString())}`;
               const response = await hass.callApi('GET', path);
               const rows = Array.isArray(response?.[0]) ? response[0] : [];
               const keyFor = (date) => [
@@ -3256,30 +3279,64 @@ views:
                 const previous = buckets.get(key);
                 buckets.set(key, previous === undefined ? value : Math.max(previous, value));
               }
-              const now = new Date();
               const current = Number(entity.state);
-              if (Number.isFinite(current) && now >= spanStart && now < spanEnd) {
-                const key = keyFor(now);
+              if (Number.isFinite(current)) {
+                const key = keyFor(today);
                 const previous = buckets.get(key);
                 buckets.set(key, previous === undefined ? current : Math.max(previous, current));
               }
-              const firstDay = new Date(spanStart);
-              firstDay.setHours(0, 0, 0, 0);
-              const lastDay = new Date(spanEnd.getTime() - 1);
-              lastDay.setHours(0, 0, 0, 0);
-              const dayStarts = [];
-              for (const day = new Date(firstDay); day <= lastDay; day.setDate(day.getDate() + 1)) {
-                dayStarts.push(new Date(day).getTime());
+              return Array.from({ length: 7 }, (_, index) => {
+                const day = new Date(firstDay.getTime() + index * dayMs);
+                const value = buckets.get(keyFor(day));
+                return [day.getTime(), Number.isFinite(value) ? value : null];
+              });
+          - entity: sensor.flo_shutoff_today_s_water_usage
+            name: 7-day avg
+            type: line
+            color: rgba(226, 232, 240, 0.58)
+            stroke_width: 2
+            stroke_dash: 5
+            float_precision: 0
+            data_generator: |
+              const entityId = entity.entity_id || 'sensor.flo_shutoff_today_s_water_usage';
+              const dayMs = 24 * 60 * 60 * 1000;
+              const today = new Date();
+              today.setHours(0, 0, 0, 0);
+              const firstDay = new Date(today);
+              firstDay.setDate(firstDay.getDate() - 6);
+              const spanEnd = new Date(today.getTime() + dayMs);
+              const path = `history/period/${firstDay.toISOString()}?filter_entity_id=${encodeURIComponent(entityId)}&end_time=${encodeURIComponent(spanEnd.toISOString())}`;
+              const response = await hass.callApi('GET', path);
+              const rows = Array.isArray(response?.[0]) ? response[0] : [];
+              const keyFor = (date) => [
+                date.getFullYear(),
+                String(date.getMonth() + 1).padStart(2, '0'),
+                String(date.getDate()).padStart(2, '0')
+              ].join('-');
+              const buckets = new Map();
+              for (const row of rows) {
+                const value = Number(row.state);
+                if (!Number.isFinite(value)) continue;
+                const changed = row.last_changed || row.last_updated;
+                const date = new Date(changed);
+                if (Number.isNaN(date.getTime())) continue;
+                const key = keyFor(date);
+                const previous = buckets.get(key);
+                buckets.set(key, previous === undefined ? value : Math.max(previous, value));
               }
-              const values = dayStarts
-                .map((time) => buckets.get(keyFor(new Date(time))))
+              const current = Number(entity.state);
+              if (Number.isFinite(current)) {
+                const key = keyFor(today);
+                const previous = buckets.get(key);
+                buckets.set(key, previous === undefined ? current : Math.max(previous, current));
+              }
+              const days = Array.from({ length: 7 }, (_, index) => new Date(firstDay.getTime() + index * dayMs));
+              const values = days
+                .map((day) => buckets.get(keyFor(day)))
                 .filter((value) => Number.isFinite(value));
               if (!values.length) return [];
               const average = values.reduce((sum, value) => sum + value, 0) / values.length;
-              return dayStarts.map((time) => [time, average]);
-            group_by:
-              func: max
-              duration: 1d
+              return days.map((day) => [day.getTime(), average]);
         card_mod:
           style: &water_chart_card_style |
             ha-card {
@@ -3370,7 +3427,6 @@ views:
 
       - type: custom:mushroom-title-card
         title: Leak Sensors
-        subtitle: All dry should be the default
 
       - type: custom:button-card
         entity: binary_sensor.kitchen_sink_leak_detection_water_detected
@@ -3403,8 +3459,10 @@ views:
               ];
               const wet = ids.filter((id) => states[id]?.state === 'on').length;
               const color = wet > 0 ? '#ef4444' : '#14b8a6';
-              const icon = wet > 0 ? 'mdi:water-alert-outline' : 'mdi:shield-check-outline';
-              return `<div class="water-summary-icon"><ha-icon icon="${icon}" style="color:${color}"></ha-icon></div>`;
+              const icon = wet > 0 ? 'mdi:water-alert' : 'mdi:shield-check';
+              const background = wet > 0 ? 'rgba(239, 68, 68, 0.13)' : 'rgba(20, 184, 166, 0.14)';
+              const border = wet > 0 ? 'rgba(239, 68, 68, 0.22)' : 'rgba(20, 184, 166, 0.24)';
+              return `<div class="water-summary-icon" style="background:${background};border-color:${border}"><ha-icon icon="${icon}" style="color:${color}"></ha-icon></div>`;
             ]]]
           copy: >-
             [[[
@@ -3420,9 +3478,8 @@ views:
                 'binary_sensor.basement_ejector_leak_detection_water_detected'
               ];
               const wet = ids.filter((id) => states[id]?.state === 'on').length;
-              const title = wet > 0 ? `${wet} wet` : `${ids.length} dry`;
-              const subtitle = wet > 0 ? 'Review the highlighted sensors below.' : 'All leak sensors dry.';
-              return `<div class="water-summary-copy"><div class="water-summary-title">${title}</div><div class="water-summary-subtitle">${subtitle}</div></div>`;
+              const title = wet > 0 ? 'Needs attention' : 'All clear';
+              return `<div class="water-summary-copy"><div class="water-summary-title">${title}</div></div>`;
             ]]]
           art: >-
             [[[
@@ -3438,53 +3495,66 @@ views:
                 'binary_sensor.basement_ejector_leak_detection_water_detected'
               ];
               const wet = ids.filter((id) => states[id]?.state === 'on').length;
-              const icon = wet > 0 ? 'mdi:water-alert' : 'mdi:shield-water-outline';
-              const color = wet > 0 ? 'rgba(239, 68, 68, 0.28)' : 'rgba(20, 184, 166, 0.24)';
+              const icon = wet > 0 ? 'mdi:shield-alert' : 'mdi:shield-check';
+              const color = wet > 0 ? 'rgba(239, 68, 68, 0.42)' : 'rgba(20, 184, 166, 0.38)';
               return `<ha-icon class="water-summary-art" icon="${icon}" style="color:${color}"></ha-icon>`;
             ]]]
         tap_action:
           action: none
         styles:
           card:
-            - min-height: 94px
-            - padding: 14px 16px
+            - min-height: 52px
+            - padding: 8px 12px
             - border: 1px solid rgba(20, 184, 166, 0.18)
-            - border-radius: 24px
+            - border-radius: 18px
             - box-shadow: none
             - background: linear-gradient(180deg, rgba(20, 184, 166, 0.10), rgba(15, 23, 42, 0.54))
             - overflow: hidden
             - position: relative
           grid:
             - grid-template-areas: '"icon copy art"'
-            - grid-template-columns: 46px 1fr 84px
-            - column-gap: 12px
+            - grid-template-columns: 34px 1fr 46px
+            - column-gap: 10px
             - align-items: center
           custom_fields:
             icon:
               - grid-area: icon
+              - align-items: center
+              - display: flex
+              - height: 100%
+              - justify-content: center
+              - line-height: 0
               - z-index: 1
             copy:
               - grid-area: copy
+              - align-items: center
+              - align-self: center
+              - display: flex
               - justify-self: start
               - min-width: 0
               - z-index: 1
             art:
               - grid-area: art
-              - justify-self: end
+              - align-items: center
               - align-self: center
+              - display: flex
+              - height: 100%
+              - justify-content: flex-end
+              - justify-self: stretch
+              - line-height: 0
               - z-index: 0
         extra_styles: |
           .water-summary-icon {
             align-items: center;
-            background: rgba(255, 255, 255, 0.06);
-            border-radius: 16px;
+            border: 1px solid transparent;
+            border-radius: 12px;
             display: flex;
-            height: 42px;
+            height: 30px;
             justify-content: center;
-            width: 42px;
+            width: 30px;
           }
           .water-summary-icon ha-icon {
-            --mdc-icon-size: 24px;
+            --mdc-icon-size: 18px;
           }
           .water-summary-copy {
             min-width: 0;
@@ -3492,23 +3562,16 @@ views:
           }
           .water-summary-title {
             color: rgba(248, 250, 252, 0.96);
-            font-size: 21px;
+            font-size: 17px;
             font-weight: 620;
             letter-spacing: 0;
             line-height: 1.15;
           }
-          .water-summary-subtitle {
-            color: rgba(226, 232, 240, 0.74);
-            font-size: 13px;
-            letter-spacing: 0;
-            line-height: 1.35;
-            margin-top: 4px;
-            white-space: normal;
-          }
           .water-summary-art {
-            --mdc-icon-size: 84px;
-            height: 84px;
-            width: 84px;
+            --mdc-icon-size: 42px;
+            display: block;
+            height: 42px;
+            width: 42px;
           }
 
       - type: grid
@@ -3521,36 +3584,45 @@ views:
             show_name: false
             show_state: false
             custom_fields:
-              icon: >-
-                [[[
-                  const color = entity.state === 'on' ? '#ef4444' : '#14b8a6';
-                  return `<div class="tile-icon"><ha-icon icon="mdi:water-alert" style="color:${color}"></ha-icon></div>`;
-                ]]]
               text: >-
                 [[[
-                  const meta = entity.state === 'on' ? 'Leak detected' : 'Dry';
-                  return `<div class="tile-copy"><div class="tile-label">Kitchen Sink</div><div class="tile-meta">${meta}</div></div>`;
+                  const meta = entity.state === 'on' ? 'Attention' : 'Clear';
+                  const color = entity.state === 'on' ? '#fecaca' : 'rgba(45, 212, 191, 0.78)';
+                  return `<div class="tile-copy"><div class="tile-label">Kitchen Sink</div><div class="tile-meta" style="color:${color}">${meta}</div></div>`;
                 ]]]
             tap_action:
               action: more-info
-            styles: &water_compact_button_styles
+            styles: &water_leak_tile_styles
               card:
-                - height: 44px
-                - padding: 0 10px
-                - border-radius: 20px
+                - height: 40px
+                - padding: 0 12px
+                - border-radius: 16px
                 - box-shadow: none
                 - text-align: left
                 - overflow: hidden
+                - border: |
+                    [[[
+                      return entity.state === 'on'
+                        ? '1px solid rgba(239, 68, 68, 0.34)'
+                        : '1px solid rgba(20, 184, 166, 0.15)';
+                    ]]]
+                - border-left: |
+                    [[[
+                      return entity.state === 'on'
+                        ? '3px solid rgba(239, 68, 68, 0.88)'
+                        : '3px solid rgba(20, 184, 166, 0.68)';
+                    ]]]
+                - background: |
+                    [[[
+                      return entity.state === 'on'
+                        ? 'linear-gradient(90deg, rgba(239, 68, 68, 0.18), rgba(15, 23, 42, 0.58))'
+                        : 'rgba(15, 23, 42, 0.46)';
+                    ]]]
               grid:
-                - grid-template-areas: '"icon text"'
-                - grid-template-columns: 24px minmax(0, 1fr)
-                - column-gap: 8px
+                - grid-template-areas: '"text"'
+                - grid-template-columns: minmax(0, 1fr)
                 - align-items: center
               custom_fields:
-                icon:
-                  - grid-area: icon
-                  - justify-self: start
-                  - align-self: center
                 text:
                   - grid-area: text
                   - justify-self: stretch
@@ -3563,19 +3635,15 @@ views:
             show_name: false
             show_state: false
             custom_fields:
-              icon: >-
-                [[[
-                  const color = entity.state === 'on' ? '#ef4444' : '#14b8a6';
-                  return `<div class="tile-icon"><ha-icon icon="mdi:water-alert" style="color:${color}"></ha-icon></div>`;
-                ]]]
               text: >-
                 [[[
-                  const meta = entity.state === 'on' ? 'Leak detected' : 'Dry';
-                  return `<div class="tile-copy"><div class="tile-label">Island Sink</div><div class="tile-meta">${meta}</div></div>`;
+                  const meta = entity.state === 'on' ? 'Attention' : 'Clear';
+                  const color = entity.state === 'on' ? '#fecaca' : 'rgba(45, 212, 191, 0.78)';
+                  return `<div class="tile-copy"><div class="tile-label">Island Sink</div><div class="tile-meta" style="color:${color}">${meta}</div></div>`;
                 ]]]
             tap_action:
               action: more-info
-            styles: *water_compact_button_styles
+            styles: *water_leak_tile_styles
             extra_styles: *compact_tile_extra
           - type: custom:button-card
             entity: binary_sensor.dishwasher_leak_detection_water_detected
@@ -3583,19 +3651,15 @@ views:
             show_name: false
             show_state: false
             custom_fields:
-              icon: >-
-                [[[
-                  const color = entity.state === 'on' ? '#ef4444' : '#14b8a6';
-                  return `<div class="tile-icon"><ha-icon icon="mdi:water-alert" style="color:${color}"></ha-icon></div>`;
-                ]]]
               text: >-
                 [[[
-                  const meta = entity.state === 'on' ? 'Leak detected' : 'Dry';
-                  return `<div class="tile-copy"><div class="tile-label">Dishwasher</div><div class="tile-meta">${meta}</div></div>`;
+                  const meta = entity.state === 'on' ? 'Attention' : 'Clear';
+                  const color = entity.state === 'on' ? '#fecaca' : 'rgba(45, 212, 191, 0.78)';
+                  return `<div class="tile-copy"><div class="tile-label">Dishwasher</div><div class="tile-meta" style="color:${color}">${meta}</div></div>`;
                 ]]]
             tap_action:
               action: more-info
-            styles: *water_compact_button_styles
+            styles: *water_leak_tile_styles
             extra_styles: *compact_tile_extra
           - type: custom:button-card
             entity: binary_sensor.kitchen_fridge_leak_detection_water_detected
@@ -3603,19 +3667,15 @@ views:
             show_name: false
             show_state: false
             custom_fields:
-              icon: >-
-                [[[
-                  const color = entity.state === 'on' ? '#ef4444' : '#14b8a6';
-                  return `<div class="tile-icon"><ha-icon icon="mdi:water-alert" style="color:${color}"></ha-icon></div>`;
-                ]]]
               text: >-
                 [[[
-                  const meta = entity.state === 'on' ? 'Leak detected' : 'Dry';
-                  return `<div class="tile-copy"><div class="tile-label">Kitchen Fridge</div><div class="tile-meta">${meta}</div></div>`;
+                  const meta = entity.state === 'on' ? 'Attention' : 'Clear';
+                  const color = entity.state === 'on' ? '#fecaca' : 'rgba(45, 212, 191, 0.78)';
+                  return `<div class="tile-copy"><div class="tile-label">Kitchen Fridge</div><div class="tile-meta" style="color:${color}">${meta}</div></div>`;
                 ]]]
             tap_action:
               action: more-info
-            styles: *water_compact_button_styles
+            styles: *water_leak_tile_styles
             extra_styles: *compact_tile_extra
           - type: custom:button-card
             entity: binary_sensor.washing_machine_leak_detection_water_detected
@@ -3623,19 +3683,15 @@ views:
             show_name: false
             show_state: false
             custom_fields:
-              icon: >-
-                [[[
-                  const color = entity.state === 'on' ? '#ef4444' : '#14b8a6';
-                  return `<div class="tile-icon"><ha-icon icon="mdi:water-alert" style="color:${color}"></ha-icon></div>`;
-                ]]]
               text: >-
                 [[[
-                  const meta = entity.state === 'on' ? 'Leak detected' : 'Dry';
-                  return `<div class="tile-copy"><div class="tile-label">Washer</div><div class="tile-meta">${meta}</div></div>`;
+                  const meta = entity.state === 'on' ? 'Attention' : 'Clear';
+                  const color = entity.state === 'on' ? '#fecaca' : 'rgba(45, 212, 191, 0.78)';
+                  return `<div class="tile-copy"><div class="tile-label">Washer</div><div class="tile-meta" style="color:${color}">${meta}</div></div>`;
                 ]]]
             tap_action:
               action: more-info
-            styles: *water_compact_button_styles
+            styles: *water_leak_tile_styles
             extra_styles: *compact_tile_extra
           - type: custom:button-card
             entity: binary_sensor.laundry_sink_leak_detection_water_detected
@@ -3643,19 +3699,15 @@ views:
             show_name: false
             show_state: false
             custom_fields:
-              icon: >-
-                [[[
-                  const color = entity.state === 'on' ? '#ef4444' : '#14b8a6';
-                  return `<div class="tile-icon"><ha-icon icon="mdi:water-alert" style="color:${color}"></ha-icon></div>`;
-                ]]]
               text: >-
                 [[[
-                  const meta = entity.state === 'on' ? 'Leak detected' : 'Dry';
-                  return `<div class="tile-copy"><div class="tile-label">Laundry Sink</div><div class="tile-meta">${meta}</div></div>`;
+                  const meta = entity.state === 'on' ? 'Attention' : 'Clear';
+                  const color = entity.state === 'on' ? '#fecaca' : 'rgba(45, 212, 191, 0.78)';
+                  return `<div class="tile-copy"><div class="tile-label">Laundry Sink</div><div class="tile-meta" style="color:${color}">${meta}</div></div>`;
                 ]]]
             tap_action:
               action: more-info
-            styles: *water_compact_button_styles
+            styles: *water_leak_tile_styles
             extra_styles: *compact_tile_extra
           - type: custom:button-card
             entity: binary_sensor.mechanical_room_leak_detection_water_detected
@@ -3663,19 +3715,15 @@ views:
             show_name: false
             show_state: false
             custom_fields:
-              icon: >-
-                [[[
-                  const color = entity.state === 'on' ? '#ef4444' : '#14b8a6';
-                  return `<div class="tile-icon"><ha-icon icon="mdi:water-alert" style="color:${color}"></ha-icon></div>`;
-                ]]]
               text: >-
                 [[[
-                  const meta = entity.state === 'on' ? 'Leak detected' : 'Dry';
-                  return `<div class="tile-copy"><div class="tile-label">Mechanical</div><div class="tile-meta">${meta}</div></div>`;
+                  const meta = entity.state === 'on' ? 'Attention' : 'Clear';
+                  const color = entity.state === 'on' ? '#fecaca' : 'rgba(45, 212, 191, 0.78)';
+                  return `<div class="tile-copy"><div class="tile-label">Mechanical</div><div class="tile-meta" style="color:${color}">${meta}</div></div>`;
                 ]]]
             tap_action:
               action: more-info
-            styles: *water_compact_button_styles
+            styles: *water_leak_tile_styles
             extra_styles: *compact_tile_extra
           - type: custom:button-card
             entity: binary_sensor.electrical_room_leak_detection_water_detected
@@ -3683,19 +3731,15 @@ views:
             show_name: false
             show_state: false
             custom_fields:
-              icon: >-
-                [[[
-                  const color = entity.state === 'on' ? '#ef4444' : '#14b8a6';
-                  return `<div class="tile-icon"><ha-icon icon="mdi:water-alert" style="color:${color}"></ha-icon></div>`;
-                ]]]
               text: >-
                 [[[
-                  const meta = entity.state === 'on' ? 'Leak detected' : 'Dry';
-                  return `<div class="tile-copy"><div class="tile-label">Electrical</div><div class="tile-meta">${meta}</div></div>`;
+                  const meta = entity.state === 'on' ? 'Attention' : 'Clear';
+                  const color = entity.state === 'on' ? '#fecaca' : 'rgba(45, 212, 191, 0.78)';
+                  return `<div class="tile-copy"><div class="tile-label">Electrical</div><div class="tile-meta" style="color:${color}">${meta}</div></div>`;
                 ]]]
             tap_action:
               action: more-info
-            styles: *water_compact_button_styles
+            styles: *water_leak_tile_styles
             extra_styles: *compact_tile_extra
           - type: custom:button-card
             entity: binary_sensor.basement_ejector_leak_detection_water_detected
@@ -3703,24 +3747,159 @@ views:
             show_name: false
             show_state: false
             custom_fields:
-              icon: >-
-                [[[
-                  const color = entity.state === 'on' ? '#ef4444' : '#14b8a6';
-                  return `<div class="tile-icon"><ha-icon icon="mdi:water-alert" style="color:${color}"></ha-icon></div>`;
-                ]]]
               text: >-
                 [[[
-                  const meta = entity.state === 'on' ? 'Leak detected' : 'Dry';
-                  return `<div class="tile-copy"><div class="tile-label">Ejector</div><div class="tile-meta">${meta}</div></div>`;
+                  const meta = entity.state === 'on' ? 'Attention' : 'Clear';
+                  const color = entity.state === 'on' ? '#fecaca' : 'rgba(45, 212, 191, 0.78)';
+                  return `<div class="tile-copy"><div class="tile-label">Ejector</div><div class="tile-meta" style="color:${color}">${meta}</div></div>`;
                 ]]]
             tap_action:
               action: more-info
-            styles: *water_compact_button_styles
+            styles: *water_leak_tile_styles
             extra_styles: *compact_tile_extra
 
       - type: custom:mushroom-title-card
         title: Guards
-        subtitle: Alert logic visible in one place
+
+      - type: custom:button-card
+        entity: binary_sensor.water_notification_alert_active
+        show_icon: false
+        show_name: false
+        show_state: false
+        custom_fields:
+          icon: >-
+            [[[
+              const active = entity.state === 'on';
+              const color = active ? '#ef4444' : '#14b8a6';
+              const icon = active ? 'mdi:bell-alert' : 'mdi:bell-check';
+              const background = active ? 'rgba(239, 68, 68, 0.13)' : 'rgba(20, 184, 166, 0.14)';
+              const border = active ? 'rgba(239, 68, 68, 0.22)' : 'rgba(20, 184, 166, 0.24)';
+              return `<div class="water-guard-icon" style="background:${background};border-color:${border}"><ha-icon icon="${icon}" style="color:${color}"></ha-icon></div>`;
+            ]]]
+          copy: >-
+            [[[
+              const active = entity.state === 'on';
+              const latest = states['input_text.water_latest_alert_label']?.state;
+              const latestAt = states['input_datetime.water_latest_alert_at']?.state;
+              const activeAlerts = (states['sensor.water_notification_status']?.attributes?.active_alerts || '').trim();
+              const valid = (value) => value && !['unknown', 'unavailable', 'none', ''].includes(value);
+              const relative = (value) => {
+                if (!valid(value)) return '';
+                const parsed = new Date(value.replace(' ', 'T')).getTime();
+                if (!Number.isFinite(parsed)) return '';
+                const minutes = Math.max(0, Math.round((Date.now() - parsed) / 60000));
+                if (minutes < 1) return 'just now';
+                if (minutes < 60) return `${minutes}m ago`;
+                const hours = Math.round(minutes / 60);
+                if (hours < 24) return `${hours}h ago`;
+                return `${Math.round(hours / 24)}d ago`;
+              };
+              const last = valid(latest) ? `Last: ${latest}${relative(latestAt) ? ` · ${relative(latestAt)}` : ''}` : 'No recent alerts';
+              const detail = active
+                ? `${activeAlerts && activeAlerts !== 'None' ? activeAlerts : 'Water'} active · ${last}`
+                : last;
+              const title = active ? 'Water alert active' : 'No active water alerts';
+              return `<div class="water-guard-copy"><div class="water-guard-title">${title}</div><div class="water-guard-meta">${detail}</div></div>`;
+            ]]]
+          art: >-
+            [[[
+              const active = entity.state === 'on';
+              const icon = active ? 'mdi:bell-alert' : 'mdi:shield-check';
+              const color = active ? 'rgba(239, 68, 68, 0.40)' : 'rgba(20, 184, 166, 0.34)';
+              return `<ha-icon class="water-guard-art" icon="${icon}" style="color:${color}"></ha-icon>`;
+            ]]]
+        tap_action:
+          action: more-info
+        styles:
+          card:
+            - min-height: 64px
+            - padding: 10px 12px
+            - border: |
+                [[[
+                  return entity.state === 'on'
+                    ? '1px solid rgba(239, 68, 68, 0.24)'
+                    : '1px solid rgba(20, 184, 166, 0.18)';
+                ]]]
+            - border-radius: 18px
+            - box-shadow: none
+            - background: |
+                [[[
+                  return entity.state === 'on'
+                    ? 'linear-gradient(180deg, rgba(239, 68, 68, 0.12), rgba(15, 23, 42, 0.56))'
+                    : 'linear-gradient(180deg, rgba(20, 184, 166, 0.10), rgba(15, 23, 42, 0.54))';
+                ]]]
+            - overflow: hidden
+            - position: relative
+          grid:
+            - grid-template-areas: '"icon copy art"'
+            - grid-template-columns: 34px 1fr 46px
+            - column-gap: 10px
+            - align-items: center
+          custom_fields:
+            icon:
+              - grid-area: icon
+              - align-items: center
+              - display: flex
+              - height: 100%
+              - justify-content: center
+              - line-height: 0
+              - z-index: 1
+            copy:
+              - grid-area: copy
+              - align-self: center
+              - justify-self: start
+              - min-width: 0
+              - z-index: 1
+            art:
+              - grid-area: art
+              - align-items: center
+              - align-self: center
+              - display: flex
+              - height: 100%
+              - justify-content: flex-end
+              - justify-self: stretch
+              - line-height: 0
+              - z-index: 0
+        extra_styles: |
+          .water-guard-icon {
+            align-items: center;
+            border: 1px solid transparent;
+            border-radius: 12px;
+            display: flex;
+            height: 30px;
+            justify-content: center;
+            width: 30px;
+          }
+          .water-guard-icon ha-icon {
+            --mdc-icon-size: 18px;
+          }
+          .water-guard-copy {
+            min-width: 0;
+            text-align: left;
+          }
+          .water-guard-title {
+            color: rgba(248, 250, 252, 0.96);
+            font-size: 17px;
+            font-weight: 620;
+            letter-spacing: 0;
+            line-height: 1.15;
+          }
+          .water-guard-meta {
+            color: rgba(226, 232, 240, 0.72);
+            font-size: 11px;
+            letter-spacing: 0;
+            line-height: 1.25;
+            margin-top: 3px;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+          }
+          .water-guard-art {
+            --mdc-icon-size: 42px;
+            display: block;
+            height: 42px;
+            width: 42px;
+          }
 
       - type: grid
         columns: 2
@@ -3728,149 +3907,202 @@ views:
         cards:
           - type: custom:button-card
             entity: automation.water_overnight_continuous_flow_running_toilet
+            variables:
+              active_entity: input_boolean.water_flow_alert_active
+              event_sensor: sensor.water_guard_flow_events
+              label: Flow
+              armed_ids:
+                - automation.water_overnight_continuous_flow_running_toilet
+                - automation.water_daytime_sustained_low_flow
+                - automation.water_high_flow_burst_daytime
+                - automation.water_high_flow_burst_overnight
             show_icon: false
             show_name: false
             show_state: false
             custom_fields:
-              icon: >-
-                [[[
-                  const ids = [
-                    'automation.water_overnight_continuous_flow_running_toilet',
-                    'automation.water_daytime_sustained_low_flow',
-                    'automation.water_high_flow_burst_daytime',
-                    'automation.water_high_flow_burst_overnight'
-                  ];
-                  const active = ids.every((id) => states[id]?.state === 'on');
-                  const color = active ? '#14b8a6' : '#94a3b8';
-                  return `<div class="tile-icon"><ha-icon icon="mdi:shield-water-outline" style="color:${color}"></ha-icon></div>`;
-                ]]]
               text: >-
                 [[[
-                  const ids = [
-                    'automation.water_overnight_continuous_flow_running_toilet',
-                    'automation.water_daytime_sustained_low_flow',
-                    'automation.water_high_flow_burst_daytime',
-                    'automation.water_high_flow_burst_overnight'
-                  ];
-                  const active = ids.every((id) => states[id]?.state === 'on');
-                  const meta = active ? 'Active' : 'Disabled';
-                  return `<div class="tile-copy"><div class="tile-label">Flow guard</div><div class="tile-meta">${meta}</div></div>`;
+                  const armed = variables.armed_ids.every((id) => states[id]?.state === 'on');
+                  const active = states[variables.active_entity]?.state === 'on';
+                  const latest = states[variables.event_sensor]?.state;
+                  const valid = latest && !['unknown', 'unavailable', 'none', ''].includes(latest);
+                  const parsed = valid ? Date.parse(latest.replace(' ', 'T')) : NaN;
+                  const recent = Number.isFinite(parsed) ? Math.round((Date.now() - parsed) / 60000) : null;
+                  const relative = recent === null || recent > 10080 ? '' : recent < 60 ? `${Math.max(1, recent)}m ago` : recent < 1440 ? `${Math.round(recent / 60)}h ago` : `${Math.round(recent / 1440)}d ago`;
+                  const meta = active ? 'Active' : !armed ? 'Disabled' : relative ? `Last alert ${relative}` : 'Quiet';
+                  const color = active ? '#fecaca' : !armed ? 'rgba(203, 213, 225, 0.78)' : 'rgba(45, 212, 191, 0.78)';
+                  return `<div class="tile-copy"><div class="tile-label">${variables.label}</div><div class="tile-meta" style="color:${color}">${meta}</div></div>`;
                 ]]]
             tap_action:
               action: more-info
-            styles: *water_compact_button_styles
+            styles: &water_guard_tile_styles
+              card:
+                - height: 42px
+                - padding: 0 12px
+                - border-radius: 16px
+                - box-shadow: none
+                - text-align: left
+                - overflow: hidden
+                - border: |
+                    [[[
+                      const armed = variables.armed_ids.every((id) => states[id]?.state === 'on');
+                      const active = states[variables.active_entity]?.state === 'on';
+                      if (active) return '1px solid rgba(239, 68, 68, 0.34)';
+                      if (!armed) return '1px solid rgba(148, 163, 184, 0.32)';
+                      return '1px solid rgba(20, 184, 166, 0.15)';
+                    ]]]
+                - border-left: |
+                    [[[
+                      const armed = variables.armed_ids.every((id) => states[id]?.state === 'on');
+                      const active = states[variables.active_entity]?.state === 'on';
+                      if (active) return '3px solid rgba(239, 68, 68, 0.88)';
+                      if (!armed) return '3px solid rgba(148, 163, 184, 0.68)';
+                      return '3px solid rgba(20, 184, 166, 0.68)';
+                    ]]]
+                - background: |
+                    [[[
+                      const armed = variables.armed_ids.every((id) => states[id]?.state === 'on');
+                      const active = states[variables.active_entity]?.state === 'on';
+                      if (active) return 'linear-gradient(90deg, rgba(239, 68, 68, 0.18), rgba(15, 23, 42, 0.58))';
+                      if (!armed) return 'linear-gradient(90deg, rgba(148, 163, 184, 0.12), rgba(15, 23, 42, 0.52))';
+                      return 'rgba(15, 23, 42, 0.46)';
+                    ]]]
+              grid:
+                - grid-template-areas: '"text"'
+                - grid-template-columns: minmax(0, 1fr)
+                - align-items: center
+              custom_fields:
+                text:
+                  - grid-area: text
+                  - justify-self: stretch
+                  - align-self: center
+                  - min-width: 0
             extra_styles: *compact_tile_extra
           - type: custom:button-card
             entity: automation.water_low_pressure
+            variables:
+              active_entity: input_boolean.water_pressure_alert_active
+              event_sensor: sensor.water_guard_pressure_events
+              label: Pressure
+              armed_ids:
+                - automation.water_low_pressure
+                - automation.water_low_pressure_persistent
+                - automation.water_very_low_pressure
+                - automation.water_very_low_pressure_persistent
+                - automation.water_pressure_recovered
+                - automation.water_pressure_drop_sudden
+                - automation.water_high_pressure
+              snooze_entity: input_datetime.water_pressure_snooze_until
             show_icon: false
             show_name: false
             show_state: false
             custom_fields:
-              icon: >-
-                [[[
-                  const ids = [
-                    'automation.water_low_pressure',
-                    'automation.water_low_pressure_persistent',
-                    'automation.water_very_low_pressure',
-                    'automation.water_very_low_pressure_persistent',
-                    'automation.water_pressure_recovered',
-                    'automation.water_pressure_drop_sudden',
-                    'automation.water_high_pressure'
-                  ];
-                  const active = ids.every((id) => states[id]?.state === 'on');
-                  const color = active ? '#14b8a6' : '#94a3b8';
-                  return `<div class="tile-icon"><ha-icon icon="mdi:gauge-low" style="color:${color}"></ha-icon></div>`;
-                ]]]
               text: >-
                 [[[
-                  const ids = [
-                    'automation.water_low_pressure',
-                    'automation.water_low_pressure_persistent',
-                    'automation.water_very_low_pressure',
-                    'automation.water_very_low_pressure_persistent',
-                    'automation.water_pressure_recovered',
-                    'automation.water_pressure_drop_sudden',
-                    'automation.water_high_pressure'
-                  ];
-                  const active = ids.every((id) => states[id]?.state === 'on');
-                  const meta = active ? 'Active' : 'Disabled';
-                  return `<div class="tile-copy"><div class="tile-label">Pressure guard</div><div class="tile-meta">${meta}</div></div>`;
+                  const armed = variables.armed_ids.every((id) => states[id]?.state === 'on');
+                  const active = states[variables.active_entity]?.state === 'on';
+                  const snooze = states[variables.snooze_entity]?.state;
+                  const snoozed = snooze && !['unknown', 'unavailable', 'none', ''].includes(snooze) && Date.parse(snooze.replace(' ', 'T')) > Date.now();
+                  const latest = states[variables.event_sensor]?.state;
+                  const valid = latest && !['unknown', 'unavailable', 'none', ''].includes(latest);
+                  const parsed = valid ? Date.parse(latest.replace(' ', 'T')) : NaN;
+                  const recent = Number.isFinite(parsed) ? Math.round((Date.now() - parsed) / 60000) : null;
+                  const relative = recent === null || recent > 10080 ? '' : recent < 60 ? `${Math.max(1, recent)}m ago` : recent < 1440 ? `${Math.round(recent / 60)}h ago` : `${Math.round(recent / 1440)}d ago`;
+                  const meta = active ? 'Active' : !armed ? 'Disabled' : snoozed ? 'Snoozed' : relative ? `Last alert ${relative}` : 'Quiet';
+                  const color = active ? '#fecaca' : !armed ? 'rgba(203, 213, 225, 0.78)' : snoozed ? '#fde68a' : 'rgba(45, 212, 191, 0.78)';
+                  return `<div class="tile-copy"><div class="tile-label">${variables.label}</div><div class="tile-meta" style="color:${color}">${meta}</div></div>`;
                 ]]]
             tap_action:
               action: more-info
-            styles: *water_compact_button_styles
+            styles: *water_guard_tile_styles
             extra_styles: *compact_tile_extra
           - type: custom:button-card
             entity: automation.water_leak_sensor_triggered
+            variables:
+              active_entity: input_boolean.water_leak_alert_active
+              event_sensor: sensor.water_guard_leak_events
+              label: Leaks
+              armed_ids:
+                - automation.water_leak_sensor_triggered
             show_icon: false
             show_name: false
             show_state: false
             custom_fields:
-              icon: >-
-                [[[
-                  const enabled = entity.state === 'on';
-                  const color = enabled ? '#14b8a6' : '#94a3b8';
-                  return `<div class="tile-icon"><ha-icon icon="mdi:water-alert" style="color:${color}"></ha-icon></div>`;
-                ]]]
               text: >-
                 [[[
-                  const meta = entity.state === 'on' ? 'Enabled' : 'Disabled';
-                  return `<div class="tile-copy"><div class="tile-label">Leak guard</div><div class="tile-meta">${meta === 'Enabled' ? 'Active' : 'Disabled'}</div></div>`;
+                  const armed = variables.armed_ids.every((id) => states[id]?.state === 'on');
+                  const active = states[variables.active_entity]?.state === 'on';
+                  const latest = states[variables.event_sensor]?.state;
+                  const valid = latest && !['unknown', 'unavailable', 'none', ''].includes(latest);
+                  const parsed = valid ? Date.parse(latest.replace(' ', 'T')) : NaN;
+                  const recent = Number.isFinite(parsed) ? Math.round((Date.now() - parsed) / 60000) : null;
+                  const relative = recent === null || recent > 10080 ? '' : recent < 60 ? `${Math.max(1, recent)}m ago` : recent < 1440 ? `${Math.round(recent / 60)}h ago` : `${Math.round(recent / 1440)}d ago`;
+                  const meta = active ? 'Active' : !armed ? 'Disabled' : relative ? `Last alert ${relative}` : 'Quiet';
+                  const color = active ? '#fecaca' : !armed ? 'rgba(203, 213, 225, 0.78)' : 'rgba(45, 212, 191, 0.78)';
+                  return `<div class="tile-copy"><div class="tile-label">${variables.label}</div><div class="tile-meta" style="color:${color}">${meta}</div></div>`;
                 ]]]
             tap_action:
               action: more-info
-            styles: *water_compact_button_styles
+            styles: *water_guard_tile_styles
             extra_styles: *compact_tile_extra
           - type: custom:button-card
             entity: automation.water_shutoff_valve_closed
+            variables:
+              active_entity: input_boolean.water_valve_alert_active
+              event_sensor: sensor.water_guard_valve_events
+              label: Valve / Flo
+              armed_ids:
+                - automation.water_shutoff_valve_closed
+                - automation.water_flo_system_alert
             show_icon: false
             show_name: false
             show_state: false
             custom_fields:
-              icon: >-
-                [[[
-                  const ids = [
-                    'automation.water_shutoff_valve_closed',
-                    'automation.water_flo_system_alert'
-                  ];
-                  const active = ids.every((id) => states[id]?.state === 'on');
-                  const color = active ? '#14b8a6' : '#94a3b8';
-                  return `<div class="tile-icon"><ha-icon icon="mdi:pipe-valve" style="color:${color}"></ha-icon></div>`;
-                ]]]
               text: >-
                 [[[
-                  const ids = [
-                    'automation.water_shutoff_valve_closed',
-                    'automation.water_flo_system_alert'
-                  ];
-                  const active = ids.every((id) => states[id]?.state === 'on');
-                  const meta = active ? 'Active' : 'Disabled';
-                  return `<div class="tile-copy"><div class="tile-label">Valve / Flo</div><div class="tile-meta">${meta}</div></div>`;
+                  const armed = variables.armed_ids.every((id) => states[id]?.state === 'on');
+                  const active = states[variables.active_entity]?.state === 'on';
+                  const latest = states[variables.event_sensor]?.state;
+                  const valid = latest && !['unknown', 'unavailable', 'none', ''].includes(latest);
+                  const parsed = valid ? Date.parse(latest.replace(' ', 'T')) : NaN;
+                  const recent = Number.isFinite(parsed) ? Math.round((Date.now() - parsed) / 60000) : null;
+                  const relative = recent === null || recent > 10080 ? '' : recent < 60 ? `${Math.max(1, recent)}m ago` : recent < 1440 ? `${Math.round(recent / 60)}h ago` : `${Math.round(recent / 1440)}d ago`;
+                  const meta = active ? 'Active' : !armed ? 'Disabled' : relative ? `Last alert ${relative}` : 'Quiet';
+                  const color = active ? '#fecaca' : !armed ? 'rgba(203, 213, 225, 0.78)' : 'rgba(45, 212, 191, 0.78)';
+                  return `<div class="tile-copy"><div class="tile-label">${variables.label}</div><div class="tile-meta" style="color:${color}">${meta}</div></div>`;
                 ]]]
             tap_action:
               action: more-info
-            styles: *water_compact_button_styles
+            styles: *water_guard_tile_styles
             extra_styles: *compact_tile_extra
           - type: custom:button-card
             entity: automation.water_high_daily_usage
+            variables:
+              active_entity: input_boolean.water_usage_alert_active
+              event_sensor: sensor.water_guard_usage_events
+              label: Usage
+              armed_ids:
+                - automation.water_high_daily_usage
             show_icon: false
             show_name: false
             show_state: false
             custom_fields:
-              icon: >-
-                [[[
-                  const enabled = entity.state === 'on';
-                  const color = enabled ? '#14b8a6' : '#94a3b8';
-                  return `<div class="tile-icon"><ha-icon icon="mdi:water-sync" style="color:${color}"></ha-icon></div>`;
-                ]]]
               text: >-
                 [[[
-                  const meta = entity.state === 'on' ? 'Enabled' : 'Disabled';
-                  return `<div class="tile-copy"><div class="tile-label">Usage guard</div><div class="tile-meta">${meta === 'Enabled' ? 'Active' : 'Disabled'}</div></div>`;
+                  const armed = variables.armed_ids.every((id) => states[id]?.state === 'on');
+                  const active = states[variables.active_entity]?.state === 'on';
+                  const latest = states[variables.event_sensor]?.state;
+                  const valid = latest && !['unknown', 'unavailable', 'none', ''].includes(latest);
+                  const parsed = valid ? Date.parse(latest.replace(' ', 'T')) : NaN;
+                  const recent = Number.isFinite(parsed) ? Math.round((Date.now() - parsed) / 60000) : null;
+                  const relative = recent === null || recent > 10080 ? '' : recent < 60 ? `${Math.max(1, recent)}m ago` : recent < 1440 ? `${Math.round(recent / 60)}h ago` : `${Math.round(recent / 1440)}d ago`;
+                  const meta = active ? 'Active' : !armed ? 'Disabled' : relative ? `Last alert ${relative}` : 'Quiet';
+                  const color = active ? '#fecaca' : !armed ? 'rgba(203, 213, 225, 0.78)' : 'rgba(45, 212, 191, 0.78)';
+                  return `<div class="tile-copy"><div class="tile-label">${variables.label}</div><div class="tile-meta" style="color:${color}">${meta}</div></div>`;
                 ]]]
             tap_action:
               action: more-info
-            styles: *water_compact_button_styles
+            styles: *water_guard_tile_styles
             extra_styles: *compact_tile_extra
 
       - type: custom:popup-card
@@ -4281,16 +4513,282 @@ views:
                   tap_action:
                     action: none
                 - type: template
-                  entity: automation.water_overnight_continuous_flow_running_toilet
+                  entity: sensor.water_guard_flow_events
                   icon: mdi:history
                   icon_color: blue-grey
                   content: >-
-                    {% set ts = state_attr('automation.water_overnight_continuous_flow_running_toilet', 'last_triggered') %}
-                    {{ relative_time(as_datetime(ts)) ~ ' ago' if ts else 'No recent runs' }}
+                    {% set ts = states('sensor.water_guard_flow_events') %}
+                    {{ 'Last alert ' ~ relative_time(as_datetime(ts)) ~ ' ago'
+                       if ts not in ['unknown', 'unavailable', 'none', ''] else 'No alerts recorded' }}
                   tap_action:
                     action: none
               card_mod:
                 style: *calm_popup_chip_style
+            - type: custom:button-card
+              entity: sensor.water_guard_flow_events
+              variables:
+                empty_text: No flow alerts logged yet.
+              show_icon: false
+              show_name: false
+              show_state: false
+              tap_action:
+                action: none
+              custom_fields:
+                log: &water_guard_event_log_field >-
+                  [[[
+                    const raw = entity?.attributes?.events_json || [];
+                    let events = Array.isArray(raw) ? raw : [];
+                    if (!Array.isArray(raw)) {
+                      try {
+                        const parsed = JSON.parse(raw);
+                        events = Array.isArray(parsed) ? parsed : [];
+                      } catch (e) {
+                        events = [];
+                      }
+                    }
+                    const escapeHtml = (value) => String(value ?? '').replace(/[&<>"']/g, (char) => ({
+                      '&': '&amp;',
+                      '<': '&lt;',
+                      '>': '&gt;',
+                      '"': '&quot;',
+                      "'": '&#39;'
+                    }[char]));
+                    const parseDate = (value) => {
+                      const parsed = new Date(String(value || '').replace(' ', 'T'));
+                      return Number.isNaN(parsed.getTime()) ? null : parsed;
+                    };
+                    const relative = (date) => {
+                      if (!date) return '';
+                      const minutes = Math.max(0, Math.round((Date.now() - date.getTime()) / 60000));
+                      if (minutes < 1) return 'just now';
+                      if (minutes < 60) return `${minutes}m ago`;
+                      const hours = Math.round(minutes / 60);
+                      if (hours < 24) return `${hours}h ago`;
+                      return `${Math.round(hours / 24)}d ago`;
+                    };
+                    const when = (date) => date
+                      ? date.toLocaleString(undefined, { weekday: 'short', hour: 'numeric', minute: '2-digit' })
+                      : 'Unknown time';
+                    const rows = events.slice(0, 5).map((event, index) => {
+                      const date = parseDate(event.at);
+                      const severity = event.severity === 'critical' ? 'critical' : 'watch';
+                      const severityLabel = severity === 'critical' ? 'Critical' : 'Watch';
+                      const timeText = [when(date), relative(date)].filter(Boolean).join(' · ');
+                      return `
+                        <div class="event-row${index === 0 ? ' first' : ''}">
+                          <div class="event-dot ${severity}"></div>
+                          <div class="event-body">
+                            <div class="event-top">
+                              <span class="event-label">${escapeHtml(event.label || 'Water alert')}</span>
+                              <span class="event-time">${escapeHtml(timeText)}</span>
+                            </div>
+                            <div class="event-note">${escapeHtml(event.note || 'No detail logged.')}</div>
+                          </div>
+                          <div class="event-pill ${severity}">${severityLabel}</div>
+                        </div>`;
+                    }).join('');
+                    return `
+                      <div class="event-log">
+                        <div class="event-title">Alert history</div>
+                        ${events.length ? rows : `<div class="event-empty">${escapeHtml(variables.empty_text || 'No alerts logged yet.')}</div>`}
+                      </div>`;
+                  ]]]
+              styles: &water_guard_event_log_styles
+                card:
+                  - padding: 14px
+                  - border-radius: 16px
+                  - box-shadow: none
+                  - background: rgba(15, 23, 42, 0.48)
+                  - border: 1px solid rgba(148, 163, 184, 0.14)
+                grid:
+                  - grid-template-areas: '"log"'
+                  - grid-template-columns: minmax(0, 1fr)
+                custom_fields:
+                  log:
+                    - grid-area: log
+                    - min-width: 0
+              extra_styles: &water_guard_event_log_extra |
+                .event-log {
+                  letter-spacing: 0;
+                  text-align: left;
+                }
+                .event-title {
+                  color: rgba(248, 250, 252, 0.94);
+                  font-size: 14px;
+                  font-weight: 650;
+                  line-height: 1.2;
+                  margin-bottom: 10px;
+                }
+                .event-empty {
+                  color: rgba(203, 213, 225, 0.74);
+                  font-size: 12px;
+                  line-height: 1.35;
+                }
+                .event-row {
+                  align-items: flex-start;
+                  border-top: 1px solid rgba(148, 163, 184, 0.10);
+                  column-gap: 10px;
+                  display: grid;
+                  grid-template-columns: 8px minmax(0, 1fr) auto;
+                  padding: 9px 0 0;
+                  margin-top: 9px;
+                }
+                .event-row.first {
+                  border-top: 0;
+                  margin-top: 0;
+                  padding-top: 0;
+                }
+                .event-dot {
+                  border-radius: 999px;
+                  height: 8px;
+                  margin-top: 5px;
+                  width: 8px;
+                }
+                .event-dot.watch {
+                  background: #2dd4bf;
+                }
+                .event-dot.critical {
+                  background: #fb7185;
+                }
+                .event-body {
+                  min-width: 0;
+                }
+                .event-top {
+                  align-items: baseline;
+                  display: flex;
+                  gap: 8px;
+                  justify-content: space-between;
+                  min-width: 0;
+                }
+                .event-label {
+                  color: rgba(248, 250, 252, 0.92);
+                  font-size: 12px;
+                  font-weight: 650;
+                  line-height: 1.25;
+                  min-width: 0;
+                  overflow: hidden;
+                  text-overflow: ellipsis;
+                  white-space: nowrap;
+                }
+                .event-time {
+                  color: rgba(203, 213, 225, 0.66);
+                  flex: 0 0 auto;
+                  font-size: 11px;
+                  line-height: 1.25;
+                }
+                .event-note {
+                  color: rgba(203, 213, 225, 0.78);
+                  font-size: 11px;
+                  line-height: 1.35;
+                  margin-top: 3px;
+                }
+                .event-pill {
+                  border-radius: 999px;
+                  font-size: 10px;
+                  font-weight: 650;
+                  line-height: 1;
+                  padding: 4px 7px;
+                  text-transform: uppercase;
+                }
+                .event-pill.watch {
+                  background: rgba(45, 212, 191, 0.12);
+                  color: #5eead4;
+                }
+                .event-pill.critical {
+                  background: rgba(251, 113, 133, 0.13);
+                  color: #fecdd3;
+                }
+                @media (max-width: 380px) {
+                  .event-row {
+                    grid-template-columns: 8px minmax(0, 1fr);
+                  }
+                  .event-pill {
+                    grid-column: 2;
+                    justify-self: start;
+                    margin-top: 6px;
+                  }
+                  .event-top {
+                    display: block;
+                  }
+                  .event-time {
+                    display: block;
+                    margin-top: 2px;
+                  }
+                }
+
+      - type: custom:popup-card
+        target:
+          entity_id: binary_sensor.water_notification_alert_active
+        title: Water Alerts
+        dismiss_icon: mdi:close
+        initial_style: wide
+        popup_styles: *calm_popup_styles
+        card:
+          type: vertical-stack
+          cards:
+            - type: custom:mushroom-template-card
+              entity: sensor.water_notification_status
+              primary: >-
+                {{ 'Attention needed'
+                   if is_state('binary_sensor.water_notification_alert_active', 'on')
+                   else 'All clear' }}
+              secondary: >-
+                {% set active = state_attr('sensor.water_notification_status', 'active_alerts') %}
+                {{ active
+                   if active not in [none, '', 'None']
+                   else 'No active water notifications.' }}
+              icon: >-
+                {{ 'mdi:bell-alert-outline'
+                   if is_state('binary_sensor.water_notification_alert_active', 'on')
+                   else 'mdi:bell-check-outline' }}
+              icon_color: >-
+                {{ 'red'
+                   if is_state('binary_sensor.water_notification_alert_active', 'on')
+                   else 'teal' }}
+              fill_container: true
+              tap_action:
+                action: none
+              card_mod:
+                style: *calm_popup_hero_style
+            - type: custom:mushroom-chips-card
+              alignment: left
+              chips:
+                - type: template
+                  entity: binary_sensor.water_notification_alert_active
+                  icon: mdi:bell-ring-outline
+                  icon_color: >-
+                    {{ 'red'
+                       if is_state('binary_sensor.water_notification_alert_active', 'on')
+                       else 'teal' }}
+                  content: >-
+                    {{ states('sensor.water_notification_status') }}
+                  tap_action:
+                    action: none
+                - type: template
+                  entity: sensor.water_guard_alert_events
+                  icon: mdi:history
+                  icon_color: blue-grey
+                  content: >-
+                    {% set ts = states('sensor.water_guard_alert_events') %}
+                    {{ 'Last alert ' ~ relative_time(as_datetime(ts)) ~ ' ago'
+                       if ts not in ['unknown', 'unavailable', 'none', ''] else 'No alerts recorded' }}
+                  tap_action:
+                    action: none
+              card_mod:
+                style: *calm_popup_chip_style
+            - type: custom:button-card
+              entity: sensor.water_guard_alert_events
+              variables:
+                empty_text: No water alerts logged yet.
+              show_icon: false
+              show_name: false
+              show_state: false
+              tap_action:
+                action: none
+              custom_fields:
+                log: *water_guard_event_log_field
+              styles: *water_guard_event_log_styles
+              extra_styles: *water_guard_event_log_extra
 
       - type: custom:popup-card
         target:
@@ -4507,16 +5005,30 @@ views:
                   tap_action:
                     action: none
                 - type: template
-                  entity: automation.water_low_pressure
+                  entity: sensor.water_guard_pressure_events
                   icon: mdi:history
                   icon_color: blue-grey
                   content: >-
-                    {% set ts = state_attr('automation.water_low_pressure', 'last_triggered') %}
-                    {{ relative_time(as_datetime(ts)) ~ ' ago' if ts else 'No recent runs' }}
+                    {% set ts = states('sensor.water_guard_pressure_events') %}
+                    {{ 'Last alert ' ~ relative_time(as_datetime(ts)) ~ ' ago'
+                       if ts not in ['unknown', 'unavailable', 'none', ''] else 'No alerts recorded' }}
                   tap_action:
                     action: none
               card_mod:
                 style: *calm_popup_chip_style
+            - type: custom:button-card
+              entity: sensor.water_guard_pressure_events
+              variables:
+                empty_text: No pressure alerts logged yet.
+              show_icon: false
+              show_name: false
+              show_state: false
+              tap_action:
+                action: none
+              custom_fields:
+                log: *water_guard_event_log_field
+              styles: *water_guard_event_log_styles
+              extra_styles: *water_guard_event_log_extra
 
       - type: custom:popup-card
         target:
@@ -4651,16 +5163,30 @@ views:
                   tap_action:
                     action: none
                 - type: template
-                  entity: automation.water_high_daily_usage
+                  entity: sensor.water_guard_usage_events
                   icon: mdi:history
                   icon_color: blue-grey
                   content: >-
-                    {% set ts = state_attr('automation.water_high_daily_usage', 'last_triggered') %}
-                    {{ relative_time(as_datetime(ts)) ~ ' ago' if ts else 'No recent runs' }}
+                    {% set ts = states('sensor.water_guard_usage_events') %}
+                    {{ 'Last alert ' ~ relative_time(as_datetime(ts)) ~ ' ago'
+                       if ts not in ['unknown', 'unavailable', 'none', ''] else 'No alerts recorded' }}
                   tap_action:
                     action: none
               card_mod:
                 style: *calm_popup_chip_style
+            - type: custom:button-card
+              entity: sensor.water_guard_usage_events
+              variables:
+                empty_text: No usage alerts logged yet.
+              show_icon: false
+              show_name: false
+              show_state: false
+              tap_action:
+                action: none
+              custom_fields:
+                log: *water_guard_event_log_field
+              styles: *water_guard_event_log_styles
+              extra_styles: *water_guard_event_log_extra
 
       - type: custom:popup-card
         target:
@@ -4699,16 +5225,30 @@ views:
                   tap_action:
                     action: none
                 - type: template
-                  entity: automation.water_leak_sensor_triggered
+                  entity: sensor.water_guard_leak_events
                   icon: mdi:history
                   icon_color: blue-grey
                   content: >-
-                    {% set ts = state_attr('automation.water_leak_sensor_triggered', 'last_triggered') %}
-                    {{ relative_time(as_datetime(ts)) ~ ' ago' if ts else 'No recent runs' }}
+                    {% set ts = states('sensor.water_guard_leak_events') %}
+                    {{ 'Last alert ' ~ relative_time(as_datetime(ts)) ~ ' ago'
+                       if ts not in ['unknown', 'unavailable', 'none', ''] else 'No alerts recorded' }}
                   tap_action:
                     action: none
               card_mod:
                 style: *calm_popup_chip_style
+            - type: custom:button-card
+              entity: sensor.water_guard_leak_events
+              variables:
+                empty_text: No leak alerts logged yet.
+              show_icon: false
+              show_name: false
+              show_state: false
+              tap_action:
+                action: none
+              custom_fields:
+                log: *water_guard_event_log_field
+              styles: *water_guard_event_log_styles
+              extra_styles: *water_guard_event_log_extra
 
       - type: custom:popup-card
         target:
@@ -4759,16 +5299,30 @@ views:
                   tap_action:
                     action: none
                 - type: template
-                  entity: automation.water_shutoff_valve_closed
+                  entity: sensor.water_guard_valve_events
                   icon: mdi:history
                   icon_color: blue-grey
                   content: >-
-                    {% set ts = state_attr('automation.water_shutoff_valve_closed', 'last_triggered') %}
-                    {{ relative_time(as_datetime(ts)) ~ ' ago' if ts else 'No recent runs' }}
+                    {% set ts = states('sensor.water_guard_valve_events') %}
+                    {{ 'Last alert ' ~ relative_time(as_datetime(ts)) ~ ' ago'
+                       if ts not in ['unknown', 'unavailable', 'none', ''] else 'No alerts recorded' }}
                   tap_action:
                     action: none
               card_mod:
                 style: *calm_popup_chip_style
+            - type: custom:button-card
+              entity: sensor.water_guard_valve_events
+              variables:
+                empty_text: No valve or Flo alerts logged yet.
+              show_icon: false
+              show_name: false
+              show_state: false
+              tap_action:
+                action: none
+              custom_fields:
+                log: *water_guard_event_log_field
+              styles: *water_guard_event_log_styles
+              extra_styles: *water_guard_event_log_extra
 
       - type: custom:popup-card
         target:

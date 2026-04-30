@@ -3,7 +3,9 @@
 *.zip
 .DS_Store
 /.tmp-*
+.audit-tmp/
 .wine_collection_snapshot.json
+.house-manager-outbox/
 __pycache__/
 *.pyc
 backup/

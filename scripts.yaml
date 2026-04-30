@@ -667,6 +667,28 @@ notify_trevor_phone:
         notification_title: "{{ title | default('', true) }}"
         notification_message: "{{ message | default('', true) }}"
         notification_data: "{{ data | default({}, true) }}"
+    - event: house_notice_event_recorded
+      event_data:
+        at: "{{ now().strftime('%Y-%m-%d %H:%M:%S') }}"
+        kind: >-
+          {{ 'clear' if notification_message == 'clear_notification' else 'sent' }}
+        title: >-
+          {% set fallback = notification_data.tag | default('House notice', true) %}
+          {{ notification_title if notification_title | trim else fallback }}
+        message: "{{ notification_message }}"
+        group: "{{ notification_data.group | default('general', true) }}"
+        tag: "{{ notification_data.tag | default('', true) }}"
+        url: "{{ notification_data.url | default('', true) }}"
+        severity: >-
+          {% if notification_data.priority | default('', true) == 'high'
+             or notification_data.critical | default(false) in [true, 'true', 'True'] %}
+            critical
+          {% elif notification_data.sticky | default(false) in [true, 'true', 'True'] %}
+            watch
+          {% else %}
+            info
+          {% endif %}
+        source: notify_trevor_phone
     - action: notify.mobile_app_tk_iphone_16_pro
       data:
         title: "{{ notification_title }}"
@@ -835,6 +857,197 @@ robison_oil_mark_price_check_done:
         message: clear_notification
         data:
           tag: robison-oil-price-check
+
+property_tax_send_reminder:
+  alias: Property Tax Send Reminder
+  description: Sends bill-ready and daily due-week property tax reminders.
+  icon: mdi:calendar-cash
+  mode: restart
+  fields:
+    tax_type:
+      description: Tax type, either school or town
+      example: school
+    bill_month:
+      description: Numeric billing month
+      example: 9
+    stage:
+      description: Reminder stage, either bill_ready or countdown
+      example: countdown
+    due_date:
+      description: Computed due date for this tax bill
+      example: "2026-09-30"
+  sequence:
+    - variables:
+        tax_kind: "{{ tax_type | default('town', true) }}"
+        month_number: "{{ bill_month | default(4) | int(4) }}"
+        reminder_stage: "{{ stage | default('countdown', true) }}"
+        bill_year: "{{ now().year }}"
+        bill_date: "{{ '%04d-%02d-01' | format(now().year, month_number | int) }}"
+        due: >-
+          {% set provided_due = due_date | default('', true) %}
+          {% if provided_due not in ['unknown', 'unavailable', 'none', ''] %}
+            {{ provided_due }}
+          {% else %}
+            {% set first_next_month = strptime('%04d-%02d-01' | format(now().year, (month_number | int) + 1), '%Y-%m-%d') %}
+            {% set last_day = first_next_month - timedelta(days=1) %}
+            {% set weekend_offset = 2 if last_day.weekday() == 6 else 1 if last_day.weekday() == 5 else 0 %}
+            {{ (last_day - timedelta(days=weekend_offset)).strftime('%Y-%m-%d') }}
+          {% endif %}
+        tax_label: "{{ 'School' if tax_kind == 'school' else 'Town' }}"
+        school_tax_icon: "\U0001F4DA\U0001F4B8"
+        town_tax_icon: "\U0001F3DB\U0001F4B8"
+        tax_icon: "{{ school_tax_icon if tax_kind == 'school' else town_tax_icon }}"
+        bill_month_label: "{{ strptime(bill_date, '%Y-%m-%d').strftime('%B') }}"
+        due_label: "{{ strptime(due | trim, '%Y-%m-%d').strftime('%A, %B %-d') }}"
+        days_until: >-
+          {{ ((as_timestamp(strptime(due | trim, '%Y-%m-%d')) - as_timestamp(today_at('00:00:00'))) / 86400) | int }}
+        business_days_until: >-
+          {% set due_date = strptime(due | trim, '%Y-%m-%d') %}
+          {% set today_date = today_at('00:00:00').replace(tzinfo=None) %}
+          {% set days = ((as_timestamp(due_date) - as_timestamp(today_at('00:00:00'))) / 86400) | int %}
+          {% set ns = namespace(business_days=0) %}
+          {% for offset in range(1, days + 1) %}
+            {% set day = today_date + timedelta(days=offset) %}
+            {% if day.weekday() < 5 %}
+              {% set ns.business_days = ns.business_days + 1 %}
+            {% endif %}
+          {% endfor %}
+          {{ ns.business_days }}
+        notification_tag: "{{ 'property-tax-' ~ tax_kind ~ '-' ~ '%02d' | format(month_number | int) }}"
+        paid_action: >-
+          {% if tax_kind == 'school' and (month_number | int) == 1 %}
+            PROPERTY_TAX_SCHOOL_JAN_PAID
+          {% elif tax_kind == 'school' and (month_number | int) == 9 %}
+            PROPERTY_TAX_SCHOOL_SEP_PAID
+          {% else %}
+            PROPERTY_TAX_TOWN_APR_PAID
+          {% endif %}
+        notification_title: >-
+          {% if reminder_stage == 'bill_ready' %}
+            {{ tax_icon }} {{ tax_label }} tax bill ready
+          {% elif days_until <= 0 %}
+            {{ tax_icon }} {{ tax_label }} tax due today
+          {% else %}
+            {{ tax_icon }} {{ tax_label }} tax due in {{ business_days_until }} business day{{ '' if (business_days_until | int) == 1 else 's' }}
+          {% endif %}
+        notification_message: >-
+          {% if reminder_stage == 'bill_ready' %}
+            The {{ tax_label | lower }} tax bill should be available.
+            It is due {{ due_label | trim }}, the last business day of {{ bill_month_label }}.
+            Pay it or schedule it, then tap Paid.
+          {% elif days_until <= 0 %}
+            The {{ tax_label | lower }} tax bill is due today.
+            Tap Paid once the payment is submitted so Home Assistant stops the reminders and house-manager logs it.
+          {% else %}
+            The {{ tax_label | lower }} tax bill is due in {{ business_days_until }} business day{{ '' if (business_days_until | int) == 1 else 's' }},
+            on {{ due_label | trim }}.
+            Tap Paid once the payment is submitted so Home Assistant stops the reminders and house-manager logs it.
+          {% endif %}
+    - action: script.notify_trevor_phone
+      data:
+        title: "{{ notification_title | trim }}"
+        message: "{{ notification_message | regex_replace('\\s+', ' ') | trim }}"
+        data:
+          group: property-tax
+          tag: "{{ notification_tag }}"
+          url: /calm-mobile/home
+          actions:
+            - action: "{{ paid_action | trim }}"
+              title: Paid
+
+property_tax_mark_paid:
+  alias: Property Tax Mark Paid
+  description: Stamps a property tax bill as paid and sends the payment event to house-manager.
+  icon: mdi:cash-check
+  mode: restart
+  fields:
+    tax_type:
+      description: Tax type, either school or town
+      example: town
+    bill_month:
+      description: Numeric billing month
+      example: 4
+    due_date:
+      description: Computed due date for this tax bill
+      example: "2026-04-30"
+  sequence:
+    - variables:
+        tax_kind: "{{ tax_type | default('town', true) }}"
+        month_number: "{{ bill_month | default(4) | int(4) }}"
+        paid_now: "{{ now().strftime('%Y-%m-%d %H:%M:%S') }}"
+        paid_today: "{{ now().strftime('%Y-%m-%d') }}"
+        due: >-
+          {% set provided_due = due_date | default('', true) %}
+          {% if provided_due not in ['unknown', 'unavailable', 'none', ''] %}
+            {{ provided_due }}
+          {% else %}
+            {% set first_next_month = strptime('%04d-%02d-01' | format(now().year, (month_number | int) + 1), '%Y-%m-%d') %}
+            {% set last_day = first_next_month - timedelta(days=1) %}
+            {% set weekend_offset = 2 if last_day.weekday() == 6 else 1 if last_day.weekday() == 5 else 0 %}
+            {{ (last_day - timedelta(days=weekend_offset)).strftime('%Y-%m-%d') }}
+          {% endif %}
+    - choose:
+        - conditions:
+            - condition: template
+              value_template: "{{ tax_kind == 'school' and (month_number | int) == 1 }}"
+          sequence:
+            - action: input_datetime.set_datetime
+              target:
+                entity_id: input_datetime.school_tax_january_last_paid_at
+              data:
+                datetime: "{{ paid_now }}"
+
+        - conditions:
+            - condition: template
+              value_template: "{{ tax_kind == 'school' and (month_number | int) == 9 }}"
+          sequence:
+            - action: input_datetime.set_datetime
+              target:
+                entity_id: input_datetime.school_tax_september_last_paid_at
+              data:
+                datetime: "{{ paid_now }}"
+      default:
+        - action: input_datetime.set_datetime
+          target:
+            entity_id: input_datetime.town_tax_last_paid_at
+          data:
+            datetime: "{{ paid_now }}"
+    - action: shell_command.house_manager_log_property_tax_payment
+      continue_on_error: true
+      data:
+        tax_type: "{{ tax_kind }}"
+        bill_month: "{{ month_number }}"
+        bill_year: "{{ now().year }}"
+        due_date: "{{ due | trim }}"
+        paid_date: "{{ paid_today }}"
+        source: home_assistant_notification_action
+    - action: script.property_tax_clear_notification
+      data:
+        tax_type: "{{ tax_kind }}"
+        bill_month: "{{ month_number }}"
+
+property_tax_clear_notification:
+  alias: Property Tax Clear Notification
+  description: Clears the active property tax reminder notification tag.
+  icon: mdi:calendar-check-outline
+  mode: restart
+  fields:
+    tax_type:
+      description: Tax type, either school or town
+      example: school
+    bill_month:
+      description: Numeric billing month
+      example: 1
+  sequence:
+    - variables:
+        tax_kind: "{{ tax_type | default('town', true) }}"
+        month_number: "{{ bill_month | default(4) | int(4) }}"
+        notification_tag: "{{ 'property-tax-' ~ tax_kind ~ '-' ~ '%02d' | format(month_number | int) }}"
+    - action: script.notify_trevor_phone
+      data:
+        message: clear_notification
+        data:
+          tag: "{{ notification_tag }}"
 
 piano_send_tuning_reminder:
   alias: Piano Send Tuning Reminder
@@ -1379,6 +1592,38 @@ water_send_alert:
     - variables:
         kind: "{{ alert_kind | default('status') }}"
         notification_message: "{{ message | default('', true) }}"
+        alert_label: >-
+          {% if kind == 'overnight_flow' %}
+            Overnight flow
+          {% elif kind == 'sustained_flow' %}
+            Sustained flow
+          {% elif kind == 'burst_day' %}
+            Daytime burst
+          {% elif kind == 'burst_night' %}
+            Overnight burst
+          {% elif kind == 'pressure_drop' %}
+            Pressure drop
+          {% elif kind == 'low_pressure' %}
+            Low pressure
+          {% elif kind == 'low_pressure_persistent' %}
+            Low pressure
+          {% elif kind == 'low_pressure_very_low' %}
+            Very low pressure
+          {% elif kind == 'low_pressure_urgent' %}
+            Very low pressure
+          {% elif kind == 'high_pressure' %}
+            High pressure
+          {% elif kind == 'usage_high' %}
+            High usage
+          {% elif kind == 'leak' %}
+            Leak detected
+          {% elif kind == 'valve_closed' %}
+            Valve closed
+          {% elif kind == 'flo_system' %}
+            Flo system alert
+          {% else %}
+            Water update
+          {% endif %}
         expected_action: >-
           {{ 'WATER_LOW_PRESSURE_EXPECTED'
              if kind in ['low_pressure', 'low_pressure_persistent']
@@ -1425,10 +1670,125 @@ water_send_alert:
           {% else %}
             💧 Water update
           {% endif %}
+        event_at: "{{ now().strftime('%Y-%m-%d %H:%M:%S') }}"
+        event_domain: >-
+          {% if kind in ['overnight_flow', 'sustained_flow', 'burst_day', 'burst_night'] %}
+            flow
+          {% elif kind in ['pressure_drop', 'low_pressure', 'low_pressure_persistent', 'low_pressure_very_low', 'low_pressure_urgent', 'high_pressure'] %}
+            pressure
+          {% elif kind == 'leak' %}
+            leak
+          {% elif kind in ['valve_closed', 'flo_system'] %}
+            valve
+          {% elif kind == 'usage_high' %}
+            usage
+          {% else %}
+            water
+          {% endif %}
+        current_flow: "{{ states('sensor.flo_shutoff_water_flow_rate') | float(0) | round(2) }}"
+        current_pressure: "{{ states('sensor.flo_shutoff_water_pressure') | float(0) | round(0) }}"
+        current_usage: "{{ states('sensor.flo_shutoff_today_s_water_usage') | float(0) | round(0) }}"
+        valve_label: "{{ 'closed' if is_state('switch.flo_shutoff_shutoff_valve', 'off') else 'open' }}"
+        leak_zones: >-
+          {% set zones = expand([
+            'binary_sensor.kitchen_sink_leak_detection_water_detected',
+            'binary_sensor.island_sink_leak_detection_water_detected',
+            'binary_sensor.dishwasher_leak_detection_water_detected',
+            'binary_sensor.kitchen_fridge_leak_detection_water_detected',
+            'binary_sensor.washing_machine_leak_detection_water_detected',
+            'binary_sensor.laundry_sink_leak_detection_water_detected',
+            'binary_sensor.mechanical_room_leak_detection_water_detected',
+            'binary_sensor.electrical_room_leak_detection_water_detected',
+            'binary_sensor.basement_ejector_leak_detection_water_detected'
+          ]) | selectattr('state', 'eq', 'on') | map(attribute='name') | list %}
+          {{ zones | join(', ') if zones else 'No leak sensors active' }}
+        event_note: >-
+          {% set domain = event_domain | trim %}
+          {% if domain == 'flow' %}
+            Flow {{ current_flow }} gal/min with pressure at {{ current_pressure }} psi.
+            {% if kind == 'overnight_flow' %}Sustained quiet overnight flow for 10+ minutes.
+            {% elif kind == 'sustained_flow' %}Sustained daytime flow for 20+ minutes.
+            {% elif kind == 'burst_day' %}Daytime burst above the high-flow threshold.
+            {% else %}Overnight burst above the high-flow threshold.{% endif %}
+          {% elif domain == 'pressure' %}
+            Pressure {{ current_pressure }} psi with flow at {{ current_flow }} gal/min.
+            {% if kind == 'high_pressure' %}Above the high-pressure threshold.
+            {% elif kind == 'low_pressure_urgent' %}Very low pressure persisted for 20+ minutes.
+            {% elif kind == 'low_pressure_very_low' %}Very low pressure persisted for 10+ minutes.
+            {% elif kind == 'low_pressure_persistent' %}Low pressure persisted for 30+ minutes.
+            {% else %}Low pressure persisted for 10+ minutes.{% endif %}
+          {% elif domain == 'leak' %}
+            {{ leak_zones }}. Valve is {{ valve_label }}; flow {{ current_flow }} gal/min.
+          {% elif domain == 'valve' %}
+            Valve is {{ valve_label }}; flow {{ current_flow }} gal/min and pressure {{ current_pressure }} psi.
+          {% elif domain == 'usage' %}
+            {{ current_usage }} gal used today at alert time; current flow {{ current_flow }} gal/min.
+          {% else %}
+            {{ notification_message | regex_replace('\s+', ' ') | trim }}
+          {% endif %}
+    - action: input_text.set_value
+      target:
+        entity_id: input_text.water_latest_alert_kind
+      data:
+        value: "{{ kind }}"
+    - action: input_text.set_value
+      target:
+        entity_id: input_text.water_latest_alert_label
+      data:
+        value: "{{ alert_label | trim }}"
+    - action: input_datetime.set_datetime
+      target:
+        entity_id: input_datetime.water_latest_alert_at
+      data:
+        datetime: "{{ now().strftime('%Y-%m-%d %H:%M:%S') }}"
+    - event: water_alert_recorded
+      event_data:
+        at: "{{ event_at }}"
+        domain: "{{ event_domain | trim }}"
+        kind: "{{ kind }}"
+        label: "{{ alert_label | trim }}"
+        severity: "{{ resolved_severity | trim }}"
+        note: "{{ event_note | regex_replace('\\s+', ' ') | trim }}"
     - choose:
         - conditions:
             - condition: template
-              value_template: "{{ resolved_severity == 'critical' }}"
+              value_template: "{{ kind in ['overnight_flow', 'sustained_flow', 'burst_day', 'burst_night'] }}"
+          sequence:
+            - action: input_boolean.turn_on
+              target:
+                entity_id: input_boolean.water_flow_alert_active
+        - conditions:
+            - condition: template
+              value_template: "{{ kind in ['pressure_drop', 'low_pressure', 'low_pressure_persistent', 'low_pressure_very_low', 'low_pressure_urgent', 'high_pressure'] }}"
+          sequence:
+            - action: input_boolean.turn_on
+              target:
+                entity_id: input_boolean.water_pressure_alert_active
+        - conditions:
+            - condition: template
+              value_template: "{{ kind == 'usage_high' }}"
+          sequence:
+            - action: input_boolean.turn_on
+              target:
+                entity_id: input_boolean.water_usage_alert_active
+        - conditions:
+            - condition: template
+              value_template: "{{ kind == 'leak' }}"
+          sequence:
+            - action: input_boolean.turn_on
+              target:
+                entity_id: input_boolean.water_leak_alert_active
+        - conditions:
+            - condition: template
+              value_template: "{{ kind in ['valve_closed', 'flo_system'] }}"
+          sequence:
+            - action: input_boolean.turn_on
+              target:
+                entity_id: input_boolean.water_valve_alert_active
+    - choose:
+        - conditions:
+            - condition: template
+              value_template: "{{ resolved_severity | trim == 'critical' }}"
           sequence:
             - action: script.notify_trevor_phone
               data:
@@ -1662,7 +2022,7 @@ away_security_send_alert:
     - action: script.casey_left_lights_clear_alert
     - variables:
         issue_summary: "{{ states('sensor.away_security_issue_summary') }}"
-    - action: notify.mobile_app_tk_iphone_16_pro
+    - action: script.notify_trevor_phone
       data:
         title: >-
           {% if 'garage door unlocked' in issue_summary %}
@@ -1694,7 +2054,7 @@ away_security_clear_alert:
   icon: mdi:shield-check-outline
   mode: restart
   sequence:
-    - action: notify.mobile_app_tk_iphone_16_pro
+    - action: script.notify_trevor_phone
       data:
         message: clear_notification
         data:
@@ -1844,7 +2204,7 @@ entry_camera_send_alert:
       description: Type of event to announce
       example: motion
   sequence:
-    - action: notify.mobile_app_tk_iphone_16_pro
+    - action: script.notify_trevor_phone
       data:
         title: >-
           {% set zone = zone_name | default('Entry') %}
@@ -2019,7 +2379,7 @@ wine_cave_send_rating_plate_reminder:
   sequence:
     - action: script.notify_trevor_phone
       data:
-        title: "🍷🏷️ Wine cave serial number"
+        title: "🏷️ Wine cave serial number"
         message: >-
           When it is convenient, capture the wine cave rating plate and serial number
           so the house-manager appliance record has the exact support identity.

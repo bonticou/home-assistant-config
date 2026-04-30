@@ -9,6 +9,8 @@ lovelace:
   resources:
     - url: /local/calm-mobile-scrollbars.js?v=3
       type: module
+    - url: /local/house-notices-card.js?v=25
+      type: module
   dashboards:
     calm-mobile:
       mode: yaml
@@ -50,7 +52,6 @@ command_line:
         - mature_rows
         - early_rows
         - hold_rows
-
   - sensor:
       name: Metro-North NWP to Grand Central
       unique_id: metro_north_nwp_to_grand_central
@@ -85,6 +86,16 @@ command_line:
         - trains
         - error
 
+shell_command:
+  house_manager_log_property_tax_payment: >-
+    python3 /config/tools/log_property_tax_payment.py
+    --tax-type "{{ tax_type }}"
+    --bill-month "{{ bill_month }}"
+    --bill-year "{{ bill_year }}"
+    --due-date "{{ due_date }}"
+    --paid-date "{{ paid_date }}"
+    --source "{{ source }}"
+
 input_datetime:
   away_security_snooze_until:
     name: Away Security Snooze Until
@@ -92,6 +103,10 @@ input_datetime:
     has_time: true
   water_pressure_snooze_until:
     name: Water Pressure Snooze Until
+    has_date: true
+    has_time: true
+  water_latest_alert_at:
+    name: Water Latest Alert At
     has_date: true
     has_time: true
   espresso_last_water_backflush:
@@ -157,6 +172,18 @@ input_datetime:
     has_time: true
   robison_oil_price_check_last_done:
     name: Robison Oil Price Check Last Done
+    has_date: true
+    has_time: true
+  school_tax_january_last_paid_at:
+    name: School Tax January Last Paid At
+    has_date: true
+    has_time: true
+  school_tax_september_last_paid_at:
+    name: School Tax September Last Paid At
+    has_date: true
+    has_time: true
+  town_tax_last_paid_at:
+    name: Town Tax Last Paid At
     has_date: true
     has_time: true
   # Antique Steinway piano care
@@ -282,6 +309,12 @@ input_datetime:
     has_time: true
 
 input_text:
+  water_latest_alert_kind:
+    name: Water Latest Alert Kind
+    max: 80
+  water_latest_alert_label:
+    name: Water Latest Alert Label
+    max: 120
   latest_camera_motion_label:
     name: Latest Camera Motion Label
     max: 100
@@ -312,6 +345,25 @@ input_boolean:
     name: House Battery Alerts Enabled
     icon: mdi:battery-heart-variant
     initial: true
+  tax_reminders_enabled:
+    name: Tax Reminders Enabled
+    icon: mdi:calendar-cash
+    initial: true
+  water_flow_alert_active:
+    name: Water Flow Alert Active
+    icon: mdi:water-alert
+  water_pressure_alert_active:
+    name: Water Pressure Alert Active
+    icon: mdi:gauge-alert
+  water_leak_alert_active:
+    name: Water Leak Alert Active
+    icon: mdi:water-alert
+  water_valve_alert_active:
+    name: Water Valve Alert Active
+    icon: mdi:pipe-valve
+  water_usage_alert_active:
+    name: Water Usage Alert Active
+    icon: mdi:water-sync
   espresso_maintenance_enabled:
     name: Espresso Maintenance Enabled
     icon: mdi:coffee-maker-outline
@@ -713,6 +765,45 @@ template:
             mdi:calendar-check-outline
           {% endif %}
 
+      - name: "School Tax January Due Date"
+        unique_id: school_tax_january_due_date
+        device_class: date
+        icon: mdi:school-outline
+        state: >
+          {% set first_next_month = strptime(now().year ~ '-02-01', '%Y-%m-%d') %}
+          {% set last_day = first_next_month - timedelta(days=1) %}
+          {% set weekend_offset = 2 if last_day.weekday() == 6 else 1 if last_day.weekday() == 5 else 0 %}
+          {{ (last_day - timedelta(days=weekend_offset)).strftime('%Y-%m-%d') }}
+        attributes:
+          bill_date: "{{ now().year }}-01-01"
+          rule: "Last weekday of January"
+
+      - name: "Town Tax Due Date"
+        unique_id: town_tax_due_date
+        device_class: date
+        icon: mdi:bank-outline
+        state: >
+          {% set first_next_month = strptime(now().year ~ '-05-01', '%Y-%m-%d') %}
+          {% set last_day = first_next_month - timedelta(days=1) %}
+          {% set weekend_offset = 2 if last_day.weekday() == 6 else 1 if last_day.weekday() == 5 else 0 %}
+          {{ (last_day - timedelta(days=weekend_offset)).strftime('%Y-%m-%d') }}
+        attributes:
+          bill_date: "{{ now().year }}-04-01"
+          rule: "Last weekday of April"
+
+      - name: "School Tax September Due Date"
+        unique_id: school_tax_september_due_date
+        device_class: date
+        icon: mdi:school-outline
+        state: >
+          {% set first_next_month = strptime(now().year ~ '-10-01', '%Y-%m-%d') %}
+          {% set last_day = first_next_month - timedelta(days=1) %}
+          {% set weekend_offset = 2 if last_day.weekday() == 6 else 1 if last_day.weekday() == 5 else 0 %}
+          {{ (last_day - timedelta(days=weekend_offset)).strftime('%Y-%m-%d') }}
+        attributes:
+          bill_date: "{{ now().year }}-09-01"
+          rule: "Last weekday of September"
+
       - name: "Piano Next Tuning Due"
         unique_id: piano_next_tuning_due
         device_class: date
@@ -1109,7 +1200,716 @@ template:
             mdi:coffee-maker-check-outline
           {% endif %}
 
+      - name: "Water Notification Status"
+        unique_id: water_notification_status
+        state: >
+          {% set active = [
+            is_state('input_boolean.water_flow_alert_active', 'on'),
+            is_state('input_boolean.water_pressure_alert_active', 'on'),
+            is_state('input_boolean.water_leak_alert_active', 'on'),
+            is_state('input_boolean.water_valve_alert_active', 'on'),
+            is_state('input_boolean.water_usage_alert_active', 'on')
+          ] | select('eq', true) | list | count %}
+          {% if active == 0 %}
+            Quiet
+          {% elif active == 1 %}
+            Active
+          {% else %}
+            {{ active }} active
+          {% endif %}
+        icon: >
+          {{ 'mdi:bell-alert-outline'
+             if is_state('binary_sensor.water_notification_alert_active', 'on')
+             else 'mdi:bell-check-outline' }}
+        attributes:
+          active_count: >
+            {{ [
+              is_state('input_boolean.water_flow_alert_active', 'on'),
+              is_state('input_boolean.water_pressure_alert_active', 'on'),
+              is_state('input_boolean.water_leak_alert_active', 'on'),
+              is_state('input_boolean.water_valve_alert_active', 'on'),
+              is_state('input_boolean.water_usage_alert_active', 'on')
+            ] | select('eq', true) | list | count }}
+          active_alerts: >
+            {% set ns = namespace(items=[]) %}
+            {% if is_state('input_boolean.water_flow_alert_active', 'on') %}
+              {% set ns.items = ns.items + ['Flow'] %}
+            {% endif %}
+            {% if is_state('input_boolean.water_pressure_alert_active', 'on') %}
+              {% set ns.items = ns.items + ['Pressure'] %}
+            {% endif %}
+            {% if is_state('input_boolean.water_leak_alert_active', 'on') %}
+              {% set ns.items = ns.items + ['Leak'] %}
+            {% endif %}
+            {% if is_state('input_boolean.water_valve_alert_active', 'on') %}
+              {% set ns.items = ns.items + ['Valve/Flo'] %}
+            {% endif %}
+            {% if is_state('input_boolean.water_usage_alert_active', 'on') %}
+              {% set ns.items = ns.items + ['Usage'] %}
+            {% endif %}
+            {{ ns.items | join(', ') if ns.items else 'None' }}
+          latest_alert: "{{ states('input_text.water_latest_alert_label') }}"
+          latest_alert_kind: "{{ states('input_text.water_latest_alert_kind') }}"
+          latest_alert_at: "{{ states('input_datetime.water_latest_alert_at') }}"
+          pressure_snoozed: >
+            {% set snooze = states('input_datetime.water_pressure_snooze_until') %}
+            {{ snooze not in ['unknown', 'unavailable', 'none', '']
+               and as_timestamp(snooze, 0) > as_timestamp(now()) }}
+
+      - name: "House Notice Timeline"
+        unique_id: house_notice_timeline
+        icon: mdi:bell-outline
+        state: >
+          {% set env_entities = [
+            'binary_sensor.environment_kitchen_temp_high_alert',
+            'binary_sensor.environment_kitchen_temp_low_alert',
+            'binary_sensor.environment_kitchen_humidity_high_alert',
+            'binary_sensor.environment_kitchen_humidity_low_alert',
+            'binary_sensor.environment_dining_room_temp_high_alert',
+            'binary_sensor.environment_dining_room_temp_low_alert',
+            'binary_sensor.environment_dining_room_humidity_high_alert',
+            'binary_sensor.environment_dining_room_humidity_low_alert',
+            'binary_sensor.environment_primary_bedroom_temp_high_alert',
+            'binary_sensor.environment_primary_bedroom_temp_low_alert',
+            'binary_sensor.environment_primary_bedroom_humidity_high_alert',
+            'binary_sensor.environment_primary_bedroom_humidity_low_alert',
+            'binary_sensor.environment_basement_temp_high_alert',
+            'binary_sensor.environment_basement_temp_low_alert',
+            'binary_sensor.environment_garage_temp_high_alert',
+            'binary_sensor.environment_garage_temp_low_alert',
+            'binary_sensor.environment_garage_humidity_high_alert',
+            'binary_sensor.environment_attic_temp_high_alert',
+            'binary_sensor.environment_attic_humidity_high_alert',
+            'binary_sensor.environment_basement_radon_high_alert'
+          ] %}
+          {% set ns = namespace(count=0, env_active=false) %}
+          {% for entity_id in env_entities %}
+            {% if is_state(entity_id, 'on') %}
+              {% set ns.env_active = true %}
+            {% endif %}
+          {% endfor %}
+          {% for active in [
+            is_state('binary_sensor.water_notification_alert_active', 'on'),
+            is_state('binary_sensor.house_unsecured_while_away', 'on'),
+            ns.env_active,
+            is_state('binary_sensor.house_low_battery_alert', 'on'),
+            is_state('binary_sensor.wine_cave_actionable_alert', 'on'),
+            is_state('binary_sensor.wine_cave_sensor_unavailable', 'on'),
+            is_state('binary_sensor.espresso_maintenance_due', 'on'),
+            is_state('binary_sensor.piano_tuning_due', 'on'),
+            is_state('binary_sensor.dryer_vent_cleaning_due', 'on'),
+            is_state('binary_sensor.passport_renewal_due', 'on'),
+            is_state('binary_sensor.driver_license_renewal_due', 'on'),
+            is_state('binary_sensor.casey_passport_renewal_due', 'on'),
+            is_state('binary_sensor.casey_driver_license_renewal_due', 'on'),
+            is_state('binary_sensor.wine_cave_maintenance_due', 'on'),
+            is_state('binary_sensor.garden_seedling_check_due', 'on'),
+            is_state('binary_sensor.garden_water_review_due', 'on')
+          ] %}
+            {% if active %}
+              {% set ns.count = ns.count + 1 %}
+            {% endif %}
+          {% endfor %}
+          {{ ns.count ~ ' need attention' if ns.count > 0 else 'All quiet' }}
+        attributes:
+          attention_count: >
+            {% set env_entities = [
+              'binary_sensor.environment_kitchen_temp_high_alert',
+              'binary_sensor.environment_kitchen_temp_low_alert',
+              'binary_sensor.environment_kitchen_humidity_high_alert',
+              'binary_sensor.environment_kitchen_humidity_low_alert',
+              'binary_sensor.environment_dining_room_temp_high_alert',
+              'binary_sensor.environment_dining_room_temp_low_alert',
+              'binary_sensor.environment_dining_room_humidity_high_alert',
+              'binary_sensor.environment_dining_room_humidity_low_alert',
+              'binary_sensor.environment_primary_bedroom_temp_high_alert',
+              'binary_sensor.environment_primary_bedroom_temp_low_alert',
+              'binary_sensor.environment_primary_bedroom_humidity_high_alert',
+              'binary_sensor.environment_primary_bedroom_humidity_low_alert',
+              'binary_sensor.environment_basement_temp_high_alert',
+              'binary_sensor.environment_basement_temp_low_alert',
+              'binary_sensor.environment_garage_temp_high_alert',
+              'binary_sensor.environment_garage_temp_low_alert',
+              'binary_sensor.environment_garage_humidity_high_alert',
+              'binary_sensor.environment_attic_temp_high_alert',
+              'binary_sensor.environment_attic_humidity_high_alert',
+              'binary_sensor.environment_basement_radon_high_alert'
+            ] %}
+            {% set ns = namespace(count=0, env_active=false) %}
+            {% for entity_id in env_entities %}
+              {% if is_state(entity_id, 'on') %}
+                {% set ns.env_active = true %}
+              {% endif %}
+            {% endfor %}
+            {% for active in [
+              is_state('binary_sensor.water_notification_alert_active', 'on'),
+              is_state('binary_sensor.house_unsecured_while_away', 'on'),
+              ns.env_active,
+              is_state('binary_sensor.house_low_battery_alert', 'on'),
+              is_state('binary_sensor.wine_cave_actionable_alert', 'on'),
+              is_state('binary_sensor.wine_cave_sensor_unavailable', 'on'),
+              is_state('binary_sensor.espresso_maintenance_due', 'on'),
+              is_state('binary_sensor.piano_tuning_due', 'on'),
+              is_state('binary_sensor.dryer_vent_cleaning_due', 'on'),
+              is_state('binary_sensor.passport_renewal_due', 'on'),
+              is_state('binary_sensor.driver_license_renewal_due', 'on'),
+              is_state('binary_sensor.casey_passport_renewal_due', 'on'),
+              is_state('binary_sensor.casey_driver_license_renewal_due', 'on'),
+              is_state('binary_sensor.wine_cave_maintenance_due', 'on'),
+              is_state('binary_sensor.garden_seedling_check_due', 'on'),
+              is_state('binary_sensor.garden_water_review_due', 'on')
+            ] %}
+              {% if active %}
+                {% set ns.count = ns.count + 1 %}
+              {% endif %}
+            {% endfor %}
+            {{ ns.count }}
+          next_short: >
+            {% set today = now().strftime('%Y-%m-%d') %}
+            {% set horizon = (now() + timedelta(days=365)).strftime('%Y-%m-%d') %}
+            {% set water_last = as_timestamp(states('input_datetime.espresso_last_water_backflush'), 0) %}
+            {% set cafiza_last = as_timestamp(states('input_datetime.espresso_last_cafiza_clean'), 0) %}
+            {% set wine_filter = states('sensor.wine_cave_next_charcoal_filter_due') %}
+            {% set wine_clean = states('sensor.wine_cave_next_cleaning_due') %}
+            {% set robison_tune = now().year ~ '-03-25' %}
+            {% set robison_price = now().year ~ '-08-20' %}
+            {% set ns = namespace(dates=[]) %}
+            {% for date_value in [
+              (water_last + 604800) | timestamp_custom('%Y-%m-%d', true) if water_last > 0 else '',
+              (cafiza_last + 5184000) | timestamp_custom('%Y-%m-%d', true) if cafiza_last > 0 else '',
+              states('sensor.piano_next_tuning_due'),
+              states('sensor.dryer_vent_next_cleaning_due'),
+              states('sensor.passport_renewal_opens'),
+              states('sensor.driver_license_renewal_opens'),
+              states('sensor.casey_passport_renewal_opens'),
+              states('sensor.casey_driver_license_renewal_opens'),
+              robison_tune if robison_tune >= today else (now().year + 1) ~ '-03-25',
+              robison_price if robison_price >= today else (now().year + 1) ~ '-08-20',
+              wine_filter,
+              wine_clean
+            ] %}
+              {% if date_value not in ['unknown', 'unavailable', 'none', ''] and date_value >= today and date_value <= horizon %}
+                {% set ns.dates = ns.dates + [date_value] %}
+              {% endif %}
+            {% endfor %}
+            {% if is_state('input_boolean.tax_reminders_enabled', 'on') %}
+              {% for tax_year in range(now().year, now().year + 3) %}
+                {% for tax_month in [1, 4, 9] %}
+                  {% set bill_date = '%04d-%02d-01' | format(tax_year, tax_month) %}
+                  {% if bill_date >= today and bill_date <= horizon %}
+                    {% set ns.dates = ns.dates + [bill_date] %}
+                  {% endif %}
+                {% endfor %}
+              {% endfor %}
+            {% endif %}
+            {% set upcoming = ns.dates | sort %}
+            {% if upcoming | count > 0 %}
+              Next {{ as_timestamp(strptime(upcoming[0], '%Y-%m-%d')) | timestamp_custom('%b %d', true) }}
+            {% else %}
+              All quiet
+            {% endif %}
+          next_at: >
+            {% set today = now().strftime('%Y-%m-%d') %}
+            {% set horizon = (now() + timedelta(days=365)).strftime('%Y-%m-%d') %}
+            {% set water_last = as_timestamp(states('input_datetime.espresso_last_water_backflush'), 0) %}
+            {% set cafiza_last = as_timestamp(states('input_datetime.espresso_last_cafiza_clean'), 0) %}
+            {% set robison_tune = now().year ~ '-03-25' %}
+            {% set robison_price = now().year ~ '-08-20' %}
+            {% set ns = namespace(dates=[]) %}
+            {% for date_value in [
+              (water_last + 604800) | timestamp_custom('%Y-%m-%d', true) if water_last > 0 else '',
+              (cafiza_last + 5184000) | timestamp_custom('%Y-%m-%d', true) if cafiza_last > 0 else '',
+              states('sensor.piano_next_tuning_due'),
+              states('sensor.dryer_vent_next_cleaning_due'),
+              states('sensor.passport_renewal_opens'),
+              states('sensor.driver_license_renewal_opens'),
+              states('sensor.casey_passport_renewal_opens'),
+              states('sensor.casey_driver_license_renewal_opens'),
+              robison_tune if robison_tune >= today else (now().year + 1) ~ '-03-25',
+              robison_price if robison_price >= today else (now().year + 1) ~ '-08-20',
+              states('sensor.wine_cave_next_charcoal_filter_due'),
+              states('sensor.wine_cave_next_cleaning_due')
+            ] %}
+              {% if date_value not in ['unknown', 'unavailable', 'none', ''] and date_value >= today and date_value <= horizon %}
+                {% set ns.dates = ns.dates + [date_value] %}
+              {% endif %}
+            {% endfor %}
+            {% if is_state('input_boolean.tax_reminders_enabled', 'on') %}
+              {% for tax_year in range(now().year, now().year + 3) %}
+                {% for tax_month in [1, 4, 9] %}
+                  {% set bill_date = '%04d-%02d-01' | format(tax_year, tax_month) %}
+                  {% if bill_date >= today and bill_date <= horizon %}
+                    {% set ns.dates = ns.dates + [bill_date] %}
+                  {% endif %}
+                {% endfor %}
+              {% endfor %}
+            {% endif %}
+            {% set upcoming = ns.dates | sort %}
+            {{ upcoming[0] if upcoming | count > 0 else '' }}
+          items_json: >
+            {% set today = now().strftime('%Y-%m-%d') %}
+            {% set now_date = now().strftime('%Y-%m-%d') %}
+            {% set now_stamp = now().strftime('%Y-%m-%d %H:%M:%S') %}
+            {% set ns = namespace(items=[]) %}
+            {% if is_state('binary_sensor.water_notification_alert_active', 'on') %}
+              {% set ns.items = ns.items + [{
+                'id': 'water-guard',
+                'title': 'Water guardrail',
+                'emoji': '💧',
+                'icon': 'mdi:water-alert-outline',
+                'group': 'Guardrails',
+                'state': 'active',
+                'severity': 'critical' if is_state('input_boolean.water_leak_alert_active', 'on') else 'watch',
+                'date': state_attr('sensor.water_notification_status', 'latest_alert_at') | default(now_stamp, true),
+                'due_prefix': 'Active since',
+                'narrative': state_attr('sensor.water_notification_status', 'active_alerts') | default('Water guardrail is active.', true),
+                'url': '/calm-mobile/water',
+                'entity_id': 'sensor.water_notification_status'
+              }] %}
+            {% endif %}
+            {% if is_state('binary_sensor.house_unsecured_while_away', 'on') %}
+              {% set ns.items = ns.items + [{
+                'id': 'away-security',
+                'title': 'Away security',
+                'emoji': '🏠',
+                'icon': 'mdi:shield-alert-outline',
+                'group': 'Guardrails',
+                'state': 'active',
+                'severity': 'critical',
+                'date': now_stamp,
+                'due_prefix': 'Active',
+                'narrative': states('sensor.away_security_issue_summary'),
+                'url': '/calm-mobile/home',
+                'entity_id': 'binary_sensor.house_unsecured_while_away'
+              }] %}
+            {% endif %}
+            {% set env_entities = {
+              'Kitchen high temp': 'binary_sensor.environment_kitchen_temp_high_alert',
+              'Kitchen low temp': 'binary_sensor.environment_kitchen_temp_low_alert',
+              'Kitchen humidity high': 'binary_sensor.environment_kitchen_humidity_high_alert',
+              'Kitchen humidity low': 'binary_sensor.environment_kitchen_humidity_low_alert',
+              'Dining high temp': 'binary_sensor.environment_dining_room_temp_high_alert',
+              'Dining low temp': 'binary_sensor.environment_dining_room_temp_low_alert',
+              'Dining humidity high': 'binary_sensor.environment_dining_room_humidity_high_alert',
+              'Dining humidity low': 'binary_sensor.environment_dining_room_humidity_low_alert',
+              'Bedroom high temp': 'binary_sensor.environment_primary_bedroom_temp_high_alert',
+              'Bedroom low temp': 'binary_sensor.environment_primary_bedroom_temp_low_alert',
+              'Bedroom humidity high': 'binary_sensor.environment_primary_bedroom_humidity_high_alert',
+              'Bedroom humidity low': 'binary_sensor.environment_primary_bedroom_humidity_low_alert',
+              'Basement high temp': 'binary_sensor.environment_basement_temp_high_alert',
+              'Basement low temp': 'binary_sensor.environment_basement_temp_low_alert',
+              'Garage high temp': 'binary_sensor.environment_garage_temp_high_alert',
+              'Garage low temp': 'binary_sensor.environment_garage_temp_low_alert',
+              'Garage humidity high': 'binary_sensor.environment_garage_humidity_high_alert',
+              'Attic high temp': 'binary_sensor.environment_attic_temp_high_alert',
+              'Attic humidity high': 'binary_sensor.environment_attic_humidity_high_alert',
+              'Basement radon': 'binary_sensor.environment_basement_radon_high_alert'
+            } %}
+            {% set env = namespace(labels=[]) %}
+            {% for label, entity_id in env_entities.items() %}
+              {% if is_state(entity_id, 'on') %}
+                {% set env.labels = env.labels + [label] %}
+              {% endif %}
+            {% endfor %}
+            {% if env.labels | count > 0 %}
+              {% set ns.items = ns.items + [{
+                'id': 'environment-guard',
+                'title': 'Environment watch',
+                'emoji': '🌡️',
+                'icon': 'mdi:home-thermometer-outline',
+                'group': 'Guardrails',
+                'state': 'active',
+                'severity': 'watch',
+                'date': now_stamp,
+                'due_prefix': 'Active',
+                'narrative': env.labels | join(', '),
+                'url': '/calm-mobile/climate',
+                'entity_id': 'input_boolean.environment_alerts_enabled'
+              }] %}
+            {% endif %}
+            {% if is_state('binary_sensor.house_low_battery_alert', 'on') %}
+              {% set ns.items = ns.items + [{
+                'id': 'house-batteries',
+                'title': 'House batteries',
+                'emoji': '🪫',
+                'icon': 'mdi:battery-alert',
+                'group': 'Guardrails',
+                'state': 'active',
+                'severity': state_attr('sensor.house_low_battery_summary', 'severity') | default('watch', true),
+                'date': now_stamp,
+                'due_prefix': 'Active',
+                'narrative': state_attr('sensor.house_low_battery_summary', 'replace_soon_batteries') | default(states('sensor.house_low_battery_summary') ~ ' batteries need attention', true),
+                'url': '/calm-mobile/climate',
+                'entity_id': 'sensor.house_low_battery_summary'
+              }] %}
+            {% endif %}
+            {% if is_state('binary_sensor.wine_cave_actionable_alert', 'on') or is_state('binary_sensor.wine_cave_sensor_unavailable', 'on') %}
+              {% set ns.items = ns.items + [{
+                'id': 'wine-cave-guard',
+                'title': 'Wine cave sensor unavailable' if is_state('binary_sensor.wine_cave_sensor_unavailable', 'on') else 'Wine cave needs attention',
+                'emoji': '🍷',
+                'icon': 'mdi:glass-wine',
+                'group': 'Guardrails',
+                'state': 'active',
+                'severity': 'critical' if is_state('binary_sensor.wine_cave_actionable_alert', 'on') else 'watch',
+                'date': now_stamp,
+                'due_prefix': 'Active',
+                'narrative': 'Sensor unavailable' if is_state('binary_sensor.wine_cave_sensor_unavailable', 'on') else states('sensor.wine_cave_status'),
+                'url': '/calm-mobile/wine',
+                'entity_id': 'sensor.wine_cave_status'
+              }] %}
+            {% endif %}
+            {% set water_last = as_timestamp(states('input_datetime.espresso_last_water_backflush'), 0) %}
+            {% set cafiza_last = as_timestamp(states('input_datetime.espresso_last_cafiza_clean'), 0) %}
+            {% set water_due = (water_last + 604800) | timestamp_custom('%Y-%m-%d', true) if water_last > 0 else '' %}
+            {% set cafiza_due = (cafiza_last + 5184000) | timestamp_custom('%Y-%m-%d', true) if cafiza_last > 0 else '' %}
+            {% set espresso_dates = ([water_due, cafiza_due] | reject('eq', '') | list | sort) %}
+            {% if is_state('input_boolean.espresso_maintenance_enabled', 'on') and espresso_dates | count > 0 %}
+              {% set ns.items = ns.items + [{
+                'id': 'espresso-maintenance',
+                'title': 'Profitec GO cleaning',
+                'emoji': '☕',
+                'icon': 'mdi:coffee-maker-outline',
+                'group': 'Home care',
+                'state': 'due' if is_state('binary_sensor.espresso_maintenance_due', 'on') else 'upcoming',
+                'severity': 'watch' if is_state('binary_sensor.espresso_maintenance_due', 'on') else 'info',
+                'date': espresso_dates[0],
+                'due_prefix': 'Due',
+                'basis_date': states('input_datetime.espresso_last_water_backflush')[:10],
+                'basis_prefix': 'last water backflush',
+                'narrative': states('sensor.espresso_maintenance_status'),
+                'url': '/calm-mobile/home',
+                'entity_id': 'sensor.espresso_maintenance_status',
+                'actions': [
+                  {'label': 'Water done', 'service': 'script.espresso_mark_water_backflush_done'},
+                  {'label': 'Cafiza done', 'service': 'script.espresso_mark_cafiza_clean_done'},
+                  {'label': 'Snooze', 'service': 'script.espresso_snooze_maintenance'}
+                ]
+              }] %}
+            {% endif %}
+            {% if is_state('input_boolean.piano_care_enabled', 'on') and states('sensor.piano_next_tuning_due') not in ['unknown', 'unavailable', 'none', ''] %}
+              {% set ns.items = ns.items + [{
+                'id': 'piano-tuning',
+                'title': 'Steinway tuning',
+                'emoji': '🎹',
+                'icon': 'mdi:piano',
+                'group': 'Home care',
+                'state': 'due' if is_state('binary_sensor.piano_tuning_due', 'on') else 'upcoming',
+                'severity': 'watch' if is_state('binary_sensor.piano_tuning_due', 'on') else 'info',
+                'date': states('sensor.piano_next_tuning_due'),
+                'due_prefix': 'Due',
+                'basis_date': states('input_datetime.piano_last_tuned'),
+                'basis_prefix': 'based on',
+                'basis_suffix': 'tuning',
+                'narrative': 'Annual check based on the last tuning record.',
+                'url': '/calm-mobile/home',
+                'entity_id': 'sensor.piano_care_status',
+                'actions': [
+                  {'label': 'Done', 'service': 'script.piano_mark_tuning_done'},
+                  {'label': 'Scheduled', 'service': 'script.piano_snooze_tuning'}
+                ]
+              }] %}
+            {% endif %}
+            {% if is_state('input_boolean.dryer_vent_maintenance_enabled', 'on') and states('sensor.dryer_vent_next_cleaning_due') not in ['unknown', 'unavailable', 'none', ''] %}
+              {% set ns.items = ns.items + [{
+                'id': 'dryer-vent-cleaning',
+                'title': 'Dryer vent cleaning',
+                'emoji': '🧺',
+                'icon': 'mdi:tumble-dryer',
+                'group': 'Home care',
+                'state': 'due' if is_state('binary_sensor.dryer_vent_cleaning_due', 'on') else 'upcoming',
+                'severity': 'watch' if is_state('binary_sensor.dryer_vent_cleaning_due', 'on') else 'info',
+                'date': states('sensor.dryer_vent_next_cleaning_due'),
+                'due_prefix': 'Due',
+                'basis_date': states('input_datetime.dryer_vent_last_cleaned'),
+                'basis_prefix': 'last cleaned',
+                'narrative': states('sensor.dryer_vent_maintenance_status'),
+                'url': '/calm-mobile/home',
+                'entity_id': 'sensor.dryer_vent_maintenance_status',
+                'actions': [
+                  {'label': 'Done', 'service': 'script.dryer_vent_mark_cleaning_done'},
+                  {'label': 'Snooze 30d', 'service': 'script.dryer_vent_snooze_cleaning'}
+                ]
+              }] %}
+            {% endif %}
+            {% set docs = [
+              {
+                'id': 'trevor-passport',
+                'title': 'Trevor passport',
+                'emoji': '🇺🇸',
+                'date': states('sensor.passport_renewal_opens'),
+                'expires': states('input_datetime.passport_expiration_date'),
+                'state_entity': 'binary_sensor.passport_renewal_due',
+                'status_entity': 'sensor.passport_renewal_status',
+                'applied_service': 'script.passport_mark_renewal_applied',
+                'snooze_service': 'script.passport_snooze_renewal',
+                'done_label': 'Applied'
+              },
+              {
+                'id': 'trevor-license',
+                'title': 'Trevor driver license',
+                'emoji': '🇺🇸',
+                'date': states('sensor.driver_license_renewal_opens'),
+                'expires': states('input_datetime.driver_license_expiration_date'),
+                'state_entity': 'binary_sensor.driver_license_renewal_due',
+                'status_entity': 'sensor.driver_license_renewal_status',
+                'applied_service': 'script.driver_license_mark_renewed',
+                'snooze_service': 'script.driver_license_snooze_renewal',
+                'done_label': 'Renewed'
+              },
+              {
+                'id': 'casey-passport',
+                'title': 'Casey passport',
+                'emoji': '🇺🇸',
+                'date': states('sensor.casey_passport_renewal_opens'),
+                'expires': states('input_datetime.casey_passport_expiration_date'),
+                'state_entity': 'binary_sensor.casey_passport_renewal_due',
+                'status_entity': 'sensor.casey_passport_renewal_status',
+                'applied_service': 'script.casey_passport_mark_renewal_applied',
+                'snooze_service': 'script.casey_passport_snooze_renewal',
+                'done_label': 'Applied'
+              },
+              {
+                'id': 'casey-license',
+                'title': 'Casey driver license',
+                'emoji': '🇺🇸',
+                'date': states('sensor.casey_driver_license_renewal_opens'),
+                'expires': states('input_datetime.casey_driver_license_expiration_date'),
+                'state_entity': 'binary_sensor.casey_driver_license_renewal_due',
+                'status_entity': 'sensor.casey_driver_license_renewal_status',
+                'applied_service': 'script.casey_driver_license_mark_renewed',
+                'snooze_service': 'script.casey_driver_license_snooze_renewal',
+                'done_label': 'Renewed'
+              }
+            ] %}
+            {% for doc in docs %}
+              {% if doc.date not in ['unknown', 'unavailable', 'none', ''] %}
+                {% set ns.items = ns.items + [{
+                  'id': doc.id,
+                  'title': doc.title,
+                  'emoji': doc.emoji,
+                  'icon': 'mdi:passport',
+                  'group': 'Personal admin',
+                  'state': 'due' if is_state(doc.state_entity, 'on') else 'upcoming',
+                  'severity': 'watch' if is_state(doc.state_entity, 'on') else 'info',
+                  'date': doc.date,
+                  'due_prefix': 'Opens',
+                  'basis_date': doc.expires,
+                  'basis_prefix': 'expires',
+                  'narrative': states(doc.status_entity),
+                  'url': '/calm-mobile/notices',
+                  'entity_id': doc.status_entity,
+                  'actions': [
+                    {'label': doc.done_label, 'service': doc.applied_service},
+                    {'label': 'Snooze 7d', 'service': doc.snooze_service, 'data': {'days': 7}},
+                    {'label': 'Snooze 2w', 'service': doc.snooze_service, 'data': {'days': 14}},
+                    {'label': 'Snooze 30d', 'service': doc.snooze_service, 'data': {'days': 30}}
+                  ]
+                }] %}
+              {% endif %}
+            {% endfor %}
+            {% set tax_items = [
+              {'id': 'school-tax-jan', 'title': 'School tax January', 'emoji': '📚', 'paid': states('input_datetime.school_tax_january_last_paid_at'), 'tax_type': 'school', 'bill_month': 1},
+              {'id': 'town-tax-apr', 'title': 'Town tax April', 'emoji': '🏛️', 'paid': states('input_datetime.town_tax_last_paid_at'), 'tax_type': 'town', 'bill_month': 4},
+              {'id': 'school-tax-sep', 'title': 'School tax September', 'emoji': '📚', 'paid': states('input_datetime.school_tax_september_last_paid_at'), 'tax_type': 'school', 'bill_month': 9}
+            ] %}
+            {% if is_state('input_boolean.tax_reminders_enabled', 'on') %}
+              {% for tax_year in range(now().year, now().year + 3) %}
+                {% for tax in tax_items %}
+                  {% set bill = '%04d-%02d-01' | format(tax_year, tax.bill_month | int) %}
+                  {% set first_next_month = strptime('%04d-%02d-01' | format(tax_year, (tax.bill_month | int) + 1), '%Y-%m-%d') %}
+                  {% set last_day = first_next_month - timedelta(days=1) %}
+                  {% set weekend_offset = 2 if last_day.weekday() == 6 else 1 if last_day.weekday() == 5 else 0 %}
+                  {% set due = (last_day - timedelta(days=weekend_offset)).strftime('%Y-%m-%d') %}
+                  {% set paid = tax.paid not in ['unknown', 'unavailable', 'none', ''] and tax.paid[:10] >= bill %}
+                  {% set active = today >= bill %}
+                  {% if not paid and (active or bill >= today) %}
+                    {% set ns.items = ns.items + [{
+                      'id': tax.id ~ '-' ~ tax_year,
+                      'title': tax.title ~ ' ' ~ tax_year,
+                      'emoji': tax.emoji,
+                      'icon': 'mdi:bank-outline',
+                      'group': 'Property',
+                      'state': 'due' if active else 'upcoming',
+                      'severity': 'watch' if active else 'info',
+                      'date': due if active else bill,
+                      'due_prefix': 'Due' if active else 'Bill opens',
+                      'basis_date': bill if active else due,
+                      'basis_prefix': 'bill opened' if active else 'due',
+                      'narrative': 'Property tax reminder remains open until marked paid.',
+                      'url': '/calm-mobile/notices',
+                      'entity_id': 'input_boolean.tax_reminders_enabled',
+                      'actions': ([{'label': 'Paid', 'service': 'script.property_tax_mark_paid', 'confirm': true, 'data': {'tax_type': tax.tax_type, 'bill_month': tax.bill_month, 'due_date': due}}] if active else [])
+                    }] %}
+                  {% endif %}
+                {% endfor %}
+              {% endfor %}
+            {% endif %}
+            {% set robison_tune = now().year ~ '-03-25' %}
+            {% set robison_price = now().year ~ '-08-20' %}
+            {% set robison_follow = now().year ~ '-09-05' %}
+            {% set robison_price_last_done = states('input_datetime.robison_oil_price_check_last_done') %}
+            {% set robison_price_done = robison_price_last_done not in ['unknown', 'unavailable', 'none', ''] and robison_price_last_done[:10] >= robison_price %}
+            {% set ns.items = ns.items + [
+              {
+                'id': 'robison-oil-tune',
+                'title': 'Robison Oil tune-up',
+                'emoji': '🛢️',
+                'icon': 'mdi:oil',
+                'group': 'Home care',
+                'state': 'upcoming',
+                'severity': 'info',
+                'date': robison_tune if robison_tune >= today else (now().year + 1) ~ '-03-25',
+                'due_prefix': 'Check',
+                'narrative': 'Annual boiler tune-up reminder.',
+                'url': '/calm-mobile/home',
+                'entity_id': 'input_datetime.robison_oil_price_check_last_done'
+              },
+              {
+                'id': 'robison-oil-price',
+                'title': 'Robison Oil price check',
+                'emoji': '💸',
+                'icon': 'mdi:cash-sync',
+                'group': 'Home care',
+                'state': 'upcoming' if not robison_price_done else 'quiet',
+                'severity': 'info',
+                'date': robison_price if robison_price >= today else (now().year + 1) ~ '-08-20',
+                'due_prefix': 'Check',
+                'basis_date': robison_follow if robison_follow >= today else (now().year + 1) ~ '-09-05',
+                'basis_prefix': 'follow up',
+                'narrative': 'Compare annual heating oil plan pricing and mark done when reviewed.',
+                'url': '/calm-mobile/home',
+                'entity_id': 'input_datetime.robison_oil_price_check_last_done',
+                'actions': [
+                  {'label': 'Done', 'service': 'script.robison_oil_mark_price_check_done'}
+                ]
+              }
+            ] %}
+            {% if is_state('input_boolean.wine_cave_maintenance_enabled', 'on') %}
+              {% for wine_item in [
+                {'id': 'wine-charcoal', 'title': 'Wine cave charcoal filter', 'emoji': '', 'icon': 'mdi:air-filter', 'date': states('sensor.wine_cave_next_charcoal_filter_due'), 'entity': 'binary_sensor.wine_cave_charcoal_filter_due', 'basis': states('input_datetime.wine_cave_last_charcoal_filter_check'), 'basis_suffix': 'last filter check', 'done': 'script.wine_cave_mark_charcoal_filter_replaced', 'snooze': 'script.wine_cave_snooze_charcoal_filter'},
+                {'id': 'wine-cleaning', 'title': 'Wine cave cabinet cleaning', 'emoji': '🧼', 'icon': 'mdi:spray-bottle', 'date': states('sensor.wine_cave_next_cleaning_due'), 'entity': 'binary_sensor.wine_cave_cabinet_cleaning_due', 'basis': states('input_datetime.wine_cave_last_cabinet_cleaning'), 'basis_suffix': 'last cleaning', 'done': 'script.wine_cave_mark_cabinet_cleaning_done', 'snooze': 'script.wine_cave_snooze_cabinet_cleaning'}
+              ] %}
+                {% if wine_item.date not in ['unknown', 'unavailable', 'none', ''] %}
+                  {% set ns.items = ns.items + [{
+                    'id': wine_item.id,
+                    'title': wine_item.title,
+                    'emoji': wine_item.emoji,
+                    'icon': wine_item.icon,
+                    'group': 'Wine cave',
+                    'state': 'due' if is_state(wine_item.entity, 'on') else 'upcoming',
+                    'severity': 'watch' if is_state(wine_item.entity, 'on') else 'info',
+                    'date': wine_item.date,
+                    'due_prefix': 'Due',
+                    'basis_date': wine_item.basis,
+                    'basis_prefix': 'based on',
+                    'basis_suffix': wine_item.basis_suffix,
+                    'narrative': states('sensor.wine_cave_maintenance_status'),
+                    'url': '/calm-mobile/wine',
+                    'entity_id': 'sensor.wine_cave_maintenance_status',
+                    'actions': [
+                      {'label': 'Done', 'service': wine_item.done},
+                      {'label': 'Snooze 30d', 'service': wine_item.snooze}
+                    ]
+                  }] %}
+                {% endif %}
+              {% endfor %}
+              {% if is_state('input_boolean.wine_cave_rating_plate_captured', 'off') %}
+                {% set ns.items = ns.items + [{
+                  'id': 'wine-rating-plate',
+                  'title': 'Wine cave serial number',
+                  'emoji': '🏷️',
+                  'icon': 'mdi:tag-outline',
+                  'group': 'Wine cave',
+                  'state': 'due',
+                  'severity': 'info',
+                  'date': today,
+                  'due_prefix': 'Open',
+                  'narrative': 'Capture the rating plate so the appliance record has exact support identity.',
+                  'url': '/calm-mobile/wine',
+                  'entity_id': 'input_boolean.wine_cave_rating_plate_captured',
+                  'actions': [
+                    {'label': 'Captured', 'service': 'script.wine_cave_mark_rating_plate_captured'}
+                  ]
+                }] %}
+              {% endif %}
+              {% if states('input_datetime.wine_cave_parts_labor_warranty_review') not in ['unknown', 'unavailable', 'none', ''] %}
+                {% set ns.items = ns.items + [{
+                  'id': 'wine-warranty',
+                  'title': 'Wine cave warranty review',
+                  'emoji': '📄',
+                  'icon': 'mdi:file-document-check-outline',
+                  'group': 'Wine cave',
+                  'state': 'upcoming',
+                  'severity': 'info',
+                  'date': states('input_datetime.wine_cave_parts_labor_warranty_review'),
+                  'due_prefix': 'Review',
+                  'narrative': 'Parts and labor warranty review date tracked from the appliance record.',
+                  'url': '/calm-mobile/wine',
+                  'entity_id': 'sensor.wine_cave_appliance_context'
+                }] %}
+              {% endif %}
+            {% endif %}
+            {% if is_state('binary_sensor.garden_indoor_seedlings_active', 'on') %}
+              {% set ns.items = ns.items + [
+                {
+                  'id': 'garden-seedling-check',
+                  'title': 'Garden seedling check',
+                  'emoji': '🌱',
+                  'icon': 'mdi:sprout-outline',
+                  'group': 'Garden',
+                  'state': 'due' if is_state('binary_sensor.garden_seedling_check_due', 'on') else 'upcoming',
+                  'severity': 'info',
+                  'date': today,
+                  'due_prefix': 'Today',
+                  'narrative': states('sensor.garden_today_focus'),
+                  'url': '/calm-mobile/garden',
+                  'entity_id': 'sensor.garden_check_status',
+                  'actions': [
+                    {'label': 'Done', 'service': 'script.garden_mark_seedlings_checked'}
+                  ]
+                },
+                {
+                  'id': 'garden-water-review',
+                  'title': 'Garden moisture review',
+                  'emoji': '💧',
+                  'icon': 'mdi:watering-can-outline',
+                  'group': 'Garden',
+                  'state': 'due' if is_state('binary_sensor.garden_water_review_due', 'on') else 'upcoming',
+                  'severity': 'info',
+                  'date': today,
+                  'due_prefix': 'Today',
+                  'narrative': states('sensor.garden_watering_status'),
+                  'url': '/calm-mobile/garden',
+                  'entity_id': 'sensor.garden_watering_status',
+                  'actions': [
+                    {'label': 'Watered', 'service': 'script.garden_mark_seedlings_watered'}
+                  ]
+                }
+              ] %}
+            {% endif %}
+            {{ ns.items | to_json }}
+
     binary_sensor:
+      - name: "Water Notification Alert Active"
+        unique_id: water_notification_alert_active
+        state: >
+          {{ is_state('input_boolean.water_flow_alert_active', 'on')
+             or is_state('input_boolean.water_pressure_alert_active', 'on')
+             or is_state('input_boolean.water_leak_alert_active', 'on')
+             or is_state('input_boolean.water_valve_alert_active', 'on')
+             or is_state('input_boolean.water_usage_alert_active', 'on') }}
+        icon: >
+          {% if is_state('input_boolean.water_flow_alert_active', 'on')
+             or is_state('input_boolean.water_pressure_alert_active', 'on')
+             or is_state('input_boolean.water_leak_alert_active', 'on')
+             or is_state('input_boolean.water_valve_alert_active', 'on')
+             or is_state('input_boolean.water_usage_alert_active', 'on') %}
+            mdi:bell-alert-outline
+          {% else %}
+            mdi:bell-check-outline
+          {% endif %}
+
       - name: "house_unsecured_while_away"
         unique_id: house_unsecured_while_away
         state: >
@@ -1613,247 +2413,6 @@ template:
           {% else %}
             0
           {% endif %}
-      - name: "House Low Battery Summary"
-        unique_id: house_low_battery_summary
-        state: >
-          {% set batteries = {
-            'sensor.aqara_smart_lock_u100_battery': 'Garage entry lock',
-            'sensor.back_patio_battery': 'Back Patio sensor',
-            'sensor.back_stairs_battery': 'Back Stairs sensor',
-            'sensor.basement_air_quality_battery': 'Basement Airthings',
-            'sensor.basement_ejector_leak_detection_battery': 'Basement Ejector leak sensor',
-            'sensor.dishwasher_leak_detection_battery': 'Dishwasher leak sensor',
-            'sensor.electrical_room_leak_detection_battery': 'Electrical Room leak sensor',
-            'sensor.front_door_battery': 'Front Door sensor',
-            'sensor.island_sink_leak_detection_battery': 'Island Sink leak sensor',
-            'sensor.kitchen_fridge_leak_detection_battery': 'Kitchen Fridge leak sensor',
-            'sensor.kitchen_sink_leak_detection_battery': 'Kitchen Sink leak sensor',
-            'sensor.laundry_sink_leak_detection_battery': 'Laundry Sink leak sensor',
-            'sensor.master_sensor_new_battery_2': 'Primary Bedroom room sensor',
-            'sensor.mechanical_room_leak_detection_battery': 'Mechanical Room leak sensor',
-            'sensor.mudroom_door_battery': 'Mudroom Door sensor',
-            'sensor.washing_machine_leak_detection_battery': 'Washing Machine leak sensor',
-            'sensor.wynn_room_battery': 'Wynn Room sensor'
-          } %}
-          {% set ns = namespace(count=0) %}
-          {% for entity, label in batteries.items() %}
-            {% set value = states(entity) %}
-            {% if is_number(value) and (value | float(100)) <= 20 %}
-              {% set ns.count = ns.count + 1 %}
-            {% endif %}
-          {% endfor %}
-          {{ ns.count }}
-        icon: >
-          {{ 'mdi:battery-alert' if (states('sensor.house_low_battery_summary') | int(0)) > 0 else 'mdi:battery-check' }}
-        attributes:
-          threshold: 20
-          getting_low_threshold: 20
-          replace_soon_threshold: 10
-          critical_threshold: 5
-          monitored_batteries: 17
-          excluded: "Phones, tablets, battery type sensors, and voltage-only sensors."
-          severity: >
-            {% set batteries = {
-              'sensor.aqara_smart_lock_u100_battery': 'Garage entry lock',
-              'sensor.back_patio_battery': 'Back Patio sensor',
-              'sensor.back_stairs_battery': 'Back Stairs sensor',
-              'sensor.basement_air_quality_battery': 'Basement Airthings',
-              'sensor.basement_ejector_leak_detection_battery': 'Basement Ejector leak sensor',
-              'sensor.dishwasher_leak_detection_battery': 'Dishwasher leak sensor',
-              'sensor.electrical_room_leak_detection_battery': 'Electrical Room leak sensor',
-              'sensor.front_door_battery': 'Front Door sensor',
-              'sensor.island_sink_leak_detection_battery': 'Island Sink leak sensor',
-              'sensor.kitchen_fridge_leak_detection_battery': 'Kitchen Fridge leak sensor',
-              'sensor.kitchen_sink_leak_detection_battery': 'Kitchen Sink leak sensor',
-              'sensor.laundry_sink_leak_detection_battery': 'Laundry Sink leak sensor',
-              'sensor.master_sensor_new_battery_2': 'Primary Bedroom room sensor',
-              'sensor.mechanical_room_leak_detection_battery': 'Mechanical Room leak sensor',
-              'sensor.mudroom_door_battery': 'Mudroom Door sensor',
-              'sensor.washing_machine_leak_detection_battery': 'Washing Machine leak sensor',
-              'sensor.wynn_room_battery': 'Wynn Room sensor'
-            } %}
-            {% set ns = namespace(critical=false, replace_soon=false, getting_low=false) %}
-            {% for entity, label in batteries.items() %}
-              {% set value = states(entity) %}
-              {% if is_number(value) %}
-                {% set level = value | float(100) %}
-                {% if level <= 5 %}{% set ns.critical = true %}
-                {% elif level <= 10 %}{% set ns.replace_soon = true %}
-                {% elif level <= 20 %}{% set ns.getting_low = true %}
-                {% endif %}
-              {% endif %}
-            {% endfor %}
-            {% if ns.critical %}critical
-            {% elif ns.replace_soon %}replace_soon
-            {% elif ns.getting_low %}getting_low
-            {% else %}clear{% endif %}
-          critical_batteries: >
-            {% set batteries = {
-              'sensor.aqara_smart_lock_u100_battery': 'Garage entry lock',
-              'sensor.back_patio_battery': 'Back Patio sensor',
-              'sensor.back_stairs_battery': 'Back Stairs sensor',
-              'sensor.basement_air_quality_battery': 'Basement Airthings',
-              'sensor.basement_ejector_leak_detection_battery': 'Basement Ejector leak sensor',
-              'sensor.dishwasher_leak_detection_battery': 'Dishwasher leak sensor',
-              'sensor.electrical_room_leak_detection_battery': 'Electrical Room leak sensor',
-              'sensor.front_door_battery': 'Front Door sensor',
-              'sensor.island_sink_leak_detection_battery': 'Island Sink leak sensor',
-              'sensor.kitchen_fridge_leak_detection_battery': 'Kitchen Fridge leak sensor',
-              'sensor.kitchen_sink_leak_detection_battery': 'Kitchen Sink leak sensor',
-              'sensor.laundry_sink_leak_detection_battery': 'Laundry Sink leak sensor',
-              'sensor.master_sensor_new_battery_2': 'Primary Bedroom room sensor',
-              'sensor.mechanical_room_leak_detection_battery': 'Mechanical Room leak sensor',
-              'sensor.mudroom_door_battery': 'Mudroom Door sensor',
-              'sensor.washing_machine_leak_detection_battery': 'Washing Machine leak sensor',
-              'sensor.wynn_room_battery': 'Wynn Room sensor'
-            } %}
-            {% set ns = namespace(items=[]) %}
-            {% for entity, label in batteries.items() %}
-              {% set value = states(entity) %}
-              {% if is_number(value) and (value | float(100)) <= 5 %}
-                {% set ns.items = ns.items + [label ~ ' ' ~ (value | float(0) | round(0) | int) ~ '%'] %}
-              {% endif %}
-            {% endfor %}
-            {{ ns.items | join(', ') if ns.items else 'Clear' }}
-          replace_soon_batteries: >
-            {% set batteries = {
-              'sensor.aqara_smart_lock_u100_battery': 'Garage entry lock',
-              'sensor.back_patio_battery': 'Back Patio sensor',
-              'sensor.back_stairs_battery': 'Back Stairs sensor',
-              'sensor.basement_air_quality_battery': 'Basement Airthings',
-              'sensor.basement_ejector_leak_detection_battery': 'Basement Ejector leak sensor',
-              'sensor.dishwasher_leak_detection_battery': 'Dishwasher leak sensor',
-              'sensor.electrical_room_leak_detection_battery': 'Electrical Room leak sensor',
-              'sensor.front_door_battery': 'Front Door sensor',
-              'sensor.island_sink_leak_detection_battery': 'Island Sink leak sensor',
-              'sensor.kitchen_fridge_leak_detection_battery': 'Kitchen Fridge leak sensor',
-              'sensor.kitchen_sink_leak_detection_battery': 'Kitchen Sink leak sensor',
-              'sensor.laundry_sink_leak_detection_battery': 'Laundry Sink leak sensor',
-              'sensor.master_sensor_new_battery_2': 'Primary Bedroom room sensor',
-              'sensor.mechanical_room_leak_detection_battery': 'Mechanical Room leak sensor',
-              'sensor.mudroom_door_battery': 'Mudroom Door sensor',
-              'sensor.washing_machine_leak_detection_battery': 'Washing Machine leak sensor',
-              'sensor.wynn_room_battery': 'Wynn Room sensor'
-            } %}
-            {% set ns = namespace(items=[]) %}
-            {% for entity, label in batteries.items() %}
-              {% set value = states(entity) %}
-              {% if is_number(value) and (value | float(100)) > 5 and (value | float(100)) <= 10 %}
-                {% set ns.items = ns.items + [label ~ ' ' ~ (value | float(0) | round(0) | int) ~ '%'] %}
-              {% endif %}
-            {% endfor %}
-            {{ ns.items | join(', ') if ns.items else 'Clear' }}
-          getting_low_batteries: >
-            {% set batteries = {
-              'sensor.aqara_smart_lock_u100_battery': 'Garage entry lock',
-              'sensor.back_patio_battery': 'Back Patio sensor',
-              'sensor.back_stairs_battery': 'Back Stairs sensor',
-              'sensor.basement_air_quality_battery': 'Basement Airthings',
-              'sensor.basement_ejector_leak_detection_battery': 'Basement Ejector leak sensor',
-              'sensor.dishwasher_leak_detection_battery': 'Dishwasher leak sensor',
-              'sensor.electrical_room_leak_detection_battery': 'Electrical Room leak sensor',
-              'sensor.front_door_battery': 'Front Door sensor',
-              'sensor.island_sink_leak_detection_battery': 'Island Sink leak sensor',
-              'sensor.kitchen_fridge_leak_detection_battery': 'Kitchen Fridge leak sensor',
-              'sensor.kitchen_sink_leak_detection_battery': 'Kitchen Sink leak sensor',
-              'sensor.laundry_sink_leak_detection_battery': 'Laundry Sink leak sensor',
-              'sensor.master_sensor_new_battery_2': 'Primary Bedroom room sensor',
-              'sensor.mechanical_room_leak_detection_battery': 'Mechanical Room leak sensor',
-              'sensor.mudroom_door_battery': 'Mudroom Door sensor',
-              'sensor.washing_machine_leak_detection_battery': 'Washing Machine leak sensor',
-              'sensor.wynn_room_battery': 'Wynn Room sensor'
-            } %}
-            {% set ns = namespace(items=[]) %}
-            {% for entity, label in batteries.items() %}
-              {% set value = states(entity) %}
-              {% if is_number(value) and (value | float(100)) > 10 and (value | float(100)) <= 20 %}
-                {% set ns.items = ns.items + [label ~ ' ' ~ (value | float(0) | round(0) | int) ~ '%'] %}
-              {% endif %}
-            {% endfor %}
-            {{ ns.items | join(', ') if ns.items else 'Clear' }}
-          low_batteries: >
-            {% set batteries = {
-              'sensor.aqara_smart_lock_u100_battery': 'Garage entry lock',
-              'sensor.back_patio_battery': 'Back Patio sensor',
-              'sensor.back_stairs_battery': 'Back Stairs sensor',
-              'sensor.basement_air_quality_battery': 'Basement Airthings',
-              'sensor.basement_ejector_leak_detection_battery': 'Basement Ejector leak sensor',
-              'sensor.dishwasher_leak_detection_battery': 'Dishwasher leak sensor',
-              'sensor.electrical_room_leak_detection_battery': 'Electrical Room leak sensor',
-              'sensor.front_door_battery': 'Front Door sensor',
-              'sensor.island_sink_leak_detection_battery': 'Island Sink leak sensor',
-              'sensor.kitchen_fridge_leak_detection_battery': 'Kitchen Fridge leak sensor',
-              'sensor.kitchen_sink_leak_detection_battery': 'Kitchen Sink leak sensor',
-              'sensor.laundry_sink_leak_detection_battery': 'Laundry Sink leak sensor',
-              'sensor.master_sensor_new_battery_2': 'Primary Bedroom room sensor',
-              'sensor.mechanical_room_leak_detection_battery': 'Mechanical Room leak sensor',
-              'sensor.mudroom_door_battery': 'Mudroom Door sensor',
-              'sensor.washing_machine_leak_detection_battery': 'Washing Machine leak sensor',
-              'sensor.wynn_room_battery': 'Wynn Room sensor'
-            } %}
-            {% set ns = namespace(items=[]) %}
-            {% for entity, label in batteries.items() %}
-              {% set value = states(entity) %}
-              {% if is_number(value) and (value | float(100)) <= 20 %}
-                {% set ns.items = ns.items + [label ~ ' ' ~ (value | float(0) | round(0) | int) ~ '%'] %}
-              {% endif %}
-            {% endfor %}
-            {{ ns.items | join(', ') if ns.items else 'Clear' }}
-          low_battery_entities: >
-            {% set batteries = [
-              'sensor.aqara_smart_lock_u100_battery',
-              'sensor.back_patio_battery',
-              'sensor.back_stairs_battery',
-              'sensor.basement_air_quality_battery',
-              'sensor.basement_ejector_leak_detection_battery',
-              'sensor.dishwasher_leak_detection_battery',
-              'sensor.electrical_room_leak_detection_battery',
-              'sensor.front_door_battery',
-              'sensor.island_sink_leak_detection_battery',
-              'sensor.kitchen_fridge_leak_detection_battery',
-              'sensor.kitchen_sink_leak_detection_battery',
-              'sensor.laundry_sink_leak_detection_battery',
-              'sensor.master_sensor_new_battery_2',
-              'sensor.mechanical_room_leak_detection_battery',
-              'sensor.mudroom_door_battery',
-              'sensor.washing_machine_leak_detection_battery',
-              'sensor.wynn_room_battery'
-            ] %}
-            {% set ns = namespace(items=[]) %}
-            {% for entity in batteries %}
-              {% set value = states(entity) %}
-              {% if is_number(value) and (value | float(100)) <= 20 %}
-                {% set ns.items = ns.items + [entity] %}
-              {% endif %}
-            {% endfor %}
-            {{ ns.items | join(', ') if ns.items else 'Clear' }}
-          unknown_batteries: >
-            {% set batteries = {
-              'sensor.aqara_smart_lock_u100_battery': 'Garage entry lock',
-              'sensor.back_patio_battery': 'Back Patio sensor',
-              'sensor.back_stairs_battery': 'Back Stairs sensor',
-              'sensor.basement_air_quality_battery': 'Basement Airthings',
-              'sensor.basement_ejector_leak_detection_battery': 'Basement Ejector leak sensor',
-              'sensor.dishwasher_leak_detection_battery': 'Dishwasher leak sensor',
-              'sensor.electrical_room_leak_detection_battery': 'Electrical Room leak sensor',
-              'sensor.front_door_battery': 'Front Door sensor',
-              'sensor.island_sink_leak_detection_battery': 'Island Sink leak sensor',
-              'sensor.kitchen_fridge_leak_detection_battery': 'Kitchen Fridge leak sensor',
-              'sensor.kitchen_sink_leak_detection_battery': 'Kitchen Sink leak sensor',
-              'sensor.laundry_sink_leak_detection_battery': 'Laundry Sink leak sensor',
-              'sensor.master_sensor_new_battery_2': 'Primary Bedroom room sensor',
-              'sensor.mechanical_room_leak_detection_battery': 'Mechanical Room leak sensor',
-              'sensor.mudroom_door_battery': 'Mudroom Door sensor',
-              'sensor.washing_machine_leak_detection_battery': 'Washing Machine leak sensor',
-              'sensor.wynn_room_battery': 'Wynn Room sensor'
-            } %}
-            {% set ns = namespace(items=[]) %}
-            {% for entity, label in batteries.items() %}
-              {% if states(entity) in ['unknown', 'unavailable', 'none', ''] %}
-                {% set ns.items = ns.items + [label] %}
-              {% endif %}
-            {% endfor %}
-            {{ ns.items | join(', ') if ns.items else 'None' }}
 
   - binary_sensor:
       - name: "Wine Cave Sensor Unavailable"
@@ -3546,6 +4105,229 @@ template:
         icon: >
           {{ 'mdi:weather-sunny' if is_state('binary_sensor.garden_basil_weather_ready', 'on') else 'mdi:weather-night' }}
 
+  - trigger:
+      - platform: event
+        event_type: house_notice_event_recorded
+    sensor:
+      - name: "House Notice History"
+        unique_id: house_notice_history
+        state: >
+          {{ trigger.event.data.at | default(now().strftime('%Y-%m-%d %H:%M:%S'), true) }}
+        icon: mdi:history
+        attributes:
+          events_json: >
+            {% set existing_raw = this.attributes.get('events_json', []) if this is defined and this.attributes is defined else [] %}
+            {% set parsed = namespace(items=[]) %}
+            {% if existing_raw is string and existing_raw | length > 0 %}
+              {% set parsed.items = existing_raw | from_json %}
+            {% elif existing_raw is iterable %}
+              {% set parsed.items = existing_raw | list %}
+            {% endif %}
+            {% set cutoff = as_timestamp(now()) - 1209600 %}
+            {% set kept = namespace(items=[]) %}
+            {% set dismissing = trigger.event.data.kind | default('', true) == 'dismiss' %}
+            {% set dismiss_all_recent = (trigger.event.data.dismiss_all_recent | default(false)) in [true, 'true', 'True', 'on', '1', 1] %}
+            {% set dismiss_kind_filter = trigger.event.data.dismiss_all_kind | default('', true) %}
+            {% for item in parsed.items %}
+              {% set item_ts = as_timestamp(item.at | default('', true), 0) %}
+              {% set matches_dismiss = dismissing
+                 and (
+                   dismiss_all_recent
+                   or (dismiss_kind_filter | length > 0 and item.kind | default('', true) == dismiss_kind_filter)
+                   or (
+                     dismiss_kind_filter | length == 0
+                     and not dismiss_all_recent
+                     and item.at | default('', true) == trigger.event.data.dismiss_at | default('', true)
+                     and item.kind | default('', true) == trigger.event.data.dismiss_kind | default('', true)
+                     and item.tag | default('', true) == trigger.event.data.dismiss_tag | default('', true)
+                     and item.title | default('', true) == trigger.event.data.dismiss_title | default('', true)
+                     and item.message | default('', true) == trigger.event.data.dismiss_message | default('', true)
+                     and item.action | default('', true) == trigger.event.data.dismiss_action | default('', true)
+                     and item.source | default('', true) == trigger.event.data.dismiss_source | default('', true)
+                   )
+                 ) %}
+              {% if item_ts >= cutoff and not matches_dismiss %}
+                {% set kept.items = kept.items + [item] %}
+              {% endif %}
+            {% endfor %}
+            {% if dismissing %}
+              {{ kept.items[:80] | to_json }}
+            {% else %}
+              {% set open_sent_tags = namespace(items=[]) %}
+              {% for item in kept.items | reverse %}
+                {% set item_kind = item.kind | default('sent', true) %}
+                {% set item_tag = item.tag | default('', true) %}
+                {% if item_kind == 'sent' and item_tag | length > 0 and item_tag not in open_sent_tags.items %}
+                  {% set open_sent_tags.items = open_sent_tags.items + [item_tag] %}
+                {% elif item_kind == 'clear' and item_tag | length > 0 and item_tag in open_sent_tags.items %}
+                  {% set open_sent_tags.items = open_sent_tags.items | reject('eq', item_tag) | list %}
+                {% endif %}
+              {% endfor %}
+              {% set event_kind = trigger.event.data.kind | default('sent', true) %}
+              {% set event_tag = trigger.event.data.tag | default('', true) %}
+              {% set event = {
+                'at': trigger.event.data.at | default(now().strftime('%Y-%m-%d %H:%M:%S'), true),
+                'kind': event_kind,
+                'title': trigger.event.data.title | default('House notice', true),
+                'message': trigger.event.data.message | default('', true),
+                'group': trigger.event.data.group | default('general', true),
+                'tag': event_tag,
+                'url': trigger.event.data.url | default('', true),
+                'severity': trigger.event.data.severity | default('info', true),
+                'action': trigger.event.data.action | default('', true),
+                'source': trigger.event.data.source | default('', true)
+              } %}
+              {% set orphan_clear = event_kind == 'clear' and (event_tag | length == 0 or event_tag not in open_sent_tags.items) %}
+              {{ (kept.items if orphan_clear else [event] + kept.items)[:80] | to_json }}
+            {% endif %}
+
+  - trigger:
+      - platform: event
+        event_type: water_alert_recorded
+    sensor:
+      - name: "Water Guard Alert Events"
+        unique_id: water_guard_alert_events
+        state: >
+          {{ trigger.event.data.at | default(now().strftime('%Y-%m-%d %H:%M:%S'), true) }}
+        icon: mdi:bell-alert-outline
+        attributes:
+          events_json: >
+            {% set existing = this.attributes.events_json | default('[]', true) | from_json %}
+            {% set event = {
+              'at': trigger.event.data.at | default('', true),
+              'domain': trigger.event.data.domain | default('water', true),
+              'label': trigger.event.data.label | default('Water alert', true),
+              'kind': trigger.event.data.kind | default('', true),
+              'severity': trigger.event.data.severity | default('warning', true),
+              'note': trigger.event.data.note | default('', true)
+            } %}
+            {{ ([event] + existing)[:8] | to_json }}
+
+      - name: "Water Guard Flow Events"
+        unique_id: water_guard_flow_events
+        state: >
+          {% if trigger.event.data.domain == 'flow' %}
+            {{ trigger.event.data.at | default(now().strftime('%Y-%m-%d %H:%M:%S'), true) }}
+          {% else %}
+            {{ this.state if this.state not in ['unknown', 'unavailable', 'none', ''] else 'unknown' }}
+          {% endif %}
+        icon: mdi:waves-arrow-right
+        attributes:
+          events_json: >
+            {% set existing = this.attributes.events_json | default('[]', true) | from_json %}
+            {% if trigger.event.data.domain == 'flow' %}
+              {% set event = {
+                'at': trigger.event.data.at | default('', true),
+                'label': trigger.event.data.label | default('Flow alert', true),
+                'kind': trigger.event.data.kind | default('', true),
+                'severity': trigger.event.data.severity | default('warning', true),
+                'note': trigger.event.data.note | default('', true)
+              } %}
+              {{ ([event] + existing)[:5] | to_json }}
+            {% else %}
+              {{ existing | to_json }}
+            {% endif %}
+
+      - name: "Water Guard Pressure Events"
+        unique_id: water_guard_pressure_events
+        state: >
+          {% if trigger.event.data.domain == 'pressure' %}
+            {{ trigger.event.data.at | default(now().strftime('%Y-%m-%d %H:%M:%S'), true) }}
+          {% else %}
+            {{ this.state if this.state not in ['unknown', 'unavailable', 'none', ''] else 'unknown' }}
+          {% endif %}
+        icon: mdi:gauge
+        attributes:
+          events_json: >
+            {% set existing = this.attributes.events_json | default('[]', true) | from_json %}
+            {% if trigger.event.data.domain == 'pressure' %}
+              {% set event = {
+                'at': trigger.event.data.at | default('', true),
+                'label': trigger.event.data.label | default('Pressure alert', true),
+                'kind': trigger.event.data.kind | default('', true),
+                'severity': trigger.event.data.severity | default('warning', true),
+                'note': trigger.event.data.note | default('', true)
+              } %}
+              {{ ([event] + existing)[:5] | to_json }}
+            {% else %}
+              {{ existing | to_json }}
+            {% endif %}
+
+      - name: "Water Guard Leak Events"
+        unique_id: water_guard_leak_events
+        state: >
+          {% if trigger.event.data.domain == 'leak' %}
+            {{ trigger.event.data.at | default(now().strftime('%Y-%m-%d %H:%M:%S'), true) }}
+          {% else %}
+            {{ this.state if this.state not in ['unknown', 'unavailable', 'none', ''] else 'unknown' }}
+          {% endif %}
+        icon: mdi:water-alert
+        attributes:
+          events_json: >
+            {% set existing = this.attributes.events_json | default('[]', true) | from_json %}
+            {% if trigger.event.data.domain == 'leak' %}
+              {% set event = {
+                'at': trigger.event.data.at | default('', true),
+                'label': trigger.event.data.label | default('Leak alert', true),
+                'kind': trigger.event.data.kind | default('', true),
+                'severity': trigger.event.data.severity | default('critical', true),
+                'note': trigger.event.data.note | default('', true)
+              } %}
+              {{ ([event] + existing)[:5] | to_json }}
+            {% else %}
+              {{ existing | to_json }}
+            {% endif %}
+
+      - name: "Water Guard Valve Events"
+        unique_id: water_guard_valve_events
+        state: >
+          {% if trigger.event.data.domain == 'valve' %}
+            {{ trigger.event.data.at | default(now().strftime('%Y-%m-%d %H:%M:%S'), true) }}
+          {% else %}
+            {{ this.state if this.state not in ['unknown', 'unavailable', 'none', ''] else 'unknown' }}
+          {% endif %}
+        icon: mdi:pipe-valve
+        attributes:
+          events_json: >
+            {% set existing = this.attributes.events_json | default('[]', true) | from_json %}
+            {% if trigger.event.data.domain == 'valve' %}
+              {% set event = {
+                'at': trigger.event.data.at | default('', true),
+                'label': trigger.event.data.label | default('Valve/Flo alert', true),
+                'kind': trigger.event.data.kind | default('', true),
+                'severity': trigger.event.data.severity | default('warning', true),
+                'note': trigger.event.data.note | default('', true)
+              } %}
+              {{ ([event] + existing)[:5] | to_json }}
+            {% else %}
+              {{ existing | to_json }}
+            {% endif %}
+
+      - name: "Water Guard Usage Events"
+        unique_id: water_guard_usage_events
+        state: >
+          {% if trigger.event.data.domain == 'usage' %}
+            {{ trigger.event.data.at | default(now().strftime('%Y-%m-%d %H:%M:%S'), true) }}
+          {% else %}
+            {{ this.state if this.state not in ['unknown', 'unavailable', 'none', ''] else 'unknown' }}
+          {% endif %}
+        icon: mdi:water-sync
+        attributes:
+          events_json: >
+            {% set existing = this.attributes.events_json | default('[]', true) | from_json %}
+            {% if trigger.event.data.domain == 'usage' %}
+              {% set event = {
+                'at': trigger.event.data.at | default('', true),
+                'label': trigger.event.data.label | default('Usage alert', true),
+                'kind': trigger.event.data.kind | default('', true),
+                'severity': trigger.event.data.severity | default('warning', true),
+                'note': trigger.event.data.note | default('', true)
+              } %}
+              {{ ([event] + existing)[:5] | to_json }}
+            {% else %}
+              {{ existing | to_json }}
+            {% endif %}
+
 # ── 24h Rolling Average Sensors ──────────────────────────
 # These use HA's built-in statistics integration as the source of truth
 # for the two template sensors above. Keeping the statistics entities
@@ -3621,7 +4403,7 @@ sensor:
       days: 30
     sampling_size: 10000
     precision: 1
-    
+
   - platform: statistics
     name: "Basement Radon 24h Stats"
     unique_id: basement_radon_24h_stats
