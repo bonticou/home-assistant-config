@@ -175,7 +175,9 @@ class HouseNoticesCard extends HTMLElement {
     const message = String(event.message || "").trim().toLowerCase();
     const tag = String(event.tag || "").trim().toLowerCase();
     const action = String(event.action || event.message || event.title || "").toUpperCase();
+    const combined = `${title} ${message} ${tag} ${action}`.toLowerCase();
     if (event.kind === "action" && action.includes("SNOOZE")) return true;
+    if (combined.includes("garden_mark_watered") || combined.includes("mark watered")) return true;
     return title === "house reminder sleeping"
       || title === "wine cave guardrail"
       || tag.endsWith("-snooze")
