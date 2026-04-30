@@ -301,25 +301,6 @@ views:
             content: Radon
             tap_action:
               action: more-info
-          - type: template
-            entity: sensor.house_notice_timeline
-            icon: >-
-              {% set count = state_attr('sensor.house_notice_timeline', 'attention_count') | int(0) %}
-              {{ 'mdi:bell-badge-outline' if count > 0 else 'mdi:bell-outline' }}
-            icon_color: >-
-              {% set count = state_attr('sensor.house_notice_timeline', 'attention_count') | int(0) %}
-              {{ 'amber' if count > 0 else 'grey' }}
-            content: >-
-              {% set count = state_attr('sensor.house_notice_timeline', 'attention_count') | int(0) %}
-              {% if count > 0 %}
-                {{ count }} need attention
-              {% else %}
-                {{ state_attr('sensor.house_notice_timeline', 'next_short') | default('All quiet', true) }}
-              {% endif %}
-            tap_action:
-              action: navigate
-              navigation_path: /calm-mobile/notices
-
       - type: grid
         columns: 2
         square: false
