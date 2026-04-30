@@ -2059,8 +2059,8 @@
     - condition: template
       value_template: >-
         {% set last = states('input_datetime.robison_oil_price_check_last_done') %}
-        {% set last_ts = as_timestamp(last, 0) %}
-        {{ last_ts == 0 or (last_ts | timestamp_custom('%Y', true) | int(0)) != now().year }}
+        {% set price_check_date = now().year ~ '-08-20' %}
+        {{ last in ['unknown', 'unavailable', 'none', ''] or last[:10] < price_check_date }}
   actions:
     - action: script.robison_oil_send_price_check_reminder
   mode: single
