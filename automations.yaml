@@ -77,6 +77,33 @@
   mode: queued
   max: 20
 
+- id: inventory_refresh_device_inventory
+  alias: "Inventory — Refresh Device Inventory"
+  description: Keeps the redacted device and capability inventory current when HA devices, entities, areas, or UniFi trackers change.
+  triggers:
+    - trigger: homeassistant
+      event: start
+    - trigger: time
+      at: "03:15:00"
+    - trigger: event
+      event_type: device_registry_updated
+    - trigger: event
+      event_type: entity_registry_updated
+    - trigger: event
+      event_type: area_registry_updated
+    - trigger: event
+      event_type: state_changed
+  conditions:
+    - condition: template
+      value_template: >-
+        {% set event_type = trigger.event.event_type if trigger.event is defined else '' %}
+        {{ event_type != 'state_changed'
+           or (trigger.event.data.entity_id | default('')).startswith('device_tracker.') }}
+  actions:
+    - delay: "00:02:00"
+    - action: shell_command.refresh_device_inventory
+  mode: restart
+
 - id: water_overnight_continuous_flow
   alias: "Water — Overnight Continuous Flow (Running Toilet)"
   description: >

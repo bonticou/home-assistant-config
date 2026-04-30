@@ -1,0 +1,13 @@
+{
+  "version": 1,
+  "minor_version": 1,
+  "key": "core.area_registry",
+  "data": {
+    "areas": [
+      {
+        "area_id": "kitchen",
+        "name": "Kitchen"
+      }
+    ]
+  }
+}

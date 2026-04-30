@@ -1,0 +1,75 @@
+{
+  "version": 1,
+  "minor_version": 1,
+  "key": "core.entity_registry",
+  "data": {
+    "entities": [
+      {
+        "entity_id": "device_tracker.unifi_default_aa_bb_cc_dd_ee_ff",
+        "unique_id": "default-aa:bb:cc:dd:ee:ff",
+        "device_id": "device-camera-raw-id",
+        "area_id": null,
+        "platform": "unifi",
+        "name": null,
+        "original_name": "Kitchen Camera",
+        "device_class": null,
+        "original_device_class": null,
+        "unit_of_measurement": null,
+        "disabled_by": null,
+        "hidden_by": null,
+        "entity_category": null,
+        "capabilities": {}
+      },
+      {
+        "entity_id": "binary_sensor.kitchen_motion",
+        "unique_id": "motion-aa:bb:cc:dd:ee:ff",
+        "device_id": "device-camera-raw-id",
+        "area_id": null,
+        "platform": "unifiprotect",
+        "name": null,
+        "original_name": "Motion",
+        "device_class": "motion",
+        "original_device_class": "motion",
+        "unit_of_measurement": null,
+        "disabled_by": null,
+        "hidden_by": null,
+        "entity_category": null,
+        "capabilities": {}
+      },
+      {
+        "entity_id": "switch.kitchen_light",
+        "unique_id": "light-raw-id",
+        "device_id": "device-light-raw-id",
+        "area_id": null,
+        "platform": "zha",
+        "name": null,
+        "original_name": "Kitchen Light",
+        "device_class": null,
+        "original_device_class": null,
+        "unit_of_measurement": null,
+        "disabled_by": null,
+        "hidden_by": null,
+        "entity_category": null,
+        "capabilities": {
+          "assumed_state": false
+        }
+      },
+      {
+        "entity_id": "input_boolean.inventory_enabled",
+        "unique_id": "helper-id",
+        "device_id": null,
+        "area_id": "kitchen",
+        "platform": "input_boolean",
+        "name": "Inventory Enabled",
+        "original_name": null,
+        "device_class": null,
+        "original_device_class": null,
+        "unit_of_measurement": null,
+        "disabled_by": null,
+        "hidden_by": null,
+        "entity_category": null,
+        "capabilities": {}
+      }
+    ]
+  }
+}

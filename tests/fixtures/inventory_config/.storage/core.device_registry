@@ -1,0 +1,36 @@
+{
+  "version": 1,
+  "minor_version": 1,
+  "key": "core.device_registry",
+  "data": {
+    "devices": [
+      {
+        "id": "device-camera-raw-id",
+        "area_id": "kitchen",
+        "config_entries": ["entry_unifi"],
+        "connections": [["mac", "aa:bb:cc:dd:ee:ff"]],
+        "identifiers": [["unifi", "aa:bb:cc:dd:ee:ff"]],
+        "manufacturer": "Ubiquiti",
+        "model": "G6 Instant",
+        "name": "Kitchen Camera",
+        "name_by_user": null,
+        "disabled_by": null,
+        "entry_type": null,
+        "serial_number": "secret-serial"
+      },
+      {
+        "id": "device-light-raw-id",
+        "area_id": "kitchen",
+        "config_entries": ["entry_zha"],
+        "connections": [],
+        "identifiers": [["zha", "00:11:22:33:44:55"]],
+        "manufacturer": "Test",
+        "model": "Light",
+        "name": "Kitchen Light",
+        "name_by_user": null,
+        "disabled_by": null,
+        "entry_type": null
+      }
+    ]
+  }
+}

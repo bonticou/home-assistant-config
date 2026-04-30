@@ -4,6 +4,10 @@
 .DS_Store
 /.tmp-*
 .audit-tmp/
+.device_inventory_raw*.json
+/.device_inventory_status.json
+/.inventory_salt
+/.inventory_token
 .wine_collection_snapshot.json
 .house-manager-outbox/
 __pycache__/

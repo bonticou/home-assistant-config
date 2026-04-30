@@ -1,0 +1,23 @@
+{
+  "version": 1,
+  "minor_version": 1,
+  "key": "core.config_entries",
+  "data": {
+    "entries": [
+      {
+        "entry_id": "entry_unifi",
+        "domain": "unifi",
+        "title": "Default",
+        "source": "user",
+        "state": "loaded"
+      },
+      {
+        "entry_id": "entry_zha",
+        "domain": "zha",
+        "title": "ZHA",
+        "source": "user",
+        "state": "loaded"
+      }
+    ]
+  }
+}

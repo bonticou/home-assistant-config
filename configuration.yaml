@@ -87,6 +87,10 @@ command_line:
         - error
 
 shell_command:
+  refresh_device_inventory: >-
+    python3 /config/tools/generate_device_inventory.py
+    --config-dir /config
+    --output-dir /config/docs
   house_manager_log_property_tax_payment: >-
     python3 /config/tools/log_property_tax_payment.py
     --tax-type "{{ tax_type }}"
