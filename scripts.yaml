@@ -2413,7 +2413,7 @@ wine_cave_mark_rating_plate_captured:
 
 wine_cave_send_alert:
   alias: Wine Cave Send Alert
-  description: Sends a mobile notification for wine cave cycles, anomalies, and recovery with a consistent calm format.
+  description: Sends a mobile notification for wine cave cycles and anomalies with a consistent calm format.
   icon: mdi:glass-wine
   mode: parallel
   fields:
@@ -2460,8 +2460,6 @@ wine_cave_send_alert:
             📈 Wine cave drift needs a look
           {% elif kind == 'abrupt' %}
             🚨 Wine cave changed fast
-          {% elif kind == 'recovery' %}
-            ✅ Wine cave recovered
           {% elif kind == 'sensor_unavailable' %}
             📡 Wine cave sensor unavailable
           {% else %}

@@ -3420,8 +3420,8 @@
   mode: single
 
 - id: wine_cave_recovery_notification
-  alias: "Wine Cave — Recovery Notification"
-  description: Sends a push when the active wine cave issue has settled back into range for a while.
+  alias: "Wine Cave — Clear Resolved Alert Notifications"
+  description: Clears stale wine cave alert pushes when an actionable issue has settled, without sending a separate recovery push.
   triggers:
     - trigger: state
       entity_id: binary_sensor.wine_cave_actionable_alert
@@ -3463,13 +3463,6 @@
         message: clear_notification
         data:
           tag: wine-cave-unresolved
-    - action: script.wine_cave_send_alert
-      data:
-        alert_kind: recovery
-        message: >-
-          Live conditions are back in range at
-          {{ states('sensor.wine_temperature') | float(0) | round(1) }}°F
-          and {{ states('sensor.wine_humidity') | float(0) | round(0) }}% RH.
   mode: single
 
 - id: basement_humidity_watch_notification
