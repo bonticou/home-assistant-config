@@ -102,7 +102,76 @@
   actions:
     - delay: "00:02:00"
     - action: shell_command.refresh_device_inventory
+    - delay: "00:00:03"
+    - action: homeassistant.update_entity
+      target:
+        entity_id:
+          - sensor.device_inventory_status
+          - sensor.device_inventory_pending_digest
+    - delay: "00:00:02"
+    - choose:
+        - conditions:
+            - condition: template
+              value_template: "{{ state_attr('sensor.device_inventory_status', 'severity') == 'security' }}"
+          sequence:
+            - variables:
+                reasons: "{{ state_attr('sensor.device_inventory_status', 'security_reasons') | default([], true) }}"
+            - action: script.notify_trevor_phone
+              data:
+                title: "⚠️ Home inventory security change"
+                message: >-
+                  {% set summary = states('sensor.device_inventory_status') %}
+                  {% if reasons | count > 0 %}
+                    {{ reasons[:3] | join('\n') }}
+                  {% else %}
+                    {{ summary }}
+                  {% endif %}
+                data:
+                  group: security
+                  tag: device-inventory-security
+                  sticky: true
+                  ttl: 0
+                  priority: high
   mode: restart
+
+- id: inventory_daily_change_digest
+  alias: "Inventory — Daily Change Digest"
+  description: Sends a calm morning summary when ordinary device inventory changes are waiting for review.
+  triggers:
+    - trigger: time
+      at: "08:30:00"
+  conditions: []
+  actions:
+    - action: homeassistant.update_entity
+      target:
+        entity_id: sensor.device_inventory_pending_digest
+    - delay: "00:00:02"
+    - variables:
+        pending_count: "{{ states('sensor.device_inventory_pending_digest') | int(0) }}"
+        summary: "{{ state_attr('sensor.device_inventory_pending_digest', 'summary_message') | default('', true) }}"
+        items: "{{ state_attr('sensor.device_inventory_pending_digest', 'items') | default([], true) }}"
+    - choose:
+        - conditions:
+            - condition: template
+              value_template: "{{ pending_count | int(0) > 0 }}"
+          sequence:
+            - action: script.notify_trevor_phone
+              data:
+                title: "🧭 Home inventory changed"
+                message: >-
+                  {{ summary if summary else pending_count ~ ' inventory change(s) pending review' }}
+                  {% if items | count > 0 %}
+                    Recent: {{ items[:3] | map(attribute='summary') | join('; ') }}
+                  {% endif %}
+                data:
+                  group: inventory
+                  tag: device-inventory-digest
+            - action: shell_command.clear_device_inventory_digest
+            - delay: "00:00:02"
+            - action: homeassistant.update_entity
+              target:
+                entity_id: sensor.device_inventory_pending_digest
+  mode: single
 
 - id: water_overnight_continuous_flow
   alias: "Water — Overnight Continuous Flow (Running Toilet)"

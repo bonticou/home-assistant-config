@@ -5,6 +5,9 @@
 /.tmp-*
 .audit-tmp/
 .device_inventory_raw*.json
+/.device_inventory_changes.json
+/.device_inventory_digest.json
+/.device_inventory_policy*.json
 /.device_inventory_status.json
 /.inventory_salt
 /.inventory_token

@@ -19427,10 +19427,12 @@
   "network_clients": [
     {
       "client_id": "network_01a7ffa721b6",
+      "connection_types": [],
       "device_ids": [],
       "names": [
         "HS103"
       ],
+      "network_scopes": [],
       "sources": [
         "entity_registry",
         "unifi_data.wireless_clients"
@@ -19441,12 +19443,14 @@
     },
     {
       "client_id": "network_0349e3cbc41e",
+      "connection_types": [],
       "device_ids": [
         "device_ca0387716233"
       ],
       "names": [
         "front-yard"
       ],
+      "network_scopes": [],
       "sources": [
         "entity_registry",
         "unifi_data.wireless_clients"
@@ -19457,10 +19461,12 @@
     },
     {
       "client_id": "network_063dcd69dabd",
+      "connection_types": [],
       "device_ids": [],
       "names": [
         "SonosZP"
       ],
+      "network_scopes": [],
       "sources": [
         "entity_registry",
         "unifi_data.wireless_clients"
@@ -19471,12 +19477,14 @@
     },
     {
       "client_id": "network_0701248004f4",
+      "connection_types": [],
       "device_ids": [
         "device_96c096ed4a91"
       ],
       "names": [
         "SonosZP"
       ],
+      "network_scopes": [],
       "sources": [
         "entity_registry",
         "unifi_data.wireless_clients"
@@ -19487,12 +19495,14 @@
     },
     {
       "client_id": "network_077f803201db",
+      "connection_types": [],
       "device_ids": [
         "device_875d11919b1c"
       ],
       "names": [
         "espressif"
       ],
+      "network_scopes": [],
       "sources": [
         "entity_registry",
         "unifi_data.wireless_clients"
@@ -19503,12 +19513,14 @@
     },
     {
       "client_id": "network_0bb5a2bc3a59",
+      "connection_types": [],
       "device_ids": [
         "device_58f8e7ee4387"
       ],
       "names": [
         "Apple TV (Family Room)"
       ],
+      "network_scopes": [],
       "sources": [
         "entity_registry"
       ],
@@ -19518,12 +19530,14 @@
     },
     {
       "client_id": "network_1134d72f2862",
+      "connection_types": [],
       "device_ids": [
         "device_435c14fb97bb"
       ],
       "names": [
         "U7 Pro (Mesh)"
       ],
+      "network_scopes": [],
       "sources": [
         "entity_registry"
       ],
@@ -19533,12 +19547,14 @@
     },
     {
       "client_id": "network_138dd978fd39",
+      "connection_types": [],
       "device_ids": [
         "device_ef443339991c"
       ],
       "names": [
         "Tesla"
       ],
+      "network_scopes": [],
       "sources": [
         "entity_registry",
         "unifi_data.wireless_clients"
@@ -19549,10 +19565,12 @@
     },
     {
       "client_id": "network_162861e9f8a0",
+      "connection_types": [],
       "device_ids": [],
       "names": [
         "Macbook Air (Trevor)"
       ],
+      "network_scopes": [],
       "sources": [
         "entity_registry",
         "unifi_data.wireless_clients"
@@ -19563,10 +19581,12 @@
     },
     {
       "client_id": "network_1becf4615ae2",
+      "connection_types": [],
       "device_ids": [
         "device_2c405371e8c8"
       ],
       "names": [],
+      "network_scopes": [],
       "sources": [
         "entity_registry",
         "unifi_data.wireless_clients"
@@ -19577,10 +19597,12 @@
     },
     {
       "client_id": "network_1c390e0e7586",
+      "connection_types": [],
       "device_ids": [],
       "names": [
         "Apple TV (Office)"
       ],
+      "network_scopes": [],
       "sources": [
         "entity_registry",
         "unifi_data.wireless_clients"
@@ -19591,10 +19613,12 @@
     },
     {
       "client_id": "network_24f2b3079862",
+      "connection_types": [],
       "device_ids": [],
       "names": [
         "iPhone"
       ],
+      "network_scopes": [],
       "sources": [
         "entity_registry",
         "unifi_data.wireless_clients"
@@ -19605,10 +19629,12 @@
     },
     {
       "client_id": "network_2cad38dabb52",
+      "connection_types": [],
       "device_ids": [],
       "names": [
         "Google Tablet (Monitor)"
       ],
+      "network_scopes": [],
       "sources": [
         "entity_registry",
         "unifi_data.wireless_clients"
@@ -19619,8 +19645,10 @@
     },
     {
       "client_id": "network_2dbcba4c5e25",
+      "connection_types": [],
       "device_ids": [],
       "names": [],
+      "network_scopes": [],
       "sources": [
         "entity_registry",
         "unifi_data.wireless_clients"
@@ -19631,12 +19659,14 @@
     },
     {
       "client_id": "network_31c6e9accc86",
+      "connection_types": [],
       "device_ids": [
         "device_582d95951335"
       ],
       "names": [
         "Bonticou Gateway"
       ],
+      "network_scopes": [],
       "sources": [
         "entity_registry"
       ],
@@ -19646,10 +19676,12 @@
     },
     {
       "client_id": "network_381b44eab343",
+      "connection_types": [],
       "device_ids": [],
       "names": [
         "Apple TV (Master)"
       ],
+      "network_scopes": [],
       "sources": [
         "entity_registry",
         "unifi_data.wireless_clients"
@@ -19660,12 +19692,14 @@
     },
     {
       "client_id": "network_3ad07386bd1b",
+      "connection_types": [],
       "device_ids": [
         "device_cc546a11400c"
       ],
       "names": [
         "SonosZP"
       ],
+      "network_scopes": [],
       "sources": [
         "entity_registry",
         "unifi_data.wireless_clients"
@@ -19676,10 +19710,12 @@
     },
     {
       "client_id": "network_3dcc9e36ff54",
+      "connection_types": [],
       "device_ids": [],
       "names": [
         "SonosZP"
       ],
+      "network_scopes": [],
       "sources": [
         "entity_registry",
         "unifi_data.wireless_clients"
@@ -19690,12 +19726,14 @@
     },
     {
       "client_id": "network_40b057178bcb",
+      "connection_types": [],
       "device_ids": [
         "device_5a7bbc9548a4"
       ],
       "names": [
         "play-room"
       ],
+      "network_scopes": [],
       "sources": [
         "entity_registry",
         "unifi_data.wireless_clients"
@@ -19706,10 +19744,12 @@
     },
     {
       "client_id": "network_46e900e653b2",
+      "connection_types": [],
       "device_ids": [],
       "names": [
         "SonosZP"
       ],
+      "network_scopes": [],
       "sources": [
         "entity_registry",
         "unifi_data.wireless_clients"
@@ -19720,12 +19760,14 @@
     },
     {
       "client_id": "network_4c75cbea40e0",
+      "connection_types": [],
       "device_ids": [
         "device_e9b166e8b6d8"
       ],
       "names": [
         "iPhone"
       ],
+      "network_scopes": [],
       "sources": [
         "entity_registry",
         "unifi_data.wireless_clients"
@@ -19736,10 +19778,12 @@
     },
     {
       "client_id": "network_4dce3587a71b",
+      "connection_types": [],
       "device_ids": [],
       "names": [
         "Dining-Room"
       ],
+      "network_scopes": [],
       "sources": [
         "entity_registry",
         "unifi_data.wireless_clients"
@@ -19750,10 +19794,12 @@
     },
     {
       "client_id": "network_4eb1785061b8",
+      "connection_types": [],
       "device_ids": [],
       "names": [
         "Macbook Air (Casey)"
       ],
+      "network_scopes": [],
       "sources": [
         "entity_registry",
         "unifi_data.wireless_clients"
@@ -19764,12 +19810,14 @@
     },
     {
       "client_id": "network_50358c472a72",
+      "connection_types": [],
       "device_ids": [
         "device_52ba6957f618"
       ],
       "names": [
         "espressif"
       ],
+      "network_scopes": [],
       "sources": [
         "entity_registry",
         "unifi_data.wireless_clients"
@@ -19780,10 +19828,12 @@
     },
     {
       "client_id": "network_50c937441dd5",
+      "connection_types": [],
       "device_ids": [],
       "names": [
         "HS103"
       ],
+      "network_scopes": [],
       "sources": [
         "entity_registry",
         "unifi_data.wireless_clients"
@@ -19794,12 +19844,14 @@
     },
     {
       "client_id": "network_5200a5ded176",
+      "connection_types": [],
       "device_ids": [
         "device_32c099f4c862"
       ],
       "names": [
         "Home Assistant"
       ],
+      "network_scopes": [],
       "sources": [
         "entity_registry"
       ],
@@ -19809,12 +19861,14 @@
     },
     {
       "client_id": "network_52793b9da44a",
+      "connection_types": [],
       "device_ids": [
         "device_6f358bbfc961"
       ],
       "names": [
         "espressif"
       ],
+      "network_scopes": [],
       "sources": [
         "entity_registry",
         "unifi_data.wireless_clients"
@@ -19825,12 +19879,14 @@
     },
     {
       "client_id": "network_56124397cc01",
+      "connection_types": [],
       "device_ids": [
         "device_6444bcfdb6d0"
       ],
       "names": [
         "flo-d4e95ef8775b"
       ],
+      "network_scopes": [],
       "sources": [
         "entity_registry",
         "unifi_data.wireless_clients"
@@ -19841,12 +19897,14 @@
     },
     {
       "client_id": "network_5d120dfc3950",
+      "connection_types": [],
       "device_ids": [
         "device_1cc45f5d1971"
       ],
       "names": [
         "Watch"
       ],
+      "network_scopes": [],
       "sources": [
         "entity_registry",
         "unifi_data.wireless_clients"
@@ -19857,12 +19915,14 @@
     },
     {
       "client_id": "network_5d21a958dc6c",
+      "connection_types": [],
       "device_ids": [
         "device_e9cb048d7124"
       ],
       "names": [
         "espressif"
       ],
+      "network_scopes": [],
       "sources": [
         "entity_registry",
         "unifi_data.wireless_clients"
@@ -19873,12 +19933,14 @@
     },
     {
       "client_id": "network_5db1c1849ddb",
+      "connection_types": [],
       "device_ids": [
         "device_42a5e06ebdf7"
       ],
       "names": [
         "espressif"
       ],
+      "network_scopes": [],
       "sources": [
         "entity_registry",
         "unifi_data.wireless_clients"
@@ -19889,10 +19951,12 @@
     },
     {
       "client_id": "network_5dca10f15aa3",
+      "connection_types": [],
       "device_ids": [],
       "names": [
         "LG TV (Master)"
       ],
+      "network_scopes": [],
       "sources": [
         "entity_registry",
         "unifi_data.wireless_clients"
@@ -19903,10 +19967,12 @@
     },
     {
       "client_id": "network_5f232cbd21d5",
+      "connection_types": [],
       "device_ids": [],
       "names": [
         "Ecobee (Office)"
       ],
+      "network_scopes": [],
       "sources": [
         "entity_registry",
         "unifi_data.wireless_clients"
@@ -19917,8 +19983,10 @@
     },
     {
       "client_id": "network_60e35b633815",
+      "connection_types": [],
       "device_ids": [],
       "names": [],
+      "network_scopes": [],
       "sources": [
         "entity_registry",
         "unifi_data.wireless_clients"
@@ -19929,12 +19997,14 @@
     },
     {
       "client_id": "network_62b3b60215cc",
+      "connection_types": [],
       "device_ids": [
         "device_abb8fec33d8d"
       ],
       "names": [
         "Watch"
       ],
+      "network_scopes": [],
       "sources": [
         "entity_registry",
         "unifi_data.wireless_clients"
@@ -19945,10 +20015,12 @@
     },
     {
       "client_id": "network_68a3d3ec0b4d",
+      "connection_types": [],
       "device_ids": [],
       "names": [
         "Apple TV (Family Room)"
       ],
+      "network_scopes": [],
       "sources": [
         "entity_registry",
         "unifi_data.wireless_clients"
@@ -19959,12 +20031,14 @@
     },
     {
       "client_id": "network_6b848b8b0f65",
+      "connection_types": [],
       "device_ids": [
         "device_e90900658a90"
       ],
       "names": [
         "iPad"
       ],
+      "network_scopes": [],
       "sources": [
         "entity_registry",
         "unifi_data.wireless_clients"
@@ -19975,10 +20049,12 @@
     },
     {
       "client_id": "network_6cfb76146798",
+      "connection_types": [],
       "device_ids": [
         "device_c06583cbe783"
       ],
       "names": [],
+      "network_scopes": [],
       "sources": [
         "entity_registry"
       ],
@@ -19988,12 +20064,14 @@
     },
     {
       "client_id": "network_6fbe104ea2f3",
+      "connection_types": [],
       "device_ids": [
         "device_1557543cefbd"
       ],
       "names": [
         "back-yard"
       ],
+      "network_scopes": [],
       "sources": [
         "entity_registry",
         "unifi_data.wireless_clients"
@@ -20004,10 +20082,12 @@
     },
     {
       "client_id": "network_6fbf9451dc87",
+      "connection_types": [],
       "device_ids": [],
       "names": [
         "Security Camera (Side Entry)"
       ],
+      "network_scopes": [],
       "sources": [
         "entity_registry",
         "unifi_data.wireless_clients"
@@ -20018,12 +20098,14 @@
     },
     {
       "client_id": "network_75555cf80976",
+      "connection_types": [],
       "device_ids": [
         "device_52184e4933c8"
       ],
       "names": [
         "Watch"
       ],
+      "network_scopes": [],
       "sources": [
         "entity_registry",
         "unifi_data.wireless_clients"
@@ -20034,10 +20116,12 @@
     },
     {
       "client_id": "network_7603f3886332",
+      "connection_types": [],
       "device_ids": [],
       "names": [
         "Ecobee (Master)"
       ],
+      "network_scopes": [],
       "sources": [
         "entity_registry",
         "unifi_data.wireless_clients"
@@ -20048,10 +20132,12 @@
     },
     {
       "client_id": "network_78cf9ce5485a",
+      "connection_types": [],
       "device_ids": [],
       "names": [
         "iPhone"
       ],
+      "network_scopes": [],
       "sources": [
         "entity_registry",
         "unifi_data.wireless_clients"
@@ -20062,10 +20148,12 @@
     },
     {
       "client_id": "network_78ef6386293f",
+      "connection_types": [],
       "device_ids": [],
       "names": [
         "iPhone"
       ],
+      "network_scopes": [],
       "sources": [
         "entity_registry",
         "unifi_data.wireless_clients"
@@ -20076,10 +20164,12 @@
     },
     {
       "client_id": "network_7936b0ab270d",
+      "connection_types": [],
       "device_ids": [],
       "names": [
         "SonosZP"
       ],
+      "network_scopes": [],
       "sources": [
         "entity_registry",
         "unifi_data.wireless_clients"
@@ -20090,10 +20180,12 @@
     },
     {
       "client_id": "network_7a3ecf75712d",
+      "connection_types": [],
       "device_ids": [],
       "names": [
         "Vizio TV (Family Room)"
       ],
+      "network_scopes": [],
       "sources": [
         "entity_registry",
         "unifi_data.wireless_clients"
@@ -20104,12 +20196,14 @@
     },
     {
       "client_id": "network_7c5c974675ea",
+      "connection_types": [],
       "device_ids": [
         "device_70e6bc5cc91c"
       ],
       "names": [
         "SonosZP"
       ],
+      "network_scopes": [],
       "sources": [
         "entity_registry",
         "unifi_data.wireless_clients"
@@ -20120,10 +20214,12 @@
     },
     {
       "client_id": "network_7c8af86dfe2f",
+      "connection_types": [],
       "device_ids": [
         "device_c8b798d0e2b2"
       ],
       "names": [],
+      "network_scopes": [],
       "sources": [
         "entity_registry"
       ],
@@ -20133,10 +20229,12 @@
     },
     {
       "client_id": "network_7cbdb6e2ee7c",
+      "connection_types": [],
       "device_ids": [],
       "names": [
         "iPhone"
       ],
+      "network_scopes": [],
       "sources": [
         "entity_registry",
         "unifi_data.wireless_clients"
@@ -20147,12 +20245,14 @@
     },
     {
       "client_id": "network_7d82b3372ee2",
+      "connection_types": [],
       "device_ids": [
         "device_4fc75f38e213"
       ],
       "names": [
         "espressif"
       ],
+      "network_scopes": [],
       "sources": [
         "entity_registry",
         "unifi_data.wireless_clients"
@@ -20163,10 +20263,12 @@
     },
     {
       "client_id": "network_7e17b1e5ef19",
+      "connection_types": [],
       "device_ids": [],
       "names": [
         "Jose-s-S23-FE"
       ],
+      "network_scopes": [],
       "sources": [
         "entity_registry",
         "unifi_data.wireless_clients"
@@ -20177,12 +20279,14 @@
     },
     {
       "client_id": "network_835ec58c4a7c",
+      "connection_types": [],
       "device_ids": [
         "device_70d43284b9e8"
       ],
       "names": [
         "iPhone"
       ],
+      "network_scopes": [],
       "sources": [
         "entity_registry",
         "unifi_data.wireless_clients"
@@ -20193,12 +20297,14 @@
     },
     {
       "client_id": "network_853689a7af66",
+      "connection_types": [],
       "device_ids": [
         "device_1aa897c2d0b4"
       ],
       "names": [
         "iPhone"
       ],
+      "network_scopes": [],
       "sources": [
         "entity_registry",
         "unifi_data.wireless_clients"
@@ -20209,12 +20315,14 @@
     },
     {
       "client_id": "network_88fdba8f6b4d",
+      "connection_types": [],
       "device_ids": [
         "device_cb39eb41896c"
       ],
       "names": [
         "USW Flex 2.5G 5"
       ],
+      "network_scopes": [],
       "sources": [
         "entity_registry"
       ],
@@ -20224,10 +20332,12 @@
     },
     {
       "client_id": "network_89e7f0fa3fd2",
+      "connection_types": [],
       "device_ids": [],
       "names": [
         "DB15"
       ],
+      "network_scopes": [],
       "sources": [
         "entity_registry",
         "unifi_data.wireless_clients"
@@ -20238,12 +20348,14 @@
     },
     {
       "client_id": "network_8a7a9f3fb2a8",
+      "connection_types": [],
       "device_ids": [
         "device_faba3c044d32"
       ],
       "names": [
         "BRW849E567C91BC"
       ],
+      "network_scopes": [],
       "sources": [
         "entity_registry",
         "unifi_data.wireless_clients"
@@ -20254,12 +20366,14 @@
     },
     {
       "client_id": "network_8b065ef7c1a0",
+      "connection_types": [],
       "device_ids": [
         "device_d047070a23cf"
       ],
       "names": [
         "Lutron-06926f09"
       ],
+      "network_scopes": [],
       "sources": [
         "entity_registry"
       ],
@@ -20269,12 +20383,14 @@
     },
     {
       "client_id": "network_90db9d129b74",
+      "connection_types": [],
       "device_ids": [
         "device_e5236ec8767c"
       ],
       "names": [
         "mud-room"
       ],
+      "network_scopes": [],
       "sources": [
         "entity_registry",
         "unifi_data.wireless_clients"
@@ -20285,12 +20401,14 @@
     },
     {
       "client_id": "network_968a6d9f0306",
+      "connection_types": [],
       "device_ids": [
         "device_dc0447a8354b"
       ],
       "names": [
         "SonosZP"
       ],
+      "network_scopes": [],
       "sources": [
         "entity_registry",
         "unifi_data.wireless_clients"
@@ -20301,12 +20419,14 @@
     },
     {
       "client_id": "network_9a89c65234c8",
+      "connection_types": [],
       "device_ids": [
         "device_bc00b8395464"
       ],
       "names": [
         "iPhone"
       ],
+      "network_scopes": [],
       "sources": [
         "entity_registry",
         "unifi_data.wireless_clients"
@@ -20317,10 +20437,12 @@
     },
     {
       "client_id": "network_9f52e1e5c4b5",
+      "connection_types": [],
       "device_ids": [],
       "names": [
         "Trevor's iPhone 16 Pro"
       ],
+      "network_scopes": [],
       "sources": [
         "entity_registry",
         "unifi_data.wireless_clients"
@@ -20331,12 +20453,14 @@
     },
     {
       "client_id": "network_a3399227e493",
+      "connection_types": [],
       "device_ids": [
         "device_3047d7172478"
       ],
       "names": [
         "espressif"
       ],
+      "network_scopes": [],
       "sources": [
         "entity_registry",
         "unifi_data.wireless_clients"
@@ -20347,12 +20471,14 @@
     },
     {
       "client_id": "network_ab5c96352376",
+      "connection_types": [],
       "device_ids": [
         "device_3ccbd9acaad8"
       ],
       "names": [
         "Aqara-Hub-M100-6617"
       ],
+      "network_scopes": [],
       "sources": [
         "entity_registry",
         "unifi_data.wireless_clients"
@@ -20363,10 +20489,12 @@
     },
     {
       "client_id": "network_ac89c89ac6b9",
+      "connection_types": [],
       "device_ids": [],
       "names": [
         "Watch"
       ],
+      "network_scopes": [],
       "sources": [
         "entity_registry",
         "unifi_data.wireless_clients"
@@ -20377,12 +20505,14 @@
     },
     {
       "client_id": "network_acba2652c74d",
+      "connection_types": [],
       "device_ids": [
         "device_d82102de874c"
       ],
       "names": [
         "espressif"
       ],
+      "network_scopes": [],
       "sources": [
         "entity_registry",
         "unifi_data.wireless_clients"
@@ -20393,10 +20523,12 @@
     },
     {
       "client_id": "network_ad87894f3188",
+      "connection_types": [],
       "device_ids": [],
       "names": [
         "iPad"
       ],
+      "network_scopes": [],
       "sources": [
         "entity_registry",
         "unifi_data.wireless_clients"
@@ -20407,12 +20539,14 @@
     },
     {
       "client_id": "network_addb6fd64468",
+      "connection_types": [],
       "device_ids": [
         "device_df07ddeb668b"
       ],
       "names": [
         "SonosZP"
       ],
+      "network_scopes": [],
       "sources": [
         "entity_registry",
         "unifi_data.wireless_clients"
@@ -20423,12 +20557,14 @@
     },
     {
       "client_id": "network_afc2c317cfe4",
+      "connection_types": [],
       "device_ids": [
         "device_7e76f4adbfbd"
       ],
       "names": [
         "Watch"
       ],
+      "network_scopes": [],
       "sources": [
         "entity_registry",
         "unifi_data.wireless_clients"
@@ -20439,10 +20575,12 @@
     },
     {
       "client_id": "network_b39ec9ba6c3e",
+      "connection_types": [],
       "device_ids": [
         "device_7bb64bc09fcd"
       ],
       "names": [],
+      "network_scopes": [],
       "sources": [
         "entity_registry"
       ],
@@ -20452,8 +20590,10 @@
     },
     {
       "client_id": "network_b5f62e7218fc",
+      "connection_types": [],
       "device_ids": [],
       "names": [],
+      "network_scopes": [],
       "sources": [
         "entity_registry",
         "unifi_data.wireless_clients"
@@ -20464,12 +20604,14 @@
     },
     {
       "client_id": "network_b626f9bdd329",
+      "connection_types": [],
       "device_ids": [
         "device_937c61cbde64"
       ],
       "names": [
         "espressif"
       ],
+      "network_scopes": [],
       "sources": [
         "entity_registry",
         "unifi_data.wireless_clients"
@@ -20480,12 +20622,14 @@
     },
     {
       "client_id": "network_b65459b7ebe9",
+      "connection_types": [],
       "device_ids": [
         "device_285a8f1e6261"
       ],
       "names": [
         "U7 Pro (Family Room)"
       ],
+      "network_scopes": [],
       "sources": [
         "entity_registry"
       ],
@@ -20495,12 +20639,14 @@
     },
     {
       "client_id": "network_bef51c8b3c76",
+      "connection_types": [],
       "device_ids": [
         "device_029571f3b27b"
       ],
       "names": [
         "Watch"
       ],
+      "network_scopes": [],
       "sources": [
         "entity_registry",
         "unifi_data.wireless_clients"
@@ -20511,10 +20657,12 @@
     },
     {
       "client_id": "network_c1e39619d733",
+      "connection_types": [],
       "device_ids": [],
       "names": [
         "airthings-view"
       ],
+      "network_scopes": [],
       "sources": [
         "entity_registry",
         "unifi_data.wireless_clients"
@@ -20525,10 +20673,12 @@
     },
     {
       "client_id": "network_c1face513856",
+      "connection_types": [],
       "device_ids": [],
       "names": [
         "Mac"
       ],
+      "network_scopes": [],
       "sources": [
         "entity_registry",
         "unifi_data.wireless_clients"
@@ -20539,10 +20689,12 @@
     },
     {
       "client_id": "network_c2dfbbd33698",
+      "connection_types": [],
       "device_ids": [],
       "names": [
         "Security Camera (Doorbell)"
       ],
+      "network_scopes": [],
       "sources": [
         "entity_registry",
         "unifi_data.wireless_clients"
@@ -20553,12 +20705,14 @@
     },
     {
       "client_id": "network_cbae0aa1353c",
+      "connection_types": [],
       "device_ids": [
         "device_d2716c1c55b9"
       ],
       "names": [
         "SonosZP"
       ],
+      "network_scopes": [],
       "sources": [
         "entity_registry",
         "unifi_data.wireless_clients"
@@ -20569,12 +20723,14 @@
     },
     {
       "client_id": "network_cc8a57ab7094",
+      "connection_types": [],
       "device_ids": [
         "device_958d2caf578a"
       ],
       "names": [
         "SonosZP"
       ],
+      "network_scopes": [],
       "sources": [
         "entity_registry",
         "unifi_data.wireless_clients"
@@ -20585,12 +20741,14 @@
     },
     {
       "client_id": "network_d24c85bd5443",
+      "connection_types": [],
       "device_ids": [
         "device_39dfc0b93cda"
       ],
       "names": [
         "Steve's iPhone"
       ],
+      "network_scopes": [],
       "sources": [
         "entity_registry",
         "unifi_data.wireless_clients"
@@ -20601,12 +20759,14 @@
     },
     {
       "client_id": "network_d6c8b6df39de",
+      "connection_types": [],
       "device_ids": [
         "device_a21ac907c776"
       ],
       "names": [
         "mechanical-room"
       ],
+      "network_scopes": [],
       "sources": [
         "entity_registry",
         "unifi_data.wireless_clients"
@@ -20617,12 +20777,14 @@
     },
     {
       "client_id": "network_d8833f9e6da5",
+      "connection_types": [],
       "device_ids": [
         "device_f5cc48a3b632"
       ],
       "names": [
         "SonosZP"
       ],
+      "network_scopes": [],
       "sources": [
         "entity_registry",
         "unifi_data.wireless_clients"
@@ -20633,10 +20795,12 @@
     },
     {
       "client_id": "network_daaa0c318301",
+      "connection_types": [],
       "device_ids": [],
       "names": [
         "Casey's iPhone 16 Pro"
       ],
+      "network_scopes": [],
       "sources": [
         "entity_registry",
         "unifi_data.wireless_clients"
@@ -20647,10 +20811,12 @@
     },
     {
       "client_id": "network_db9f019d8988",
+      "connection_types": [],
       "device_ids": [],
       "names": [
         "Security Camera (Backyard)"
       ],
+      "network_scopes": [],
       "sources": [
         "entity_registry",
         "unifi_data.wireless_clients"
@@ -20661,10 +20827,12 @@
     },
     {
       "client_id": "network_dfabd39e61a1",
+      "connection_types": [],
       "device_ids": [],
       "names": [
         "iPhone"
       ],
+      "network_scopes": [],
       "sources": [
         "entity_registry",
         "unifi_data.wireless_clients"
@@ -20675,12 +20843,14 @@
     },
     {
       "client_id": "network_e135643655fd",
+      "connection_types": [],
       "device_ids": [
         "device_66bf3c0457ee"
       ],
       "names": [
         "Galaxy-S24-Ultra"
       ],
+      "network_scopes": [],
       "sources": [
         "entity_registry",
         "unifi_data.wireless_clients"
@@ -20691,12 +20861,14 @@
     },
     {
       "client_id": "network_e1854c2ce2bc",
+      "connection_types": [],
       "device_ids": [
         "device_c47d5565d225"
       ],
       "names": [
         "iPhone"
       ],
+      "network_scopes": [],
       "sources": [
         "entity_registry",
         "unifi_data.wireless_clients"
@@ -20707,12 +20879,14 @@
     },
     {
       "client_id": "network_e238f98d2452",
+      "connection_types": [],
       "device_ids": [
         "device_f1a2af0f711a"
       ],
       "names": [
         "Sonos Beam (Master)"
       ],
+      "network_scopes": [],
       "sources": [
         "entity_registry",
         "unifi_data.wireless_clients"
@@ -20723,12 +20897,14 @@
     },
     {
       "client_id": "network_ece0fee4cc8a",
+      "connection_types": [],
       "device_ids": [
         "device_776f62e721cd"
       ],
       "names": [
         "U7 Pro (Mud Room)"
       ],
+      "network_scopes": [],
       "sources": [
         "entity_registry"
       ],
@@ -20738,12 +20914,14 @@
     },
     {
       "client_id": "network_f17d59d143c7",
+      "connection_types": [],
       "device_ids": [
         "device_3d305b654446"
       ],
       "names": [
         "DB15"
       ],
+      "network_scopes": [],
       "sources": [
         "entity_registry",
         "unifi_data.wireless_clients"
@@ -20754,10 +20932,12 @@
     },
     {
       "client_id": "network_f24001ded53e",
+      "connection_types": [],
       "device_ids": [],
       "names": [
         "SonosZP"
       ],
+      "network_scopes": [],
       "sources": [
         "entity_registry",
         "unifi_data.wireless_clients"
@@ -20768,10 +20948,12 @@
     },
     {
       "client_id": "network_f4b709ebd714",
+      "connection_types": [],
       "device_ids": [
         "device_1c8c7be1ef1d"
       ],
       "names": [],
+      "network_scopes": [],
       "sources": [
         "entity_registry"
       ],
@@ -20781,12 +20963,14 @@
     },
     {
       "client_id": "network_f9edbe1f2387",
+      "connection_types": [],
       "device_ids": [
         "device_59c87770e78a"
       ],
       "names": [
         "SonosZP"
       ],
+      "network_scopes": [],
       "sources": [
         "entity_registry",
         "unifi_data.wireless_clients"
@@ -20797,10 +20981,12 @@
     },
     {
       "client_id": "network_fb15e20f5084",
+      "connection_types": [],
       "device_ids": [],
       "names": [
         "Apple TV (Basement)"
       ],
+      "network_scopes": [],
       "sources": [
         "entity_registry",
         "unifi_data.wireless_clients"
@@ -20811,12 +20997,14 @@
     },
     {
       "client_id": "network_fb3eecf6e92b",
+      "connection_types": [],
       "device_ids": [
         "device_2a3f688bcd08"
       ],
       "names": [
         "Casey's iPhone 17 Pro"
       ],
+      "network_scopes": [],
       "sources": [
         "entity_registry",
         "unifi_data.wireless_clients"
@@ -20827,12 +21015,14 @@
     },
     {
       "client_id": "network_fce37b630e1f",
+      "connection_types": [],
       "device_ids": [
         "device_41760008fad9"
       ],
       "names": [
         "SonosZP"
       ],
+      "network_scopes": [],
       "sources": [
         "entity_registry",
         "unifi_data.wireless_clients"
@@ -21914,7 +22104,7 @@
       "unit": ""
     }
   ],
-  "schema_version": 1,
+  "schema_version": 2,
   "summary": {
     "area_count": 27,
     "device_count": 114,

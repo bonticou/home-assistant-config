@@ -2204,100 +2204,100 @@ _No registered entities._
 
 ## UniFi Network Clients
 
-| Client ID | Sources | Tracked Entities | Names |
-| --- | --- | --- | --- |
-| `network_01a7ffa721b6` | entity_registry, unifi_data.wireless_clients | `device_tracker.hs103_2` | HS103 |
-| `network_0349e3cbc41e` | entity_registry, unifi_data.wireless_clients | `device_tracker.wynns_room` | front-yard |
-| `network_063dcd69dabd` | entity_registry, unifi_data.wireless_clients | `device_tracker.sonoszp_13` | SonosZP |
-| `network_0701248004f4` | entity_registry, unifi_data.wireless_clients | `device_tracker.sonoszp_7` | SonosZP |
-| `network_077f803201db` | entity_registry, unifi_data.wireless_clients | `device_tracker.mechanical_room_leak_detection_espressif` | espressif |
-| `network_0bb5a2bc3a59` | entity_registry | `device_tracker.apple_tv_family_room` | Apple TV (Family Room) |
-| `network_1134d72f2862` | entity_registry | `device_tracker.u7_pro_mesh` | U7 Pro (Mesh) |
-| `network_138dd978fd39` | entity_registry, unifi_data.wireless_clients | `device_tracker.tesla` | Tesla |
-| `network_162861e9f8a0` | entity_registry, unifi_data.wireless_clients | `device_tracker.macbook_air_trevor` | Macbook Air (Trevor) |
-| `network_1becf4615ae2` | entity_registry, unifi_data.wireless_clients | `device_tracker.unifi_default_mac_b01ea2b181ff` |  |
-| `network_1c390e0e7586` | entity_registry, unifi_data.wireless_clients | `device_tracker.office_tv` | Apple TV (Office) |
-| `network_24f2b3079862` | entity_registry, unifi_data.wireless_clients | `device_tracker.unifi_default_mac_5395b13a8a3d` | iPhone |
-| `network_2cad38dabb52` | entity_registry, unifi_data.wireless_clients | `device_tracker.galaxy_tab_a_80_2019` | Google Tablet (Monitor) |
-| `network_2dbcba4c5e25` | entity_registry, unifi_data.wireless_clients | `device_tracker.unifi_default_mac_c8c81f1a78e1` |  |
-| `network_31c6e9accc86` | entity_registry | `device_tracker.bonticou_gateway` | Bonticou Gateway |
-| `network_381b44eab343` | entity_registry, unifi_data.wireless_clients | `device_tracker.apple_tv_master` | Apple TV (Master) |
-| `network_3ad07386bd1b` | entity_registry, unifi_data.wireless_clients | `device_tracker.unifi_default_mac_0bbc683a0fb6` | SonosZP |
-| `network_3dcc9e36ff54` | entity_registry, unifi_data.wireless_clients | `device_tracker.sonoszp_2` | SonosZP |
-| `network_40b057178bcb` | entity_registry, unifi_data.wireless_clients | `device_tracker.uvc_g6_instant` | play-room |
-| `network_46e900e653b2` | entity_registry, unifi_data.wireless_clients | `device_tracker.sonoszp_9` | SonosZP |
-| `network_4c75cbea40e0` | entity_registry, unifi_data.wireless_clients | `device_tracker.unifi_default_mac_e75396edd3fe` | iPhone |
-| `network_4dce3587a71b` | entity_registry, unifi_data.wireless_clients | `device_tracker.dining_room` | Dining-Room |
-| `network_4eb1785061b8` | entity_registry, unifi_data.wireless_clients | `device_tracker.macbook_air_casey` | Macbook Air (Casey) |
-| `network_50358c472a72` | entity_registry, unifi_data.wireless_clients | `device_tracker.island_sink_leak_detection_espressif` | espressif |
-| `network_50c937441dd5` | entity_registry, unifi_data.wireless_clients | `device_tracker.hs103` | HS103 |
-| `network_5200a5ded176` | entity_registry | `device_tracker.home_assistant` | Home Assistant |
-| `network_52793b9da44a` | entity_registry, unifi_data.wireless_clients | `device_tracker.laundry_sink_leak_detection_espressif` | espressif |
-| `network_56124397cc01` | entity_registry, unifi_data.wireless_clients | `device_tracker.flo_d4e95ef8775b` | flo-d4e95ef8775b |
-| `network_5d120dfc3950` | entity_registry, unifi_data.wireless_clients | `device_tracker.unifi_default_mac_de716b80d9a5` | Watch |
-| `network_5d21a958dc6c` | entity_registry, unifi_data.wireless_clients | `device_tracker.washing_machine_leak_detection_espressif` | espressif |
-| `network_5db1c1849ddb` | entity_registry, unifi_data.wireless_clients | `device_tracker.basement_ejector_leak_detection_espressif` | espressif |
-| `network_5dca10f15aa3` | entity_registry, unifi_data.wireless_clients | `device_tracker.lg_tv_master` | LG TV (Master) |
-| `network_5f232cbd21d5` | entity_registry, unifi_data.wireless_clients | `device_tracker.ecobee_office` | Ecobee (Office) |
-| `network_60e35b633815` | entity_registry, unifi_data.wireless_clients | `device_tracker.google_tablet` |  |
-| `network_62b3b60215cc` | entity_registry, unifi_data.wireless_clients | `device_tracker.unifi_default_mac_9878938b26f8` | Watch |
-| `network_68a3d3ec0b4d` | entity_registry, unifi_data.wireless_clients | `device_tracker.apple_tv_family_room_2` | Apple TV (Family Room) |
-| `network_6b848b8b0f65` | entity_registry, unifi_data.wireless_clients | `device_tracker.unifi_default_mac_d8484ff5d8dc` | iPad |
-| `network_6cfb76146798` | entity_registry | `device_tracker.unifi_default_mac_29c96008c22e` |  |
-| `network_6fbe104ea2f3` | entity_registry, unifi_data.wireless_clients | `device_tracker.uvc_g6_instant_2` | back-yard |
-| `network_6fbf9451dc87` | entity_registry, unifi_data.wireless_clients | `device_tracker.security_camera_side_entry` | Security Camera (Side Entry) |
-| `network_75555cf80976` | entity_registry, unifi_data.wireless_clients | `device_tracker.unifi_default_mac_e29de8de1f70` | Watch |
-| `network_7603f3886332` | entity_registry, unifi_data.wireless_clients | `device_tracker.ecobee_master` | Ecobee (Master) |
-| `network_78cf9ce5485a` | entity_registry, unifi_data.wireless_clients | `device_tracker.iphone_5` | iPhone |
-| `network_78ef6386293f` | entity_registry, unifi_data.wireless_clients | `device_tracker.iphone_4` | iPhone |
-| `network_7936b0ab270d` | entity_registry, unifi_data.wireless_clients | `device_tracker.sonoszp_8` | SonosZP |
-| `network_7a3ecf75712d` | entity_registry, unifi_data.wireless_clients | `device_tracker.vizio_tv_family_room` | Vizio TV (Family Room) |
-| `network_7c5c974675ea` | entity_registry, unifi_data.wireless_clients | `device_tracker.sonoszp_10` | SonosZP |
-| `network_7c8af86dfe2f` | entity_registry | `device_tracker.unifi_default_mac_2c894ada8b0b` |  |
-| `network_7cbdb6e2ee7c` | entity_registry, unifi_data.wireless_clients | `device_tracker.iphone_3` | iPhone |
-| `network_7d82b3372ee2` | entity_registry, unifi_data.wireless_clients | `device_tracker.kitchen_fridge_leak_detection_espressif` | espressif |
-| `network_7e17b1e5ef19` | entity_registry, unifi_data.wireless_clients | `device_tracker.jose_s_s23_fe` | Jose-s-S23-FE |
-| `network_835ec58c4a7c` | entity_registry, unifi_data.wireless_clients | `device_tracker.unifi_default_mac_dd5079c60353` | iPhone |
-| `network_853689a7af66` | entity_registry, unifi_data.wireless_clients | `device_tracker.unifi_default_mac_b019bd33cc89` | iPhone |
-| `network_88fdba8f6b4d` | entity_registry | `device_tracker.usw_flex_2_5g_5` | USW Flex 2.5G 5 |
-| `network_89e7f0fa3fd2` | entity_registry, unifi_data.wireless_clients | `device_tracker.db15_2` | DB15 |
-| `network_8a7a9f3fb2a8` | entity_registry, unifi_data.wireless_clients | `device_tracker.brw849e567c91bc` | BRW849E567C91BC |
-| `network_8b065ef7c1a0` | entity_registry | `device_tracker.lutron_06926f09` | Lutron-06926f09 |
-| `network_90db9d129b74` | entity_registry, unifi_data.wireless_clients | `device_tracker.mud_room` | mud-room |
-| `network_968a6d9f0306` | entity_registry, unifi_data.wireless_clients | `device_tracker.sonoszp_6` | SonosZP |
-| `network_9a89c65234c8` | entity_registry, unifi_data.wireless_clients | `device_tracker.unifi_default_mac_a38f4e4b84a0` | iPhone |
-| `network_9f52e1e5c4b5` | entity_registry, unifi_data.wireless_clients | `device_tracker.trevor_s_iphone_16_pro` | Trevor's iPhone 16 Pro |
-| `network_a3399227e493` | entity_registry, unifi_data.wireless_clients | `device_tracker.dishwasher_leak_detection_espressif` | espressif |
-| `network_ab5c96352376` | entity_registry, unifi_data.wireless_clients | `device_tracker.unifi_default_mac_754c3a1ea02a` | Aqara-Hub-M100-6617 |
-| `network_ac89c89ac6b9` | entity_registry, unifi_data.wireless_clients | `device_tracker.watch` | Watch |
-| `network_acba2652c74d` | entity_registry, unifi_data.wireless_clients | `device_tracker.electrical_room_leak_detection_espressif` | espressif |
-| `network_ad87894f3188` | entity_registry, unifi_data.wireless_clients | `device_tracker.ipad` | iPad |
-| `network_addb6fd64468` | entity_registry, unifi_data.wireless_clients | `device_tracker.sonoszp` | SonosZP |
-| `network_afc2c317cfe4` | entity_registry, unifi_data.wireless_clients | `device_tracker.unifi_default_mac_7ed0c6182c02` | Watch |
-| `network_b39ec9ba6c3e` | entity_registry | `device_tracker.unifi_default_mac_d129d9e3d6b1` |  |
-| `network_b5f62e7218fc` | entity_registry, unifi_data.wireless_clients | `device_tracker.unifi_default_mac_fd58284dab4a` |  |
-| `network_b626f9bdd329` | entity_registry, unifi_data.wireless_clients | `device_tracker.kitchen_sink_leak_detection_espressif` | espressif |
-| `network_b65459b7ebe9` | entity_registry | `device_tracker.u7_pro_family_room` | U7 Pro (Family Room) |
-| `network_bef51c8b3c76` | entity_registry, unifi_data.wireless_clients | `device_tracker.unifi_default_mac_e52ad2d9d62a` | Watch |
-| `network_c1e39619d733` | entity_registry, unifi_data.wireless_clients | `device_tracker.airthings_view` | airthings-view |
-| `network_c1face513856` | entity_registry, unifi_data.wireless_clients | `device_tracker.mac` | Mac |
-| `network_c2dfbbd33698` | entity_registry, unifi_data.wireless_clients | `device_tracker.security_camera_doorbell` | Security Camera (Doorbell) |
-| `network_cbae0aa1353c` | entity_registry, unifi_data.wireless_clients | `device_tracker.sonoszp_3` | SonosZP |
-| `network_cc8a57ab7094` | entity_registry, unifi_data.wireless_clients | `device_tracker.unifi_default_mac_e322eb2d1cf7` | SonosZP |
-| `network_d24c85bd5443` | entity_registry, unifi_data.wireless_clients | `device_tracker.iphone` | Steve's iPhone |
-| `network_d6c8b6df39de` | entity_registry, unifi_data.wireless_clients | `device_tracker.mechanical_room` | mechanical-room |
-| `network_d8833f9e6da5` | entity_registry, unifi_data.wireless_clients | `device_tracker.sonoszp_4` | SonosZP |
-| `network_daaa0c318301` | entity_registry, unifi_data.wireless_clients | `device_tracker.casey_s_iphone_16_pro` | Casey's iPhone 16 Pro |
-| `network_db9f019d8988` | entity_registry, unifi_data.wireless_clients | `device_tracker.security_camera_backyard` | Security Camera (Backyard) |
-| `network_dfabd39e61a1` | entity_registry, unifi_data.wireless_clients | `device_tracker.iphone_2` | iPhone |
-| `network_e135643655fd` | entity_registry, unifi_data.wireless_clients | `device_tracker.galaxy_s24_ultra` | Galaxy-S24-Ultra |
-| `network_e1854c2ce2bc` | entity_registry, unifi_data.wireless_clients | `device_tracker.unifi_default_mac_be3f4a9ec204` | iPhone |
-| `network_e238f98d2452` | entity_registry, unifi_data.wireless_clients | `device_tracker.sonos_beam_master` | Sonos Beam (Master) |
-| `network_ece0fee4cc8a` | entity_registry | `device_tracker.u7_pro_mud_room` | U7 Pro (Mud Room) |
-| `network_f17d59d143c7` | entity_registry, unifi_data.wireless_clients | `device_tracker.db15` | DB15 |
-| `network_f24001ded53e` | entity_registry, unifi_data.wireless_clients | `device_tracker.sonoszp_5` | SonosZP |
-| `network_f4b709ebd714` | entity_registry | `device_tracker.unifi_default_mac_92902c5c8aa5` |  |
-| `network_f9edbe1f2387` | entity_registry, unifi_data.wireless_clients | `device_tracker.sonoszp_12` | SonosZP |
-| `network_fb15e20f5084` | entity_registry, unifi_data.wireless_clients | `device_tracker.apple_tv_basement` | Apple TV (Basement) |
-| `network_fb3eecf6e92b` | entity_registry, unifi_data.wireless_clients | `device_tracker.unifi_default_mac_5042130907ce` | Casey's iPhone 17 Pro |
-| `network_fce37b630e1f` | entity_registry, unifi_data.wireless_clients | `device_tracker.sonoszp_11` | SonosZP |
+| Client ID | Sources | Connection | Scope | Tracked Entities | Names |
+| --- | --- | --- | --- | --- | --- |
+| `network_01a7ffa721b6` | entity_registry, unifi_data.wireless_clients |  |  | `device_tracker.hs103_2` | HS103 |
+| `network_0349e3cbc41e` | entity_registry, unifi_data.wireless_clients |  |  | `device_tracker.wynns_room` | front-yard |
+| `network_063dcd69dabd` | entity_registry, unifi_data.wireless_clients |  |  | `device_tracker.sonoszp_13` | SonosZP |
+| `network_0701248004f4` | entity_registry, unifi_data.wireless_clients |  |  | `device_tracker.sonoszp_7` | SonosZP |
+| `network_077f803201db` | entity_registry, unifi_data.wireless_clients |  |  | `device_tracker.mechanical_room_leak_detection_espressif` | espressif |
+| `network_0bb5a2bc3a59` | entity_registry |  |  | `device_tracker.apple_tv_family_room` | Apple TV (Family Room) |
+| `network_1134d72f2862` | entity_registry |  |  | `device_tracker.u7_pro_mesh` | U7 Pro (Mesh) |
+| `network_138dd978fd39` | entity_registry, unifi_data.wireless_clients |  |  | `device_tracker.tesla` | Tesla |
+| `network_162861e9f8a0` | entity_registry, unifi_data.wireless_clients |  |  | `device_tracker.macbook_air_trevor` | Macbook Air (Trevor) |
+| `network_1becf4615ae2` | entity_registry, unifi_data.wireless_clients |  |  | `device_tracker.unifi_default_mac_b01ea2b181ff` |  |
+| `network_1c390e0e7586` | entity_registry, unifi_data.wireless_clients |  |  | `device_tracker.office_tv` | Apple TV (Office) |
+| `network_24f2b3079862` | entity_registry, unifi_data.wireless_clients |  |  | `device_tracker.unifi_default_mac_5395b13a8a3d` | iPhone |
+| `network_2cad38dabb52` | entity_registry, unifi_data.wireless_clients |  |  | `device_tracker.galaxy_tab_a_80_2019` | Google Tablet (Monitor) |
+| `network_2dbcba4c5e25` | entity_registry, unifi_data.wireless_clients |  |  | `device_tracker.unifi_default_mac_c8c81f1a78e1` |  |
+| `network_31c6e9accc86` | entity_registry |  |  | `device_tracker.bonticou_gateway` | Bonticou Gateway |
+| `network_381b44eab343` | entity_registry, unifi_data.wireless_clients |  |  | `device_tracker.apple_tv_master` | Apple TV (Master) |
+| `network_3ad07386bd1b` | entity_registry, unifi_data.wireless_clients |  |  | `device_tracker.unifi_default_mac_0bbc683a0fb6` | SonosZP |
+| `network_3dcc9e36ff54` | entity_registry, unifi_data.wireless_clients |  |  | `device_tracker.sonoszp_2` | SonosZP |
+| `network_40b057178bcb` | entity_registry, unifi_data.wireless_clients |  |  | `device_tracker.uvc_g6_instant` | play-room |
+| `network_46e900e653b2` | entity_registry, unifi_data.wireless_clients |  |  | `device_tracker.sonoszp_9` | SonosZP |
+| `network_4c75cbea40e0` | entity_registry, unifi_data.wireless_clients |  |  | `device_tracker.unifi_default_mac_e75396edd3fe` | iPhone |
+| `network_4dce3587a71b` | entity_registry, unifi_data.wireless_clients |  |  | `device_tracker.dining_room` | Dining-Room |
+| `network_4eb1785061b8` | entity_registry, unifi_data.wireless_clients |  |  | `device_tracker.macbook_air_casey` | Macbook Air (Casey) |
+| `network_50358c472a72` | entity_registry, unifi_data.wireless_clients |  |  | `device_tracker.island_sink_leak_detection_espressif` | espressif |
+| `network_50c937441dd5` | entity_registry, unifi_data.wireless_clients |  |  | `device_tracker.hs103` | HS103 |
+| `network_5200a5ded176` | entity_registry |  |  | `device_tracker.home_assistant` | Home Assistant |
+| `network_52793b9da44a` | entity_registry, unifi_data.wireless_clients |  |  | `device_tracker.laundry_sink_leak_detection_espressif` | espressif |
+| `network_56124397cc01` | entity_registry, unifi_data.wireless_clients |  |  | `device_tracker.flo_d4e95ef8775b` | flo-d4e95ef8775b |
+| `network_5d120dfc3950` | entity_registry, unifi_data.wireless_clients |  |  | `device_tracker.unifi_default_mac_de716b80d9a5` | Watch |
+| `network_5d21a958dc6c` | entity_registry, unifi_data.wireless_clients |  |  | `device_tracker.washing_machine_leak_detection_espressif` | espressif |
+| `network_5db1c1849ddb` | entity_registry, unifi_data.wireless_clients |  |  | `device_tracker.basement_ejector_leak_detection_espressif` | espressif |
+| `network_5dca10f15aa3` | entity_registry, unifi_data.wireless_clients |  |  | `device_tracker.lg_tv_master` | LG TV (Master) |
+| `network_5f232cbd21d5` | entity_registry, unifi_data.wireless_clients |  |  | `device_tracker.ecobee_office` | Ecobee (Office) |
+| `network_60e35b633815` | entity_registry, unifi_data.wireless_clients |  |  | `device_tracker.google_tablet` |  |
+| `network_62b3b60215cc` | entity_registry, unifi_data.wireless_clients |  |  | `device_tracker.unifi_default_mac_9878938b26f8` | Watch |
+| `network_68a3d3ec0b4d` | entity_registry, unifi_data.wireless_clients |  |  | `device_tracker.apple_tv_family_room_2` | Apple TV (Family Room) |
+| `network_6b848b8b0f65` | entity_registry, unifi_data.wireless_clients |  |  | `device_tracker.unifi_default_mac_d8484ff5d8dc` | iPad |
+| `network_6cfb76146798` | entity_registry |  |  | `device_tracker.unifi_default_mac_29c96008c22e` |  |
+| `network_6fbe104ea2f3` | entity_registry, unifi_data.wireless_clients |  |  | `device_tracker.uvc_g6_instant_2` | back-yard |
+| `network_6fbf9451dc87` | entity_registry, unifi_data.wireless_clients |  |  | `device_tracker.security_camera_side_entry` | Security Camera (Side Entry) |
+| `network_75555cf80976` | entity_registry, unifi_data.wireless_clients |  |  | `device_tracker.unifi_default_mac_e29de8de1f70` | Watch |
+| `network_7603f3886332` | entity_registry, unifi_data.wireless_clients |  |  | `device_tracker.ecobee_master` | Ecobee (Master) |
+| `network_78cf9ce5485a` | entity_registry, unifi_data.wireless_clients |  |  | `device_tracker.iphone_5` | iPhone |
+| `network_78ef6386293f` | entity_registry, unifi_data.wireless_clients |  |  | `device_tracker.iphone_4` | iPhone |
+| `network_7936b0ab270d` | entity_registry, unifi_data.wireless_clients |  |  | `device_tracker.sonoszp_8` | SonosZP |
+| `network_7a3ecf75712d` | entity_registry, unifi_data.wireless_clients |  |  | `device_tracker.vizio_tv_family_room` | Vizio TV (Family Room) |
+| `network_7c5c974675ea` | entity_registry, unifi_data.wireless_clients |  |  | `device_tracker.sonoszp_10` | SonosZP |
+| `network_7c8af86dfe2f` | entity_registry |  |  | `device_tracker.unifi_default_mac_2c894ada8b0b` |  |
+| `network_7cbdb6e2ee7c` | entity_registry, unifi_data.wireless_clients |  |  | `device_tracker.iphone_3` | iPhone |
+| `network_7d82b3372ee2` | entity_registry, unifi_data.wireless_clients |  |  | `device_tracker.kitchen_fridge_leak_detection_espressif` | espressif |
+| `network_7e17b1e5ef19` | entity_registry, unifi_data.wireless_clients |  |  | `device_tracker.jose_s_s23_fe` | Jose-s-S23-FE |
+| `network_835ec58c4a7c` | entity_registry, unifi_data.wireless_clients |  |  | `device_tracker.unifi_default_mac_dd5079c60353` | iPhone |
+| `network_853689a7af66` | entity_registry, unifi_data.wireless_clients |  |  | `device_tracker.unifi_default_mac_b019bd33cc89` | iPhone |
+| `network_88fdba8f6b4d` | entity_registry |  |  | `device_tracker.usw_flex_2_5g_5` | USW Flex 2.5G 5 |
+| `network_89e7f0fa3fd2` | entity_registry, unifi_data.wireless_clients |  |  | `device_tracker.db15_2` | DB15 |
+| `network_8a7a9f3fb2a8` | entity_registry, unifi_data.wireless_clients |  |  | `device_tracker.brw849e567c91bc` | BRW849E567C91BC |
+| `network_8b065ef7c1a0` | entity_registry |  |  | `device_tracker.lutron_06926f09` | Lutron-06926f09 |
+| `network_90db9d129b74` | entity_registry, unifi_data.wireless_clients |  |  | `device_tracker.mud_room` | mud-room |
+| `network_968a6d9f0306` | entity_registry, unifi_data.wireless_clients |  |  | `device_tracker.sonoszp_6` | SonosZP |
+| `network_9a89c65234c8` | entity_registry, unifi_data.wireless_clients |  |  | `device_tracker.unifi_default_mac_a38f4e4b84a0` | iPhone |
+| `network_9f52e1e5c4b5` | entity_registry, unifi_data.wireless_clients |  |  | `device_tracker.trevor_s_iphone_16_pro` | Trevor's iPhone 16 Pro |
+| `network_a3399227e493` | entity_registry, unifi_data.wireless_clients |  |  | `device_tracker.dishwasher_leak_detection_espressif` | espressif |
+| `network_ab5c96352376` | entity_registry, unifi_data.wireless_clients |  |  | `device_tracker.unifi_default_mac_754c3a1ea02a` | Aqara-Hub-M100-6617 |
+| `network_ac89c89ac6b9` | entity_registry, unifi_data.wireless_clients |  |  | `device_tracker.watch` | Watch |
+| `network_acba2652c74d` | entity_registry, unifi_data.wireless_clients |  |  | `device_tracker.electrical_room_leak_detection_espressif` | espressif |
+| `network_ad87894f3188` | entity_registry, unifi_data.wireless_clients |  |  | `device_tracker.ipad` | iPad |
+| `network_addb6fd64468` | entity_registry, unifi_data.wireless_clients |  |  | `device_tracker.sonoszp` | SonosZP |
+| `network_afc2c317cfe4` | entity_registry, unifi_data.wireless_clients |  |  | `device_tracker.unifi_default_mac_7ed0c6182c02` | Watch |
+| `network_b39ec9ba6c3e` | entity_registry |  |  | `device_tracker.unifi_default_mac_d129d9e3d6b1` |  |
+| `network_b5f62e7218fc` | entity_registry, unifi_data.wireless_clients |  |  | `device_tracker.unifi_default_mac_fd58284dab4a` |  |
+| `network_b626f9bdd329` | entity_registry, unifi_data.wireless_clients |  |  | `device_tracker.kitchen_sink_leak_detection_espressif` | espressif |
+| `network_b65459b7ebe9` | entity_registry |  |  | `device_tracker.u7_pro_family_room` | U7 Pro (Family Room) |
+| `network_bef51c8b3c76` | entity_registry, unifi_data.wireless_clients |  |  | `device_tracker.unifi_default_mac_e52ad2d9d62a` | Watch |
+| `network_c1e39619d733` | entity_registry, unifi_data.wireless_clients |  |  | `device_tracker.airthings_view` | airthings-view |
+| `network_c1face513856` | entity_registry, unifi_data.wireless_clients |  |  | `device_tracker.mac` | Mac |
+| `network_c2dfbbd33698` | entity_registry, unifi_data.wireless_clients |  |  | `device_tracker.security_camera_doorbell` | Security Camera (Doorbell) |
+| `network_cbae0aa1353c` | entity_registry, unifi_data.wireless_clients |  |  | `device_tracker.sonoszp_3` | SonosZP |
+| `network_cc8a57ab7094` | entity_registry, unifi_data.wireless_clients |  |  | `device_tracker.unifi_default_mac_e322eb2d1cf7` | SonosZP |
+| `network_d24c85bd5443` | entity_registry, unifi_data.wireless_clients |  |  | `device_tracker.iphone` | Steve's iPhone |
+| `network_d6c8b6df39de` | entity_registry, unifi_data.wireless_clients |  |  | `device_tracker.mechanical_room` | mechanical-room |
+| `network_d8833f9e6da5` | entity_registry, unifi_data.wireless_clients |  |  | `device_tracker.sonoszp_4` | SonosZP |
+| `network_daaa0c318301` | entity_registry, unifi_data.wireless_clients |  |  | `device_tracker.casey_s_iphone_16_pro` | Casey's iPhone 16 Pro |
+| `network_db9f019d8988` | entity_registry, unifi_data.wireless_clients |  |  | `device_tracker.security_camera_backyard` | Security Camera (Backyard) |
+| `network_dfabd39e61a1` | entity_registry, unifi_data.wireless_clients |  |  | `device_tracker.iphone_2` | iPhone |
+| `network_e135643655fd` | entity_registry, unifi_data.wireless_clients |  |  | `device_tracker.galaxy_s24_ultra` | Galaxy-S24-Ultra |
+| `network_e1854c2ce2bc` | entity_registry, unifi_data.wireless_clients |  |  | `device_tracker.unifi_default_mac_be3f4a9ec204` | iPhone |
+| `network_e238f98d2452` | entity_registry, unifi_data.wireless_clients |  |  | `device_tracker.sonos_beam_master` | Sonos Beam (Master) |
+| `network_ece0fee4cc8a` | entity_registry |  |  | `device_tracker.u7_pro_mud_room` | U7 Pro (Mud Room) |
+| `network_f17d59d143c7` | entity_registry, unifi_data.wireless_clients |  |  | `device_tracker.db15` | DB15 |
+| `network_f24001ded53e` | entity_registry, unifi_data.wireless_clients |  |  | `device_tracker.sonoszp_5` | SonosZP |
+| `network_f4b709ebd714` | entity_registry |  |  | `device_tracker.unifi_default_mac_92902c5c8aa5` |  |
+| `network_f9edbe1f2387` | entity_registry, unifi_data.wireless_clients |  |  | `device_tracker.sonoszp_12` | SonosZP |
+| `network_fb15e20f5084` | entity_registry, unifi_data.wireless_clients |  |  | `device_tracker.apple_tv_basement` | Apple TV (Basement) |
+| `network_fb3eecf6e92b` | entity_registry, unifi_data.wireless_clients |  |  | `device_tracker.unifi_default_mac_5042130907ce` | Casey's iPhone 17 Pro |
+| `network_fce37b630e1f` | entity_registry, unifi_data.wireless_clients |  |  | `device_tracker.sonoszp_11` | SonosZP |

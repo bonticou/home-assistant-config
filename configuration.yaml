@@ -85,12 +85,51 @@ command_line:
         - message
         - trains
         - error
+  - sensor:
+      name: Device Inventory Status
+      unique_id: device_inventory_status
+      command: >-
+        python3 /config/tools/generate_device_inventory.py
+        --config-dir /config
+        --print-status
+      command_timeout: 15
+      scan_interval: 300
+      value_template: >
+        {{ value_json.summary_message if value_json.summary_message is defined else 'Inventory status pending' }}
+      json_attributes:
+        - generated_at
+        - api_enriched
+        - output_changed
+        - severity
+        - change_counts
+        - security_reasons
+        - warnings
+  - sensor:
+      name: Device Inventory Pending Digest
+      unique_id: device_inventory_pending_digest
+      command: >-
+        python3 /config/tools/generate_device_inventory.py
+        --config-dir /config
+        --print-digest
+      command_timeout: 15
+      scan_interval: 300
+      value_template: >
+        {{ value_json.pending_count if value_json.pending_count is defined else 0 }}
+      json_attributes:
+        - updated_at
+        - pending_count
+        - summary_message
+        - items
 
 shell_command:
   refresh_device_inventory: >-
     python3 /config/tools/generate_device_inventory.py
     --config-dir /config
     --output-dir /config/docs
+  clear_device_inventory_digest: >-
+    python3 /config/tools/generate_device_inventory.py
+    --config-dir /config
+    --clear-digest
   house_manager_log_property_tax_payment: >-
     python3 /config/tools/log_property_tax_payment.py
     --tax-type "{{ tax_type }}"
