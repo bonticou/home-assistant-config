@@ -2,6 +2,8 @@
 
 Future improvements to consider once the current system is calm and stable.
 
+This is a living brainstorm and tracking list, not gospel. Add to it, remove from it, and reorder it as the house teaches us what actually matters. Only the best ideas should survive into real build work.
+
 Grounding from `docs/device-inventory.md`: 114 devices, 962 entities, 469 telemetry entities, and 380 control entities. The house already has a lot of the organs built; the biggest unbuilt value is a calmer brain layer that turns existing telemetry into trust, timing, and summaries.
 
 ## Highest-Value Ideas
