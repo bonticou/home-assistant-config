@@ -493,29 +493,6 @@ views:
             styles:
               <<: *compact_tile_styles
             extra_styles: *compact_tile_extra
-          - type: custom:button-card
-            entity: media_player.kitchen_speakers
-            show_icon: false
-            show_name: false
-            show_state: false
-            custom_fields:
-              icon: >-
-                [[[
-                  const color = ['playing', 'paused'].includes(entity.state) ? '#3b82f6' : '#94a3b8';
-                  return `<div class="tile-icon"><ha-icon icon="mdi:speaker-wireless" style="color:${color}"></ha-icon></div>`;
-                ]]]
-              text: >-
-                [[[
-                  const meta = entity.state === 'playing' ? 'Playing' : entity.state === 'paused' ? 'Ready' : 'Idle';
-                  return `<div class="tile-copy"><div class="tile-label">Music</div><div class="tile-meta">${meta}</div></div>`;
-                ]]]
-            tap_action:
-              action: navigate
-              navigation_path: /calm-mobile/music
-            styles:
-              <<: *compact_tile_styles
-            extra_styles: *compact_tile_extra
-
       - type: conditional
         conditions:
           - entity: input_boolean.espresso_maintenance_enabled
@@ -813,31 +790,6 @@ views:
                     - font-weight: 500
                     - color: white
                     - white-space: nowrap
-
-      - type: custom:mushroom-title-card
-        title: Now Playing
-
-      - type: custom:mini-media-player
-        entity: media_player.kitchen_speakers
-        name: Kitchen
-        artwork: cover
-        hide:
-          source: true
-          power_state: false
-        speaker_group:
-          platform: sonos
-          show_group_count: true
-          entities:
-            - entity_id: media_player.kitchen_speakers
-              name: Kitchen
-            - entity_id: media_player.family_room
-              name: Family Room
-            - entity_id: media_player.great_room_speakers
-              name: Great Room
-            - entity_id: media_player.unnamed_room_6
-              name: Dining
-            - entity_id: media_player.wynn_s_room
-              name: Wynn's Room
 
       - type: custom:mushroom-title-card
         title: Environment
