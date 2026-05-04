@@ -1978,8 +1978,18 @@ template:
                   'narrative': 'Capture the rating plate so the appliance record has exact support identity.',
                   'url': '/calm-mobile/wine',
                   'entity_id': 'input_boolean.wine_cave_rating_plate_captured',
+                  'details': {
+                    'summary': 'This is still an open task. Take a clear photo of the rating plate or write down the model and serial number, then mark it captured so the appliance record knows support identity is complete.',
+                    'facts': [
+                      'Where to look: rating plate or serial label on the wine cave.',
+                      'Why it matters: service, warranty, and parts calls need exact identity.',
+                      'Current state: not captured yet.'
+                    ],
+                    'after_action': 'After you mark it captured, this reminder clears and the wine cave record stops asking for serial-number follow-up.',
+                    'tracking': 'Home Assistant will keep the task open until you explicitly mark the plate captured.'
+                  },
                   'actions': [
-                    {'label': 'Captured', 'service': 'script.wine_cave_mark_rating_plate_captured'}
+                    {'label': 'Mark captured', 'service': 'script.wine_cave_mark_rating_plate_captured', 'confirm': true, 'inline': false}
                   ]
                 }] %}
               {% endif %}

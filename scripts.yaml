@@ -2527,7 +2527,7 @@ wine_cave_send_rating_plate_reminder:
           url: /calm-mobile/wine
           actions:
             - action: WINE_CAVE_RATING_PLATE_CAPTURED
-              title: Captured
+              title: Mark captured
             - action: URI
               title: Open wine cave
               uri: /calm-mobile/wine

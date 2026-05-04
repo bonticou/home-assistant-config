@@ -7265,8 +7265,8 @@ views:
               {% else %}teal{% endif %}
             multiline_secondary: true
             tap_action:
-              action: call-service
-              service: input_boolean.toggle
+              action: perform-action
+              perform_action: input_boolean.toggle
               target:
                 entity_id: input_boolean.garden_action_panel_expanded
             hold_action:
@@ -7366,8 +7366,8 @@ views:
                       icon_color: grey
                       content: Close
                       tap_action:
-                        action: call-service
-                        service: input_boolean.turn_off
+                        action: perform-action
+                        perform_action: input_boolean.turn_off
                         target:
                           entity_id: input_boolean.garden_action_panel_expanded
 
@@ -7410,38 +7410,19 @@ views:
                   {% else %}Peppers & squash wait{% endif %}
 
           - type: custom:mushroom-title-card
-            title: Ready Now
+            title: Cool Starts
             subtitle: >-
               {% set low_raw = state_attr('sensor.garden_weather_window', 'lowest_low_4_day') %}
               {% set low = low_raw | float(99) if is_number(low_raw) else 99 %}
-              {% if states('input_select.garden_bok_choy_stage') != 'planted' and low >= 32 %}
-                Bok choy is the real planting task.
+              {% if is_state('binary_sensor.garden_needs_attention', 'on') %}
+                Active planting tasks are handled in the panel above.
+              {% elif states('input_select.garden_bok_choy_stage') != 'planted' and low >= 32 %}
+                Cool-season crops can use the open window.
               {% elif low < 32 %}
                 Frost protection matters more than planting.
               {% else %}
                 Cool-season bed check.
               {% endif %}
-
-          - type: conditional
-            conditions:
-              - entity: input_select.garden_bok_choy_stage
-                state_not: planted
-            card:
-              type: custom:mushroom-select-card
-              entity: input_select.garden_bok_choy_stage
-              name: Bok choy stage
-              icon: mdi:sprout-outline
-              icon_color: teal
-              secondary_info: state
-              fill_container: true
-              card_mod:
-                style: |
-                  ha-card {
-                    border: 1px solid rgba(148, 163, 184, 0.12);
-                    border-radius: 18px;
-                    box-shadow: none;
-                    background: rgba(15, 23, 42, 0.58);
-                  }
 
           - type: grid
             columns: 2
@@ -7510,7 +7491,7 @@ views:
                   {% else %}teal{% endif %}
                 multiline_secondary: true
                 tap_action:
-                  action: more-info
+                  action: none
                 card_mod:
                   style: *garden_compact_crop_card_style
 
