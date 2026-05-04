@@ -177,12 +177,23 @@ class HouseNoticesCard extends HTMLElement {
     const tag = String(event.tag || "").trim().toLowerCase();
     const action = String(event.action || event.message || event.title || "").toUpperCase();
     const combined = `${title} ${message} ${tag} ${action}`.toLowerCase();
-    if (event.kind === "action" && action.includes("SNOOZE")) return true;
+    if (event.kind === "action" && !this.keepActionInRecent(event)) return true;
     if (combined.includes("garden_mark_watered") || combined.includes("mark watered")) return true;
     return title === "house reminder sleeping"
       || title === "wine cave guardrail"
       || tag.endsWith("-snooze")
       || message.includes("reminders paused");
+  }
+
+  keepActionInRecent(event) {
+    const recent = String(event.recent ?? "").toLowerCase();
+    const keepRecent = String(event.keep_recent ?? "").toLowerCase();
+    const history = String(event.history ?? "").toLowerCase();
+    return event.recent === true
+      || event.keep_recent === true
+      || ["true", "on", "1", "yes"].includes(recent)
+      || ["true", "on", "1", "yes"].includes(keepRecent)
+      || history === "recent";
   }
 
   render() {
@@ -1198,6 +1209,7 @@ class HouseNoticesCard extends HTMLElement {
         severity: "info",
         action: action.service,
         source: "house-notices-card",
+        recent: action.recent === true || action.keep_recent === true || action.history === "recent",
       });
     } catch (_err) {
       // The service call should still run if history recording is unavailable.

@@ -150,6 +150,14 @@ Never attach durable state-changing actions to large summary/hero cards where a
 stray tap can mutate the home model. Use an expand/caret action drawer, a
 clearly labeled button with confirmation, or a durable dropdown/select control.
 
+The Notification Center's Recent section is for meaningful notifications and
+important state changes, not routine action receipts. Do not show low-signal
+completion taps such as `Water done`, `Done`, `Captured`, `Snoozed`, or `Opened`
+as recent notifications by default. Record them only as internal history unless
+there is a clear audit or safety reason to surface the action; opt into Recent
+explicitly with action/event metadata such as `recent: true` or
+`keep_recent: true` / `history: recent`.
+
 Reminder and task "Details" surfaces must be bespoke to the content. Do not
 route them to stock Home Assistant `more-info` history/activity popups unless
 the purpose is explicitly diagnostic. Use calm sheets or designed inline panels

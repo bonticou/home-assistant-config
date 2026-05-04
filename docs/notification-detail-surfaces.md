@@ -84,3 +84,24 @@ The Notification Center's `Details` action must open the custom detail sheet in
 `house-notices-card`. It must not dispatch `hass-more-info` for reminder/task
 items. `Open page` may navigate to the relevant dashboard, and diagnostic
 entity popups may still exist elsewhere for non-task dashboard cards.
+
+## Recent feed standard
+
+Recent is not an action receipt log. It should help Trevor reconstruct
+meaningful notices from the last couple of weeks, not list every button tap.
+
+Hide routine action events from Recent by default, including:
+
+- completion acknowledgements such as `Done`, `Water done`, `Mark captured`,
+  `Replaced`, or similar maintenance receipts
+- snoozes and notification clears
+- `Opened` or `URI` actions
+- low-risk inline task handling where the visible result is that the active
+  notice disappears
+
+Routine actions may still be recorded in `sensor.house_notice_history` for
+context, diagnostics, or future detail timelines. To show an action in Recent,
+the action/event must opt in explicitly with metadata such as `recent: true`,
+`keep_recent: true`, or `history: recent`, and the reason should be audit,
+safety, money movement, access/security, or another user-visible consequence
+that is genuinely worth seeing later.

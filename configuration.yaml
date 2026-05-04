@@ -4211,7 +4211,10 @@ template:
                 'url': trigger.event.data.url | default('', true),
                 'severity': trigger.event.data.severity | default('info', true),
                 'action': trigger.event.data.action | default('', true),
-                'source': trigger.event.data.source | default('', true)
+                'source': trigger.event.data.source | default('', true),
+                'recent': trigger.event.data.recent | default(false, true),
+                'keep_recent': trigger.event.data.keep_recent | default(false, true),
+                'history': trigger.event.data.history | default('', true)
               } %}
               {% set orphan_clear = event_kind == 'clear' and (event_tag | length == 0 or event_tag not in open_sent_tags.items) %}
               {{ (kept.items if orphan_clear else [event] + kept.items)[:80] | to_json }}

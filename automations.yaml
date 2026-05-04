@@ -620,7 +620,7 @@
 
 - id: house_notice_action_history
   alias: "Notices — Notification Action History"
-  description: Records mobile notification actions so the Notices tab can show recent taps like Paid, Done, Snoozed, and Applied.
+  description: Records mobile notification actions for context; the Notices tab hides routine action receipts unless an event opts into Recent.
   triggers:
     - trigger: event
       event_type: mobile_app_notification_action
@@ -659,6 +659,9 @@
         severity: info
         action: "{{ action_id }}"
         source: mobile_app_notification_action
+        recent: "{{ trigger.event.data.recent | default(false, true) }}"
+        keep_recent: "{{ trigger.event.data.keep_recent | default(false, true) }}"
+        history: "{{ trigger.event.data.history | default('', true) }}"
   mode: parallel
   max: 20
 
