@@ -176,6 +176,62 @@ input_datetime:
     has_date: true
     has_time: true
     initial: "2026-04-13 15:00:00"
+  garden_notifications_snooze_until:
+    name: Garden Notifications Snooze Until
+    has_date: true
+    has_time: true
+  garden_stage_last_notified_at:
+    name: Garden Stage Last Notified At
+    has_date: true
+    has_time: true
+  garden_weather_last_notified_at:
+    name: Garden Weather Last Notified At
+    has_date: true
+    has_time: true
+  garden_issue_last_notified_at:
+    name: Garden Issue Last Notified At
+    has_date: true
+    has_time: true
+  garden_bok_choy_planted:
+    name: Garden Bok Choy Planted
+    has_date: true
+    has_time: true
+  garden_tomatoes_hardening_started:
+    name: Garden Tomatoes Hardening Started
+    has_date: true
+    has_time: true
+    initial: "2026-05-04 08:00:00"
+  garden_tomatoes_planted:
+    name: Garden Tomatoes Planted
+    has_date: true
+    has_time: true
+  garden_peppers_hardening_started:
+    name: Garden Peppers Hardening Started
+    has_date: true
+    has_time: true
+    initial: "2026-05-04 08:00:00"
+  garden_peppers_planted:
+    name: Garden Peppers Planted
+    has_date: true
+    has_time: true
+  garden_cape_gooseberry_hardening_started:
+    name: Garden Cape Gooseberry Hardening Started
+    has_date: true
+    has_time: true
+    initial: "2026-05-04 08:00:00"
+  garden_cape_gooseberry_planted:
+    name: Garden Cape Gooseberry Planted
+    has_date: true
+    has_time: true
+  garden_honeynut_squash_hardening_started:
+    name: Garden Honeynut Squash Hardening Started
+    has_date: true
+    has_time: true
+    initial: "2026-05-04 08:00:00"
+  garden_honeynut_squash_planted:
+    name: Garden Honeynut Squash Planted
+    has_date: true
+    has_time: true
   latest_camera_motion_at:
     name: Latest Camera Motion At
     has_date: true
@@ -413,6 +469,10 @@ input_boolean:
     name: Garden Spinach In Ground
     icon: mdi:shovel
     initial: true
+  garden_notifications_enabled:
+    name: Garden Notifications Enabled
+    icon: mdi:sprout-outline
+    initial: true
   wine_cave_maintenance_enabled:
     name: Wine Cave Maintenance Enabled
     icon: mdi:calendar-check-outline
@@ -447,6 +507,91 @@ input_select:
       - stressed
     initial: looking good
     icon: mdi:leaf
+  garden_bok_choy_stage:
+    name: Garden Bok Choy Stage
+    options:
+      - waiting
+      - hardening
+      - ready to plant
+      - planted
+    initial: ready to plant
+    icon: mdi:sprout-outline
+  garden_tomatoes_stage:
+    name: Garden Tomatoes Stage
+    options:
+      - waiting
+      - hardening
+      - ready to plant
+      - planted
+    initial: hardening
+    icon: mdi:food-apple-outline
+  garden_peppers_stage:
+    name: Garden Peppers Stage
+    options:
+      - waiting
+      - hardening
+      - ready to plant
+      - planted
+    initial: hardening
+    icon: mdi:chili-mild
+  garden_cape_gooseberry_stage:
+    name: Garden Cape Gooseberry Stage
+    options:
+      - waiting
+      - hardening
+      - ready to plant
+      - planted
+    initial: hardening
+    icon: mdi:fruit-cherries
+  garden_honeynut_squash_stage:
+    name: Garden Honeynut Squash Stage
+    options:
+      - waiting
+      - hardening
+      - ready to plant
+      - planted
+    initial: hardening
+    icon: mdi:pumpkin
+  garden_bok_choy_observation:
+    name: Garden Bok Choy Observation
+    options:
+      - looking good
+      - dry
+      - stressed
+    initial: looking good
+    icon: mdi:sprout-outline
+  garden_tomatoes_observation:
+    name: Garden Tomatoes Observation
+    options:
+      - looking good
+      - dry
+      - stressed
+    initial: looking good
+    icon: mdi:food-apple-outline
+  garden_peppers_observation:
+    name: Garden Peppers Observation
+    options:
+      - looking good
+      - dry
+      - stressed
+    initial: looking good
+    icon: mdi:chili-mild
+  garden_cape_gooseberry_observation:
+    name: Garden Cape Gooseberry Observation
+    options:
+      - looking good
+      - dry
+      - stressed
+    initial: looking good
+    icon: mdi:fruit-cherries
+  garden_honeynut_squash_observation:
+    name: Garden Honeynut Squash Observation
+    options:
+      - looking good
+      - dry
+      - stressed
+    initial: looking good
+    icon: mdi:pumpkin
 
 input_number:
   downstairs_aux_cutover_temp:
@@ -1251,6 +1396,7 @@ template:
             is_state('binary_sensor.house_unsecured_while_away', 'on'),
             ns.env_active,
             is_state('binary_sensor.house_low_battery_alert', 'on'),
+            is_state('binary_sensor.garden_actionable_alert', 'on'),
             is_state('binary_sensor.wine_cave_actionable_alert', 'on'),
             is_state('binary_sensor.wine_cave_sensor_unavailable', 'on'),
             is_state('binary_sensor.espresso_maintenance_due', 'on'),
@@ -1302,6 +1448,7 @@ template:
               is_state('binary_sensor.house_unsecured_while_away', 'on'),
               ns.env_active,
               is_state('binary_sensor.house_low_battery_alert', 'on'),
+              is_state('binary_sensor.garden_actionable_alert', 'on'),
               is_state('binary_sensor.wine_cave_actionable_alert', 'on'),
               is_state('binary_sensor.wine_cave_sensor_unavailable', 'on'),
               is_state('binary_sensor.espresso_maintenance_due', 'on'),
@@ -1495,6 +1642,26 @@ template:
                 'narrative': state_attr('sensor.house_low_battery_summary', 'replace_soon_batteries') | default(states('sensor.house_low_battery_summary') ~ ' batteries need attention', true),
                 'url': '/calm-mobile/climate',
                 'entity_id': 'sensor.house_low_battery_summary'
+              }] %}
+            {% endif %}
+            {% if is_state('binary_sensor.garden_actionable_alert', 'on') %}
+              {% set garden_action = state_attr('sensor.garden_next_action', 'action_id') | default('none', true) | string %}
+              {% set garden_action_label = 'Issue resolved' if garden_action[:14] == 'GARDEN_RESOLVE' else 'Mark planted' if garden_action[:11] == 'GARDEN_MARK' else 'Snooze' %}
+              {% set garden_severity = 'watch' if is_state('binary_sensor.garden_issue_attention_due', 'on') or is_state('binary_sensor.garden_weather_protection_due', 'on') else 'info' %}
+              {% set ns.items = ns.items + [{
+                'id': 'garden-window',
+                'title': 'Garden',
+                'emoji': '🌱',
+                'icon': 'mdi:sprout-outline',
+                'group': 'Garden',
+                'state': 'active' if garden_severity == 'watch' else 'due',
+                'severity': garden_severity,
+                'date': now_stamp,
+                'due_prefix': 'Now',
+                'narrative': state_attr('sensor.garden_next_action', 'detail') | default(states('sensor.garden_next_action'), true),
+                'url': '/calm-mobile/garden',
+                'entity_id': 'sensor.garden_next_action',
+                'actions': ([{'label': garden_action_label, 'service': 'script.garden_apply_next_action'}] if garden_action != 'none' else []) + [{'label': 'Snooze', 'service': 'script.garden_snooze_notifications'}]
               }] %}
             {% endif %}
             {% if is_state('binary_sensor.wine_cave_actionable_alert', 'on') or is_state('binary_sensor.wine_cave_sensor_unavailable', 'on') %}
@@ -3375,6 +3542,147 @@ template:
         delay_off:
           minutes: 15
 
+  - triggers:
+      - trigger: homeassistant
+        event: start
+      - trigger: time_pattern
+        hours: "/3"
+    actions:
+      - action: weather.get_forecasts
+        target:
+          entity_id: weather.forecast_home
+        data:
+          type: daily
+        response_variable: garden_daily_forecast
+    sensor:
+      - name: "Garden Weather Window"
+        unique_id: garden_weather_window
+        icon: mdi:weather-partly-cloudy
+        state: >
+          {% set forecast_map = garden_daily_forecast if garden_daily_forecast is defined else {} %}
+          {% set forecast = forecast_map['weather.forecast_home'].forecast if 'weather.forecast_home' in forecast_map else [] %}
+          {% set ns = namespace(lows=[]) %}
+          {% for item in forecast[:4] %}
+            {% if is_number(item.templow | default(none)) %}
+              {% set ns.lows = ns.lows + [item.templow | float(0)] %}
+            {% endif %}
+          {% endfor %}
+          {% if ns.lows | count < 4 %}
+            Forecast unavailable
+          {% elif ns.lows | min < 32 %}
+            Hard frost risk
+          {% elif ns.lows | min < 50 %}
+            Cool nights ahead
+          {% elif ns.lows | min < 55 %}
+            Tomato window; peppers and squash wait
+          {% else %}
+            Warm window open
+          {% endif %}
+        attributes:
+          forecast_available: >
+            {% set forecast_map = garden_daily_forecast if garden_daily_forecast is defined else {} %}
+            {% set forecast = forecast_map['weather.forecast_home'].forecast if 'weather.forecast_home' in forecast_map else [] %}
+            {% set ns = namespace(lows=[]) %}
+            {% for item in forecast[:4] %}
+              {% if is_number(item.templow | default(none)) %}
+                {% set ns.lows = ns.lows + [item.templow | float(0)] %}
+              {% endif %}
+            {% endfor %}
+            {{ ns.lows | count >= 4 }}
+          climate_context: "White Plains frost normals are background context only; live forecast wins."
+          average_last_spring_frost: "Apr 18 at Westchester Co AP; NOAA 1991-2020 normals via Almanac, 30% frost probability"
+          average_first_fall_frost: "Oct 24 at Westchester Co AP; NOAA 1991-2020 normals via Almanac, 30% frost probability"
+          lowest_low_4_day: >
+            {% set forecast_map = garden_daily_forecast if garden_daily_forecast is defined else {} %}
+            {% set forecast = forecast_map['weather.forecast_home'].forecast if 'weather.forecast_home' in forecast_map else [] %}
+            {% set ns = namespace(lows=[]) %}
+            {% for item in forecast[:4] %}
+              {% if is_number(item.templow | default(none)) %}
+                {% set ns.lows = ns.lows + [item.templow | float(0)] %}
+              {% endif %}
+            {% endfor %}
+            {{ (ns.lows | min | round(0) | int) if ns.lows else 'unknown' }}
+          next_4_lows: >
+            {% set forecast_map = garden_daily_forecast if garden_daily_forecast is defined else {} %}
+            {% set forecast = forecast_map['weather.forecast_home'].forecast if 'weather.forecast_home' in forecast_map else [] %}
+            {% set ns = namespace(labels=[]) %}
+            {% for item in forecast[:4] %}
+              {% if is_number(item.templow | default(none)) %}
+                {% set ns.labels = ns.labels + [((item.templow | float(0)) | round(0) | int) ~ '°'] %}
+              {% endif %}
+            {% endfor %}
+            {{ ns.labels | join(' · ') if ns.labels else 'Forecast unavailable' }}
+          wet_days: >
+            {% set forecast_map = garden_daily_forecast if garden_daily_forecast is defined else {} %}
+            {% set forecast = forecast_map['weather.forecast_home'].forecast if 'weather.forecast_home' in forecast_map else [] %}
+            {% set wet_conditions = ['rainy', 'pouring', 'lightning', 'lightning-rainy', 'snowy', 'snowy-rainy'] %}
+            {% set ns = namespace(labels=[]) %}
+            {% for item in forecast[:4] %}
+              {% set condition = item.condition | default('', true) %}
+              {% set precip = item.precipitation_probability | default(0, true) | float(0) %}
+              {% if condition in wet_conditions or precip >= 60 %}
+                {% set day = as_datetime(item.datetime).strftime('%a') if item.datetime is defined else 'Day ' ~ loop.index %}
+                {% set ns.labels = ns.labels + [day] %}
+              {% endif %}
+            {% endfor %}
+            {{ ns.labels | join(' · ') if ns.labels else 'None flagged' }}
+          wind_risk: >
+            {% set forecast_map = garden_daily_forecast if garden_daily_forecast is defined else {} %}
+            {% set forecast = forecast_map['weather.forecast_home'].forecast if 'weather.forecast_home' in forecast_map else [] %}
+            {% set ns = namespace(risk=false) %}
+            {% for item in forecast[:4] %}
+              {% if item.wind_speed is defined and item.wind_speed | float(0) >= 18 %}
+                {% set ns.risk = true %}
+              {% endif %}
+            {% endfor %}
+            {{ ns.risk }}
+          tomatoes_window: >
+            {% set forecast_map = garden_daily_forecast if garden_daily_forecast is defined else {} %}
+            {% set forecast = forecast_map['weather.forecast_home'].forecast if 'weather.forecast_home' in forecast_map else [] %}
+            {% set ns = namespace(lows=[]) %}
+            {% for item in forecast[:4] %}
+              {% if is_number(item.templow | default(none)) %}
+                {% set ns.lows = ns.lows + [item.templow | float(0)] %}
+              {% endif %}
+            {% endfor %}
+            {{ ns.lows | count >= 4 and ns.lows | min >= 50 }}
+          cape_gooseberry_window: >
+            {% set forecast_map = garden_daily_forecast if garden_daily_forecast is defined else {} %}
+            {% set forecast = forecast_map['weather.forecast_home'].forecast if 'weather.forecast_home' in forecast_map else [] %}
+            {% set ns = namespace(lows=[]) %}
+            {% for item in forecast[:4] %}
+              {% if is_number(item.templow | default(none)) %}
+                {% set ns.lows = ns.lows + [item.templow | float(0)] %}
+              {% endif %}
+            {% endfor %}
+            {{ ns.lows | count >= 4 and ns.lows | min >= 50 }}
+          peppers_window: >
+            {% set forecast_map = garden_daily_forecast if garden_daily_forecast is defined else {} %}
+            {% set forecast = forecast_map['weather.forecast_home'].forecast if 'weather.forecast_home' in forecast_map else [] %}
+            {% set ns = namespace(lows=[]) %}
+            {% for item in forecast[:4] %}
+              {% if is_number(item.templow | default(none)) %}
+                {% set ns.lows = ns.lows + [item.templow | float(0)] %}
+              {% endif %}
+            {% endfor %}
+            {{ ns.lows | count >= 4 and ns.lows | min >= 55 }}
+          honeynut_squash_window: >
+            {% set forecast_map = garden_daily_forecast if garden_daily_forecast is defined else {} %}
+            {% set forecast = forecast_map['weather.forecast_home'].forecast if 'weather.forecast_home' in forecast_map else [] %}
+            {% set wet_conditions = ['rainy', 'pouring', 'lightning', 'lightning-rainy', 'snowy', 'snowy-rainy'] %}
+            {% set ns = namespace(lows=[], wet=false) %}
+            {% for item in forecast[:4] %}
+              {% if is_number(item.templow | default(none)) %}
+                {% set ns.lows = ns.lows + [item.templow | float(0)] %}
+              {% endif %}
+              {% set condition = item.condition | default('', true) %}
+              {% set precip = item.precipitation_probability | default(0, true) | float(0) %}
+              {% if condition in wet_conditions or precip >= 60 %}
+                {% set ns.wet = true %}
+              {% endif %}
+            {% endfor %}
+            {{ ns.lows | count >= 4 and ns.lows | min >= 55 and not ns.wet }}
+
   - sensor:
       - name: "Garden Spinach Status"
         unique_id: garden_spinach_status
@@ -3396,13 +3704,7 @@ template:
             {% else %}
               {{ as_datetime(planted).strftime('%B %-d') }}
             {% endif %}
-          last_watered: >
-            {% set watered = states('input_datetime.garden_spinach_last_watered') %}
-            {% if watered in ['unknown', 'unavailable', ''] %}
-              unknown
-            {% else %}
-              {{ as_datetime(watered).strftime('%B %-d') }}
-            {% endif %}
+          varieties: Bloomsdale spinach
           stage_note: >
             {% set observation = states('input_select.garden_spinach_observation') %}
             {% set in_ground = is_state('input_boolean.garden_spinach_in_ground', 'on') %}
@@ -3431,12 +3733,301 @@ template:
             {% else %}
               Spinach is outside, but not planted in the ground yet.
             {% endif %}
-          move_rule: >
-            {% if is_state('input_boolean.garden_spinach_in_ground', 'on') %}
-              Already planted out in the raised beds.
+
+      - name: "Garden Bok Choy Status"
+        unique_id: garden_bok_choy_status
+        state: "{{ states('input_select.garden_bok_choy_stage') | title }}"
+        icon: mdi:sprout-outline
+        attributes:
+          count: 4
+          varieties: Shanghai bok choy four-pack
+          threshold: "Cool-season crop; protect only for hard frost."
+          target_location: Raised bed or container with afternoon shade
+          stage_note: >
+            {% set stage = states('input_select.garden_bok_choy_stage') %}
+            {% set low = state_attr('sensor.garden_weather_window', 'lowest_low_4_day') %}
+            {% set low = low | float(99) if is_number(low) else 99 %}
+            {% if stage == 'planted' %}
+              Planted. Keep evenly moist and watch flea beetles.
+            {% elif low < 32 %}
+              Looks ready, but a hard frost is in the forecast. Wait or cover.
             {% else %}
-              Already outside as a cool-season crop.
+              Plant now. It prefers this cool window and may bolt as heat builds.
             {% endif %}
+
+      - name: "Garden Tomatoes Status"
+        unique_id: garden_tomatoes_status
+        state: "{{ states('input_select.garden_tomatoes_stage') | title }}"
+        icon: mdi:food-apple-outline
+        attributes:
+          count: 4
+          varieties: Honey Drop cherry; Cherokee Purple; Sweet Pea tomato hanging basket; Bumblebee mix cherry
+          threshold: "Plant after hardening when the next 4 lows are at least 50°F."
+          target_location: Full sun; cages or hanging basket support
+          stage_note: >
+            {% set stage = states('input_select.garden_tomatoes_stage') %}
+            {% set started = states('input_datetime.garden_tomatoes_hardening_started') %}
+            {% set days = (now().date() - as_datetime(started).date()).days if started not in ['unknown', 'unavailable', ''] else 0 %}
+            {% set window = state_attr('sensor.garden_weather_window', 'tomatoes_window') in [true, 'true', 'True'] %}
+            {% if stage == 'planted' %}
+              Planted. Keep moisture even and supports in place.
+            {% elif not window %}
+              Keep hardening. Tomatoes want the next 4 nights at or above 50°F.
+            {% elif days < 7 %}
+              Weather is close, but keep hardening for {{ 7 - days }} more day{{ 's' if 7 - days != 1 else '' }}.
+            {% else %}
+              Warm enough and hardened. Ready for final planting.
+            {% endif %}
+
+      - name: "Garden Peppers Status"
+        unique_id: garden_peppers_status
+        state: "{{ states('input_select.garden_peppers_stage') | title }}"
+        icon: mdi:chili-mild
+        attributes:
+          count: 4
+          varieties: Shishito x3; Lemon Spice jalapeno x1
+          threshold: "Plant after hardening when the next 4 lows are at least 55°F."
+          target_location: Full sun; light stakes
+          stage_note: >
+            {% set stage = states('input_select.garden_peppers_stage') %}
+            {% set started = states('input_datetime.garden_peppers_hardening_started') %}
+            {% set days = (now().date() - as_datetime(started).date()).days if started not in ['unknown', 'unavailable', ''] else 0 %}
+            {% set window = state_attr('sensor.garden_weather_window', 'peppers_window') in [true, 'true', 'True'] %}
+            {% if stage == 'planted' %}
+              Planted. Keep them warm and avoid drought swings.
+            {% elif not window %}
+              Keep hardening. Peppers want the next 4 nights at or above 55°F.
+            {% elif days < 7 %}
+              Weather is close, but keep hardening for {{ 7 - days }} more day{{ 's' if 7 - days != 1 else '' }}.
+            {% else %}
+              Warm enough and hardened. Ready for final planting.
+            {% endif %}
+
+      - name: "Garden Cape Gooseberry Status"
+        unique_id: garden_cape_gooseberry_status
+        state: "{{ states('input_select.garden_cape_gooseberry_stage') | title }}"
+        icon: mdi:fruit-cherries
+        attributes:
+          count: 1
+          varieties: Cape gooseberry / Physalis peruviana; Plant World Seeds line
+          threshold: "Treat like a warm tomato-family crop; next 4 lows at or above 50°F."
+          target_location: 5-10 gallon container, full sun, free-draining mix
+          stage_note: >
+            {% set stage = states('input_select.garden_cape_gooseberry_stage') %}
+            {% set started = states('input_datetime.garden_cape_gooseberry_hardening_started') %}
+            {% set days = (now().date() - as_datetime(started).date()).days if started not in ['unknown', 'unavailable', ''] else 0 %}
+            {% set window = state_attr('sensor.garden_weather_window', 'cape_gooseberry_window') in [true, 'true', 'True'] %}
+            {% if stage == 'planted' %}
+              In its container. Eat only fully ripe golden fruit; avoid leaves, husks, and green fruit.
+            {% elif not window %}
+              Keep hardening. Cape gooseberry wants tomato-like warmth.
+            {% elif days < 7 %}
+              Weather is close, but keep hardening for {{ 7 - days }} more day{{ 's' if 7 - days != 1 else '' }}.
+            {% else %}
+              Warm enough and hardened. Ready for a container.
+            {% endif %}
+
+      - name: "Garden Honeynut Squash Status"
+        unique_id: garden_honeynut_squash_status
+        state: "{{ states('input_select.garden_honeynut_squash_stage') | title }}"
+        icon: mdi:pumpkin
+        attributes:
+          count: 2
+          varieties: Honeynut butternut winter squash
+          threshold: "Plant after hardening when the next 4 lows are at least 55°F and not wet."
+          target_location: Warm sunny edge, mound, or trellis/fence
+          stage_note: >
+            {% set stage = states('input_select.garden_honeynut_squash_stage') %}
+            {% set started = states('input_datetime.garden_honeynut_squash_hardening_started') %}
+            {% set days = (now().date() - as_datetime(started).date()).days if started not in ['unknown', 'unavailable', ''] else 0 %}
+            {% set window = state_attr('sensor.garden_weather_window', 'honeynut_squash_window') in [true, 'true', 'True'] %}
+            {% if stage == 'planted' %}
+              Planted. Give vines room and keep roots evenly moist.
+            {% elif not window %}
+              Keep hardening. Squash wants warm, settled, not soggy weather.
+            {% elif days < 7 %}
+              Weather is close, but keep hardening for {{ 7 - days }} more day{{ 's' if 7 - days != 1 else '' }}.
+            {% else %}
+              Warm enough, dry enough, and hardened. Ready for final planting.
+            {% endif %}
+
+      - name: "Garden Crop Summary"
+        unique_id: garden_crop_summary
+        state: >
+          {% set stages = [
+            states('input_select.garden_bok_choy_stage'),
+            states('input_select.garden_tomatoes_stage'),
+            states('input_select.garden_peppers_stage'),
+            states('input_select.garden_cape_gooseberry_stage'),
+            states('input_select.garden_honeynut_squash_stage')
+          ] %}
+          {% set planted = stages | select('eq', 'planted') | list | count %}
+          {{ planted + 1 }} planted group{{ 's' if planted != 0 else '' }} · {{ 5 - planted }} active start group{{ 's' if 5 - planted != 1 else '' }}
+        icon: mdi:sprout-outline
+        attributes:
+          active_groups: "Spinach; bok choy; tomatoes; peppers; cape gooseberry; honeynut squash"
+          varieties: "Spinach; Shanghai bok choy; Honey Drop cherry; Cherokee Purple; Sweet Pea tomato; Bumblebee mix cherry; Shishito; Lemon Spice jalapeno; Cape gooseberry; Honeynut squash"
+
+      - name: "Garden Next Action"
+        unique_id: garden_next_action
+        state: >
+          {% set low = state_attr('sensor.garden_weather_window', 'lowest_low_4_day') %}
+          {% set low = low | float(99) if is_number(low) else 99 %}
+          {% set forecast_ok = state_attr('sensor.garden_weather_window', 'forecast_available') in [true, 'true', 'True'] %}
+          {% set tomato_window = state_attr('sensor.garden_weather_window', 'tomatoes_window') in [true, 'true', 'True'] %}
+          {% set pepper_window = state_attr('sensor.garden_weather_window', 'peppers_window') in [true, 'true', 'True'] %}
+          {% set cape_window = state_attr('sensor.garden_weather_window', 'cape_gooseberry_window') in [true, 'true', 'True'] %}
+          {% set squash_window = state_attr('sensor.garden_weather_window', 'honeynut_squash_window') in [true, 'true', 'True'] %}
+          {% set tomato_started = states('input_datetime.garden_tomatoes_hardening_started') %}
+          {% set pepper_started = states('input_datetime.garden_peppers_hardening_started') %}
+          {% set cape_started = states('input_datetime.garden_cape_gooseberry_hardening_started') %}
+          {% set squash_started = states('input_datetime.garden_honeynut_squash_hardening_started') %}
+          {% set tomato_days = (now().date() - as_datetime(tomato_started).date()).days if tomato_started not in ['unknown', 'unavailable', ''] else 0 %}
+          {% set pepper_days = (now().date() - as_datetime(pepper_started).date()).days if pepper_started not in ['unknown', 'unavailable', ''] else 0 %}
+          {% set cape_days = (now().date() - as_datetime(cape_started).date()).days if cape_started not in ['unknown', 'unavailable', ''] else 0 %}
+          {% set squash_days = (now().date() - as_datetime(squash_started).date()).days if squash_started not in ['unknown', 'unavailable', ''] else 0 %}
+          {% set stressed = [
+            'spinach' if states('input_select.garden_spinach_observation') == 'stressed' else '',
+            'bok choy' if states('input_select.garden_bok_choy_observation') == 'stressed' else '',
+            'tomatoes' if states('input_select.garden_tomatoes_observation') == 'stressed' else '',
+            'peppers' if states('input_select.garden_peppers_observation') == 'stressed' else '',
+            'cape gooseberry' if states('input_select.garden_cape_gooseberry_observation') == 'stressed' else '',
+            'honeynut squash' if states('input_select.garden_honeynut_squash_observation') == 'stressed' else ''
+          ] | reject('eq', '') | list %}
+          {% if stressed | count > 0 %}
+            Check {{ stressed[0] }}
+          {% elif not forecast_ok %}
+            Forecast unavailable
+          {% elif low < 32 and states('input_select.garden_bok_choy_stage') != 'planted' %}
+            Protect bok choy from frost
+          {% elif states('input_select.garden_bok_choy_stage') != 'planted' and low >= 32 %}
+            Plant bok choy
+          {% elif (states('input_select.garden_tomatoes_stage') in ['hardening', 'ready to plant', 'planted'] and low < 50)
+             or (states('input_select.garden_cape_gooseberry_stage') in ['hardening', 'ready to plant', 'planted'] and low < 50)
+             or (states('input_select.garden_peppers_stage') in ['hardening', 'ready to plant', 'planted'] and low < 55)
+             or (states('input_select.garden_honeynut_squash_stage') in ['hardening', 'ready to plant', 'planted'] and low < 55) %}
+            Protect warm starts tonight
+          {% elif states('input_select.garden_tomatoes_stage') in ['hardening', 'ready to plant'] and tomato_window and (tomato_days >= 7 or states('input_select.garden_tomatoes_stage') == 'ready to plant') %}
+            Plant tomatoes
+          {% elif states('input_select.garden_cape_gooseberry_stage') in ['hardening', 'ready to plant'] and cape_window and (cape_days >= 7 or states('input_select.garden_cape_gooseberry_stage') == 'ready to plant') %}
+            Plant cape gooseberry
+          {% elif states('input_select.garden_peppers_stage') in ['hardening', 'ready to plant'] and pepper_window and (pepper_days >= 7 or states('input_select.garden_peppers_stage') == 'ready to plant') %}
+            Plant peppers
+          {% elif states('input_select.garden_honeynut_squash_stage') in ['hardening', 'ready to plant'] and squash_window and (squash_days >= 7 or states('input_select.garden_honeynut_squash_stage') == 'ready to plant') %}
+            Plant honeynut squash
+          {% elif low >= 50 %}
+            Warm window opening
+          {% else %}
+            Keep warm starts hardening
+          {% endif %}
+        icon: mdi:calendar-check-outline
+        attributes:
+          action_id: >
+            {% set low = state_attr('sensor.garden_weather_window', 'lowest_low_4_day') %}
+            {% set low = low | float(99) if is_number(low) else 99 %}
+            {% set forecast_ok = state_attr('sensor.garden_weather_window', 'forecast_available') in [true, 'true', 'True'] %}
+            {% set tomato_window = state_attr('sensor.garden_weather_window', 'tomatoes_window') in [true, 'true', 'True'] %}
+            {% set pepper_window = state_attr('sensor.garden_weather_window', 'peppers_window') in [true, 'true', 'True'] %}
+            {% set cape_window = state_attr('sensor.garden_weather_window', 'cape_gooseberry_window') in [true, 'true', 'True'] %}
+            {% set squash_window = state_attr('sensor.garden_weather_window', 'honeynut_squash_window') in [true, 'true', 'True'] %}
+            {% set tomato_started = states('input_datetime.garden_tomatoes_hardening_started') %}
+            {% set pepper_started = states('input_datetime.garden_peppers_hardening_started') %}
+            {% set cape_started = states('input_datetime.garden_cape_gooseberry_hardening_started') %}
+            {% set squash_started = states('input_datetime.garden_honeynut_squash_hardening_started') %}
+            {% set tomato_days = (now().date() - as_datetime(tomato_started).date()).days if tomato_started not in ['unknown', 'unavailable', ''] else 0 %}
+            {% set pepper_days = (now().date() - as_datetime(pepper_started).date()).days if pepper_started not in ['unknown', 'unavailable', ''] else 0 %}
+            {% set cape_days = (now().date() - as_datetime(cape_started).date()).days if cape_started not in ['unknown', 'unavailable', ''] else 0 %}
+            {% set squash_days = (now().date() - as_datetime(squash_started).date()).days if squash_started not in ['unknown', 'unavailable', ''] else 0 %}
+            {% if states('input_select.garden_spinach_observation') == 'stressed' %}GARDEN_RESOLVE_SPINACH_ISSUE
+            {% elif states('input_select.garden_bok_choy_observation') == 'stressed' %}GARDEN_RESOLVE_BOK_CHOY_ISSUE
+            {% elif states('input_select.garden_tomatoes_observation') == 'stressed' %}GARDEN_RESOLVE_TOMATOES_ISSUE
+            {% elif states('input_select.garden_peppers_observation') == 'stressed' %}GARDEN_RESOLVE_PEPPERS_ISSUE
+            {% elif states('input_select.garden_cape_gooseberry_observation') == 'stressed' %}GARDEN_RESOLVE_CAPE_GOOSEBERRY_ISSUE
+            {% elif states('input_select.garden_honeynut_squash_observation') == 'stressed' %}GARDEN_RESOLVE_HONEYNUT_SQUASH_ISSUE
+            {% elif not forecast_ok %}none
+            {% elif states('input_select.garden_bok_choy_stage') != 'planted' and low >= 32 %}GARDEN_MARK_BOK_CHOY_PLANTED
+            {% elif states('input_select.garden_tomatoes_stage') in ['hardening', 'ready to plant'] and tomato_window and (tomato_days >= 7 or states('input_select.garden_tomatoes_stage') == 'ready to plant') %}GARDEN_MARK_TOMATOES_PLANTED
+            {% elif states('input_select.garden_cape_gooseberry_stage') in ['hardening', 'ready to plant'] and cape_window and (cape_days >= 7 or states('input_select.garden_cape_gooseberry_stage') == 'ready to plant') %}GARDEN_MARK_CAPE_GOOSEBERRY_PLANTED
+            {% elif states('input_select.garden_peppers_stage') in ['hardening', 'ready to plant'] and pepper_window and (pepper_days >= 7 or states('input_select.garden_peppers_stage') == 'ready to plant') %}GARDEN_MARK_PEPPERS_PLANTED
+            {% elif states('input_select.garden_honeynut_squash_stage') in ['hardening', 'ready to plant'] and squash_window and (squash_days >= 7 or states('input_select.garden_honeynut_squash_stage') == 'ready to plant') %}GARDEN_MARK_HONEYNUT_SQUASH_PLANTED
+            {% else %}none{% endif %}
+          detail: >
+            {% set low = state_attr('sensor.garden_weather_window', 'lowest_low_4_day') %}
+            {% set lows = state_attr('sensor.garden_weather_window', 'next_4_lows') %}
+            {% set forecast_ok = state_attr('sensor.garden_weather_window', 'forecast_available') in [true, 'true', 'True'] %}
+            {% if states('binary_sensor.garden_issue_attention_due') == 'on' %}
+              One crop is marked stressed. Check moisture, light, wind exposure, and pest pressure.
+            {% elif not forecast_ok %}
+              Forecast data is not available, so planting notifications stay quiet.
+            {% elif states('binary_sensor.garden_stage_action_due') == 'on' %}
+              Forecast lows: {{ lows }}. {{ states('sensor.garden_weather_window') }}.
+            {% elif states('binary_sensor.garden_weather_protection_due') == 'on' %}
+              Forecast lows: {{ lows }}. Bring tender starts in or cover them before evening.
+            {% else %}
+              Forecast lows: {{ lows }}. Climate normals are context; the live forecast decides.
+            {% endif %}
+
+    binary_sensor:
+      - name: "Garden Stage Action Due"
+        unique_id: garden_stage_action_due
+        state: >
+          {% set low = state_attr('sensor.garden_weather_window', 'lowest_low_4_day') %}
+          {% set low = low | float(99) if is_number(low) else 99 %}
+          {% set forecast_ok = state_attr('sensor.garden_weather_window', 'forecast_available') in [true, 'true', 'True'] %}
+          {% set tomato_window = state_attr('sensor.garden_weather_window', 'tomatoes_window') in [true, 'true', 'True'] %}
+          {% set pepper_window = state_attr('sensor.garden_weather_window', 'peppers_window') in [true, 'true', 'True'] %}
+          {% set cape_window = state_attr('sensor.garden_weather_window', 'cape_gooseberry_window') in [true, 'true', 'True'] %}
+          {% set squash_window = state_attr('sensor.garden_weather_window', 'honeynut_squash_window') in [true, 'true', 'True'] %}
+          {% set tomato_started = states('input_datetime.garden_tomatoes_hardening_started') %}
+          {% set pepper_started = states('input_datetime.garden_peppers_hardening_started') %}
+          {% set cape_started = states('input_datetime.garden_cape_gooseberry_hardening_started') %}
+          {% set squash_started = states('input_datetime.garden_honeynut_squash_hardening_started') %}
+          {% set tomato_days = (now().date() - as_datetime(tomato_started).date()).days if tomato_started not in ['unknown', 'unavailable', ''] else 0 %}
+          {% set pepper_days = (now().date() - as_datetime(pepper_started).date()).days if pepper_started not in ['unknown', 'unavailable', ''] else 0 %}
+          {% set cape_days = (now().date() - as_datetime(cape_started).date()).days if cape_started not in ['unknown', 'unavailable', ''] else 0 %}
+          {% set squash_days = (now().date() - as_datetime(squash_started).date()).days if squash_started not in ['unknown', 'unavailable', ''] else 0 %}
+          {{ forecast_ok and (
+             (states('input_select.garden_bok_choy_stage') != 'planted' and low >= 32)
+             or (states('input_select.garden_tomatoes_stage') in ['hardening', 'ready to plant'] and tomato_window and (tomato_days >= 7 or states('input_select.garden_tomatoes_stage') == 'ready to plant'))
+             or (states('input_select.garden_cape_gooseberry_stage') in ['hardening', 'ready to plant'] and cape_window and (cape_days >= 7 or states('input_select.garden_cape_gooseberry_stage') == 'ready to plant'))
+             or (states('input_select.garden_peppers_stage') in ['hardening', 'ready to plant'] and pepper_window and (pepper_days >= 7 or states('input_select.garden_peppers_stage') == 'ready to plant'))
+             or (states('input_select.garden_honeynut_squash_stage') in ['hardening', 'ready to plant'] and squash_window and (squash_days >= 7 or states('input_select.garden_honeynut_squash_stage') == 'ready to plant'))
+          ) }}
+        icon: mdi:calendar-check-outline
+
+      - name: "Garden Weather Protection Due"
+        unique_id: garden_weather_protection_due
+        state: >
+          {% set forecast_ok = state_attr('sensor.garden_weather_window', 'forecast_available') in [true, 'true', 'True'] %}
+          {% set low = state_attr('sensor.garden_weather_window', 'lowest_low_4_day') %}
+          {% set low = low | float(99) if is_number(low) else 99 %}
+          {{ forecast_ok and (
+            (states('input_select.garden_bok_choy_stage') != 'planted' and low < 32)
+            or (states('input_select.garden_tomatoes_stage') in ['hardening', 'ready to plant', 'planted'] and low < 50)
+            or (states('input_select.garden_cape_gooseberry_stage') in ['hardening', 'ready to plant', 'planted'] and low < 50)
+            or (states('input_select.garden_peppers_stage') in ['hardening', 'ready to plant', 'planted'] and low < 55)
+            or (states('input_select.garden_honeynut_squash_stage') in ['hardening', 'ready to plant', 'planted'] and low < 55)
+          ) }}
+        icon: mdi:weather-night
+
+      - name: "Garden Issue Attention Due"
+        unique_id: garden_issue_attention_due
+        state: >
+          {{ states('input_select.garden_spinach_observation') == 'stressed'
+             or states('input_select.garden_bok_choy_observation') == 'stressed'
+             or states('input_select.garden_tomatoes_observation') == 'stressed'
+             or states('input_select.garden_peppers_observation') == 'stressed'
+             or states('input_select.garden_cape_gooseberry_observation') == 'stressed'
+             or states('input_select.garden_honeynut_squash_observation') == 'stressed' }}
+        icon: mdi:sprout-outline
+
+      - name: "Garden Actionable Alert"
+        unique_id: garden_actionable_alert
+        state: >
+          {{ is_state('binary_sensor.garden_stage_action_due', 'on')
+             or is_state('binary_sensor.garden_weather_protection_due', 'on')
+             or is_state('binary_sensor.garden_issue_attention_due', 'on') }}
+        icon: mdi:sprout-outline
 
   - trigger:
       - platform: event

@@ -695,6 +695,322 @@ notify_trevor_phone:
         message: "{{ notification_message }}"
         data: "{{ notification_data }}"
 
+garden_clear_notifications:
+  alias: Garden Clear Notifications
+  description: Clears active garden notification tags.
+  icon: mdi:sprout-outline
+  mode: restart
+  sequence:
+    - repeat:
+        for_each:
+          - garden-stage
+          - garden-protection
+          - garden-issue
+        sequence:
+          - action: script.notify_trevor_phone
+            data:
+              message: clear_notification
+              data:
+                tag: "{{ repeat.item }}"
+
+garden_snooze_notifications:
+  alias: Garden Snooze Notifications
+  description: Snoozes garden notifications for 24 hours.
+  icon: mdi:alarm-snooze
+  mode: restart
+  sequence:
+    - action: input_datetime.set_datetime
+      target:
+        entity_id: input_datetime.garden_notifications_snooze_until
+      data:
+        datetime: "{{ (now() + timedelta(days=1)).strftime('%Y-%m-%d %H:%M:%S') }}"
+    - action: script.garden_clear_notifications
+
+garden_mark_bok_choy_planted:
+  alias: Garden Mark Bok Choy Planted
+  description: Marks the Shanghai bok choy start as planted.
+  icon: mdi:sprout-outline
+  mode: restart
+  sequence:
+    - action: input_select.select_option
+      target:
+        entity_id: input_select.garden_bok_choy_stage
+      data:
+        option: planted
+    - action: input_datetime.set_datetime
+      target:
+        entity_id: input_datetime.garden_bok_choy_planted
+      data:
+        datetime: "{{ now().strftime('%Y-%m-%d %H:%M:%S') }}"
+    - action: script.garden_clear_notifications
+
+garden_mark_tomatoes_hardened:
+  alias: Garden Mark Tomatoes Hardened
+  description: Marks the tomato starts as fully hardened and ready for the weather window.
+  icon: mdi:food-apple-outline
+  mode: restart
+  sequence:
+    - action: input_select.select_option
+      target:
+        entity_id: input_select.garden_tomatoes_stage
+      data:
+        option: ready to plant
+    - action: script.garden_clear_notifications
+
+garden_mark_tomatoes_planted:
+  alias: Garden Mark Tomatoes Planted
+  description: Marks all tomato starts as planted.
+  icon: mdi:food-apple-outline
+  mode: restart
+  sequence:
+    - action: input_select.select_option
+      target:
+        entity_id: input_select.garden_tomatoes_stage
+      data:
+        option: planted
+    - action: input_datetime.set_datetime
+      target:
+        entity_id: input_datetime.garden_tomatoes_planted
+      data:
+        datetime: "{{ now().strftime('%Y-%m-%d %H:%M:%S') }}"
+    - action: script.garden_clear_notifications
+
+garden_mark_peppers_hardened:
+  alias: Garden Mark Peppers Hardened
+  description: Marks the pepper starts as fully hardened and ready for the weather window.
+  icon: mdi:chili-mild
+  mode: restart
+  sequence:
+    - action: input_select.select_option
+      target:
+        entity_id: input_select.garden_peppers_stage
+      data:
+        option: ready to plant
+    - action: script.garden_clear_notifications
+
+garden_mark_peppers_planted:
+  alias: Garden Mark Peppers Planted
+  description: Marks the pepper starts as planted.
+  icon: mdi:chili-mild
+  mode: restart
+  sequence:
+    - action: input_select.select_option
+      target:
+        entity_id: input_select.garden_peppers_stage
+      data:
+        option: planted
+    - action: input_datetime.set_datetime
+      target:
+        entity_id: input_datetime.garden_peppers_planted
+      data:
+        datetime: "{{ now().strftime('%Y-%m-%d %H:%M:%S') }}"
+    - action: script.garden_clear_notifications
+
+garden_mark_cape_gooseberry_hardened:
+  alias: Garden Mark Cape Gooseberry Hardened
+  description: Marks the cape gooseberry as fully hardened and ready for the weather window.
+  icon: mdi:fruit-cherries
+  mode: restart
+  sequence:
+    - action: input_select.select_option
+      target:
+        entity_id: input_select.garden_cape_gooseberry_stage
+      data:
+        option: ready to plant
+    - action: script.garden_clear_notifications
+
+garden_mark_cape_gooseberry_planted:
+  alias: Garden Mark Cape Gooseberry Planted
+  description: Marks the cape gooseberry as planted in its container.
+  icon: mdi:fruit-cherries
+  mode: restart
+  sequence:
+    - action: input_select.select_option
+      target:
+        entity_id: input_select.garden_cape_gooseberry_stage
+      data:
+        option: planted
+    - action: input_datetime.set_datetime
+      target:
+        entity_id: input_datetime.garden_cape_gooseberry_planted
+      data:
+        datetime: "{{ now().strftime('%Y-%m-%d %H:%M:%S') }}"
+    - action: script.garden_clear_notifications
+
+garden_mark_honeynut_squash_hardened:
+  alias: Garden Mark Honeynut Squash Hardened
+  description: Marks the honeynut squash starts as fully hardened and ready for the weather window.
+  icon: mdi:pumpkin
+  mode: restart
+  sequence:
+    - action: input_select.select_option
+      target:
+        entity_id: input_select.garden_honeynut_squash_stage
+      data:
+        option: ready to plant
+    - action: script.garden_clear_notifications
+
+garden_mark_honeynut_squash_planted:
+  alias: Garden Mark Honeynut Squash Planted
+  description: Marks the honeynut squash starts as planted.
+  icon: mdi:pumpkin
+  mode: restart
+  sequence:
+    - action: input_select.select_option
+      target:
+        entity_id: input_select.garden_honeynut_squash_stage
+      data:
+        option: planted
+    - action: input_datetime.set_datetime
+      target:
+        entity_id: input_datetime.garden_honeynut_squash_planted
+      data:
+        datetime: "{{ now().strftime('%Y-%m-%d %H:%M:%S') }}"
+    - action: script.garden_clear_notifications
+
+garden_resolve_spinach_issue:
+  alias: Garden Resolve Spinach Issue
+  description: Marks the spinach observation as looking good.
+  icon: mdi:leaf
+  mode: restart
+  sequence:
+    - action: input_select.select_option
+      target:
+        entity_id: input_select.garden_spinach_observation
+      data:
+        option: looking good
+    - action: script.garden_clear_notifications
+
+garden_resolve_bok_choy_issue:
+  alias: Garden Resolve Bok Choy Issue
+  description: Marks the bok choy observation as looking good.
+  icon: mdi:sprout-outline
+  mode: restart
+  sequence:
+    - action: input_select.select_option
+      target:
+        entity_id: input_select.garden_bok_choy_observation
+      data:
+        option: looking good
+    - action: script.garden_clear_notifications
+
+garden_resolve_tomatoes_issue:
+  alias: Garden Resolve Tomatoes Issue
+  description: Marks the tomato observation as looking good.
+  icon: mdi:food-apple-outline
+  mode: restart
+  sequence:
+    - action: input_select.select_option
+      target:
+        entity_id: input_select.garden_tomatoes_observation
+      data:
+        option: looking good
+    - action: script.garden_clear_notifications
+
+garden_resolve_peppers_issue:
+  alias: Garden Resolve Peppers Issue
+  description: Marks the pepper observation as looking good.
+  icon: mdi:chili-mild
+  mode: restart
+  sequence:
+    - action: input_select.select_option
+      target:
+        entity_id: input_select.garden_peppers_observation
+      data:
+        option: looking good
+    - action: script.garden_clear_notifications
+
+garden_resolve_cape_gooseberry_issue:
+  alias: Garden Resolve Cape Gooseberry Issue
+  description: Marks the cape gooseberry observation as looking good.
+  icon: mdi:fruit-cherries
+  mode: restart
+  sequence:
+    - action: input_select.select_option
+      target:
+        entity_id: input_select.garden_cape_gooseberry_observation
+      data:
+        option: looking good
+    - action: script.garden_clear_notifications
+
+garden_resolve_honeynut_squash_issue:
+  alias: Garden Resolve Honeynut Squash Issue
+  description: Marks the honeynut squash observation as looking good.
+  icon: mdi:pumpkin
+  mode: restart
+  sequence:
+    - action: input_select.select_option
+      target:
+        entity_id: input_select.garden_honeynut_squash_observation
+      data:
+        option: looking good
+    - action: script.garden_clear_notifications
+
+garden_apply_next_action:
+  alias: Garden Apply Next Action
+  description: Applies the current garden dashboard action, when it is safe and explicit.
+  icon: mdi:sprout-outline
+  mode: restart
+  sequence:
+    - variables:
+        garden_action: "{{ state_attr('sensor.garden_next_action', 'action_id') | default('none', true) }}"
+    - choose:
+        - conditions:
+            - condition: template
+              value_template: "{{ garden_action == 'GARDEN_MARK_BOK_CHOY_PLANTED' }}"
+          sequence:
+            - action: script.garden_mark_bok_choy_planted
+        - conditions:
+            - condition: template
+              value_template: "{{ garden_action == 'GARDEN_MARK_TOMATOES_PLANTED' }}"
+          sequence:
+            - action: script.garden_mark_tomatoes_planted
+        - conditions:
+            - condition: template
+              value_template: "{{ garden_action == 'GARDEN_MARK_PEPPERS_PLANTED' }}"
+          sequence:
+            - action: script.garden_mark_peppers_planted
+        - conditions:
+            - condition: template
+              value_template: "{{ garden_action == 'GARDEN_MARK_CAPE_GOOSEBERRY_PLANTED' }}"
+          sequence:
+            - action: script.garden_mark_cape_gooseberry_planted
+        - conditions:
+            - condition: template
+              value_template: "{{ garden_action == 'GARDEN_MARK_HONEYNUT_SQUASH_PLANTED' }}"
+          sequence:
+            - action: script.garden_mark_honeynut_squash_planted
+        - conditions:
+            - condition: template
+              value_template: "{{ garden_action == 'GARDEN_RESOLVE_SPINACH_ISSUE' }}"
+          sequence:
+            - action: script.garden_resolve_spinach_issue
+        - conditions:
+            - condition: template
+              value_template: "{{ garden_action == 'GARDEN_RESOLVE_BOK_CHOY_ISSUE' }}"
+          sequence:
+            - action: script.garden_resolve_bok_choy_issue
+        - conditions:
+            - condition: template
+              value_template: "{{ garden_action == 'GARDEN_RESOLVE_TOMATOES_ISSUE' }}"
+          sequence:
+            - action: script.garden_resolve_tomatoes_issue
+        - conditions:
+            - condition: template
+              value_template: "{{ garden_action == 'GARDEN_RESOLVE_PEPPERS_ISSUE' }}"
+          sequence:
+            - action: script.garden_resolve_peppers_issue
+        - conditions:
+            - condition: template
+              value_template: "{{ garden_action == 'GARDEN_RESOLVE_CAPE_GOOSEBERRY_ISSUE' }}"
+          sequence:
+            - action: script.garden_resolve_cape_gooseberry_issue
+        - conditions:
+            - condition: template
+              value_template: "{{ garden_action == 'GARDEN_RESOLVE_HONEYNUT_SQUASH_ISSUE' }}"
+          sequence:
+            - action: script.garden_resolve_honeynut_squash_issue
+
 espresso_send_maintenance_notification:
   alias: Espresso Send Maintenance Notification
   description: Sends the next Profitec GO cleaning reminder with quick actions.

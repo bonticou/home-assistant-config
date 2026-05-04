@@ -1876,6 +1876,293 @@
           tag: house-low-battery
   mode: single
 
+- id: garden_morning_stage_notification
+  alias: "Garden — Morning Stage Notification"
+  description: Sends one quiet morning garden planting-window reminder when the live forecast says a crop is ready.
+  triggers:
+    - trigger: time
+      at: "08:45:00"
+  conditions:
+    - condition: state
+      entity_id: input_boolean.garden_notifications_enabled
+      state: "on"
+    - condition: state
+      entity_id: binary_sensor.garden_stage_action_due
+      state: "on"
+    - condition: state
+      entity_id: binary_sensor.garden_issue_attention_due
+      state: "off"
+    - condition: template
+      value_template: >
+        {% set snooze = states('input_datetime.garden_notifications_snooze_until') %}
+        {{ snooze in ['unknown', 'unavailable', 'none', '']
+           or as_timestamp(snooze, 0) <= as_timestamp(now()) }}
+    - condition: template
+      value_template: >
+        {% set last = states('input_datetime.garden_stage_last_notified_at') %}
+        {{ last in ['unknown', 'unavailable', 'none', '']
+           or as_timestamp(last, 0) | timestamp_custom('%Y-%m-%d', true) != now().strftime('%Y-%m-%d') }}
+  actions:
+    - variables:
+        garden_action: "{{ state_attr('sensor.garden_next_action', 'action_id') | default('none', true) }}"
+        garden_harden_action: >-
+          {% if garden_action == 'GARDEN_MARK_TOMATOES_PLANTED' %}GARDEN_MARK_TOMATOES_HARDENED
+          {% elif garden_action == 'GARDEN_MARK_PEPPERS_PLANTED' %}GARDEN_MARK_PEPPERS_HARDENED
+          {% elif garden_action == 'GARDEN_MARK_CAPE_GOOSEBERRY_PLANTED' %}GARDEN_MARK_CAPE_GOOSEBERRY_HARDENED
+          {% elif garden_action == 'GARDEN_MARK_HONEYNUT_SQUASH_PLANTED' %}GARDEN_MARK_HONEYNUT_SQUASH_HARDENED
+          {% else %}none{% endif %}
+    - choose:
+        - conditions:
+            - condition: template
+              value_template: "{{ garden_harden_action | trim != 'none' }}"
+          sequence:
+            - action: script.notify_trevor_phone
+              data:
+                title: "🌱 Garden: {{ states('sensor.garden_next_action') }}"
+                message: "{{ state_attr('sensor.garden_next_action', 'detail') }}"
+                data:
+                  group: garden
+                  tag: garden-stage
+                  url: /calm-mobile/garden
+                  actions:
+                    - action: "{{ garden_action }}"
+                      title: Mark planted
+                    - action: "{{ garden_harden_action | trim }}"
+                      title: Mark hardened
+                    - action: GARDEN_SNOOZE
+                      title: Snooze
+      default:
+        - action: script.notify_trevor_phone
+          data:
+            title: "🌱 Garden: {{ states('sensor.garden_next_action') }}"
+            message: "{{ state_attr('sensor.garden_next_action', 'detail') }}"
+            data:
+              group: garden
+              tag: garden-stage
+              url: /calm-mobile/garden
+              actions:
+                - action: "{{ garden_action }}"
+                  title: Mark planted
+                - action: GARDEN_SNOOZE
+                  title: Snooze
+    - action: input_datetime.set_datetime
+      target:
+        entity_id: input_datetime.garden_stage_last_notified_at
+      data:
+        datetime: "{{ now().strftime('%Y-%m-%d %H:%M:%S') }}"
+  mode: single
+
+- id: garden_afternoon_weather_protection_notification
+  alias: "Garden — Afternoon Weather Protection Notification"
+  description: Sends one late-afternoon reminder only when outdoor starts need cold or frost protection.
+  triggers:
+    - trigger: time
+      at: "16:30:00"
+  conditions:
+    - condition: state
+      entity_id: input_boolean.garden_notifications_enabled
+      state: "on"
+    - condition: state
+      entity_id: binary_sensor.garden_weather_protection_due
+      state: "on"
+    - condition: template
+      value_template: >
+        {% set snooze = states('input_datetime.garden_notifications_snooze_until') %}
+        {{ snooze in ['unknown', 'unavailable', 'none', '']
+           or as_timestamp(snooze, 0) <= as_timestamp(now()) }}
+    - condition: template
+      value_template: >
+        {% set last = states('input_datetime.garden_weather_last_notified_at') %}
+        {{ last in ['unknown', 'unavailable', 'none', '']
+           or as_timestamp(last, 0) | timestamp_custom('%Y-%m-%d', true) != now().strftime('%Y-%m-%d') }}
+  actions:
+    - action: script.notify_trevor_phone
+      data:
+        title: "🌙 Garden: protect starts tonight"
+        message: >-
+          Forecast lows: {{ state_attr('sensor.garden_weather_window', 'next_4_lows') }}.
+          Bring tender starts in or cover them before evening.
+        data:
+          group: garden
+          tag: garden-protection
+          url: /calm-mobile/garden
+          actions:
+            - action: GARDEN_SNOOZE
+              title: Snooze
+    - action: input_datetime.set_datetime
+      target:
+        entity_id: input_datetime.garden_weather_last_notified_at
+      data:
+        datetime: "{{ now().strftime('%Y-%m-%d %H:%M:%S') }}"
+  mode: single
+
+- id: garden_issue_notification
+  alias: "Garden — Issue Notification"
+  description: Sends one garden issue push per day only for crops marked stressed.
+  triggers:
+    - trigger: time
+      at: "09:30:00"
+    - trigger: state
+      entity_id:
+        - input_select.garden_spinach_observation
+        - input_select.garden_bok_choy_observation
+        - input_select.garden_tomatoes_observation
+        - input_select.garden_peppers_observation
+        - input_select.garden_cape_gooseberry_observation
+        - input_select.garden_honeynut_squash_observation
+      to: "stressed"
+  conditions:
+    - condition: state
+      entity_id: input_boolean.garden_notifications_enabled
+      state: "on"
+    - condition: state
+      entity_id: binary_sensor.garden_issue_attention_due
+      state: "on"
+    - condition: template
+      value_template: >
+        {% set snooze = states('input_datetime.garden_notifications_snooze_until') %}
+        {{ snooze in ['unknown', 'unavailable', 'none', '']
+           or as_timestamp(snooze, 0) <= as_timestamp(now()) }}
+    - condition: template
+      value_template: >
+        {% set last = states('input_datetime.garden_issue_last_notified_at') %}
+        {{ last in ['unknown', 'unavailable', 'none', '']
+           or as_timestamp(last, 0) | timestamp_custom('%Y-%m-%d', true) != now().strftime('%Y-%m-%d') }}
+  actions:
+    - variables:
+        garden_action: "{{ state_attr('sensor.garden_next_action', 'action_id') | default('none', true) }}"
+    - action: script.notify_trevor_phone
+      data:
+        title: "🌱 Garden: check stressed starts"
+        message: "{{ state_attr('sensor.garden_next_action', 'detail') }}"
+        data:
+          group: garden
+          tag: garden-issue
+          url: /calm-mobile/garden
+          actions:
+            - action: "{{ garden_action }}"
+              title: Issue resolved
+            - action: GARDEN_SNOOZE
+              title: Snooze
+    - action: input_datetime.set_datetime
+      target:
+        entity_id: input_datetime.garden_issue_last_notified_at
+      data:
+        datetime: "{{ now().strftime('%Y-%m-%d %H:%M:%S') }}"
+  mode: single
+
+- id: garden_notification_actions
+  alias: "Garden — Notification Actions"
+  description: Handles garden notification quick actions for planting, hardening, snoozing, and issue resolution.
+  triggers:
+    - trigger: event
+      event_type: mobile_app_notification_action
+  conditions:
+    - condition: template
+      value_template: >
+        {{ trigger.event.data.action in [
+          'GARDEN_MARK_BOK_CHOY_PLANTED',
+          'GARDEN_MARK_TOMATOES_HARDENED',
+          'GARDEN_MARK_TOMATOES_PLANTED',
+          'GARDEN_MARK_PEPPERS_HARDENED',
+          'GARDEN_MARK_PEPPERS_PLANTED',
+          'GARDEN_MARK_CAPE_GOOSEBERRY_HARDENED',
+          'GARDEN_MARK_CAPE_GOOSEBERRY_PLANTED',
+          'GARDEN_MARK_HONEYNUT_SQUASH_HARDENED',
+          'GARDEN_MARK_HONEYNUT_SQUASH_PLANTED',
+          'GARDEN_RESOLVE_SPINACH_ISSUE',
+          'GARDEN_RESOLVE_BOK_CHOY_ISSUE',
+          'GARDEN_RESOLVE_TOMATOES_ISSUE',
+          'GARDEN_RESOLVE_PEPPERS_ISSUE',
+          'GARDEN_RESOLVE_CAPE_GOOSEBERRY_ISSUE',
+          'GARDEN_RESOLVE_HONEYNUT_SQUASH_ISSUE',
+          'GARDEN_SNOOZE'
+        ] }}
+  actions:
+    - choose:
+        - conditions:
+            - condition: template
+              value_template: "{{ trigger.event.data.action == 'GARDEN_MARK_BOK_CHOY_PLANTED' }}"
+          sequence:
+            - action: script.garden_mark_bok_choy_planted
+        - conditions:
+            - condition: template
+              value_template: "{{ trigger.event.data.action == 'GARDEN_MARK_TOMATOES_HARDENED' }}"
+          sequence:
+            - action: script.garden_mark_tomatoes_hardened
+        - conditions:
+            - condition: template
+              value_template: "{{ trigger.event.data.action == 'GARDEN_MARK_TOMATOES_PLANTED' }}"
+          sequence:
+            - action: script.garden_mark_tomatoes_planted
+        - conditions:
+            - condition: template
+              value_template: "{{ trigger.event.data.action == 'GARDEN_MARK_PEPPERS_HARDENED' }}"
+          sequence:
+            - action: script.garden_mark_peppers_hardened
+        - conditions:
+            - condition: template
+              value_template: "{{ trigger.event.data.action == 'GARDEN_MARK_PEPPERS_PLANTED' }}"
+          sequence:
+            - action: script.garden_mark_peppers_planted
+        - conditions:
+            - condition: template
+              value_template: "{{ trigger.event.data.action == 'GARDEN_MARK_CAPE_GOOSEBERRY_HARDENED' }}"
+          sequence:
+            - action: script.garden_mark_cape_gooseberry_hardened
+        - conditions:
+            - condition: template
+              value_template: "{{ trigger.event.data.action == 'GARDEN_MARK_CAPE_GOOSEBERRY_PLANTED' }}"
+          sequence:
+            - action: script.garden_mark_cape_gooseberry_planted
+        - conditions:
+            - condition: template
+              value_template: "{{ trigger.event.data.action == 'GARDEN_MARK_HONEYNUT_SQUASH_HARDENED' }}"
+          sequence:
+            - action: script.garden_mark_honeynut_squash_hardened
+        - conditions:
+            - condition: template
+              value_template: "{{ trigger.event.data.action == 'GARDEN_MARK_HONEYNUT_SQUASH_PLANTED' }}"
+          sequence:
+            - action: script.garden_mark_honeynut_squash_planted
+        - conditions:
+            - condition: template
+              value_template: "{{ trigger.event.data.action == 'GARDEN_RESOLVE_SPINACH_ISSUE' }}"
+          sequence:
+            - action: script.garden_resolve_spinach_issue
+        - conditions:
+            - condition: template
+              value_template: "{{ trigger.event.data.action == 'GARDEN_RESOLVE_BOK_CHOY_ISSUE' }}"
+          sequence:
+            - action: script.garden_resolve_bok_choy_issue
+        - conditions:
+            - condition: template
+              value_template: "{{ trigger.event.data.action == 'GARDEN_RESOLVE_TOMATOES_ISSUE' }}"
+          sequence:
+            - action: script.garden_resolve_tomatoes_issue
+        - conditions:
+            - condition: template
+              value_template: "{{ trigger.event.data.action == 'GARDEN_RESOLVE_PEPPERS_ISSUE' }}"
+          sequence:
+            - action: script.garden_resolve_peppers_issue
+        - conditions:
+            - condition: template
+              value_template: "{{ trigger.event.data.action == 'GARDEN_RESOLVE_CAPE_GOOSEBERRY_ISSUE' }}"
+          sequence:
+            - action: script.garden_resolve_cape_gooseberry_issue
+        - conditions:
+            - condition: template
+              value_template: "{{ trigger.event.data.action == 'GARDEN_RESOLVE_HONEYNUT_SQUASH_ISSUE' }}"
+          sequence:
+            - action: script.garden_resolve_honeynut_squash_issue
+        - conditions:
+            - condition: template
+              value_template: "{{ trigger.event.data.action == 'GARDEN_SNOOZE' }}"
+          sequence:
+            - action: script.garden_snooze_notifications
+  mode: parallel
+  max: 10
+
 
 - id: espresso_morning_maintenance_reminder
   alias: "Espresso — Morning Maintenance Reminder"

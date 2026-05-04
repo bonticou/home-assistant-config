@@ -7977,23 +7977,28 @@ views:
     cards:
       - type: custom:mushroom-title-card
         title: Garden
-        subtitle: Spinach only
+        subtitle: Weather-aware crop care
 
       - type: custom:mushroom-template-card
-        entity: sensor.garden_spinach_status
-        primary: Spinach
+        entity: sensor.garden_next_action
+        primary: "{{ states('sensor.garden_next_action') }}"
         secondary: >-
-          {{ state_attr('sensor.garden_spinach_status', 'count') }} plants · {{ states('sensor.garden_spinach_status') }}.
-          {{ state_attr('sensor.garden_spinach_status', 'stage_note') }}
+          {{ state_attr('sensor.garden_next_action', 'detail') }}
+          {{ states('sensor.garden_crop_summary') }}.
         icon: >-
-          {% if is_state('input_boolean.garden_spinach_in_ground', 'on') %}mdi:shovel
-          {% else %}mdi:leaf{% endif %}
+          {% if is_state('binary_sensor.garden_issue_attention_due', 'on') %}mdi:sprout-outline
+          {% elif is_state('binary_sensor.garden_weather_protection_due', 'on') %}mdi:weather-night
+          {% elif is_state('binary_sensor.garden_stage_action_due', 'on') %}mdi:shovel
+          {% else %}mdi:leaf-circle-outline{% endif %}
         icon_color: >-
-          {% if is_state('input_select.garden_spinach_observation', 'dry') %}amber
-          {% elif is_state('input_select.garden_spinach_observation', 'stressed') %}red
-          {% elif is_state('input_select.garden_spinach_observation', 'settling in') %}teal
-          {% else %}green{% endif %}
+          {% if is_state('binary_sensor.garden_issue_attention_due', 'on') %}red
+          {% elif is_state('binary_sensor.garden_weather_protection_due', 'on') %}amber
+          {% elif is_state('binary_sensor.garden_stage_action_due', 'on') %}green
+          {% else %}teal{% endif %}
         multiline_secondary: true
+        tap_action:
+          action: perform-action
+          perform_action: script.garden_apply_next_action
         card_mod:
           style: |
             ha-card {
@@ -8017,24 +8022,272 @@ views:
               --shape-color: rgba(255, 255, 255, 0.05) !important;
             }
 
+      - type: custom:mushroom-template-card
+        entity: sensor.garden_weather_window
+        primary: "{{ states('sensor.garden_weather_window') }}"
+        secondary: >-
+          Next lows {{ state_attr('sensor.garden_weather_window', 'next_4_lows') }}.
+          Wet days: {{ state_attr('sensor.garden_weather_window', 'wet_days') }}.
+          Wind risk: {{ 'yes' if state_attr('sensor.garden_weather_window', 'wind_risk') in [true, 'true', 'True'] else 'no' }}.
+        icon: mdi:weather-partly-cloudy
+        icon_color: >-
+          {% if states('sensor.garden_weather_window') == 'Forecast unavailable' %}grey
+          {% elif is_state('binary_sensor.garden_weather_protection_due', 'on') %}amber
+          {% elif state_attr('sensor.garden_weather_window', 'honeynut_squash_window') in [true, 'true', 'True'] %}green
+          {% else %}teal{% endif %}
+        multiline_secondary: true
+        tap_action:
+          action: more-info
+        card_mod:
+          style: |
+            ha-card {
+              border: none;
+              box-shadow: 0 10px 22px rgba(2, 8, 23, 0.12);
+              border-radius: 22px;
+              padding: 8px 4px;
+              border: 1px solid rgba(148, 163, 184, 0.12);
+              background:
+                linear-gradient(180deg, rgba(31, 41, 55, 0.82), rgba(15, 23, 42, 0.76));
+            }
+            .secondary {
+              line-height: 1.38 !important;
+              opacity: 0.86 !important;
+            }
+
+      - type: custom:mushroom-chips-card
+        alignment: left
+        chips:
+          - type: template
+            icon: mdi:calendar-check-outline
+            icon_color: "{{ 'green' if is_state('binary_sensor.garden_stage_action_due', 'on') else 'grey' }}"
+            content: "{{ 'Planting window' if is_state('binary_sensor.garden_stage_action_due', 'on') else 'No planting push' }}"
+          - type: template
+            icon: mdi:weather-night
+            icon_color: "{{ 'amber' if is_state('binary_sensor.garden_weather_protection_due', 'on') else 'grey' }}"
+            content: "{{ 'Protect tonight' if is_state('binary_sensor.garden_weather_protection_due', 'on') else 'No cold action' }}"
+          - type: template
+            icon: mdi:bell-sleep-outline
+            icon_color: >-
+              {% set snooze = states('input_datetime.garden_notifications_snooze_until') %}
+              {{ 'amber' if snooze not in ['unknown', 'unavailable', 'none', ''] and as_timestamp(snooze, 0) > as_timestamp(now()) else 'grey' }}
+            content: >-
+              {% set snooze = states('input_datetime.garden_notifications_snooze_until') %}
+              {{ 'Snoozed' if snooze not in ['unknown', 'unavailable', 'none', ''] and as_timestamp(snooze, 0) > as_timestamp(now()) else 'Quiet alerts on' }}
+            tap_action:
+              action: perform-action
+              perform_action: script.garden_snooze_notifications
+
+      - type: grid
+        columns: 2
+        square: false
+        cards:
+          - type: custom:mushroom-template-card
+            entity: sensor.garden_spinach_status
+            primary: Spinach
+            secondary: >-
+              {{ state_attr('sensor.garden_spinach_status', 'count') }} plants · {{ states('sensor.garden_spinach_status') }}.
+              {{ state_attr('sensor.garden_spinach_status', 'stage_note') }}
+            icon: mdi:leaf
+            icon_color: >-
+              {% if is_state('input_select.garden_spinach_observation', 'stressed') %}red
+              {% elif is_state('input_select.garden_spinach_observation', 'dry') %}amber
+              {% else %}green{% endif %}
+            multiline_secondary: true
+            tap_action:
+              action: more-info
+            card_mod:
+              style: &garden_crop_card_style |
+                ha-card {
+                  border: 1px solid rgba(148, 163, 184, 0.12);
+                  border-radius: 18px;
+                  box-shadow: 0 8px 18px rgba(2, 8, 23, 0.10);
+                  background: rgba(15, 23, 42, 0.68);
+                  min-height: 166px;
+                }
+                .primary {
+                  font-size: 15px !important;
+                  font-weight: 560 !important;
+                }
+                .secondary {
+                  line-height: 1.34 !important;
+                  opacity: 0.84 !important;
+                }
+          - type: custom:mushroom-template-card
+            entity: sensor.garden_bok_choy_status
+            primary: Bok choy
+            secondary: >-
+              {{ state_attr('sensor.garden_bok_choy_status', 'count') }} starts · {{ states('sensor.garden_bok_choy_status') }}.
+              {{ state_attr('sensor.garden_bok_choy_status', 'stage_note') }}
+            icon: mdi:sprout-outline
+            icon_color: >-
+              {% if is_state('input_select.garden_bok_choy_observation', 'stressed') %}red
+              {% elif states('input_select.garden_bok_choy_stage') == 'planted' %}green
+              {% else %}teal{% endif %}
+            multiline_secondary: true
+            tap_action:
+              action: more-info
+            card_mod:
+              style: *garden_crop_card_style
+          - type: custom:mushroom-template-card
+            entity: sensor.garden_tomatoes_status
+            primary: Tomatoes
+            secondary: >-
+              {{ state_attr('sensor.garden_tomatoes_status', 'count') }} starts · {{ states('sensor.garden_tomatoes_status') }}.
+              {{ state_attr('sensor.garden_tomatoes_status', 'varieties') }}.
+              {{ state_attr('sensor.garden_tomatoes_status', 'stage_note') }}
+            icon: mdi:food-apple-outline
+            icon_color: >-
+              {% if is_state('input_select.garden_tomatoes_observation', 'stressed') %}red
+              {% elif state_attr('sensor.garden_weather_window', 'tomatoes_window') in [true, 'true', 'True'] %}green
+              {% else %}amber{% endif %}
+            multiline_secondary: true
+            tap_action:
+              action: more-info
+            card_mod:
+              style: *garden_crop_card_style
+          - type: custom:mushroom-template-card
+            entity: sensor.garden_peppers_status
+            primary: Peppers
+            secondary: >-
+              {{ state_attr('sensor.garden_peppers_status', 'count') }} starts · {{ states('sensor.garden_peppers_status') }}.
+              {{ state_attr('sensor.garden_peppers_status', 'varieties') }}.
+              {{ state_attr('sensor.garden_peppers_status', 'stage_note') }}
+            icon: mdi:chili-mild
+            icon_color: >-
+              {% if is_state('input_select.garden_peppers_observation', 'stressed') %}red
+              {% elif state_attr('sensor.garden_weather_window', 'peppers_window') in [true, 'true', 'True'] %}green
+              {% else %}orange{% endif %}
+            multiline_secondary: true
+            tap_action:
+              action: more-info
+            card_mod:
+              style: *garden_crop_card_style
+          - type: custom:mushroom-template-card
+            entity: sensor.garden_cape_gooseberry_status
+            primary: Cape gooseberry
+            secondary: >-
+              {{ state_attr('sensor.garden_cape_gooseberry_status', 'count') }} start · {{ states('sensor.garden_cape_gooseberry_status') }}.
+              {{ state_attr('sensor.garden_cape_gooseberry_status', 'target_location') }}.
+              {{ state_attr('sensor.garden_cape_gooseberry_status', 'stage_note') }}
+            icon: mdi:fruit-cherries
+            icon_color: >-
+              {% if is_state('input_select.garden_cape_gooseberry_observation', 'stressed') %}red
+              {% elif state_attr('sensor.garden_weather_window', 'cape_gooseberry_window') in [true, 'true', 'True'] %}green
+              {% else %}pink{% endif %}
+            multiline_secondary: true
+            tap_action:
+              action: more-info
+            card_mod:
+              style: *garden_crop_card_style
+          - type: custom:mushroom-template-card
+            entity: sensor.garden_honeynut_squash_status
+            primary: Honeynut squash
+            secondary: >-
+              {{ state_attr('sensor.garden_honeynut_squash_status', 'count') }} starts · {{ states('sensor.garden_honeynut_squash_status') }}.
+              {{ state_attr('sensor.garden_honeynut_squash_status', 'stage_note') }}
+            icon: mdi:pumpkin
+            icon_color: >-
+              {% if is_state('input_select.garden_honeynut_squash_observation', 'stressed') %}red
+              {% elif state_attr('sensor.garden_weather_window', 'honeynut_squash_window') in [true, 'true', 'True'] %}green
+              {% else %}deep-orange{% endif %}
+            multiline_secondary: true
+            tap_action:
+              action: more-info
+            card_mod:
+              style: *garden_crop_card_style
+
+      - type: grid
+        columns: 2
+        square: false
+        cards:
+          - type: custom:mushroom-template-card
+            primary: Apply next action
+            secondary: "{{ states('sensor.garden_next_action') }}"
+            icon: mdi:check-circle-outline
+            icon_color: green
+            tap_action:
+              action: perform-action
+              perform_action: script.garden_apply_next_action
+            card_mod:
+              style: |
+                ha-card {
+                  border: 1px solid rgba(148, 163, 184, 0.12);
+                  border-radius: 18px;
+                  background: rgba(20, 83, 45, 0.24);
+                }
+          - type: custom:mushroom-template-card
+            primary: Snooze garden pushes
+            secondary: 24 hours
+            icon: mdi:bell-sleep-outline
+            icon_color: amber
+            tap_action:
+              action: perform-action
+              perform_action: script.garden_snooze_notifications
+            card_mod:
+              style: |
+                ha-card {
+                  border: 1px solid rgba(148, 163, 184, 0.12);
+                  border-radius: 18px;
+                  background: rgba(120, 113, 108, 0.22);
+                }
+
       - type: entities
-        title: Spinach Notes
+        title: Garden Stages
+        show_header_toggle: false
+        entities:
+          - entity: input_select.garden_bok_choy_stage
+            name: Bok choy
+          - entity: input_select.garden_tomatoes_stage
+            name: Tomatoes
+          - entity: input_select.garden_peppers_stage
+            name: Peppers
+          - entity: input_select.garden_cape_gooseberry_stage
+            name: Cape gooseberry
+          - entity: input_select.garden_honeynut_squash_stage
+            name: Honeynut squash
+          - entity: input_boolean.garden_notifications_enabled
+            name: Garden pushes
+          - entity: input_datetime.garden_notifications_snooze_until
+            name: Snoozed until
+        card_mod:
+          style: |
+            ha-card {
+              border: none;
+              box-shadow: 0 12px 24px rgba(2, 8, 23, 0.12);
+              border-radius: 22px;
+              border: 1px solid rgba(148, 163, 184, 0.12);
+              background:
+                linear-gradient(180deg, rgba(15, 23, 42, 0.78), rgba(15, 23, 42, 0.72));
+            }
+
+      - type: entities
+        title: Crop Observations
         show_header_toggle: false
         entities:
           - entity: input_select.garden_spinach_observation
-            name: Observation
+            name: Spinach
+          - entity: input_select.garden_bok_choy_observation
+            name: Bok choy
+          - entity: input_select.garden_tomatoes_observation
+            name: Tomatoes
+          - entity: input_select.garden_peppers_observation
+            name: Peppers
+          - entity: input_select.garden_cape_gooseberry_observation
+            name: Cape gooseberry
+          - entity: input_select.garden_honeynut_squash_observation
+            name: Honeynut squash
           - entity: input_boolean.garden_spinach_in_ground
-            name: In raised beds
+            name: Spinach in raised beds
           - entity: input_datetime.garden_spinach_planted_in_ground
-            name: Planted in ground
+            name: Spinach planted
           - entity: input_datetime.garden_spinach_last_watered
-            name: Last watered
+            name: Spinach watered
         card_mod:
           style: |
             ha-card {
               border: none;
               box-shadow: 0 12px 24px rgba(2, 8, 23, 0.14);
-              border-radius: 24px;
+              border-radius: 22px;
               border: 1px solid rgba(148, 163, 184, 0.12);
               background:
                 linear-gradient(180deg, rgba(15, 23, 42, 0.82), rgba(15, 23, 42, 0.76));
