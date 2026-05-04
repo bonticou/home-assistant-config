@@ -9,7 +9,7 @@ lovelace:
   resources:
     - url: /local/calm-mobile-scrollbars.js?v=3
       type: module
-    - url: /local/house-notices-card.js?v=27
+    - url: /local/house-notices-card.js?v=28
       type: module
   dashboards:
     calm-mobile:
@@ -1649,6 +1649,13 @@ template:
             {% if is_state('binary_sensor.garden_needs_attention', 'on') %}
               {% set garden_action = state_attr('sensor.garden_next_action', 'action_id') | default('none', true) | string %}
               {% set garden_action_label = 'Issue resolved' if garden_action[:14] == 'GARDEN_RESOLVE' else 'Mark planted' if garden_action[:11] == 'GARDEN_MARK' else 'Snooze' %}
+              {% set garden_attention = state_attr('sensor.garden_workflow_status', 'attention_reason') | default(state_attr('sensor.garden_next_action', 'detail'), true) %}
+              {% set garden_lows = state_attr('sensor.garden_weather_window', 'next_4_lows') | default('Forecast unavailable', true) %}
+              {% set garden_low = state_attr('sensor.garden_weather_window', 'lowest_low_4_day') | default('unknown', true) %}
+              {% set garden_window = states('sensor.garden_weather_window') %}
+              {% set garden_action_name = states('sensor.garden_next_action') %}
+              {% set garden_policy = state_attr('sensor.garden_workflow_status', 'notification_policy') | default('Garden attention is active.', true) %}
+              {% set garden_is_bok_choy = garden_action == 'GARDEN_MARK_BOK_CHOY_PLANTED' %}
               {% set ns.items = ns.items + [{
                 'id': 'garden-window',
                 'title': 'Garden needs attention',
@@ -1659,9 +1666,25 @@ template:
                 'severity': 'watch',
                 'date': now_stamp,
                 'due_prefix': 'Now',
-                'narrative': state_attr('sensor.garden_workflow_status', 'attention_reason') | default(state_attr('sensor.garden_next_action', 'detail'), true),
+                'narrative': garden_attention,
                 'url': '/calm-mobile/garden',
                 'entity_id': 'sensor.garden_workflow_status',
+                'details': {
+                  'summary': 'Bok choy is ready to plant because the next four nights avoid hard frost. This is a real planting task, while the warm-season starts keep following their warmer night thresholds.' if garden_is_bok_choy else garden_attention,
+                  'facts': [
+                    'Forecast lows: ' ~ garden_lows,
+                    'Lowest forecast night: ' ~ garden_low ~ '°',
+                    'Bok choy rule: plant when the 4-night floor stays at or above 32°.',
+                    'Warm starts still wait for 50° or 55° nights.'
+                  ] if garden_is_bok_choy else [
+                    'Active task: ' ~ garden_action_name,
+                    'Forecast lows: ' ~ garden_lows,
+                    'Window: ' ~ garden_window,
+                    'Policy: ' ~ garden_policy
+                  ],
+                  'after_action': 'Marking planted records the bok choy state, clears the planting-window notice, and moves the garden narrative into planted-care mode.' if garden_is_bok_choy else 'After you handle this, Home Assistant clears the active garden notice and keeps watching forecast lows, crop stage, and crop observations.',
+                  'tracking': 'Home Assistant will keep watching the 4-night forecast floor, planted-crop protection, and stressed crop observations.'
+                },
                 'actions': ([{'label': garden_action_label, 'service': 'script.garden_apply_next_action'}] if garden_action != 'none' else []) + [{'label': 'Snooze', 'service': 'script.garden_snooze_notifications'}]
               }] %}
             {% endif %}

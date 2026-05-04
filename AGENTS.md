@@ -147,6 +147,15 @@ item that needs attention. Avoid shorthand chips, unlabeled utility controls, or
 notification snooze/toggle controls mixed into unrelated care dashboards; put
 those in the notification center or a clearly labeled settings surface.
 
+Reminder and task "Details" surfaces must be bespoke to the content. Do not
+route them to stock Home Assistant `more-info` history/activity popups unless
+the purpose is explicitly diagnostic. Use calm sheets or designed inline panels
+that explain the task, the trigger facts, the primary action, what changes after
+acting, and what the home will keep watching. If the detail is data-based, use a
+beautiful compact chart; if it is educational, provide a rich explainer; if it
+is sequence-based, use a polished timeline rather than the raw HA log. Follow
+`docs/notification-detail-surfaces.md` for project-wide detail-surface rules.
+
 ---
 
 # Code Quality

@@ -5,6 +5,7 @@ class HouseNoticesCard extends HTMLElement {
     this._config = {};
     this._hass = null;
     this._expanded = null;
+    this._detailItemId = null;
     this._collapsedSections = new Set(["upcoming"]);
     this._dismissedHistoryIds = new Set();
   }
@@ -193,6 +194,8 @@ class HouseNoticesCard extends HTMLElement {
       .filter((event) => !this._dismissedHistoryIds.has(event.id));
     const attention = items.filter((item) => ["active", "due"].includes(item.state));
     const upcoming = items.filter((item) => !["active", "due"].includes(item.state) && this.isInUpcomingWindow(item));
+    const detailItem = this._detailItemId ? items.find((item) => item.id === this._detailItemId) : null;
+    if (this._detailItemId && !detailItem) this._detailItemId = null;
 
     this.shadowRoot.innerHTML = `
       <style>
@@ -441,6 +444,175 @@ class HouseNoticesCard extends HTMLElement {
           background: rgba(59, 130, 246, 0.26);
           border-color: rgba(96, 165, 250, 0.34);
         }
+        .sheet-backdrop {
+          position: fixed;
+          inset: 0;
+          z-index: 30;
+          display: flex;
+          align-items: flex-end;
+          justify-content: center;
+          padding: 18px 14px 0;
+          background: rgba(2, 6, 23, 0.58);
+          backdrop-filter: blur(18px);
+          -webkit-backdrop-filter: blur(18px);
+        }
+        .detail-sheet {
+          width: min(100%, 560px);
+          max-height: min(88vh, 760px);
+          overflow: auto;
+          border: 1px solid rgba(148, 163, 184, 0.22);
+          border-bottom: none;
+          border-radius: 28px 28px 0 0;
+          background:
+            linear-gradient(180deg, rgba(15, 23, 42, 0.98), rgba(2, 6, 23, 0.98));
+          box-shadow: 0 -20px 80px rgba(0, 0, 0, 0.42);
+          outline: none;
+        }
+        .sheet-header {
+          display: grid;
+          grid-template-columns: 46px minmax(0, 1fr) auto;
+          gap: 12px;
+          align-items: start;
+          padding: 18px 18px 14px;
+          border-bottom: 1px solid rgba(148, 163, 184, 0.14);
+        }
+        .sheet-mark .mark {
+          width: 44px;
+          height: 44px;
+          font-size: 20px;
+          background: rgba(148, 163, 184, 0.16);
+        }
+        .sheet-copy {
+          min-width: 0;
+        }
+        .sheet-title-line {
+          display: flex;
+          flex-wrap: wrap;
+          align-items: center;
+          gap: 8px;
+          min-width: 0;
+        }
+        .sheet-title {
+          color: #f8fafc;
+          font-size: 18px;
+          font-weight: 680;
+          line-height: 1.2;
+          overflow-wrap: anywhere;
+        }
+        .sheet-subtitle {
+          margin-top: 5px;
+          color: rgba(226, 232, 240, 0.6);
+          font-size: 12px;
+          line-height: 1.35;
+        }
+        button.sheet-close {
+          width: 34px;
+          height: 34px;
+          min-height: 34px;
+          padding: 0;
+          display: grid;
+          place-items: center;
+          color: rgba(248, 250, 252, 0.88);
+          background: rgba(248, 250, 252, 0.08);
+        }
+        button.sheet-close ha-icon {
+          --mdc-icon-size: 18px;
+        }
+        .sheet-body {
+          padding: 16px 18px 18px;
+        }
+        .sheet-section + .sheet-section {
+          margin-top: 16px;
+        }
+        .sheet-section-title {
+          margin-bottom: 7px;
+          color: rgba(248, 250, 252, 0.92);
+          font-size: 12px;
+          font-weight: 700;
+          letter-spacing: 0;
+          text-transform: uppercase;
+        }
+        .sheet-summary,
+        .sheet-copy-block {
+          color: rgba(248, 250, 252, 0.78);
+          font-size: 14px;
+          line-height: 1.48;
+          overflow-wrap: anywhere;
+        }
+        .fact-grid {
+          display: grid;
+          grid-template-columns: repeat(2, minmax(0, 1fr));
+          gap: 8px;
+        }
+        .fact {
+          border: 1px solid rgba(148, 163, 184, 0.14);
+          border-radius: 14px;
+          background: rgba(248, 250, 252, 0.07);
+          padding: 10px 11px;
+          color: rgba(248, 250, 252, 0.8);
+          font-size: 12px;
+          line-height: 1.35;
+          overflow-wrap: anywhere;
+        }
+        .sheet-timeline {
+          display: grid;
+          gap: 8px;
+        }
+        .timeline-step {
+          display: grid;
+          grid-template-columns: 10px minmax(0, 1fr);
+          gap: 10px;
+          align-items: start;
+          color: rgba(248, 250, 252, 0.78);
+          font-size: 13px;
+          line-height: 1.42;
+        }
+        .timeline-dot {
+          width: 8px;
+          height: 8px;
+          margin-top: 5px;
+          border-radius: 999px;
+          background: rgba(96, 165, 250, 0.9);
+          box-shadow: 0 0 0 4px rgba(96, 165, 250, 0.12);
+        }
+        .tracking-line {
+          margin-top: 8px;
+          color: rgba(226, 232, 240, 0.58);
+          font-size: 12px;
+          line-height: 1.42;
+        }
+        .sheet-actions {
+          display: flex;
+          flex-wrap: wrap;
+          gap: 9px;
+          margin-top: 18px;
+          padding-top: 14px;
+          border-top: 1px solid rgba(148, 163, 184, 0.14);
+        }
+        .sheet-actions button {
+          min-height: 36px;
+          padding: 0 14px;
+          font-weight: 650;
+        }
+        @media (min-width: 640px) {
+          .sheet-backdrop {
+            align-items: center;
+            padding: 24px;
+          }
+          .detail-sheet {
+            border-bottom: 1px solid rgba(148, 163, 184, 0.22);
+            border-radius: 28px;
+            box-shadow: 0 24px 90px rgba(0, 0, 0, 0.5);
+          }
+        }
+        @media (max-width: 420px) {
+          .fact-grid {
+            grid-template-columns: minmax(0, 1fr);
+          }
+          .sheet-actions button {
+            flex: 1 1 auto;
+          }
+        }
         .history-head-actions {
           display: inline-flex;
           align-items: center;
@@ -551,6 +723,7 @@ class HouseNoticesCard extends HTMLElement {
         ${this.renderHistory(history)}
         ${this.renderSection("Upcoming", upcoming, { collapsible: true, sectionId: "upcoming" })}
       </div>
+      ${detailItem ? this.renderDetailSheet(detailItem) : ""}
     `;
     this.bindEvents();
   }
@@ -643,17 +816,115 @@ class HouseNoticesCard extends HTMLElement {
 
   renderDetail(item) {
     const actions = Array.isArray(item.actions) ? item.actions : [];
-    const open = item.url ? `<button class="primary" data-open="${this.escapeAttr(item.url)}">Open</button>` : "";
-    const more = item.entity_id ? `<button data-more-info="${this.escapeAttr(item.entity_id)}">Details</button>` : "";
+    const open = item.url ? `<button data-open="${this.escapeAttr(item.url)}">Open page</button>` : "";
+    const more = `<button class="primary" data-detail-for="${this.escapeAttr(item.id)}">Details</button>`;
     const actionButtons = actions
       .map((action, index) => `<button data-action-for="${this.escapeAttr(item.id)}" data-action-index="${index}">${this.escape(action.label || "Done")}</button>`)
       .join("");
     return `
       <div class="detail">
         <div class="detail-text">${this.escape(item.narrative || this.metaLine(item))}</div>
-        <div class="actions">${open}${more}${actionButtons}</div>
+        <div class="actions">${more}${actionButtons}${open}</div>
       </div>
     `;
+  }
+
+  renderDetailSheet(item) {
+    const detail = this.noticeDetail(item);
+    const stateLabel = item.state === "quiet" ? "current" : item.state;
+    const facts = detail.facts.length
+      ? `<div class="sheet-section">
+          <div class="sheet-section-title">Why now</div>
+          <div class="fact-grid">
+            ${detail.facts.map((fact) => `<div class="fact">${this.escape(this.detailLine(fact))}</div>`).join("")}
+          </div>
+        </div>`
+      : "";
+    const after = detail.afterAction
+      ? `<div class="sheet-section">
+          <div class="sheet-section-title">What happens next</div>
+          <div class="sheet-copy-block">${this.escape(detail.afterAction)}</div>
+          ${detail.tracking ? `<div class="tracking-line">${this.escape(detail.tracking)}</div>` : ""}
+        </div>`
+      : "";
+    const timeline = detail.timeline.length
+      ? `<div class="sheet-section">
+          <div class="sheet-section-title">Timeline</div>
+          <div class="sheet-timeline">
+            ${detail.timeline.map((step) => `
+              <div class="timeline-step">
+                <div class="timeline-dot" aria-hidden="true"></div>
+                <div>${this.escape(this.detailLine(step))}</div>
+              </div>
+            `).join("")}
+          </div>
+        </div>`
+      : "";
+    return `
+      <div class="sheet-backdrop" data-detail-backdrop>
+        <article class="detail-sheet" data-detail-sheet tabindex="-1" role="dialog" aria-modal="true" aria-label="${this.escapeAttr(item.title)} details">
+          <div class="sheet-header">
+            <div class="sheet-mark">${this.renderMark(item)}</div>
+            <div class="sheet-copy">
+              <div class="sheet-title-line">
+                <div class="sheet-title">${this.escape(item.title)}</div>
+                <div class="pill ${this.escapeAttr(item.state)}">${this.escape(stateLabel)}</div>
+              </div>
+              <div class="sheet-subtitle">${this.escape(item.group || "House")} · ${this.escape(this.metaLine(item) || "Current notice")}</div>
+            </div>
+            <button class="sheet-close" data-close-detail aria-label="Close details"><ha-icon icon="mdi:close"></ha-icon></button>
+          </div>
+          <div class="sheet-body">
+            <div class="sheet-section">
+              <div class="sheet-section-title">What this means</div>
+              <div class="sheet-summary">${this.escape(detail.summary)}</div>
+            </div>
+            ${facts}
+            ${after}
+            ${timeline}
+            <div class="sheet-actions">
+              ${this.renderSheetActions(item)}
+            </div>
+          </div>
+        </article>
+      </div>
+    `;
+  }
+
+  noticeDetail(item) {
+    const raw = item.details && typeof item.details === "object" ? item.details : {};
+    const summary = raw.summary || item.narrative || this.metaLine(item) || "This notice needs a quick look.";
+    const fallbackFacts = [
+      this.metaLine(item),
+      item.group ? `Group: ${item.group}` : "",
+    ].filter(Boolean);
+    const facts = Array.isArray(raw.facts) ? raw.facts.filter((fact) => this.detailLine(fact)) : fallbackFacts;
+    return {
+      summary,
+      facts: facts.length ? facts : fallbackFacts,
+      afterAction: raw.after_action || raw.afterAction || "",
+      tracking: raw.tracking || "",
+      timeline: Array.isArray(raw.timeline) ? raw.timeline.filter((step) => this.detailLine(step)) : [],
+    };
+  }
+
+  renderSheetActions(item) {
+    const actions = Array.isArray(item.actions) ? item.actions : [];
+    const actionButtons = actions
+      .map((action, index) => `<button class="${index === 0 ? "primary" : ""}" data-action-for="${this.escapeAttr(item.id)}" data-action-index="${index}">${this.escape(action.label || "Done")}</button>`)
+      .join("");
+    const open = item.url ? `<button data-open="${this.escapeAttr(item.url)}">Open page</button>` : "";
+    return actionButtons || open ? `${actionButtons}${open}` : `<button data-close-detail>Close</button>`;
+  }
+
+  detailLine(value) {
+    if (value && typeof value === "object") {
+      const label = value.label || value.title || "";
+      const body = value.value || value.text || value.fact || "";
+      if (label && body) return `${label}: ${body}`;
+      return String(label || body || "").trim();
+    }
+    return String(value || "").trim();
   }
 
   renderHistory(history) {
@@ -736,17 +1007,38 @@ class HouseNoticesCard extends HTMLElement {
     this.shadowRoot.querySelectorAll("[data-open]").forEach((button) => {
       button.addEventListener("click", (event) => {
         event.stopPropagation();
+        this._detailItemId = null;
         this.navigate(button.getAttribute("data-open"));
       });
     });
-    this.shadowRoot.querySelectorAll("[data-more-info]").forEach((button) => {
+    this.shadowRoot.querySelectorAll("[data-detail-for]").forEach((button) => {
       button.addEventListener("click", (event) => {
         event.stopPropagation();
-        this.dispatchEvent(new CustomEvent("hass-more-info", {
-          bubbles: true,
-          composed: true,
-          detail: { entityId: button.getAttribute("data-more-info") },
-        }));
+        this._detailItemId = button.getAttribute("data-detail-for");
+        this.render();
+        window.requestAnimationFrame(() => this.shadowRoot.querySelector("[data-detail-sheet]")?.focus());
+      });
+    });
+    this.shadowRoot.querySelectorAll("[data-close-detail]").forEach((button) => {
+      button.addEventListener("click", (event) => {
+        event.stopPropagation();
+        this._detailItemId = null;
+        this.render();
+      });
+    });
+    this.shadowRoot.querySelectorAll("[data-detail-backdrop]").forEach((backdrop) => {
+      backdrop.addEventListener("click", (event) => {
+        if (event.target !== backdrop) return;
+        this._detailItemId = null;
+        this.render();
+      });
+    });
+    this.shadowRoot.querySelectorAll("[data-detail-sheet]").forEach((sheet) => {
+      sheet.addEventListener("click", (event) => event.stopPropagation());
+      sheet.addEventListener("keydown", (event) => {
+        if (event.key !== "Escape") return;
+        this._detailItemId = null;
+        this.render();
       });
     });
     this.shadowRoot.querySelectorAll("[data-action-for]").forEach((button) => {
@@ -886,6 +1178,9 @@ class HouseNoticesCard extends HTMLElement {
     if (!domain || !service) return;
     await this.recordAction(item, action);
     await this._hass.callService(domain, service, action.data || {}, action.target || {});
+    this._detailItemId = null;
+    this._expanded = null;
+    this.render();
   }
 
   async recordAction(item, action) {

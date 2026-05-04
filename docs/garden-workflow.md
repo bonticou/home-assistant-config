@@ -50,6 +50,14 @@ labels like "Tom/Cape" or "Pep/Squash". Notification controls such as snooze
 and push toggles should live in the notification center or a clearly labeled
 settings surface, not beside crop-care status chips.
 
+Garden notification details should be calm workflow explainers, not stock HA
+entity popups. A planting or protection reminder detail should state what the
+garden is asking for, why the live forecast or crop state triggered it, what the
+primary action will record, and what notifications/rules change afterward. For
+forecast-driven details, include the relevant lows, threshold, and crop group;
+for care history, use a short designed timeline instead of the raw HA activity
+view. Project-wide rules live in `docs/notification-detail-surfaces.md`.
+
 ## Weather rules
 
 `sensor.garden_weather_window` looks at the next 4 daily forecast lows.
