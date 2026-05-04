@@ -7429,9 +7429,7 @@ views:
                 Cool-season bed check.
               {% endif %}
 
-          - type: grid
-            columns: 2
-            square: false
+          - type: vertical-stack
             cards:
               - type: custom:mushroom-template-card
                 entity: sensor.garden_spinach_status
@@ -7470,35 +7468,40 @@ views:
                       line-height: 1.32 !important;
                       opacity: 0.84 !important;
                     }
-              - type: custom:mushroom-template-card
-                entity: sensor.garden_bok_choy_status
-                primary: >-
-                  {% set low_raw = state_attr('sensor.garden_weather_window', 'lowest_low_4_day') %}
-                  {% set low = low_raw | float(99) if is_number(low_raw) else 99 %}
-                  {% if states('input_select.garden_bok_choy_stage') == 'planted' %}Bok choy planted
-                  {% elif low < 32 %}Bok choy: cover or wait
-                  {% else %}Bok choy: plant now{% endif %}
-                secondary: >-
-                  {{ state_attr('sensor.garden_bok_choy_status', 'count') }} Shanghai starts.
-                  {% set low_raw = state_attr('sensor.garden_weather_window', 'lowest_low_4_day') %}
-                  {% set low = low_raw | float(99) if is_number(low_raw) else 99 %}
-                  {% if states('input_select.garden_bok_choy_stage') == 'planted' %}
-                    Keep evenly moist; watch flea beetles.
-                  {% elif low < 32 %}
-                    Hard frost risk; cover if it goes outside.
-                  {% else %}
-                    Cool window is good. Use raised bed or container with afternoon shade.
-                  {% endif %}
-                icon: mdi:sprout-outline
-                icon_color: >-
-                  {% if is_state('input_select.garden_bok_choy_observation', 'stressed') %}red
-                  {% elif states('input_select.garden_bok_choy_stage') == 'planted' %}green
-                  {% else %}teal{% endif %}
-                multiline_secondary: true
-                tap_action:
-                  action: none
-                card_mod:
-                  style: *garden_compact_crop_card_style
+              - type: conditional
+                conditions:
+                  - entity: binary_sensor.garden_needs_attention
+                    state_not: "on"
+                card:
+                  type: custom:mushroom-template-card
+                  entity: sensor.garden_bok_choy_status
+                  primary: >-
+                    {% set low_raw = state_attr('sensor.garden_weather_window', 'lowest_low_4_day') %}
+                    {% set low = low_raw | float(99) if is_number(low_raw) else 99 %}
+                    {% if states('input_select.garden_bok_choy_stage') == 'planted' %}Bok choy planted
+                    {% elif low < 32 %}Bok choy: cover or wait
+                    {% else %}Bok choy: plant now{% endif %}
+                  secondary: >-
+                    {{ state_attr('sensor.garden_bok_choy_status', 'count') }} Shanghai starts.
+                    {% set low_raw = state_attr('sensor.garden_weather_window', 'lowest_low_4_day') %}
+                    {% set low = low_raw | float(99) if is_number(low_raw) else 99 %}
+                    {% if states('input_select.garden_bok_choy_stage') == 'planted' %}
+                      Keep evenly moist; watch flea beetles.
+                    {% elif low < 32 %}
+                      Hard frost risk; cover if it goes outside.
+                    {% else %}
+                      Cool window is good. Use raised bed or container with afternoon shade.
+                    {% endif %}
+                  icon: mdi:sprout-outline
+                  icon_color: >-
+                    {% if is_state('input_select.garden_bok_choy_observation', 'stressed') %}red
+                    {% elif states('input_select.garden_bok_choy_stage') == 'planted' %}green
+                    {% else %}teal{% endif %}
+                  multiline_secondary: true
+                  tap_action:
+                    action: none
+                  card_mod:
+                    style: *garden_compact_crop_card_style
 
           - type: custom:mushroom-title-card
             title: Warm Starts
