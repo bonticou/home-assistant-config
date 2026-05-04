@@ -2568,7 +2568,7 @@ views:
                   padding: 4px 0;
                 }
 
-  - title: Notices
+  - title: Notification center
     path: notices
     icon: mdi:bell-outline
     cards:
