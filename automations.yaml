@@ -1878,10 +1878,14 @@
 
 - id: garden_morning_stage_notification
   alias: "Garden — Morning Stage Notification"
-  description: Sends one quiet morning garden planting-window reminder when the live forecast says a crop is ready.
+  description: Sends one quiet garden planting-window notification when the live forecast says a crop is ready.
   triggers:
     - trigger: time
       at: "08:45:00"
+    - trigger: state
+      entity_id: binary_sensor.garden_stage_action_due
+      to: "on"
+      for: "00:10:00"
   conditions:
     - condition: state
       entity_id: input_boolean.garden_notifications_enabled
@@ -1919,7 +1923,7 @@
             - action: script.notify_trevor_phone
               data:
                 title: "🌱 Garden: {{ states('sensor.garden_next_action') }}"
-                message: "{{ state_attr('sensor.garden_next_action', 'detail') }}"
+                message: "{{ state_attr('sensor.garden_workflow_status', 'attention_reason') }}"
                 data:
                   group: garden
                   tag: garden-stage
@@ -1935,7 +1939,7 @@
         - action: script.notify_trevor_phone
           data:
             title: "🌱 Garden: {{ states('sensor.garden_next_action') }}"
-            message: "{{ state_attr('sensor.garden_next_action', 'detail') }}"
+            message: "{{ state_attr('sensor.garden_workflow_status', 'attention_reason') }}"
             data:
               group: garden
               tag: garden-stage

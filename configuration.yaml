@@ -1396,7 +1396,7 @@ template:
             is_state('binary_sensor.house_unsecured_while_away', 'on'),
             ns.env_active,
             is_state('binary_sensor.house_low_battery_alert', 'on'),
-            is_state('binary_sensor.garden_actionable_alert', 'on'),
+            is_state('binary_sensor.garden_needs_attention', 'on'),
             is_state('binary_sensor.wine_cave_actionable_alert', 'on'),
             is_state('binary_sensor.wine_cave_sensor_unavailable', 'on'),
             is_state('binary_sensor.espresso_maintenance_due', 'on'),
@@ -1448,7 +1448,7 @@ template:
               is_state('binary_sensor.house_unsecured_while_away', 'on'),
               ns.env_active,
               is_state('binary_sensor.house_low_battery_alert', 'on'),
-              is_state('binary_sensor.garden_actionable_alert', 'on'),
+              is_state('binary_sensor.garden_needs_attention', 'on'),
               is_state('binary_sensor.wine_cave_actionable_alert', 'on'),
               is_state('binary_sensor.wine_cave_sensor_unavailable', 'on'),
               is_state('binary_sensor.espresso_maintenance_due', 'on'),
@@ -1644,23 +1644,22 @@ template:
                 'entity_id': 'sensor.house_low_battery_summary'
               }] %}
             {% endif %}
-            {% if is_state('binary_sensor.garden_actionable_alert', 'on') %}
+            {% if is_state('binary_sensor.garden_needs_attention', 'on') %}
               {% set garden_action = state_attr('sensor.garden_next_action', 'action_id') | default('none', true) | string %}
               {% set garden_action_label = 'Issue resolved' if garden_action[:14] == 'GARDEN_RESOLVE' else 'Mark planted' if garden_action[:11] == 'GARDEN_MARK' else 'Snooze' %}
-              {% set garden_severity = 'watch' if is_state('binary_sensor.garden_issue_attention_due', 'on') or is_state('binary_sensor.garden_weather_protection_due', 'on') else 'info' %}
               {% set ns.items = ns.items + [{
                 'id': 'garden-window',
-                'title': 'Garden',
+                'title': 'Garden needs attention',
                 'emoji': '🌱',
                 'icon': 'mdi:sprout-outline',
                 'group': 'Garden',
-                'state': 'active' if garden_severity == 'watch' else 'due',
-                'severity': garden_severity,
+                'state': 'active',
+                'severity': 'watch',
                 'date': now_stamp,
                 'due_prefix': 'Now',
-                'narrative': state_attr('sensor.garden_next_action', 'detail') | default(states('sensor.garden_next_action'), true),
+                'narrative': state_attr('sensor.garden_workflow_status', 'attention_reason') | default(state_attr('sensor.garden_next_action', 'detail'), true),
                 'url': '/calm-mobile/garden',
-                'entity_id': 'sensor.garden_next_action',
+                'entity_id': 'sensor.garden_workflow_status',
                 'actions': ([{'label': garden_action_label, 'service': 'script.garden_apply_next_action'}] if garden_action != 'none' else []) + [{'label': 'Snooze', 'service': 'script.garden_snooze_notifications'}]
               }] %}
             {% endif %}
@@ -3555,6 +3554,7 @@ template:
           type: daily
         response_variable: garden_daily_forecast
     sensor:
+      # Garden workflow rules are documented in docs/garden-workflow.md.
       - name: "Garden Weather Window"
         unique_id: garden_weather_window
         icon: mdi:weather-partly-cloudy
@@ -3967,6 +3967,57 @@ template:
               Forecast lows: {{ lows }}. Climate normals are context; the live forecast decides.
             {% endif %}
 
+      - name: "Garden Workflow Status"
+        unique_id: garden_workflow_status
+        icon: >
+          {% if is_state('binary_sensor.garden_issue_attention_due', 'on') %}mdi:sprout-outline
+          {% elif is_state('binary_sensor.garden_weather_protection_due', 'on') %}mdi:weather-night
+          {% elif is_state('binary_sensor.garden_stage_action_due', 'on') %}mdi:shovel
+          {% else %}mdi:leaf-circle-outline{% endif %}
+        state: >
+          {% if is_state('binary_sensor.garden_issue_attention_due', 'on')
+             or is_state('binary_sensor.garden_weather_protection_due', 'on')
+             or is_state('binary_sensor.garden_stage_action_due', 'on') %}
+            Needs attention
+          {% elif not (state_attr('sensor.garden_weather_window', 'forecast_available') in [true, 'true', 'True']) %}
+            Waiting for forecast
+          {% elif state_attr('sensor.garden_weather_window', 'lowest_low_4_day') | float(0) < 50 %}
+            Hardening
+          {% elif state_attr('sensor.garden_weather_window', 'lowest_low_4_day') | float(0) < 55 %}
+            Partial warm window
+          {% else %}
+            Warm window watch
+          {% endif %}
+        attributes:
+          attention_type: >
+            {% if is_state('binary_sensor.garden_issue_attention_due', 'on') %}
+              stressed_crop
+            {% elif is_state('binary_sensor.garden_weather_protection_due', 'on') %}
+              weather_protection
+            {% elif is_state('binary_sensor.garden_stage_action_due', 'on') %}
+              planting_window
+            {% else %}
+              none
+            {% endif %}
+          attention_reason: >
+            {% set action = states('sensor.garden_next_action') %}
+            {% set detail = state_attr('sensor.garden_next_action', 'detail') %}
+            {% if is_state('binary_sensor.garden_issue_attention_due', 'on') %}
+              {{ action }}. {{ detail }}
+            {% elif is_state('binary_sensor.garden_weather_protection_due', 'on') %}
+              {{ action }}. {{ detail }}
+            {% elif is_state('binary_sensor.garden_stage_action_due', 'on') %}
+              {{ action }} is ready to plant. {{ detail }}
+            {% else %}
+              No garden action needs attention right now.
+            {% endif %}
+          ready_to_plant: >
+            {{ states('sensor.garden_next_action')
+               if is_state('binary_sensor.garden_stage_action_due', 'on')
+               else 'none' }}
+          notification_policy: >
+            Planting windows notify when they open or at the morning check, at most once per day. Weather protection notifies late afternoon, at most once per day. Stressed crops notify immediately or at the daily issue check.
+
     binary_sensor:
       - name: "Garden Stage Action Due"
         unique_id: garden_stage_action_due
@@ -4023,11 +4074,32 @@ template:
 
       - name: "Garden Actionable Alert"
         unique_id: garden_actionable_alert
+        device_class: problem
         state: >
           {{ is_state('binary_sensor.garden_stage_action_due', 'on')
              or is_state('binary_sensor.garden_weather_protection_due', 'on')
              or is_state('binary_sensor.garden_issue_attention_due', 'on') }}
         icon: mdi:sprout-outline
+        attributes:
+          attention_type: "{{ state_attr('sensor.garden_workflow_status', 'attention_type') }}"
+          reason: "{{ state_attr('sensor.garden_workflow_status', 'attention_reason') }}"
+
+      - name: "Garden Needs Attention"
+        unique_id: garden_needs_attention
+        device_class: problem
+        state: >
+          {{ is_state('binary_sensor.garden_stage_action_due', 'on')
+             or is_state('binary_sensor.garden_weather_protection_due', 'on')
+             or is_state('binary_sensor.garden_issue_attention_due', 'on') }}
+        icon: >
+          {% if is_state('binary_sensor.garden_issue_attention_due', 'on') %}mdi:sprout-outline
+          {% elif is_state('binary_sensor.garden_weather_protection_due', 'on') %}mdi:weather-night
+          {% elif is_state('binary_sensor.garden_stage_action_due', 'on') %}mdi:shovel
+          {% else %}mdi:check-circle-outline{% endif %}
+        attributes:
+          attention_type: "{{ state_attr('sensor.garden_workflow_status', 'attention_type') }}"
+          reason: "{{ state_attr('sensor.garden_workflow_status', 'attention_reason') }}"
+          ready_to_plant: "{{ state_attr('sensor.garden_workflow_status', 'ready_to_plant') }}"
 
   - trigger:
       - platform: event
