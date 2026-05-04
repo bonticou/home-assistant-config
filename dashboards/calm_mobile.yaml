@@ -7256,10 +7256,8 @@ views:
                 Warm window is open. Plant only crops that are hardened and ready.
               {% endif %}
             icon: >-
-              {% if is_state('binary_sensor.garden_issue_attention_due', 'on') %}mdi:sprout-outline
-              {% elif is_state('binary_sensor.garden_weather_protection_due', 'on') %}mdi:weather-night
-              {% elif is_state('binary_sensor.garden_stage_action_due', 'on') %}mdi:shovel
-              {% else %}mdi:leaf-circle-outline{% endif %}
+              {% if is_state('input_boolean.garden_action_panel_expanded', 'on') %}mdi:chevron-up
+              {% else %}mdi:chevron-down{% endif %}
             icon_color: >-
               {% if is_state('binary_sensor.garden_issue_attention_due', 'on') %}red
               {% elif is_state('binary_sensor.garden_weather_protection_due', 'on') %}amber
@@ -7267,8 +7265,12 @@ views:
               {% else %}teal{% endif %}
             multiline_secondary: true
             tap_action:
-              action: perform-action
-              perform_action: script.garden_apply_next_action
+              action: call-service
+              service: input_boolean.toggle
+              target:
+                entity_id: input_boolean.garden_action_panel_expanded
+            hold_action:
+              action: none
             card_mod:
               style: |
                 ha-card {
@@ -7291,6 +7293,83 @@ views:
                 mushroom-shape-icon {
                   --shape-color: rgba(255, 255, 255, 0.05) !important;
                 }
+
+          - type: conditional
+            conditions:
+              - entity: input_boolean.garden_action_panel_expanded
+                state: "on"
+              - entity: binary_sensor.garden_needs_attention
+                state: "on"
+            card:
+              type: vertical-stack
+              cards:
+                - type: custom:mushroom-template-card
+                  entity: sensor.garden_workflow_status
+                  primary: >-
+                    {% if state_attr('sensor.garden_next_action', 'action_id') == 'GARDEN_MARK_BOK_CHOY_PLANTED' %}
+                      Why bok choy is ready
+                    {% else %}
+                      Garden action details
+                    {% endif %}
+                  secondary: >-
+                    {% set action = state_attr('sensor.garden_next_action', 'action_id') | default('none', true) %}
+                    {% set lows = state_attr('sensor.garden_weather_window', 'next_4_lows') %}
+                    {% set window = states('sensor.garden_weather_window') %}
+                    {% if action == 'GARDEN_MARK_BOK_CHOY_PLANTED' %}
+                      Bok choy is a cool-season crop, so the gate is hard frost, not warm summer nights. The next four forecast lows are {{ lows }}, which keeps it above the 32°F floor. Marking planted records the garden state, clears this planting-window reminder, and shifts follow-up care to planted-crop protection.
+                    {% else %}
+                      {{ state_attr('sensor.garden_next_action', 'detail') }} Current window: {{ window }}. The action button below records the state change only after you intentionally choose it.
+                    {% endif %}
+                  icon: mdi:school-outline
+                  icon_color: teal
+                  multiline_secondary: true
+                  tap_action:
+                    action: none
+                  card_mod:
+                    style: |
+                      ha-card {
+                        border: 1px solid rgba(148, 163, 184, 0.12);
+                        border-radius: 20px;
+                        box-shadow: none;
+                        background: rgba(15, 23, 42, 0.58);
+                      }
+                      .secondary {
+                        line-height: 1.42 !important;
+                        opacity: 0.88 !important;
+                      }
+
+                - type: custom:mushroom-chips-card
+                  alignment: left
+                  chips:
+                    - type: template
+                      icon: mdi:sprout-outline
+                      icon_color: green
+                      content: >-
+                        {% set action = state_attr('sensor.garden_next_action', 'action_id') | default('none', true) %}
+                        {% if action[:14] == 'GARDEN_RESOLVE' %}Issue resolved
+                        {% elif action[:11] == 'GARDEN_MARK' %}Mark planted
+                        {% else %}Run action{% endif %}
+                      tap_action:
+                        action: perform-action
+                        perform_action: script.garden_apply_next_action
+                        confirmation:
+                          text: Mark the current garden task as planted/resolved?
+                    - type: template
+                      icon: mdi:bell-sleep-outline
+                      icon_color: amber
+                      content: Snooze
+                      tap_action:
+                        action: perform-action
+                        perform_action: script.garden_snooze_notifications
+                    - type: template
+                      icon: mdi:close-circle-outline
+                      icon_color: grey
+                      content: Close
+                      tap_action:
+                        action: call-service
+                        service: input_boolean.turn_off
+                        target:
+                          entity_id: input_boolean.garden_action_panel_expanded
 
           - type: custom:mushroom-chips-card
             alignment: left

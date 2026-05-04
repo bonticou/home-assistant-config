@@ -43,6 +43,9 @@ their own attention logic.
 Garden controls should be explicit and local to the crop or notice they affect.
 Avoid loose action chips at the bottom of the page. If a durable helper already
 models a manual state, prefer a clean select/dropdown card over a cryptic chip.
+Do not attach state-changing actions to large summary or hero cards. Summary
+cards may expand an action drawer, but the actual state change should require a
+second, clearly labeled button or a durable dropdown/select control.
 
 Forecast chips are useful only when they are readable at a glance. Spell out
 crop groups such as "Tomatoes & cape" and "Peppers & squash"; avoid shorthand

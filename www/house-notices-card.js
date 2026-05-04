@@ -793,8 +793,9 @@ class HouseNoticesCard extends HTMLElement {
     const expanded = this._expanded === item.id;
     const stateLabel = item.state === "quiet" ? "current" : item.state;
     const actions = Array.isArray(item.actions) ? item.actions : [];
-    const inlineAction = ["active", "due"].includes(item.state) && actions.length
-      ? `<div class="inline-actions"><button class="inline-primary" data-action-for="${this.escapeAttr(item.id)}" data-action-index="0">${this.escape(actions[0].label || "Done")}</button></div>`
+    const inlineActionIndex = actions.findIndex((action) => action.inline !== false && !action.confirm);
+    const inlineAction = ["active", "due"].includes(item.state) && inlineActionIndex >= 0
+      ? `<div class="inline-actions"><button class="inline-primary" data-action-for="${this.escapeAttr(item.id)}" data-action-index="${inlineActionIndex}">${this.escape(actions[inlineActionIndex].label || "Done")}</button></div>`
       : "";
     return `
       <div class="row ${inlineAction ? "has-inline-action" : ""}" data-row-id="${this.escapeAttr(item.id)}">

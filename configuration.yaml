@@ -9,7 +9,7 @@ lovelace:
   resources:
     - url: /local/calm-mobile-scrollbars.js?v=3
       type: module
-    - url: /local/house-notices-card.js?v=28
+    - url: /local/house-notices-card.js?v=29
       type: module
   dashboards:
     calm-mobile:
@@ -473,6 +473,10 @@ input_boolean:
     name: Garden Notifications Enabled
     icon: mdi:sprout-outline
     initial: true
+  garden_action_panel_expanded:
+    name: Garden Action Panel Expanded
+    icon: mdi:chevron-down
+    initial: false
   wine_cave_maintenance_enabled:
     name: Wine Cave Maintenance Enabled
     icon: mdi:calendar-check-outline
@@ -1685,7 +1689,7 @@ template:
                   'after_action': 'Marking planted records the bok choy state, clears the planting-window notice, and moves the garden narrative into planted-care mode.' if garden_is_bok_choy else 'After you handle this, Home Assistant clears the active garden notice and keeps watching forecast lows, crop stage, and crop observations.',
                   'tracking': 'Home Assistant will keep watching the 4-night forecast floor, planted-crop protection, and stressed crop observations.'
                 },
-                'actions': ([{'label': garden_action_label, 'service': 'script.garden_apply_next_action'}] if garden_action != 'none' else []) + [{'label': 'Snooze', 'service': 'script.garden_snooze_notifications'}]
+                'actions': ([{'label': garden_action_label, 'service': 'script.garden_apply_next_action', 'confirm': true, 'inline': false}] if garden_action != 'none' else []) + [{'label': 'Snooze', 'service': 'script.garden_snooze_notifications'}]
               }] %}
             {% endif %}
             {% if is_state('binary_sensor.wine_cave_actionable_alert', 'on') or is_state('binary_sensor.wine_cave_sensor_unavailable', 'on') %}

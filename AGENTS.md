@@ -146,6 +146,9 @@ dashboard. Prefer plain-language labels and inline actions tied to the specific
 item that needs attention. Avoid shorthand chips, unlabeled utility controls, or
 notification snooze/toggle controls mixed into unrelated care dashboards; put
 those in the notification center or a clearly labeled settings surface.
+Never attach durable state-changing actions to large summary/hero cards where a
+stray tap can mutate the home model. Use an expand/caret action drawer, a
+clearly labeled button with confirmation, or a durable dropdown/select control.
 
 Reminder and task "Details" surfaces must be bespoke to the content. Do not
 route them to stock Home Assistant `more-info` history/activity popups unless
