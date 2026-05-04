@@ -7269,6 +7269,11 @@ views:
               perform_action: input_boolean.toggle
               target:
                 entity_id: input_boolean.garden_action_panel_expanded
+            icon_tap_action:
+              action: perform-action
+              perform_action: input_boolean.toggle
+              target:
+                entity_id: input_boolean.garden_action_panel_expanded
             hold_action:
               action: none
             card_mod:
