@@ -38,6 +38,18 @@ Notices and be eligible for a push notification.
 Dashboards and notices should read these attributes instead of re-creating
 their own attention logic.
 
+## Dashboard action design
+
+Garden controls should be explicit and local to the crop or notice they affect.
+Avoid loose action chips at the bottom of the page. If a durable helper already
+models a manual state, prefer a clean select/dropdown card over a cryptic chip.
+
+Forecast chips are useful only when they are readable at a glance. Spell out
+crop groups such as "Tomatoes & cape" and "Peppers & squash"; avoid shorthand
+labels like "Tom/Cape" or "Pep/Squash". Notification controls such as snooze
+and push toggles should live in the notification center or a clearly labeled
+settings surface, not beside crop-care status chips.
+
 ## Weather rules
 
 `sensor.garden_weather_window` looks at the next 4 daily forecast lows.

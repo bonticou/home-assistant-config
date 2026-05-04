@@ -2140,6 +2140,28 @@
         datetime: "{{ now().strftime('%Y-%m-%d %H:%M:%S') }}"
   mode: single
 
+- id: garden_bok_choy_stage_dropdown_sync
+  alias: "Garden — Bok Choy Stage Dropdown Sync"
+  description: Keeps the clean dashboard stage dropdown equivalent to the planted quick action.
+  triggers:
+    - trigger: state
+      entity_id: input_select.garden_bok_choy_stage
+      to: "planted"
+  conditions:
+    - condition: template
+      value_template: >
+        {% set planted_at = states('input_datetime.garden_bok_choy_planted') %}
+        {{ planted_at in ['unknown', 'unavailable', 'none', '']
+           or as_timestamp(now()) - as_timestamp(planted_at, 0) > 60 }}
+  actions:
+    - action: input_datetime.set_datetime
+      target:
+        entity_id: input_datetime.garden_bok_choy_planted
+      data:
+        datetime: "{{ now().strftime('%Y-%m-%d %H:%M:%S') }}"
+    - action: script.garden_clear_notifications
+  mode: single
+
 - id: garden_notification_actions
   alias: "Garden — Notification Actions"
   description: Handles garden notification quick actions for planting, hardening, snoozing, and issue resolution.

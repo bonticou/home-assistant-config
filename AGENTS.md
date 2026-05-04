@@ -141,6 +141,12 @@ When creating or changing push notifications for Trevor, include a small, approp
 
 For coffee and espresso maintenance, prefer concise coffee-themed emoji pairs and explicit titles, such as `☕💧 Profitec GO water backflush` and `☕🧼 Profitec GO Cafiza clean`.
 
+Notification and attention controls should also be immediately legible in the
+dashboard. Prefer plain-language labels and inline actions tied to the specific
+item that needs attention. Avoid shorthand chips, unlabeled utility controls, or
+notification snooze/toggle controls mixed into unrelated care dashboards; put
+those in the notification center or a clearly labeled settings surface.
+
 ---
 
 # Code Quality

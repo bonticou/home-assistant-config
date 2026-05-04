@@ -732,16 +732,16 @@ garden_mark_bok_choy_planted:
   icon: mdi:sprout-outline
   mode: restart
   sequence:
-    - action: input_select.select_option
-      target:
-        entity_id: input_select.garden_bok_choy_stage
-      data:
-        option: planted
     - action: input_datetime.set_datetime
       target:
         entity_id: input_datetime.garden_bok_choy_planted
       data:
         datetime: "{{ now().strftime('%Y-%m-%d %H:%M:%S') }}"
+    - action: input_select.select_option
+      target:
+        entity_id: input_select.garden_bok_choy_stage
+      data:
+        option: planted
     - action: script.garden_clear_notifications
 
 garden_mark_tomatoes_hardened:

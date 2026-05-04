@@ -7306,7 +7306,7 @@ views:
                   {% else %}teal{% endif %}
                 content: >-
                   {% set low_raw = state_attr('sensor.garden_weather_window', 'lowest_low_4_day') %}
-                  {% if is_number(low_raw) %}4-night floor {{ low_raw | round(0) | int }}°F
+                  {% if is_number(low_raw) %}4-night low {{ low_raw | round(0) | int }}°F
                   {% else %}Forecast unavailable{% endif %}
                 tap_action:
                   action: more-info
@@ -7317,33 +7317,18 @@ views:
                 content: >-
                   {% set low_raw = state_attr('sensor.garden_weather_window', 'lowest_low_4_day') %}
                   {% set low = low_raw | float(0) if is_number(low_raw) else none %}
-                  {% if state_attr('sensor.garden_weather_window', 'tomatoes_window') in [true, 'true', 'True'] %}Tom/Cape ready
-                  {% elif low is not none %}Tom/Cape need +{{ [0, (50 - low) | round(0) | int] | max }}°
-                  {% else %}Tom/Cape wait{% endif %}
+                  {% if state_attr('sensor.garden_weather_window', 'tomatoes_window') in [true, 'true', 'True'] %}Tomatoes & cape ready
+                  {% elif low is not none %}Tomatoes & cape need +{{ [0, (50 - low) | round(0) | int] | max }}°F
+                  {% else %}Tomatoes & cape wait{% endif %}
               - type: template
                 icon: mdi:chili-mild
                 icon_color: "{{ 'green' if state_attr('sensor.garden_weather_window', 'peppers_window') in [true, 'true', 'True'] else 'orange' }}"
                 content: >-
                   {% set low_raw = state_attr('sensor.garden_weather_window', 'lowest_low_4_day') %}
                   {% set low = low_raw | float(0) if is_number(low_raw) else none %}
-                  {% if state_attr('sensor.garden_weather_window', 'peppers_window') in [true, 'true', 'True'] %}Pep/Squash warm
-                  {% elif low is not none %}Pep/Squash need +{{ [0, (55 - low) | round(0) | int] | max }}°
-                  {% else %}Pep/Squash wait{% endif %}
-              - type: template
-                icon: mdi:bell-sleep-outline
-                icon_color: >-
-                  {% set snooze = states('input_datetime.garden_notifications_snooze_until') %}
-                  {% if is_state('input_boolean.garden_notifications_enabled', 'off') %}grey
-                  {% elif snooze not in ['unknown', 'unavailable', 'none', ''] and as_timestamp(snooze, 0) > as_timestamp(now()) %}amber
-                  {% else %}green{% endif %}
-                content: >-
-                  {% set snooze = states('input_datetime.garden_notifications_snooze_until') %}
-                  {% if is_state('input_boolean.garden_notifications_enabled', 'off') %}Pushes off
-                  {% elif snooze not in ['unknown', 'unavailable', 'none', ''] and as_timestamp(snooze, 0) > as_timestamp(now()) %}Snoozed
-                  {% else %}Quiet pushes{% endif %}
-                tap_action:
-                  action: perform-action
-                  perform_action: script.garden_snooze_notifications
+                  {% if state_attr('sensor.garden_weather_window', 'peppers_window') in [true, 'true', 'True'] %}Peppers & squash ready
+                  {% elif low is not none %}Peppers & squash need +{{ [0, (55 - low) | round(0) | int] | max }}°F
+                  {% else %}Peppers & squash wait{% endif %}
 
           - type: custom:mushroom-title-card
             title: Ready Now
@@ -7357,6 +7342,27 @@ views:
               {% else %}
                 Cool-season bed check.
               {% endif %}
+
+          - type: conditional
+            conditions:
+              - entity: input_select.garden_bok_choy_stage
+                state_not: planted
+            card:
+              type: custom:mushroom-select-card
+              entity: input_select.garden_bok_choy_stage
+              name: Bok choy stage
+              icon: mdi:sprout-outline
+              icon_color: teal
+              secondary_info: state
+              fill_container: true
+              card_mod:
+                style: |
+                  ha-card {
+                    border: 1px solid rgba(148, 163, 184, 0.12);
+                    border-radius: 18px;
+                    box-shadow: none;
+                    background: rgba(15, 23, 42, 0.58);
+                  }
 
           - type: grid
             columns: 2
@@ -7587,43 +7593,6 @@ views:
               action: more-info
             card_mod:
               style: *garden_list_crop_card_style
-
-          - type: custom:mushroom-chips-card
-            alignment: left
-            chips:
-              - type: template
-                icon: mdi:check-circle-outline
-                icon_color: >-
-                  {% set action = state_attr('sensor.garden_next_action', 'action_id') %}
-                  {% if action in ['none', none, '', 'unknown', 'unavailable'] %}grey
-                  {% elif 'RESOLVE' in action %}red
-                  {% else %}green{% endif %}
-                content: >-
-                  {% set action = state_attr('sensor.garden_next_action', 'action_id') %}
-                  {% if action == 'GARDEN_MARK_BOK_CHOY_PLANTED' %}Mark bok choy planted
-                  {% elif action == 'GARDEN_MARK_TOMATOES_PLANTED' %}Mark tomatoes planted
-                  {% elif action == 'GARDEN_MARK_PEPPERS_PLANTED' %}Mark peppers planted
-                  {% elif action == 'GARDEN_MARK_CAPE_GOOSEBERRY_PLANTED' %}Mark cape planted
-                  {% elif action == 'GARDEN_MARK_HONEYNUT_SQUASH_PLANTED' %}Mark squash planted
-                  {% elif 'RESOLVE' in action %}Mark issue resolved
-                  {% else %}No safe action{% endif %}
-                tap_action:
-                  action: perform-action
-                  perform_action: script.garden_apply_next_action
-              - type: template
-                icon: mdi:bell-sleep-outline
-                icon_color: amber
-                content: Snooze 24h
-                tap_action:
-                  action: perform-action
-                  perform_action: script.garden_snooze_notifications
-              - type: template
-                icon: mdi:bell-outline
-                icon_color: "{{ 'green' if is_state('input_boolean.garden_notifications_enabled', 'on') else 'grey' }}"
-                content: "{{ 'Pushes on' if is_state('input_boolean.garden_notifications_enabled', 'on') else 'Pushes off' }}"
-                tap_action:
-                  action: toggle
-                  entity: input_boolean.garden_notifications_enabled
 
   - title: Environment
     path: climate
