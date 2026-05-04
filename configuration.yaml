@@ -1497,7 +1497,8 @@ template:
               {% for tax_year in range(now().year, now().year + 3) %}
                 {% for tax_month in [1, 4, 9] %}
                   {% set bill_date = '%04d-%02d-01' | format(tax_year, tax_month) %}
-                  {% if bill_date >= today and bill_date <= horizon %}
+                  {% set notice_start = (strptime(bill_date, '%Y-%m-%d') - timedelta(days=21)).strftime('%Y-%m-%d') %}
+                  {% if bill_date >= today and bill_date <= horizon and today >= notice_start %}
                     {% set ns.dates = ns.dates + [bill_date] %}
                   {% endif %}
                 {% endfor %}
@@ -1539,7 +1540,8 @@ template:
               {% for tax_year in range(now().year, now().year + 3) %}
                 {% for tax_month in [1, 4, 9] %}
                   {% set bill_date = '%04d-%02d-01' | format(tax_year, tax_month) %}
-                  {% if bill_date >= today and bill_date <= horizon %}
+                  {% set notice_start = (strptime(bill_date, '%Y-%m-%d') - timedelta(days=21)).strftime('%Y-%m-%d') %}
+                  {% if bill_date >= today and bill_date <= horizon and today >= notice_start %}
                     {% set ns.dates = ns.dates + [bill_date] %}
                   {% endif %}
                 {% endfor %}
@@ -1837,13 +1839,14 @@ template:
               {% for tax_year in range(now().year, now().year + 3) %}
                 {% for tax in tax_items %}
                   {% set bill = '%04d-%02d-01' | format(tax_year, tax.bill_month | int) %}
+                  {% set notice_start = (strptime(bill, '%Y-%m-%d') - timedelta(days=21)).strftime('%Y-%m-%d') %}
                   {% set first_next_month = strptime('%04d-%02d-01' | format(tax_year, (tax.bill_month | int) + 1), '%Y-%m-%d') %}
                   {% set last_day = first_next_month - timedelta(days=1) %}
                   {% set weekend_offset = 2 if last_day.weekday() == 6 else 1 if last_day.weekday() == 5 else 0 %}
                   {% set due = (last_day - timedelta(days=weekend_offset)).strftime('%Y-%m-%d') %}
                   {% set paid = tax.paid not in ['unknown', 'unavailable', 'none', ''] and tax.paid[:10] >= bill %}
                   {% set active = today >= bill %}
-                  {% if not paid and (active or bill >= today) %}
+                  {% if not paid and (active or (bill >= today and today >= notice_start)) %}
                     {% set ns.items = ns.items + [{
                       'id': tax.id ~ '-' ~ tax_year,
                       'title': tax.title ~ ' ' ~ tax_year,

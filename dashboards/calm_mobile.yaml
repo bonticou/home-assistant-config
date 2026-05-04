@@ -4504,8 +4504,12 @@ views:
                       : 'Unknown time';
                     const rows = events.slice(0, 5).map((event, index) => {
                       const date = parseDate(event.at);
-                      const severity = event.severity === 'critical' ? 'critical' : 'watch';
-                      const severityLabel = severity === 'critical' ? 'Critical' : 'Watch';
+                      const severity = event.severity === 'critical'
+                        ? 'critical'
+                        : event.severity === 'info' ? 'info' : 'watch';
+                      const severityLabel = severity === 'critical'
+                        ? 'Critical'
+                        : severity === 'info' ? 'Info' : 'Watch';
                       const timeText = [when(date), relative(date)].filter(Boolean).join(' · ');
                       return `
                         <div class="event-row${index === 0 ? ' first' : ''}">
@@ -4580,6 +4584,9 @@ views:
                 .event-dot.watch {
                   background: #2dd4bf;
                 }
+                .event-dot.info {
+                  background: #94a3b8;
+                }
                 .event-dot.critical {
                   background: #fb7185;
                 }
@@ -4626,6 +4633,10 @@ views:
                 .event-pill.watch {
                   background: rgba(45, 212, 191, 0.12);
                   color: #5eead4;
+                }
+                .event-pill.info {
+                  background: rgba(148, 163, 184, 0.12);
+                  color: #cbd5e1;
                 }
                 .event-pill.critical {
                   background: rgba(251, 113, 133, 0.13);
@@ -7208,203 +7219,411 @@ views:
               card_mod:
                 style: *wine_popup_panel_style
 
-  - title: Music
-    path: music
-    icon: mdi:speaker-multiple
+  - title: Garden
+    path: garden
+    icon: mdi:leaf
     cards:
-      - type: custom:mushroom-title-card
-        title: Now Playing
-        subtitle: Every active room stays visible
-
-      - type: grid
-        columns: 2
-        square: false
+      - type: vertical-stack
         cards:
-          - type: custom:mushroom-template-card
-            entity: media_player.family_room
-            primary: Family Room
-            secondary: >-
-              {% set state = states('media_player.family_room') %}
-              {% set detail = state_attr('media_player.family_room', 'media_title')
-                or state_attr('media_player.family_room', 'app_name')
-                or state_attr('media_player.family_room', 'source') %}
-              {% if state == 'playing' %}
-                {{ detail if detail else 'Playing now' }}
-              {% elif state == 'paused' %}
-                {{ 'Paused' ~ (' · ' ~ detail if detail else '') }}
-              {% elif state in ['idle', 'off', 'standby'] %}
-                Idle
-              {% else %}
-                {{ state | replace('_', ' ') | title }}
-              {% endif %}
-            icon: mdi:television-speaker
-            icon_color: >-
-              {{ 'teal' if states('media_player.family_room') == 'playing' else 'blue' if states('media_player.family_room') == 'paused' else 'grey' }}
-            multiline_secondary: true
-            tap_action:
-              action: more-info
-          - type: custom:mushroom-template-card
-            entity: media_player.kitchen_speakers
-            primary: Kitchen
-            secondary: >-
-              {% set state = states('media_player.kitchen_speakers') %}
-              {% set detail = state_attr('media_player.kitchen_speakers', 'media_title')
-                or state_attr('media_player.kitchen_speakers', 'app_name')
-                or state_attr('media_player.kitchen_speakers', 'source') %}
-              {% if state == 'playing' %}
-                {{ detail if detail else 'Playing now' }}
-              {% elif state == 'paused' %}
-                {{ 'Paused' ~ (' · ' ~ detail if detail else '') }}
-              {% elif state in ['idle', 'off', 'standby'] %}
-                Idle
-              {% else %}
-                {{ state | replace('_', ' ') | title }}
-              {% endif %}
-            icon: mdi:silverware-fork-knife
-            icon_color: >-
-              {{ 'teal' if states('media_player.kitchen_speakers') == 'playing' else 'blue' if states('media_player.kitchen_speakers') == 'paused' else 'grey' }}
-            multiline_secondary: true
-            tap_action:
-              action: more-info
-          - type: custom:mushroom-template-card
-            entity: media_player.great_room_speakers
-            primary: Great Room
-            secondary: >-
-              {% set state = states('media_player.great_room_speakers') %}
-              {% set detail = state_attr('media_player.great_room_speakers', 'media_title')
-                or state_attr('media_player.great_room_speakers', 'app_name')
-                or state_attr('media_player.great_room_speakers', 'source') %}
-              {% if state == 'playing' %}
-                {{ detail if detail else 'Playing now' }}
-              {% elif state == 'paused' %}
-                {{ 'Paused' ~ (' · ' ~ detail if detail else '') }}
-              {% elif state in ['idle', 'off', 'standby'] %}
-                Idle
-              {% else %}
-                {{ state | replace('_', ' ') | title }}
-              {% endif %}
-            icon: mdi:sofa-outline
-            icon_color: >-
-              {{ 'teal' if states('media_player.great_room_speakers') == 'playing' else 'blue' if states('media_player.great_room_speakers') == 'paused' else 'grey' }}
-            multiline_secondary: true
-            tap_action:
-              action: more-info
-          - type: custom:mushroom-template-card
-            entity: media_player.unnamed_room_6
-            primary: Dining
-            secondary: >-
-              {% set state = states('media_player.unnamed_room_6') %}
-              {% set detail = state_attr('media_player.unnamed_room_6', 'media_title')
-                or state_attr('media_player.unnamed_room_6', 'app_name')
-                or state_attr('media_player.unnamed_room_6', 'source') %}
-              {% if state == 'playing' %}
-                {{ detail if detail else 'Playing now' }}
-              {% elif state == 'paused' %}
-                {{ 'Paused' ~ (' · ' ~ detail if detail else '') }}
-              {% elif state in ['idle', 'off', 'standby'] %}
-                Idle
-              {% else %}
-                {{ state | replace('_', ' ') | title }}
-              {% endif %}
-            icon: mdi:table-furniture
-            icon_color: >-
-              {{ 'teal' if states('media_player.unnamed_room_6') == 'playing' else 'blue' if states('media_player.unnamed_room_6') == 'paused' else 'grey' }}
-            multiline_secondary: true
-            tap_action:
-              action: more-info
-          - type: custom:mushroom-template-card
-            entity: media_player.wynn_s_room
-            primary: Wynn's Room
-            secondary: >-
-              {% set state = states('media_player.wynn_s_room') %}
-              {% set detail = state_attr('media_player.wynn_s_room', 'media_title')
-                or state_attr('media_player.wynn_s_room', 'app_name')
-                or state_attr('media_player.wynn_s_room', 'source') %}
-              {% if state == 'playing' %}
-                {{ detail if detail else 'Playing now' }}
-              {% elif state == 'paused' %}
-                {{ 'Paused' ~ (' · ' ~ detail if detail else '') }}
-              {% elif state in ['idle', 'off', 'standby'] %}
-                Idle
-              {% else %}
-                {{ state | replace('_', ' ') | title }}
-              {% endif %}
-            icon: mdi:music-note-outline
-            icon_color: >-
-              {{ 'teal' if states('media_player.wynn_s_room') == 'playing' else 'blue' if states('media_player.wynn_s_room') == 'paused' else 'grey' }}
-            multiline_secondary: true
-            tap_action:
-              action: more-info
+          - type: custom:mushroom-title-card
+            title: Garden
+            subtitle: Weather-aware crop care
 
-      - type: custom:mushroom-title-card
-        title: Controls
-
-      - type: custom:sonos-card
-        sections:
-          - player
-          - grouping
-          - volumes
-          - media_browser
-        heightPercentage: auto
-        dynamicVolumeSlider: true
-        player:
-          artworkAsBackground: true
-        grouping:
-          predefinedGroups:
-            - name: Whole House
-              icon: mdi:home-sound-in
-              entities:
-                - media_player.kitchen_speakers
-                - media_player.family_room
-                - media_player.great_room_speakers
-                - media_player.unnamed_room_6
-                - media_player.wynn_s_room
-            - name: First Floor
-              icon: mdi:floor-plan
-              entities:
-                - media_player.kitchen_speakers
-                - media_player.family_room
-                - media_player.great_room_speakers
-                - media_player.unnamed_room_6
-        entities:
-          - media_player.kitchen_speakers
-          - media_player.family_room
-          - media_player.great_room_speakers
-          - media_player.unnamed_room_6
-          - media_player.wynn_s_room
-
-      - type: custom:mushroom-title-card
-        title: Quick Actions
-
-      - type: grid
-        columns: 2
-        square: false
-        cards:
           - type: custom:mushroom-template-card
-            primary: Pause All
-            secondary: Stop every Sonos zone
-            icon: mdi:pause-circle
-            icon_color: red
+            entity: sensor.garden_workflow_status
+            primary: >-
+              {% if is_state('binary_sensor.garden_needs_attention', 'on') %}
+                Needs attention: {{ states('sensor.garden_next_action') }}
+              {% else %}
+                {{ states('sensor.garden_workflow_status') }}: {{ states('sensor.garden_next_action') }}
+              {% endif %}
+            secondary: >-
+              {% set low_raw = state_attr('sensor.garden_weather_window', 'lowest_low_4_day') %}
+              {% set low = low_raw | float(99) if is_number(low_raw) else 99 %}
+              {% set forecast_ok = state_attr('sensor.garden_weather_window', 'forecast_available') in [true, 'true', 'True'] %}
+              {% set wet_days = state_attr('sensor.garden_weather_window', 'wet_days') %}
+              {% if is_state('binary_sensor.garden_needs_attention', 'on') %}
+                {{ state_attr('sensor.garden_workflow_status', 'attention_reason') }}
+              {% elif not forecast_ok %}
+                Forecast data is unavailable, so planting pushes stay quiet until Home Assistant has a reliable 4-night window.
+              {% elif low < 50 %}
+                Bok choy can go in now. Tomatoes and cape gooseberry need {{ (50 - low) | round(0) | int }}°F warmer nights; peppers and squash need {{ (55 - low) | round(0) | int }}°F.
+              {% elif low < 55 %}
+                Tomatoes and cape gooseberry are in range after hardening. Peppers and squash still need {{ (55 - low) | round(0) | int }}°F warmer nights.
+              {% elif wet_days != 'None flagged' %}
+                Warm enough for tender crops, but rain on {{ wet_days }} makes squash the one to delay.
+              {% else %}
+                Warm window is open. Plant only crops that are hardened and ready.
+              {% endif %}
+            icon: >-
+              {% if is_state('binary_sensor.garden_issue_attention_due', 'on') %}mdi:sprout-outline
+              {% elif is_state('binary_sensor.garden_weather_protection_due', 'on') %}mdi:weather-night
+              {% elif is_state('binary_sensor.garden_stage_action_due', 'on') %}mdi:shovel
+              {% else %}mdi:leaf-circle-outline{% endif %}
+            icon_color: >-
+              {% if is_state('binary_sensor.garden_issue_attention_due', 'on') %}red
+              {% elif is_state('binary_sensor.garden_weather_protection_due', 'on') %}amber
+              {% elif is_state('binary_sensor.garden_stage_action_due', 'on') %}amber
+              {% else %}teal{% endif %}
+            multiline_secondary: true
             tap_action:
-              action: call-service
-              service: media_player.media_pause
-              data:
-                entity_id:
-                  - media_player.kitchen_speakers
-                  - media_player.family_room
-                  - media_player.great_room_speakers
-                  - media_player.unnamed_room_6
-                  - media_player.wynn_s_room
+              action: perform-action
+              perform_action: script.garden_apply_next_action
+            card_mod:
+              style: |
+                ha-card {
+                  border: none;
+                  box-shadow: 0 12px 24px rgba(2, 8, 23, 0.14);
+                  border-radius: 24px;
+                  padding: 12px 8px;
+                  border: 1px solid rgba(148, 163, 184, 0.12);
+                  background:
+                    linear-gradient(180deg, rgba(15, 23, 42, 0.86), rgba(15, 23, 42, 0.78));
+                }
+                .primary {
+                  font-size: 24px !important;
+                  font-weight: 580 !important;
+                }
+                .secondary {
+                  line-height: 1.42 !important;
+                  opacity: 0.88 !important;
+                }
+                mushroom-shape-icon {
+                  --shape-color: rgba(255, 255, 255, 0.05) !important;
+                }
+
+          - type: custom:mushroom-chips-card
+            alignment: left
+            chips:
+              - type: template
+                icon: mdi:thermometer-chevron-down
+                icon_color: >-
+                  {% set low_raw = state_attr('sensor.garden_weather_window', 'lowest_low_4_day') %}
+                  {% set low = low_raw | float(99) if is_number(low_raw) else 99 %}
+                  {% if states('sensor.garden_weather_window') == 'Forecast unavailable' %}grey
+                  {% elif low < 32 %}red
+                  {% elif low < 50 %}amber
+                  {% else %}teal{% endif %}
+                content: >-
+                  {% set low_raw = state_attr('sensor.garden_weather_window', 'lowest_low_4_day') %}
+                  {% if is_number(low_raw) %}4-night floor {{ low_raw | round(0) | int }}°F
+                  {% else %}Forecast unavailable{% endif %}
+                tap_action:
+                  action: more-info
+                  entity: sensor.garden_weather_window
+              - type: template
+                icon: mdi:food-apple-outline
+                icon_color: "{{ 'green' if state_attr('sensor.garden_weather_window', 'tomatoes_window') in [true, 'true', 'True'] else 'amber' }}"
+                content: >-
+                  {% set low_raw = state_attr('sensor.garden_weather_window', 'lowest_low_4_day') %}
+                  {% set low = low_raw | float(0) if is_number(low_raw) else none %}
+                  {% if state_attr('sensor.garden_weather_window', 'tomatoes_window') in [true, 'true', 'True'] %}Tom/Cape ready
+                  {% elif low is not none %}Tom/Cape need +{{ [0, (50 - low) | round(0) | int] | max }}°
+                  {% else %}Tom/Cape wait{% endif %}
+              - type: template
+                icon: mdi:chili-mild
+                icon_color: "{{ 'green' if state_attr('sensor.garden_weather_window', 'peppers_window') in [true, 'true', 'True'] else 'orange' }}"
+                content: >-
+                  {% set low_raw = state_attr('sensor.garden_weather_window', 'lowest_low_4_day') %}
+                  {% set low = low_raw | float(0) if is_number(low_raw) else none %}
+                  {% if state_attr('sensor.garden_weather_window', 'peppers_window') in [true, 'true', 'True'] %}Pep/Squash warm
+                  {% elif low is not none %}Pep/Squash need +{{ [0, (55 - low) | round(0) | int] | max }}°
+                  {% else %}Pep/Squash wait{% endif %}
+              - type: template
+                icon: mdi:bell-sleep-outline
+                icon_color: >-
+                  {% set snooze = states('input_datetime.garden_notifications_snooze_until') %}
+                  {% if is_state('input_boolean.garden_notifications_enabled', 'off') %}grey
+                  {% elif snooze not in ['unknown', 'unavailable', 'none', ''] and as_timestamp(snooze, 0) > as_timestamp(now()) %}amber
+                  {% else %}green{% endif %}
+                content: >-
+                  {% set snooze = states('input_datetime.garden_notifications_snooze_until') %}
+                  {% if is_state('input_boolean.garden_notifications_enabled', 'off') %}Pushes off
+                  {% elif snooze not in ['unknown', 'unavailable', 'none', ''] and as_timestamp(snooze, 0) > as_timestamp(now()) %}Snoozed
+                  {% else %}Quiet pushes{% endif %}
+                tap_action:
+                  action: perform-action
+                  perform_action: script.garden_snooze_notifications
+
+          - type: custom:mushroom-title-card
+            title: Ready Now
+            subtitle: >-
+              {% set low_raw = state_attr('sensor.garden_weather_window', 'lowest_low_4_day') %}
+              {% set low = low_raw | float(99) if is_number(low_raw) else 99 %}
+              {% if states('input_select.garden_bok_choy_stage') != 'planted' and low >= 32 %}
+                Bok choy is the real planting task.
+              {% elif low < 32 %}
+                Frost protection matters more than planting.
+              {% else %}
+                Cool-season bed check.
+              {% endif %}
+
+          - type: grid
+            columns: 2
+            square: false
+            cards:
+              - type: custom:mushroom-template-card
+                entity: sensor.garden_spinach_status
+                primary: Spinach
+                secondary: >-
+                  {{ state_attr('sensor.garden_spinach_status', 'count') }} plants · {{ states('sensor.garden_spinach_status') }}.
+                  {% if is_state('input_select.garden_spinach_observation', 'dry') %}
+                    Water deeply, then leave pushes quiet.
+                  {% elif is_state('input_select.garden_spinach_observation', 'stressed') %}
+                    Check moisture, sun, and transplant stress.
+                  {% else %}
+                    Keep evenly moist; no action needed.
+                  {% endif %}
+                icon: mdi:leaf
+                icon_color: >-
+                  {% if is_state('input_select.garden_spinach_observation', 'stressed') %}red
+                  {% elif is_state('input_select.garden_spinach_observation', 'dry') %}amber
+                  {% else %}green{% endif %}
+                multiline_secondary: true
+                tap_action:
+                  action: more-info
+                card_mod:
+                  style: &garden_compact_crop_card_style |
+                    ha-card {
+                      border: 1px solid rgba(148, 163, 184, 0.12);
+                      border-radius: 18px;
+                      box-shadow: 0 8px 18px rgba(2, 8, 23, 0.10);
+                      background: rgba(15, 23, 42, 0.68);
+                      min-height: 126px;
+                    }
+                    .primary {
+                      font-size: 15px !important;
+                      font-weight: 560 !important;
+                    }
+                    .secondary {
+                      line-height: 1.32 !important;
+                      opacity: 0.84 !important;
+                    }
+              - type: custom:mushroom-template-card
+                entity: sensor.garden_bok_choy_status
+                primary: >-
+                  {% set low_raw = state_attr('sensor.garden_weather_window', 'lowest_low_4_day') %}
+                  {% set low = low_raw | float(99) if is_number(low_raw) else 99 %}
+                  {% if states('input_select.garden_bok_choy_stage') == 'planted' %}Bok choy planted
+                  {% elif low < 32 %}Bok choy: cover or wait
+                  {% else %}Bok choy: plant now{% endif %}
+                secondary: >-
+                  {{ state_attr('sensor.garden_bok_choy_status', 'count') }} Shanghai starts.
+                  {% set low_raw = state_attr('sensor.garden_weather_window', 'lowest_low_4_day') %}
+                  {% set low = low_raw | float(99) if is_number(low_raw) else 99 %}
+                  {% if states('input_select.garden_bok_choy_stage') == 'planted' %}
+                    Keep evenly moist; watch flea beetles.
+                  {% elif low < 32 %}
+                    Hard frost risk; cover if it goes outside.
+                  {% else %}
+                    Cool window is good. Use raised bed or container with afternoon shade.
+                  {% endif %}
+                icon: mdi:sprout-outline
+                icon_color: >-
+                  {% if is_state('input_select.garden_bok_choy_observation', 'stressed') %}red
+                  {% elif states('input_select.garden_bok_choy_stage') == 'planted' %}green
+                  {% else %}teal{% endif %}
+                multiline_secondary: true
+                tap_action:
+                  action: more-info
+                card_mod:
+                  style: *garden_compact_crop_card_style
+
+          - type: custom:mushroom-title-card
+            title: Warm Starts
+            subtitle: >-
+              {% set low_raw = state_attr('sensor.garden_weather_window', 'lowest_low_4_day') %}
+              {% set low = low_raw | float(99) if is_number(low_raw) else 99 %}
+              {% set wet_days = state_attr('sensor.garden_weather_window', 'wet_days') %}
+              {% if low < 50 %}
+                Hardening outside by day; bring tender starts in for cool nights.
+              {% elif low < 55 %}
+                Tomatoes and cape gooseberry are close; peppers and squash still wait.
+              {% elif wet_days != 'None flagged' %}
+                Warm enough, but wet weather can set squash back.
+              {% else %}
+                Weather is warm enough once each crop is hardened.
+              {% endif %}
+
           - type: custom:mushroom-template-card
-            primary: Bedtime Fade
-            secondary: Fade all zones over 30 minutes
-            icon: mdi:weather-night
-            icon_color: deep-purple
+            entity: sensor.garden_tomatoes_status
+            primary: >-
+              {% if is_state('input_select.garden_tomatoes_observation', 'stressed') %}Tomatoes need a check
+              {% elif states('input_select.garden_tomatoes_stage') == 'planted' %}Tomatoes planted
+              {% elif state_attr('sensor.garden_weather_window', 'tomatoes_window') in [true, 'true', 'True'] %}Tomatoes: warm enough
+              {% else %}Tomatoes: wait for 50°F nights{% endif %}
+            secondary: >-
+              {{ state_attr('sensor.garden_tomatoes_status', 'count') }} starts · Honey Drop, Cherokee Purple, Sweet Pea basket, Bumblebee.
+              {% set low_raw = state_attr('sensor.garden_weather_window', 'lowest_low_4_day') %}
+              {% set low = low_raw | float(0) if is_number(low_raw) else none %}
+              {% if states('input_select.garden_tomatoes_stage') == 'planted' %}
+                Keep supports in place and moisture even.
+              {% elif state_attr('sensor.garden_weather_window', 'tomatoes_window') in [true, 'true', 'True'] %}
+                Finish hardening; plant when exposure looks steady.
+              {% elif low is not none %}
+                Current floor is {{ low | round(0) | int }}°F, so keep hardening but shelter at night.
+              {% else %}
+                Forecast unavailable; wait for a reliable window.
+              {% endif %}
+            icon: mdi:food-apple-outline
+            icon_color: >-
+              {% if is_state('input_select.garden_tomatoes_observation', 'stressed') %}red
+              {% elif state_attr('sensor.garden_weather_window', 'tomatoes_window') in [true, 'true', 'True'] %}green
+              {% else %}amber{% endif %}
+            multiline_secondary: true
             tap_action:
-              action: call-service
-              service: script.turn_on
-              target:
-                entity_id: script.spotify_bedtime_fade
+              action: more-info
+            card_mod:
+              style: &garden_list_crop_card_style |
+                ha-card {
+                  border: 1px solid rgba(148, 163, 184, 0.12);
+                  border-radius: 18px;
+                  box-shadow: 0 8px 18px rgba(2, 8, 23, 0.10);
+                  background: rgba(15, 23, 42, 0.68);
+                  padding: 4px 2px;
+                  min-height: 88px;
+                }
+                .primary {
+                  font-size: 16px !important;
+                  font-weight: 560 !important;
+                }
+                .secondary {
+                  line-height: 1.36 !important;
+                  opacity: 0.84 !important;
+                }
+
+          - type: custom:mushroom-template-card
+            entity: sensor.garden_peppers_status
+            primary: >-
+              {% if is_state('input_select.garden_peppers_observation', 'stressed') %}Peppers need a check
+              {% elif states('input_select.garden_peppers_stage') == 'planted' %}Peppers planted
+              {% elif state_attr('sensor.garden_weather_window', 'peppers_window') in [true, 'true', 'True'] %}Peppers: warm enough
+              {% else %}Peppers: wait for 55°F nights{% endif %}
+            secondary: >-
+              {{ state_attr('sensor.garden_peppers_status', 'count') }} starts · 3 shishito, 1 Lemon Spice jalapeno.
+              {% set low_raw = state_attr('sensor.garden_weather_window', 'lowest_low_4_day') %}
+              {% set low = low_raw | float(0) if is_number(low_raw) else none %}
+              {% if states('input_select.garden_peppers_stage') == 'planted' %}
+                Keep them warm and avoid drought swings.
+              {% elif state_attr('sensor.garden_weather_window', 'peppers_window') in [true, 'true', 'True'] %}
+                Finish hardening; plant after the warm nights hold.
+              {% elif low is not none %}
+                Current floor is {{ low | round(0) | int }}°F; peppers want 55°F+.
+              {% else %}
+                Forecast unavailable; wait for a reliable window.
+              {% endif %}
+            icon: mdi:chili-mild
+            icon_color: >-
+              {% if is_state('input_select.garden_peppers_observation', 'stressed') %}red
+              {% elif state_attr('sensor.garden_weather_window', 'peppers_window') in [true, 'true', 'True'] %}green
+              {% else %}orange{% endif %}
+            multiline_secondary: true
+            tap_action:
+              action: more-info
+            card_mod:
+              style: *garden_list_crop_card_style
+
+          - type: custom:mushroom-template-card
+            entity: sensor.garden_cape_gooseberry_status
+            primary: >-
+              {% if is_state('input_select.garden_cape_gooseberry_observation', 'stressed') %}Cape gooseberry needs a check
+              {% elif states('input_select.garden_cape_gooseberry_stage') == 'planted' %}Cape gooseberry potted
+              {% elif state_attr('sensor.garden_weather_window', 'cape_gooseberry_window') in [true, 'true', 'True'] %}Cape gooseberry: container soon
+              {% else %}Cape gooseberry: wait for 50°F nights{% endif %}
+            secondary: >-
+              {{ state_attr('sensor.garden_cape_gooseberry_status', 'count') }} Plant World Seeds start · container preferred.
+              {% set low_raw = state_attr('sensor.garden_weather_window', 'lowest_low_4_day') %}
+              {% set low = low_raw | float(0) if is_number(low_raw) else none %}
+              {% if states('input_select.garden_cape_gooseberry_stage') == 'planted' %}
+                Keep in full sun; only ripe golden fruit is edible.
+              {% elif state_attr('sensor.garden_weather_window', 'cape_gooseberry_window') in [true, 'true', 'True'] %}
+                Harden fully, then use a free-draining 5-10 gallon container.
+              {% elif low is not none %}
+                Current floor is {{ low | round(0) | int }}°F; treat it like a tomato.
+              {% else %}
+                Forecast unavailable; wait for a reliable window.
+              {% endif %}
+            icon: mdi:fruit-cherries
+            icon_color: >-
+              {% if is_state('input_select.garden_cape_gooseberry_observation', 'stressed') %}red
+              {% elif state_attr('sensor.garden_weather_window', 'cape_gooseberry_window') in [true, 'true', 'True'] %}green
+              {% else %}pink{% endif %}
+            multiline_secondary: true
+            tap_action:
+              action: more-info
+            card_mod:
+              style: *garden_list_crop_card_style
+
+          - type: custom:mushroom-template-card
+            entity: sensor.garden_honeynut_squash_status
+            primary: >-
+              {% if is_state('input_select.garden_honeynut_squash_observation', 'stressed') %}Honeynut squash needs a check
+              {% elif states('input_select.garden_honeynut_squash_stage') == 'planted' %}Honeynut squash planted
+              {% elif state_attr('sensor.garden_weather_window', 'honeynut_squash_window') in [true, 'true', 'True'] %}Honeynut squash: warm and dry enough
+              {% else %}Honeynut squash: wait for settled warmth{% endif %}
+            secondary: >-
+              {{ state_attr('sensor.garden_honeynut_squash_status', 'count') }} starts · needs warm soil, room to vine, and no cold rain pattern.
+              {% set low_raw = state_attr('sensor.garden_weather_window', 'lowest_low_4_day') %}
+              {% set low = low_raw | float(0) if is_number(low_raw) else none %}
+              {% set wet_days = state_attr('sensor.garden_weather_window', 'wet_days') %}
+              {% if states('input_select.garden_honeynut_squash_stage') == 'planted' %}
+                Keep roots evenly moist and give vines space.
+              {% elif wet_days != 'None flagged' %}
+                Rain on {{ wet_days }}; wait so roots do not sit cold and wet.
+              {% elif low is not none and low < 55 %}
+                Current floor is {{ low | round(0) | int }}°F; squash wants 55°F+.
+              {% elif state_attr('sensor.garden_weather_window', 'honeynut_squash_window') in [true, 'true', 'True'] %}
+                Harden fully, then plant at a warm sunny edge or trellis.
+              {% else %}
+                Forecast unavailable; wait for a reliable window.
+              {% endif %}
+            icon: mdi:pumpkin
+            icon_color: >-
+              {% if is_state('input_select.garden_honeynut_squash_observation', 'stressed') %}red
+              {% elif state_attr('sensor.garden_weather_window', 'honeynut_squash_window') in [true, 'true', 'True'] %}green
+              {% else %}deep-orange{% endif %}
+            multiline_secondary: true
+            tap_action:
+              action: more-info
+            card_mod:
+              style: *garden_list_crop_card_style
+
+          - type: custom:mushroom-chips-card
+            alignment: left
+            chips:
+              - type: template
+                icon: mdi:check-circle-outline
+                icon_color: >-
+                  {% set action = state_attr('sensor.garden_next_action', 'action_id') %}
+                  {% if action in ['none', none, '', 'unknown', 'unavailable'] %}grey
+                  {% elif 'RESOLVE' in action %}red
+                  {% else %}green{% endif %}
+                content: >-
+                  {% set action = state_attr('sensor.garden_next_action', 'action_id') %}
+                  {% if action == 'GARDEN_MARK_BOK_CHOY_PLANTED' %}Mark bok choy planted
+                  {% elif action == 'GARDEN_MARK_TOMATOES_PLANTED' %}Mark tomatoes planted
+                  {% elif action == 'GARDEN_MARK_PEPPERS_PLANTED' %}Mark peppers planted
+                  {% elif action == 'GARDEN_MARK_CAPE_GOOSEBERRY_PLANTED' %}Mark cape planted
+                  {% elif action == 'GARDEN_MARK_HONEYNUT_SQUASH_PLANTED' %}Mark squash planted
+                  {% elif 'RESOLVE' in action %}Mark issue resolved
+                  {% else %}No safe action{% endif %}
+                tap_action:
+                  action: perform-action
+                  perform_action: script.garden_apply_next_action
+              - type: template
+                icon: mdi:bell-sleep-outline
+                icon_color: amber
+                content: Snooze 24h
+                tap_action:
+                  action: perform-action
+                  perform_action: script.garden_snooze_notifications
+              - type: template
+                icon: mdi:bell-outline
+                icon_color: "{{ 'green' if is_state('input_boolean.garden_notifications_enabled', 'on') else 'grey' }}"
+                content: "{{ 'Pushes on' if is_state('input_boolean.garden_notifications_enabled', 'on') else 'Pushes off' }}"
+                tap_action:
+                  action: toggle
+                  entity: input_boolean.garden_notifications_enabled
 
   - title: Environment
     path: climate
@@ -7970,409 +8189,3 @@ views:
           - entity: sensor.downstairs_away_minutes
           - entity: binary_sensor.downstairs_someone_home
           - entity: binary_sensor.downstairs_everyone_away
-
-  - title: Garden
-    path: garden
-    icon: mdi:leaf
-    cards:
-      - type: vertical-stack
-        cards:
-          - type: custom:mushroom-title-card
-            title: Garden
-            subtitle: Weather-aware crop care
-
-          - type: custom:mushroom-template-card
-            entity: sensor.garden_workflow_status
-            primary: >-
-              {% if is_state('binary_sensor.garden_needs_attention', 'on') %}
-                Needs attention: {{ states('sensor.garden_next_action') }}
-              {% else %}
-                {{ states('sensor.garden_workflow_status') }}: {{ states('sensor.garden_next_action') }}
-              {% endif %}
-            secondary: >-
-              {% set low_raw = state_attr('sensor.garden_weather_window', 'lowest_low_4_day') %}
-              {% set low = low_raw | float(99) if is_number(low_raw) else 99 %}
-              {% set forecast_ok = state_attr('sensor.garden_weather_window', 'forecast_available') in [true, 'true', 'True'] %}
-              {% set wet_days = state_attr('sensor.garden_weather_window', 'wet_days') %}
-              {% if is_state('binary_sensor.garden_needs_attention', 'on') %}
-                {{ state_attr('sensor.garden_workflow_status', 'attention_reason') }}
-              {% elif not forecast_ok %}
-                Forecast data is unavailable, so planting pushes stay quiet until Home Assistant has a reliable 4-night window.
-              {% elif low < 50 %}
-                Bok choy can go in now. Tomatoes and cape gooseberry need {{ (50 - low) | round(0) | int }}°F warmer nights; peppers and squash need {{ (55 - low) | round(0) | int }}°F.
-              {% elif low < 55 %}
-                Tomatoes and cape gooseberry are in range after hardening. Peppers and squash still need {{ (55 - low) | round(0) | int }}°F warmer nights.
-              {% elif wet_days != 'None flagged' %}
-                Warm enough for tender crops, but rain on {{ wet_days }} makes squash the one to delay.
-              {% else %}
-                Warm window is open. Plant only crops that are hardened and ready.
-              {% endif %}
-            icon: >-
-              {% if is_state('binary_sensor.garden_issue_attention_due', 'on') %}mdi:sprout-outline
-              {% elif is_state('binary_sensor.garden_weather_protection_due', 'on') %}mdi:weather-night
-              {% elif is_state('binary_sensor.garden_stage_action_due', 'on') %}mdi:shovel
-              {% else %}mdi:leaf-circle-outline{% endif %}
-            icon_color: >-
-              {% if is_state('binary_sensor.garden_issue_attention_due', 'on') %}red
-              {% elif is_state('binary_sensor.garden_weather_protection_due', 'on') %}amber
-              {% elif is_state('binary_sensor.garden_stage_action_due', 'on') %}amber
-              {% else %}teal{% endif %}
-            multiline_secondary: true
-            tap_action:
-              action: perform-action
-              perform_action: script.garden_apply_next_action
-            card_mod:
-              style: |
-                ha-card {
-                  border: none;
-                  box-shadow: 0 12px 24px rgba(2, 8, 23, 0.14);
-                  border-radius: 24px;
-                  padding: 12px 8px;
-                  border: 1px solid rgba(148, 163, 184, 0.12);
-                  background:
-                    linear-gradient(180deg, rgba(15, 23, 42, 0.86), rgba(15, 23, 42, 0.78));
-                }
-                .primary {
-                  font-size: 24px !important;
-                  font-weight: 580 !important;
-                }
-                .secondary {
-                  line-height: 1.42 !important;
-                  opacity: 0.88 !important;
-                }
-                mushroom-shape-icon {
-                  --shape-color: rgba(255, 255, 255, 0.05) !important;
-                }
-
-          - type: custom:mushroom-chips-card
-            alignment: left
-            chips:
-              - type: template
-                icon: mdi:thermometer-chevron-down
-                icon_color: >-
-                  {% set low_raw = state_attr('sensor.garden_weather_window', 'lowest_low_4_day') %}
-                  {% set low = low_raw | float(99) if is_number(low_raw) else 99 %}
-                  {% if states('sensor.garden_weather_window') == 'Forecast unavailable' %}grey
-                  {% elif low < 32 %}red
-                  {% elif low < 50 %}amber
-                  {% else %}teal{% endif %}
-                content: >-
-                  {% set low_raw = state_attr('sensor.garden_weather_window', 'lowest_low_4_day') %}
-                  {% if is_number(low_raw) %}4-night floor {{ low_raw | round(0) | int }}°F
-                  {% else %}Forecast unavailable{% endif %}
-                tap_action:
-                  action: more-info
-                  entity: sensor.garden_weather_window
-              - type: template
-                icon: mdi:food-apple-outline
-                icon_color: "{{ 'green' if state_attr('sensor.garden_weather_window', 'tomatoes_window') in [true, 'true', 'True'] else 'amber' }}"
-                content: >-
-                  {% set low_raw = state_attr('sensor.garden_weather_window', 'lowest_low_4_day') %}
-                  {% set low = low_raw | float(0) if is_number(low_raw) else none %}
-                  {% if state_attr('sensor.garden_weather_window', 'tomatoes_window') in [true, 'true', 'True'] %}Tom/Cape ready
-                  {% elif low is not none %}Tom/Cape need +{{ [0, (50 - low) | round(0) | int] | max }}°
-                  {% else %}Tom/Cape wait{% endif %}
-              - type: template
-                icon: mdi:chili-mild
-                icon_color: "{{ 'green' if state_attr('sensor.garden_weather_window', 'peppers_window') in [true, 'true', 'True'] else 'orange' }}"
-                content: >-
-                  {% set low_raw = state_attr('sensor.garden_weather_window', 'lowest_low_4_day') %}
-                  {% set low = low_raw | float(0) if is_number(low_raw) else none %}
-                  {% if state_attr('sensor.garden_weather_window', 'peppers_window') in [true, 'true', 'True'] %}Pep/Squash warm
-                  {% elif low is not none %}Pep/Squash need +{{ [0, (55 - low) | round(0) | int] | max }}°
-                  {% else %}Pep/Squash wait{% endif %}
-              - type: template
-                icon: mdi:bell-sleep-outline
-                icon_color: >-
-                  {% set snooze = states('input_datetime.garden_notifications_snooze_until') %}
-                  {% if is_state('input_boolean.garden_notifications_enabled', 'off') %}grey
-                  {% elif snooze not in ['unknown', 'unavailable', 'none', ''] and as_timestamp(snooze, 0) > as_timestamp(now()) %}amber
-                  {% else %}green{% endif %}
-                content: >-
-                  {% set snooze = states('input_datetime.garden_notifications_snooze_until') %}
-                  {% if is_state('input_boolean.garden_notifications_enabled', 'off') %}Pushes off
-                  {% elif snooze not in ['unknown', 'unavailable', 'none', ''] and as_timestamp(snooze, 0) > as_timestamp(now()) %}Snoozed
-                  {% else %}Quiet pushes{% endif %}
-                tap_action:
-                  action: perform-action
-                  perform_action: script.garden_snooze_notifications
-
-          - type: custom:mushroom-title-card
-            title: Ready Now
-            subtitle: >-
-              {% set low_raw = state_attr('sensor.garden_weather_window', 'lowest_low_4_day') %}
-              {% set low = low_raw | float(99) if is_number(low_raw) else 99 %}
-              {% if states('input_select.garden_bok_choy_stage') != 'planted' and low >= 32 %}
-                Bok choy is the real planting task.
-              {% elif low < 32 %}
-                Frost protection matters more than planting.
-              {% else %}
-                Cool-season bed check.
-              {% endif %}
-
-          - type: grid
-            columns: 2
-            square: false
-            cards:
-              - type: custom:mushroom-template-card
-                entity: sensor.garden_spinach_status
-                primary: Spinach
-                secondary: >-
-                  {{ state_attr('sensor.garden_spinach_status', 'count') }} plants · {{ states('sensor.garden_spinach_status') }}.
-                  {% if is_state('input_select.garden_spinach_observation', 'dry') %}
-                    Water deeply, then leave pushes quiet.
-                  {% elif is_state('input_select.garden_spinach_observation', 'stressed') %}
-                    Check moisture, sun, and transplant stress.
-                  {% else %}
-                    Keep evenly moist; no action needed.
-                  {% endif %}
-                icon: mdi:leaf
-                icon_color: >-
-                  {% if is_state('input_select.garden_spinach_observation', 'stressed') %}red
-                  {% elif is_state('input_select.garden_spinach_observation', 'dry') %}amber
-                  {% else %}green{% endif %}
-                multiline_secondary: true
-                tap_action:
-                  action: more-info
-                card_mod:
-                  style: &garden_compact_crop_card_style |
-                    ha-card {
-                      border: 1px solid rgba(148, 163, 184, 0.12);
-                      border-radius: 18px;
-                      box-shadow: 0 8px 18px rgba(2, 8, 23, 0.10);
-                      background: rgba(15, 23, 42, 0.68);
-                      min-height: 126px;
-                    }
-                    .primary {
-                      font-size: 15px !important;
-                      font-weight: 560 !important;
-                    }
-                    .secondary {
-                      line-height: 1.32 !important;
-                      opacity: 0.84 !important;
-                    }
-              - type: custom:mushroom-template-card
-                entity: sensor.garden_bok_choy_status
-                primary: >-
-                  {% set low_raw = state_attr('sensor.garden_weather_window', 'lowest_low_4_day') %}
-                  {% set low = low_raw | float(99) if is_number(low_raw) else 99 %}
-                  {% if states('input_select.garden_bok_choy_stage') == 'planted' %}Bok choy planted
-                  {% elif low < 32 %}Bok choy: cover or wait
-                  {% else %}Bok choy: plant now{% endif %}
-                secondary: >-
-                  {{ state_attr('sensor.garden_bok_choy_status', 'count') }} Shanghai starts.
-                  {% set low_raw = state_attr('sensor.garden_weather_window', 'lowest_low_4_day') %}
-                  {% set low = low_raw | float(99) if is_number(low_raw) else 99 %}
-                  {% if states('input_select.garden_bok_choy_stage') == 'planted' %}
-                    Keep evenly moist; watch flea beetles.
-                  {% elif low < 32 %}
-                    Hard frost risk; cover if it goes outside.
-                  {% else %}
-                    Cool window is good. Use raised bed or container with afternoon shade.
-                  {% endif %}
-                icon: mdi:sprout-outline
-                icon_color: >-
-                  {% if is_state('input_select.garden_bok_choy_observation', 'stressed') %}red
-                  {% elif states('input_select.garden_bok_choy_stage') == 'planted' %}green
-                  {% else %}teal{% endif %}
-                multiline_secondary: true
-                tap_action:
-                  action: more-info
-                card_mod:
-                  style: *garden_compact_crop_card_style
-
-          - type: custom:mushroom-title-card
-            title: Warm Starts
-            subtitle: >-
-              {% set low_raw = state_attr('sensor.garden_weather_window', 'lowest_low_4_day') %}
-              {% set low = low_raw | float(99) if is_number(low_raw) else 99 %}
-              {% set wet_days = state_attr('sensor.garden_weather_window', 'wet_days') %}
-              {% if low < 50 %}
-                Hardening outside by day; bring tender starts in for cool nights.
-              {% elif low < 55 %}
-                Tomatoes and cape gooseberry are close; peppers and squash still wait.
-              {% elif wet_days != 'None flagged' %}
-                Warm enough, but wet weather can set squash back.
-              {% else %}
-                Weather is warm enough once each crop is hardened.
-              {% endif %}
-
-          - type: custom:mushroom-template-card
-            entity: sensor.garden_tomatoes_status
-            primary: >-
-              {% if is_state('input_select.garden_tomatoes_observation', 'stressed') %}Tomatoes need a check
-              {% elif states('input_select.garden_tomatoes_stage') == 'planted' %}Tomatoes planted
-              {% elif state_attr('sensor.garden_weather_window', 'tomatoes_window') in [true, 'true', 'True'] %}Tomatoes: warm enough
-              {% else %}Tomatoes: wait for 50°F nights{% endif %}
-            secondary: >-
-              {{ state_attr('sensor.garden_tomatoes_status', 'count') }} starts · Honey Drop, Cherokee Purple, Sweet Pea basket, Bumblebee.
-              {% set low_raw = state_attr('sensor.garden_weather_window', 'lowest_low_4_day') %}
-              {% set low = low_raw | float(0) if is_number(low_raw) else none %}
-              {% if states('input_select.garden_tomatoes_stage') == 'planted' %}
-                Keep supports in place and moisture even.
-              {% elif state_attr('sensor.garden_weather_window', 'tomatoes_window') in [true, 'true', 'True'] %}
-                Finish hardening; plant when exposure looks steady.
-              {% elif low is not none %}
-                Current floor is {{ low | round(0) | int }}°F, so keep hardening but shelter at night.
-              {% else %}
-                Forecast unavailable; wait for a reliable window.
-              {% endif %}
-            icon: mdi:food-apple-outline
-            icon_color: >-
-              {% if is_state('input_select.garden_tomatoes_observation', 'stressed') %}red
-              {% elif state_attr('sensor.garden_weather_window', 'tomatoes_window') in [true, 'true', 'True'] %}green
-              {% else %}amber{% endif %}
-            multiline_secondary: true
-            tap_action:
-              action: more-info
-            card_mod:
-              style: &garden_list_crop_card_style |
-                ha-card {
-                  border: 1px solid rgba(148, 163, 184, 0.12);
-                  border-radius: 18px;
-                  box-shadow: 0 8px 18px rgba(2, 8, 23, 0.10);
-                  background: rgba(15, 23, 42, 0.68);
-                  padding: 4px 2px;
-                  min-height: 88px;
-                }
-                .primary {
-                  font-size: 16px !important;
-                  font-weight: 560 !important;
-                }
-                .secondary {
-                  line-height: 1.36 !important;
-                  opacity: 0.84 !important;
-                }
-
-          - type: custom:mushroom-template-card
-            entity: sensor.garden_peppers_status
-            primary: >-
-              {% if is_state('input_select.garden_peppers_observation', 'stressed') %}Peppers need a check
-              {% elif states('input_select.garden_peppers_stage') == 'planted' %}Peppers planted
-              {% elif state_attr('sensor.garden_weather_window', 'peppers_window') in [true, 'true', 'True'] %}Peppers: warm enough
-              {% else %}Peppers: wait for 55°F nights{% endif %}
-            secondary: >-
-              {{ state_attr('sensor.garden_peppers_status', 'count') }} starts · 3 shishito, 1 Lemon Spice jalapeno.
-              {% set low_raw = state_attr('sensor.garden_weather_window', 'lowest_low_4_day') %}
-              {% set low = low_raw | float(0) if is_number(low_raw) else none %}
-              {% if states('input_select.garden_peppers_stage') == 'planted' %}
-                Keep them warm and avoid drought swings.
-              {% elif state_attr('sensor.garden_weather_window', 'peppers_window') in [true, 'true', 'True'] %}
-                Finish hardening; plant after the warm nights hold.
-              {% elif low is not none %}
-                Current floor is {{ low | round(0) | int }}°F; peppers want 55°F+.
-              {% else %}
-                Forecast unavailable; wait for a reliable window.
-              {% endif %}
-            icon: mdi:chili-mild
-            icon_color: >-
-              {% if is_state('input_select.garden_peppers_observation', 'stressed') %}red
-              {% elif state_attr('sensor.garden_weather_window', 'peppers_window') in [true, 'true', 'True'] %}green
-              {% else %}orange{% endif %}
-            multiline_secondary: true
-            tap_action:
-              action: more-info
-            card_mod:
-              style: *garden_list_crop_card_style
-
-          - type: custom:mushroom-template-card
-            entity: sensor.garden_cape_gooseberry_status
-            primary: >-
-              {% if is_state('input_select.garden_cape_gooseberry_observation', 'stressed') %}Cape gooseberry needs a check
-              {% elif states('input_select.garden_cape_gooseberry_stage') == 'planted' %}Cape gooseberry potted
-              {% elif state_attr('sensor.garden_weather_window', 'cape_gooseberry_window') in [true, 'true', 'True'] %}Cape gooseberry: container soon
-              {% else %}Cape gooseberry: wait for 50°F nights{% endif %}
-            secondary: >-
-              {{ state_attr('sensor.garden_cape_gooseberry_status', 'count') }} Plant World Seeds start · container preferred.
-              {% set low_raw = state_attr('sensor.garden_weather_window', 'lowest_low_4_day') %}
-              {% set low = low_raw | float(0) if is_number(low_raw) else none %}
-              {% if states('input_select.garden_cape_gooseberry_stage') == 'planted' %}
-                Keep in full sun; only ripe golden fruit is edible.
-              {% elif state_attr('sensor.garden_weather_window', 'cape_gooseberry_window') in [true, 'true', 'True'] %}
-                Harden fully, then use a free-draining 5-10 gallon container.
-              {% elif low is not none %}
-                Current floor is {{ low | round(0) | int }}°F; treat it like a tomato.
-              {% else %}
-                Forecast unavailable; wait for a reliable window.
-              {% endif %}
-            icon: mdi:fruit-cherries
-            icon_color: >-
-              {% if is_state('input_select.garden_cape_gooseberry_observation', 'stressed') %}red
-              {% elif state_attr('sensor.garden_weather_window', 'cape_gooseberry_window') in [true, 'true', 'True'] %}green
-              {% else %}pink{% endif %}
-            multiline_secondary: true
-            tap_action:
-              action: more-info
-            card_mod:
-              style: *garden_list_crop_card_style
-
-          - type: custom:mushroom-template-card
-            entity: sensor.garden_honeynut_squash_status
-            primary: >-
-              {% if is_state('input_select.garden_honeynut_squash_observation', 'stressed') %}Honeynut squash needs a check
-              {% elif states('input_select.garden_honeynut_squash_stage') == 'planted' %}Honeynut squash planted
-              {% elif state_attr('sensor.garden_weather_window', 'honeynut_squash_window') in [true, 'true', 'True'] %}Honeynut squash: warm and dry enough
-              {% else %}Honeynut squash: wait for settled warmth{% endif %}
-            secondary: >-
-              {{ state_attr('sensor.garden_honeynut_squash_status', 'count') }} starts · needs warm soil, room to vine, and no cold rain pattern.
-              {% set low_raw = state_attr('sensor.garden_weather_window', 'lowest_low_4_day') %}
-              {% set low = low_raw | float(0) if is_number(low_raw) else none %}
-              {% set wet_days = state_attr('sensor.garden_weather_window', 'wet_days') %}
-              {% if states('input_select.garden_honeynut_squash_stage') == 'planted' %}
-                Keep roots evenly moist and give vines space.
-              {% elif wet_days != 'None flagged' %}
-                Rain on {{ wet_days }}; wait so roots do not sit cold and wet.
-              {% elif low is not none and low < 55 %}
-                Current floor is {{ low | round(0) | int }}°F; squash wants 55°F+.
-              {% elif state_attr('sensor.garden_weather_window', 'honeynut_squash_window') in [true, 'true', 'True'] %}
-                Harden fully, then plant at a warm sunny edge or trellis.
-              {% else %}
-                Forecast unavailable; wait for a reliable window.
-              {% endif %}
-            icon: mdi:pumpkin
-            icon_color: >-
-              {% if is_state('input_select.garden_honeynut_squash_observation', 'stressed') %}red
-              {% elif state_attr('sensor.garden_weather_window', 'honeynut_squash_window') in [true, 'true', 'True'] %}green
-              {% else %}deep-orange{% endif %}
-            multiline_secondary: true
-            tap_action:
-              action: more-info
-            card_mod:
-              style: *garden_list_crop_card_style
-
-          - type: custom:mushroom-chips-card
-            alignment: left
-            chips:
-              - type: template
-                icon: mdi:check-circle-outline
-                icon_color: >-
-                  {% set action = state_attr('sensor.garden_next_action', 'action_id') %}
-                  {% if action in ['none', none, '', 'unknown', 'unavailable'] %}grey
-                  {% elif 'RESOLVE' in action %}red
-                  {% else %}green{% endif %}
-                content: >-
-                  {% set action = state_attr('sensor.garden_next_action', 'action_id') %}
-                  {% if action == 'GARDEN_MARK_BOK_CHOY_PLANTED' %}Mark bok choy planted
-                  {% elif action == 'GARDEN_MARK_TOMATOES_PLANTED' %}Mark tomatoes planted
-                  {% elif action == 'GARDEN_MARK_PEPPERS_PLANTED' %}Mark peppers planted
-                  {% elif action == 'GARDEN_MARK_CAPE_GOOSEBERRY_PLANTED' %}Mark cape planted
-                  {% elif action == 'GARDEN_MARK_HONEYNUT_SQUASH_PLANTED' %}Mark squash planted
-                  {% elif 'RESOLVE' in action %}Mark issue resolved
-                  {% else %}No safe action{% endif %}
-                tap_action:
-                  action: perform-action
-                  perform_action: script.garden_apply_next_action
-              - type: template
-                icon: mdi:bell-sleep-outline
-                icon_color: amber
-                content: Snooze 24h
-                tap_action:
-                  action: perform-action
-                  perform_action: script.garden_snooze_notifications
-              - type: template
-                icon: mdi:bell-outline
-                icon_color: "{{ 'green' if is_state('input_boolean.garden_notifications_enabled', 'on') else 'grey' }}"
-                content: "{{ 'Pushes on' if is_state('input_boolean.garden_notifications_enabled', 'on') else 'Pushes off' }}"
-                tap_action:
-                  action: toggle
-                  entity: input_boolean.garden_notifications_enabled

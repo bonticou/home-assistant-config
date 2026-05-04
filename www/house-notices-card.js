@@ -286,6 +286,9 @@ class HouseNoticesCard extends HTMLElement {
           border-bottom: 1px solid rgba(148, 163, 184, 0.14);
           cursor: pointer;
         }
+        .row.has-inline-action {
+          grid-template-columns: 36px minmax(0, 1fr) auto auto;
+        }
         .row:last-child {
           border-bottom: none;
         }
@@ -367,8 +370,41 @@ class HouseNoticesCard extends HTMLElement {
         .chev ha-icon {
           --mdc-icon-size: 18px;
         }
+        .inline-actions {
+          display: flex;
+          align-items: flex-start;
+          justify-content: flex-end;
+          padding-top: 1px;
+        }
+        button.inline-primary {
+          min-height: 30px;
+          padding: 0 11px;
+          background: rgba(34, 197, 94, 0.18);
+          border-color: rgba(74, 222, 128, 0.28);
+          color: #dcfce7;
+          font-weight: 650;
+          white-space: nowrap;
+        }
+        @media (max-width: 430px) {
+          .row.has-inline-action {
+            grid-template-columns: 36px minmax(0, 1fr) auto;
+          }
+          .row.has-inline-action .inline-actions {
+            grid-column: 2 / -1;
+            grid-row: 2;
+            justify-content: flex-start;
+            padding-top: 8px;
+          }
+          .row.has-inline-action .chev {
+            grid-column: 3;
+            grid-row: 1;
+          }
+          .row.has-inline-action .detail {
+            grid-column: 1 / -1;
+          }
+        }
         .detail {
-          grid-column: 2 / 4;
+          grid-column: 2 / -1;
           margin-top: 12px;
           border-radius: 18px;
           border: 1px solid rgba(148, 163, 184, 0.14);
@@ -583,8 +619,12 @@ class HouseNoticesCard extends HTMLElement {
   renderItem(item) {
     const expanded = this._expanded === item.id;
     const stateLabel = item.state === "quiet" ? "current" : item.state;
+    const actions = Array.isArray(item.actions) ? item.actions : [];
+    const inlineAction = ["active", "due"].includes(item.state) && actions.length
+      ? `<div class="inline-actions"><button class="inline-primary" data-action-for="${this.escapeAttr(item.id)}" data-action-index="0">${this.escape(actions[0].label || "Done")}</button></div>`
+      : "";
     return `
-      <div class="row" data-row-id="${this.escapeAttr(item.id)}">
+      <div class="row ${inlineAction ? "has-inline-action" : ""}" data-row-id="${this.escapeAttr(item.id)}">
         ${this.renderMark(item)}
         <div class="copy">
           <div class="title-line">
@@ -594,6 +634,7 @@ class HouseNoticesCard extends HTMLElement {
           <div class="meta">${this.escape(this.metaLine(item))}</div>
           ${item.narrative ? `<div class="narrative">${this.escape(item.narrative)}</div>` : ""}
         </div>
+        ${inlineAction}
         <div class="chev"><ha-icon icon="${expanded ? "mdi:chevron-up" : "mdi:chevron-down"}"></ha-icon></div>
         ${expanded ? this.renderDetail(item) : ""}
       </div>

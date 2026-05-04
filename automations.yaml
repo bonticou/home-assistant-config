@@ -502,35 +502,120 @@
 
 - id: water_shutoff_valve_closed
   alias: "Water — Shutoff Valve Closed"
-  description: Alert if the shutoff valve closes for any reason.
+  description: Distinguishes short Flo self-test closures from real shutoff events.
   triggers:
     - trigger: state
       entity_id: switch.flo_shutoff_shutoff_valve
       to: "off"
   conditions: []
   actions:
-    - action: script.water_send_alert
-      data:
-        alert_kind: valve_closed
-        severity: critical
-        message: >
-          The Flo shutoff valve has closed at {{ now().strftime('%I:%M %p') }}.
-          If this was not intentional, check the Flo app and HA Water tab.
+    - variables:
+        valve_closed_at: "{{ now().strftime('%Y-%m-%d %H:%M:%S') }}"
+        valve_closed_label: "{{ now().strftime('%I:%M %p') }}"
+        flow_at_close: "{{ states('sensor.flo_shutoff_water_flow_rate') | float(0) }}"
+        pressure_at_close: "{{ states('sensor.flo_shutoff_water_pressure') | float(0) | round(0) }}"
+        pending_flo_alert_at_close: "{{ is_state('binary_sensor.flo_shutoff_pending_system_alerts', 'on') }}"
+        leak_active_at_close: >-
+          {{ expand([
+            'binary_sensor.kitchen_sink_leak_detection_water_detected',
+            'binary_sensor.island_sink_leak_detection_water_detected',
+            'binary_sensor.dishwasher_leak_detection_water_detected',
+            'binary_sensor.kitchen_fridge_leak_detection_water_detected',
+            'binary_sensor.washing_machine_leak_detection_water_detected',
+            'binary_sensor.laundry_sink_leak_detection_water_detected',
+            'binary_sensor.mechanical_room_leak_detection_water_detected',
+            'binary_sensor.electrical_room_leak_detection_water_detected',
+            'binary_sensor.basement_ejector_leak_detection_water_detected'
+          ]) | selectattr('state', 'eq', 'on') | list | count > 0 }}
+    - choose:
+        - conditions:
+            - condition: template
+              value_template: >-
+                {{ leak_active_at_close | bool
+                   or pending_flo_alert_at_close | bool
+                   or flow_at_close | float(0) > 0.05 }}
+          sequence:
+            - action: script.water_send_alert
+              data:
+                alert_kind: valve_closed
+                severity: critical
+                message: >
+                  The Flo shutoff valve has closed at {{ valve_closed_label }}.
+                  If this was not intentional, check the Flo app and HA Water tab.
+      default:
+        - delay:
+            minutes: 6
+        - variables:
+            valve_reopened: "{{ is_state('switch.flo_shutoff_shutoff_valve', 'on') }}"
+            flow_quiet: "{{ states('sensor.flo_shutoff_water_flow_rate') | float(0) < 0.05 }}"
+            pending_flo_alert_clear: "{{ is_state('binary_sensor.flo_shutoff_pending_system_alerts', 'off') }}"
+            pressure_now: "{{ states('sensor.flo_shutoff_water_pressure') | float(0) | round(0) }}"
+            flo_mode: "{{ states('sensor.flo_shutoff_current_system_mode') }}"
+        - choose:
+            - conditions:
+                - condition: template
+                  value_template: "{{ valve_reopened | bool and flow_quiet | bool and pending_flo_alert_clear | bool }}"
+              sequence:
+                - event: water_alert_recorded
+                  event_data:
+                    at: "{{ valve_closed_at }}"
+                    domain: valve
+                    kind: valve_test
+                    label: Flo health test
+                    severity: info
+                    note: >-
+                      Valve closed briefly with quiet flow and reopened on its own.
+                      Treated as a Flo self-test artifact; pressure was {{ pressure_at_close }} psi at close
+                      and {{ pressure_now }} psi after the check. Mode: {{ flo_mode }}.
+          default:
+            - action: script.water_send_alert
+              data:
+                alert_kind: valve_closed
+                severity: critical
+                message: >
+                  The Flo shutoff valve closed at {{ valve_closed_label }}
+                  and did not look like a short self-test. Check the Flo app and HA Water tab.
   mode: single
 
 - id: water_flo_system_alert
   alias: "Water — Flo System Alert"
-  description: Passes through any native Flo system alerts to your phone.
+  description: Passes through native Flo alerts, filtering short self-test artifacts.
   triggers:
     - trigger: state
       entity_id: binary_sensor.flo_shutoff_pending_system_alerts
       to: "on"
   conditions: []
   actions:
-    - action: script.water_send_alert
-      data:
-        alert_kind: flo_system
-        message: Flo has flagged a system alert. Check the Flo app for details.
+    - variables:
+        flo_alert_at: "{{ now().strftime('%Y-%m-%d %H:%M:%S') }}"
+    - delay:
+        minutes: 6
+    - variables:
+        flo_alert_clear: "{{ is_state('binary_sensor.flo_shutoff_pending_system_alerts', 'off') }}"
+        valve_open: "{{ is_state('switch.flo_shutoff_shutoff_valve', 'on') }}"
+        flow_quiet: "{{ states('sensor.flo_shutoff_water_flow_rate') | float(0) < 0.05 }}"
+        current_pressure: "{{ states('sensor.flo_shutoff_water_pressure') | float(0) | round(0) }}"
+        flo_mode: "{{ states('sensor.flo_shutoff_current_system_mode') }}"
+    - choose:
+        - conditions:
+            - condition: template
+              value_template: "{{ flo_alert_clear | bool and valve_open | bool and flow_quiet | bool }}"
+          sequence:
+            - event: water_alert_recorded
+              event_data:
+                at: "{{ flo_alert_at }}"
+                domain: valve
+                kind: flo_test
+                label: Flo self-test
+                severity: info
+                note: >-
+                  Flo system alert cleared quickly with the valve open and quiet flow.
+                  Logged as test history only; pressure {{ current_pressure }} psi. Mode: {{ flo_mode }}.
+      default:
+        - action: script.water_send_alert
+          data:
+            alert_kind: flo_system
+            message: Flo has flagged a system alert. Check the Flo app for details.
   mode: single
 
 - id: house_notice_action_history
