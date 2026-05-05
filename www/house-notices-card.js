@@ -32,6 +32,10 @@ class HouseNoticesCard extends HTMLElement {
     return this._config.history_entity || "sensor.house_notice_history";
   }
 
+  get cardTitle() {
+    return this._config.title || "Notification center";
+  }
+
   parseJson(value, fallback = []) {
     if (!value || value === "unknown" || value === "unavailable") return fallback;
     if (Array.isArray(value)) return value;
@@ -224,6 +228,15 @@ class HouseNoticesCard extends HTMLElement {
           flex-direction: column;
           gap: 18px;
           padding: 0 0 22px;
+        }
+        .page-head {
+          padding: 4px 2px 0;
+        }
+        .page-title {
+          color: #f8fafc;
+          font-size: 30px;
+          font-weight: 580;
+          line-height: 1.1;
         }
         .section {
           border: 1px solid var(--notice-line);
@@ -730,6 +743,9 @@ class HouseNoticesCard extends HTMLElement {
         }
       </style>
       <div class="wrap">
+        <header class="page-head">
+          <h1 class="page-title">${this.escape(this.cardTitle)}</h1>
+        </header>
         ${attention.length ? this.renderSection("Needs Attention", attention, { attention: true }) : ""}
         ${this.renderHistory(history)}
         ${this.renderSection("Upcoming", upcoming, { collapsible: true, sectionId: "upcoming" })}

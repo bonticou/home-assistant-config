@@ -2573,6 +2573,7 @@ views:
     icon: mdi:bell-outline
     cards:
       - type: custom:house-notices-card
+        title: Notification center
         timeline_entity: sensor.house_notice_timeline
         history_entity: sensor.house_notice_history
 
