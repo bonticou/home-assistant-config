@@ -655,40 +655,6 @@ views:
         square: false
         cards:
           - type: picture-elements
-            entity: camera.g6_instant_high_resolution_channel
-            camera_image: camera.g6_instant_high_resolution_channel
-            aspect_ratio: 16x9
-            tap_action:
-              action: more-info
-            elements:
-              - type: custom:button-card
-                entity: camera.g6_instant_high_resolution_channel
-                show_name: true
-                show_icon: false
-                name: Play Room
-                tap_action:
-                  action: more-info
-                style:
-                  bottom: 8px
-                  left: 8px
-                  top: auto
-                  right: auto
-                  transform: none
-                  width: auto
-                styles:
-                  card:
-                    - background: rgba(0, 0, 0, 0.56)
-                    - backdrop-filter: blur(8px)
-                    - border-radius: 20px
-                    - padding: 2px 10px
-                    - border: none
-                    - box-shadow: none
-                  name:
-                    - font-size: 11px
-                    - font-weight: 500
-                    - color: white
-                    - white-space: nowrap
-          - type: picture-elements
             entity: camera.g6_instant_high_resolution_channel_2
             camera_image: camera.g6_instant_high_resolution_channel_2
             aspect_ratio: 16x9
@@ -767,7 +733,41 @@ views:
                 entity: camera.mud_room_high_resolution_channel
                 show_name: true
                 show_icon: false
-                name: Mud Room
+                name: Mudroom
+                tap_action:
+                  action: more-info
+                style:
+                  bottom: 8px
+                  left: 8px
+                  top: auto
+                  right: auto
+                  transform: none
+                  width: auto
+                styles:
+                  card:
+                    - background: rgba(0, 0, 0, 0.56)
+                    - backdrop-filter: blur(8px)
+                    - border-radius: 20px
+                    - padding: 2px 10px
+                    - border: none
+                    - box-shadow: none
+                  name:
+                    - font-size: 11px
+                    - font-weight: 500
+                    - color: white
+                    - white-space: nowrap
+          - type: picture-elements
+            entity: camera.g6_instant_high_resolution_channel
+            camera_image: camera.g6_instant_high_resolution_channel
+            aspect_ratio: 16x9
+            tap_action:
+              action: more-info
+            elements:
+              - type: custom:button-card
+                entity: camera.g6_instant_high_resolution_channel
+                show_name: true
+                show_icon: false
+                name: Play Room
                 tap_action:
                   action: more-info
                 style:
