@@ -477,6 +477,34 @@ input_boolean:
     name: Garden Action Panel Expanded
     icon: mdi:chevron-down
     initial: false
+  garden_spinach_tile_expanded:
+    name: Garden Spinach Tile Expanded
+    icon: mdi:chevron-down
+    initial: false
+  garden_bok_choy_tile_expanded:
+    name: Garden Bok Choy Tile Expanded
+    icon: mdi:chevron-down
+    initial: false
+  garden_tomatoes_tile_expanded:
+    name: Garden Tomatoes Tile Expanded
+    icon: mdi:chevron-down
+    initial: false
+  garden_peppers_tile_expanded:
+    name: Garden Peppers Tile Expanded
+    icon: mdi:chevron-down
+    initial: false
+  garden_cape_gooseberry_tile_expanded:
+    name: Garden Cape Gooseberry Tile Expanded
+    icon: mdi:chevron-down
+    initial: false
+  garden_honeynut_squash_tile_expanded:
+    name: Garden Honeynut Squash Tile Expanded
+    icon: mdi:chevron-down
+    initial: false
+  garden_weather_panel_expanded:
+    name: Garden Weather Panel Expanded
+    icon: mdi:chevron-down
+    initial: false
   wine_cave_maintenance_enabled:
     name: Wine Cave Maintenance Enabled
     icon: mdi:calendar-check-outline
@@ -518,7 +546,7 @@ input_select:
       - hardening
       - ready to plant
       - planted
-    initial: ready to plant
+    initial: planted
     icon: mdi:sprout-outline
   garden_tomatoes_stage:
     name: Garden Tomatoes Stage
@@ -527,7 +555,7 @@ input_select:
       - hardening
       - ready to plant
       - planted
-    initial: hardening
+    initial: planted
     icon: mdi:food-apple-outline
   garden_peppers_stage:
     name: Garden Peppers Stage
@@ -1654,12 +1682,12 @@ template:
               {% set garden_action = state_attr('sensor.garden_next_action', 'action_id') | default('none', true) | string %}
               {% set garden_action_label = 'Issue resolved' if garden_action[:14] == 'GARDEN_RESOLVE' else 'Mark planted' if garden_action[:11] == 'GARDEN_MARK' else 'Snooze' %}
               {% set garden_attention = state_attr('sensor.garden_workflow_status', 'attention_reason') | default(state_attr('sensor.garden_next_action', 'detail'), true) %}
+              {% set garden_attention_type = state_attr('sensor.garden_workflow_status', 'attention_type') | default('garden_watch', true) %}
               {% set garden_lows = state_attr('sensor.garden_weather_window', 'next_4_lows') | default('Forecast unavailable', true) %}
               {% set garden_low = state_attr('sensor.garden_weather_window', 'lowest_low_4_day') | default('unknown', true) %}
               {% set garden_window = states('sensor.garden_weather_window') %}
               {% set garden_action_name = states('sensor.garden_next_action') %}
               {% set garden_policy = state_attr('sensor.garden_workflow_status', 'notification_policy') | default('Garden attention is active.', true) %}
-              {% set garden_is_bok_choy = garden_action == 'GARDEN_MARK_BOK_CHOY_PLANTED' %}
               {% set ns.items = ns.items + [{
                 'id': 'garden-window',
                 'title': 'Garden needs attention',
@@ -1674,20 +1702,17 @@ template:
                 'url': '/calm-mobile/garden',
                 'entity_id': 'sensor.garden_workflow_status',
                 'details': {
-                  'summary': 'Bok choy is ready to plant because the next four nights avoid hard frost. This is a real planting task, while the warm-season starts keep following their warmer night thresholds.' if garden_is_bok_choy else garden_attention,
+                  'summary': garden_attention,
                   'facts': [
-                    'Forecast lows: ' ~ garden_lows,
-                    'Lowest forecast night: ' ~ garden_low ~ '°',
-                    'Bok choy rule: plant when the 4-night floor stays at or above 32°.',
-                    'Warm starts still wait for 50° or 55° nights.'
-                  ] if garden_is_bok_choy else [
+                    'Attention type: ' ~ garden_attention_type,
                     'Active task: ' ~ garden_action_name,
                     'Forecast lows: ' ~ garden_lows,
+                    'Lowest forecast night: ' ~ garden_low ~ '°',
                     'Window: ' ~ garden_window,
                     'Policy: ' ~ garden_policy
                   ],
-                  'after_action': 'Marking planted records the bok choy state, clears the planting-window notice, and moves the garden narrative into planted-care mode.' if garden_is_bok_choy else 'After you handle this, Home Assistant clears the active garden notice and keeps watching forecast lows, crop stage, and crop observations.',
-                  'tracking': 'Home Assistant will keep watching the 4-night forecast floor, planted-crop protection, and stressed crop observations.'
+                  'after_action': 'After you handle or snooze this, Home Assistant clears the active garden notice and keeps watching planted-crop protection, unplanted crop stages, and stressed crop observations.',
+                  'tracking': 'Garden details stay in the calm sheet; raw Home Assistant history is only for diagnostics.'
                 },
                 'actions': ([{'label': garden_action_label, 'service': 'script.garden_apply_next_action', 'confirm': true, 'inline': false}] if garden_action != 'none' else []) + [{'label': 'Snooze', 'service': 'script.garden_snooze_notifications'}]
               }] %}
@@ -3917,7 +3942,9 @@ template:
           {% set tomato_window = state_attr('sensor.garden_weather_window', 'tomatoes_window') in [true, 'true', 'True'] %}
           {% set pepper_window = state_attr('sensor.garden_weather_window', 'peppers_window') in [true, 'true', 'True'] %}
           {% set cape_window = state_attr('sensor.garden_weather_window', 'cape_gooseberry_window') in [true, 'true', 'True'] %}
-          {% set squash_window = state_attr('sensor.garden_weather_window', 'honeynut_squash_window') in [true, 'true', 'True'] %}
+            {% set squash_window = state_attr('sensor.garden_weather_window', 'honeynut_squash_window') in [true, 'true', 'True'] %}
+          {% set cool_in_ground = is_state('input_boolean.garden_spinach_in_ground', 'on')
+             or states('input_select.garden_bok_choy_stage') == 'planted' %}
           {% set tomato_started = states('input_datetime.garden_tomatoes_hardening_started') %}
           {% set pepper_started = states('input_datetime.garden_peppers_hardening_started') %}
           {% set cape_started = states('input_datetime.garden_cape_gooseberry_hardening_started') %}
@@ -3938,6 +3965,8 @@ template:
             Check {{ stressed[0] }}
           {% elif not forecast_ok %}
             Forecast unavailable
+          {% elif low < 32 and cool_in_ground %}
+            Cover cool greens tonight
           {% elif low < 32 and states('input_select.garden_bok_choy_stage') != 'planted' %}
             Protect bok choy from frost
           {% elif states('input_select.garden_bok_choy_stage') != 'planted' and low >= 32 %}
@@ -3970,6 +3999,8 @@ template:
             {% set pepper_window = state_attr('sensor.garden_weather_window', 'peppers_window') in [true, 'true', 'True'] %}
             {% set cape_window = state_attr('sensor.garden_weather_window', 'cape_gooseberry_window') in [true, 'true', 'True'] %}
             {% set squash_window = state_attr('sensor.garden_weather_window', 'honeynut_squash_window') in [true, 'true', 'True'] %}
+            {% set cool_in_ground = is_state('input_boolean.garden_spinach_in_ground', 'on')
+               or states('input_select.garden_bok_choy_stage') == 'planted' %}
             {% set tomato_started = states('input_datetime.garden_tomatoes_hardening_started') %}
             {% set pepper_started = states('input_datetime.garden_peppers_hardening_started') %}
             {% set cape_started = states('input_datetime.garden_cape_gooseberry_hardening_started') %}
@@ -3985,6 +4016,7 @@ template:
             {% elif states('input_select.garden_cape_gooseberry_observation') == 'stressed' %}GARDEN_RESOLVE_CAPE_GOOSEBERRY_ISSUE
             {% elif states('input_select.garden_honeynut_squash_observation') == 'stressed' %}GARDEN_RESOLVE_HONEYNUT_SQUASH_ISSUE
             {% elif not forecast_ok %}none
+            {% elif low < 32 and cool_in_ground %}none
             {% elif states('input_select.garden_bok_choy_stage') != 'planted' and low >= 32 %}GARDEN_MARK_BOK_CHOY_PLANTED
             {% elif states('input_select.garden_tomatoes_stage') in ['hardening', 'ready to plant'] and tomato_window and (tomato_days >= 7 or states('input_select.garden_tomatoes_stage') == 'ready to plant') %}GARDEN_MARK_TOMATOES_PLANTED
             {% elif states('input_select.garden_cape_gooseberry_stage') in ['hardening', 'ready to plant'] and cape_window and (cape_days >= 7 or states('input_select.garden_cape_gooseberry_stage') == 'ready to plant') %}GARDEN_MARK_CAPE_GOOSEBERRY_PLANTED
@@ -4002,7 +4034,7 @@ template:
             {% elif states('binary_sensor.garden_stage_action_due') == 'on' %}
               Forecast lows: {{ lows }}. {{ states('sensor.garden_weather_window') }}.
             {% elif states('binary_sensor.garden_weather_protection_due') == 'on' %}
-              Forecast lows: {{ lows }}. Bring tender starts in or cover them before evening.
+              Forecast lows: {{ lows }}. Protect planted crops or outdoor starts whose threshold is crossed before evening.
             {% else %}
               Forecast lows: {{ lows }}. Climate normals are context; the live forecast decides.
             {% endif %}
@@ -4092,8 +4124,10 @@ template:
           {% set forecast_ok = state_attr('sensor.garden_weather_window', 'forecast_available') in [true, 'true', 'True'] %}
           {% set low = state_attr('sensor.garden_weather_window', 'lowest_low_4_day') %}
           {% set low = low | float(99) if is_number(low) else 99 %}
+          {% set cool_in_ground = is_state('input_boolean.garden_spinach_in_ground', 'on')
+             or states('input_select.garden_bok_choy_stage') in ['hardening', 'ready to plant', 'planted'] %}
           {{ forecast_ok and (
-            (states('input_select.garden_bok_choy_stage') != 'planted' and low < 32)
+            (cool_in_ground and low < 32)
             or (states('input_select.garden_tomatoes_stage') in ['hardening', 'ready to plant', 'planted'] and low < 50)
             or (states('input_select.garden_cape_gooseberry_stage') in ['hardening', 'ready to plant', 'planted'] and low < 50)
             or (states('input_select.garden_peppers_stage') in ['hardening', 'ready to plant', 'planted'] and low < 55)

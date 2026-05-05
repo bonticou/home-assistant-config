@@ -47,6 +47,13 @@ Do not attach state-changing actions to large summary or hero cards. Summary
 cards may expand an action drawer, but the actual state change should require a
 second, clearly labeled button or a durable dropdown/select control.
 
+The Garden page should behave like a calm crop-care assistant, not a raw helper
+surface. Use expandable crop tiles: collapsed cards show crop, stage, and one
+plain-language care sentence; expanded panels explain what matters now, why it
+matters, what happens next, and expose only the explicit local actions for that
+crop. Planted crops belong in `In Ground`; unplanted warm crops belong in
+`Still Starting` until their stage becomes `planted`.
+
 Forecast chips are useful only when they are readable at a glance. Spell out
 crop groups such as "Tomatoes & cape" and "Peppers & squash"; avoid shorthand
 labels like "Tom/Cape" or "Pep/Squash". Notification controls such as snooze
@@ -89,8 +96,10 @@ Garden pushes should stay quiet and actionable:
 ## Current crop groups
 
 - Spinach: planted group; dashboard care only unless marked `stressed`.
-- Bok choy: cool-season start group; ready unless hard frost is forecast.
-- Tomatoes: warm start group; 50 deg F threshold after hardening.
+- Bok choy: planted group; establishment moisture, heat/bolting, flea beetle,
+  and hard-frost protection checks.
+- Tomatoes: planted group; establishment moisture, support, wind, and sub-50
+  protection checks.
 - Cape gooseberry: warm container crop; follows tomato threshold.
 - Peppers: warm start group; 55 deg F threshold after hardening.
 - Honeynut squash: warm, weather-sensitive start group; 55 deg F threshold and

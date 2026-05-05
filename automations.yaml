@@ -2046,7 +2046,7 @@
 
 - id: garden_afternoon_weather_protection_notification
   alias: "Garden — Afternoon Weather Protection Notification"
-  description: Sends one late-afternoon reminder only when outdoor starts need cold or frost protection.
+  description: Sends one late-afternoon reminder only when planted crops or outdoor starts need cold or frost protection.
   triggers:
     - trigger: time
       at: "16:30:00"
@@ -2073,7 +2073,7 @@
         title: "🌙 Garden: protect starts tonight"
         message: >-
           Forecast lows: {{ state_attr('sensor.garden_weather_window', 'next_4_lows') }}.
-          Bring tender starts in or cover them before evening.
+          Cover or bring in the crops whose thresholds are crossed before evening.
         data:
           group: garden
           tag: garden-protection
@@ -2090,7 +2090,7 @@
 
 - id: garden_issue_notification
   alias: "Garden — Issue Notification"
-  description: Sends one garden issue push per day only for crops marked stressed.
+  description: Sends one garden issue push per day only for planted crops or starts marked stressed.
   triggers:
     - trigger: time
       at: "09:30:00"
@@ -2125,7 +2125,7 @@
         garden_action: "{{ state_attr('sensor.garden_next_action', 'action_id') | default('none', true) }}"
     - action: script.notify_trevor_phone
       data:
-        title: "🌱 Garden: check stressed starts"
+        title: "🌱 Garden: check stressed crop"
         message: "{{ state_attr('sensor.garden_next_action', 'detail') }}"
         data:
           group: garden

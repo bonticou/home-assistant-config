@@ -7299,33 +7299,21 @@ views:
         cards:
           - type: custom:mushroom-title-card
             title: Garden
-            subtitle: Weather-aware crop care
+            subtitle: Quiet crop care and weather awareness
 
           - type: custom:mushroom-template-card
             entity: sensor.garden_workflow_status
             primary: >-
               {% if is_state('binary_sensor.garden_needs_attention', 'on') %}
-                Needs attention: {{ states('sensor.garden_next_action') }}
+                Today: {{ states('sensor.garden_next_action') }}
               {% else %}
-                {{ states('sensor.garden_workflow_status') }}: {{ states('sensor.garden_next_action') }}
+                Today: {{ states('sensor.garden_workflow_status') }}
               {% endif %}
             secondary: >-
-              {% set low_raw = state_attr('sensor.garden_weather_window', 'lowest_low_4_day') %}
-              {% set low = low_raw | float(99) if is_number(low_raw) else 99 %}
-              {% set forecast_ok = state_attr('sensor.garden_weather_window', 'forecast_available') in [true, 'true', 'True'] %}
-              {% set wet_days = state_attr('sensor.garden_weather_window', 'wet_days') %}
               {% if is_state('binary_sensor.garden_needs_attention', 'on') %}
                 {{ state_attr('sensor.garden_workflow_status', 'attention_reason') }}
-              {% elif not forecast_ok %}
-                Forecast data is unavailable, so planting pushes stay quiet until Home Assistant has a reliable 4-night window.
-              {% elif low < 50 %}
-                Bok choy can go in now. Tomatoes and cape gooseberry need {{ (50 - low) | round(0) | int }}°F warmer nights; peppers and squash need {{ (55 - low) | round(0) | int }}°F.
-              {% elif low < 55 %}
-                Tomatoes and cape gooseberry are in range after hardening. Peppers and squash still need {{ (55 - low) | round(0) | int }}°F warmer nights.
-              {% elif wet_days != 'None flagged' %}
-                Warm enough for tender crops, but rain on {{ wet_days }} makes squash the one to delay.
               {% else %}
-                Warm window is open. Plant only crops that are hardened and ready.
+                {{ states('sensor.garden_crop_summary') }}. Bok choy and tomatoes are in planted-care mode.
               {% endif %}
             icon: >-
               {% if is_state('input_boolean.garden_action_panel_expanded', 'on') %}mdi:chevron-up
@@ -7375,27 +7363,21 @@ views:
             conditions:
               - entity: input_boolean.garden_action_panel_expanded
                 state: "on"
-              - entity: binary_sensor.garden_needs_attention
-                state: "on"
             card:
               type: vertical-stack
               cards:
                 - type: custom:mushroom-template-card
                   entity: sensor.garden_workflow_status
-                  primary: >-
-                    {% if state_attr('sensor.garden_next_action', 'action_id') == 'GARDEN_MARK_BOK_CHOY_PLANTED' %}
-                      Why bok choy is ready
-                    {% else %}
-                      Garden action details
-                    {% endif %}
+                  primary: Garden today
                   secondary: >-
-                    {% set action = state_attr('sensor.garden_next_action', 'action_id') | default('none', true) %}
                     {% set lows = state_attr('sensor.garden_weather_window', 'next_4_lows') %}
-                    {% set window = states('sensor.garden_weather_window') %}
-                    {% if action == 'GARDEN_MARK_BOK_CHOY_PLANTED' %}
-                      Bok choy is a cool-season crop, so the gate is hard frost, not warm summer nights. The next four forecast lows are {{ lows }}, which keeps it above the 32°F floor. Marking planted records the garden state, clears this planting-window reminder, and shifts follow-up care to planted-crop protection.
+                    {% if is_state('binary_sensor.garden_needs_attention', 'on') %}
+                      What matters now: {{ states('sensor.garden_next_action') }}.
+                      Why: {{ state_attr('sensor.garden_next_action', 'detail') }}
+                      Next: the matching crop tile has the specific care notes and next step.
                     {% else %}
-                      {{ state_attr('sensor.garden_next_action', 'detail') }} Current window: {{ window }}. The action button below records the state change only after you intentionally choose it.
+                      No garden action needs attention right now. Forecast lows are {{ lows }}.
+                      Keep planted crops evenly moist and use each crop tile when you want to update observations.
                     {% endif %}
                   icon: mdi:school-outline
                   icon_color: teal
@@ -7419,19 +7401,6 @@ views:
                   alignment: left
                   chips:
                     - type: template
-                      icon: mdi:sprout-outline
-                      icon_color: green
-                      content: >-
-                        {% set action = state_attr('sensor.garden_next_action', 'action_id') | default('none', true) %}
-                        {% if action[:14] == 'GARDEN_RESOLVE' %}Issue resolved
-                        {% elif action[:11] == 'GARDEN_MARK' %}Mark planted
-                        {% else %}Run action{% endif %}
-                      tap_action:
-                        action: perform-action
-                        perform_action: script.garden_apply_next_action
-                        confirmation:
-                          text: Mark the current garden task as planted/resolved?
-                    - type: template
                       icon: mdi:bell-sleep-outline
                       icon_color: amber
                       content: Snooze
@@ -7448,58 +7417,9 @@ views:
                         target:
                           entity_id: input_boolean.garden_action_panel_expanded
 
-          - type: custom:mushroom-chips-card
-            alignment: left
-            chips:
-              - type: template
-                icon: mdi:thermometer-chevron-down
-                icon_color: >-
-                  {% set low_raw = state_attr('sensor.garden_weather_window', 'lowest_low_4_day') %}
-                  {% set low = low_raw | float(99) if is_number(low_raw) else 99 %}
-                  {% if states('sensor.garden_weather_window') == 'Forecast unavailable' %}grey
-                  {% elif low < 32 %}red
-                  {% elif low < 50 %}amber
-                  {% else %}teal{% endif %}
-                content: >-
-                  {% set low_raw = state_attr('sensor.garden_weather_window', 'lowest_low_4_day') %}
-                  {% if is_number(low_raw) %}4-night low {{ low_raw | round(0) | int }}°F
-                  {% else %}Forecast unavailable{% endif %}
-                tap_action:
-                  action: more-info
-                  entity: sensor.garden_weather_window
-              - type: template
-                icon: mdi:food-apple-outline
-                icon_color: "{{ 'green' if state_attr('sensor.garden_weather_window', 'tomatoes_window') in [true, 'true', 'True'] else 'amber' }}"
-                content: >-
-                  {% set low_raw = state_attr('sensor.garden_weather_window', 'lowest_low_4_day') %}
-                  {% set low = low_raw | float(0) if is_number(low_raw) else none %}
-                  {% if state_attr('sensor.garden_weather_window', 'tomatoes_window') in [true, 'true', 'True'] %}Tomatoes & cape ready
-                  {% elif low is not none %}Tomatoes & cape need +{{ [0, (50 - low) | round(0) | int] | max }}°F
-                  {% else %}Tomatoes & cape wait{% endif %}
-              - type: template
-                icon: mdi:chili-mild
-                icon_color: "{{ 'green' if state_attr('sensor.garden_weather_window', 'peppers_window') in [true, 'true', 'True'] else 'orange' }}"
-                content: >-
-                  {% set low_raw = state_attr('sensor.garden_weather_window', 'lowest_low_4_day') %}
-                  {% set low = low_raw | float(0) if is_number(low_raw) else none %}
-                  {% if state_attr('sensor.garden_weather_window', 'peppers_window') in [true, 'true', 'True'] %}Peppers & squash ready
-                  {% elif low is not none %}Peppers & squash need +{{ [0, (55 - low) | round(0) | int] | max }}°F
-                  {% else %}Peppers & squash wait{% endif %}
-
           - type: custom:mushroom-title-card
-            title: Cool Starts
-            subtitle: >-
-              {% set low_raw = state_attr('sensor.garden_weather_window', 'lowest_low_4_day') %}
-              {% set low = low_raw | float(99) if is_number(low_raw) else 99 %}
-              {% if is_state('binary_sensor.garden_needs_attention', 'on') %}
-                Active planting tasks are handled in the panel above.
-              {% elif states('input_select.garden_bok_choy_stage') != 'planted' and low >= 32 %}
-                Cool-season crops can use the open window.
-              {% elif low < 32 %}
-                Frost protection matters more than planting.
-              {% else %}
-                Cool-season bed check.
-              {% endif %}
+            title: In Ground
+            subtitle: Planted crops and daily care
 
           - type: vertical-stack
             cards:
@@ -7507,13 +7427,12 @@ views:
                 entity: sensor.garden_spinach_status
                 primary: Spinach
                 secondary: >-
-                  {{ state_attr('sensor.garden_spinach_status', 'count') }} plants · {{ states('sensor.garden_spinach_status') }}.
                   {% if is_state('input_select.garden_spinach_observation', 'dry') %}
-                    Water deeply, then leave pushes quiet.
+                    Raised beds · looks dry. Water deeply, then recheck tonight.
                   {% elif is_state('input_select.garden_spinach_observation', 'stressed') %}
-                    Check moisture, sun, and transplant stress.
+                    Raised beds · needs a calm check for moisture, sun, or pests.
                   {% else %}
-                    Keep evenly moist; no action needed.
+                    Raised beds · keep evenly moist; no action needed.
                   {% endif %}
                 icon: mdi:leaf
                 icon_color: >-
@@ -7522,7 +7441,10 @@ views:
                   {% else %}green{% endif %}
                 multiline_secondary: true
                 tap_action:
-                  action: more-info
+                  action: perform-action
+                  perform_action: input_boolean.toggle
+                  target:
+                    entity_id: input_boolean.garden_spinach_tile_expanded
                 card_mod:
                   style: &garden_compact_crop_card_style |
                     ha-card {
@@ -7542,197 +7464,965 @@ views:
                     }
               - type: conditional
                 conditions:
-                  - entity: binary_sensor.garden_needs_attention
-                    state_not: "on"
+                  - entity: input_boolean.garden_spinach_tile_expanded
+                    state: "on"
                 card:
                   type: custom:mushroom-template-card
-                  entity: sensor.garden_bok_choy_status
-                  primary: >-
-                    {% set low_raw = state_attr('sensor.garden_weather_window', 'lowest_low_4_day') %}
-                    {% set low = low_raw | float(99) if is_number(low_raw) else 99 %}
-                    {% if states('input_select.garden_bok_choy_stage') == 'planted' %}Bok choy planted
-                    {% elif low < 32 %}Bok choy: cover or wait
-                    {% else %}Bok choy: plant now{% endif %}
+                  entity: sensor.garden_spinach_status
+                  primary: Spinach details
                   secondary: >-
-                    {{ state_attr('sensor.garden_bok_choy_status', 'count') }} Shanghai starts.
-                    {% set low_raw = state_attr('sensor.garden_weather_window', 'lowest_low_4_day') %}
-                    {% set low = low_raw | float(99) if is_number(low_raw) else 99 %}
-                    {% if states('input_select.garden_bok_choy_stage') == 'planted' %}
-                      Keep evenly moist; watch flea beetles.
-                    {% elif low < 32 %}
-                      Hard frost risk; cover if it goes outside.
-                    {% else %}
-                      Cool window is good. Use raised bed or container with afternoon shade.
-                    {% endif %}
-                  icon: mdi:sprout-outline
-                  icon_color: >-
-                    {% if is_state('input_select.garden_bok_choy_observation', 'stressed') %}red
-                    {% elif states('input_select.garden_bok_choy_stage') == 'planted' %}green
-                    {% else %}teal{% endif %}
+                    What matters now: steady moisture.
+                    Why: young greens are shallow-rooted and stress quickly in sun or wind.
+                    Next care: water if the surface dries, then mark the observation below.
+                  icon: mdi:leaf
+                  icon_color: green
                   multiline_secondary: true
                   tap_action:
                     action: none
                   card_mod:
+                    style: &garden_detail_card_style |
+                      ha-card {
+                        border: 1px solid rgba(20, 184, 166, 0.16);
+                        border-radius: 20px;
+                        box-shadow: none;
+                        background: rgba(15, 23, 42, 0.48);
+                      }
+                      .secondary {
+                        line-height: 1.45 !important;
+                        opacity: 0.9 !important;
+                      }
+              - type: conditional
+                conditions:
+                  - entity: input_boolean.garden_spinach_tile_expanded
+                    state: "on"
+                card:
+                  type: custom:mushroom-chips-card
+                  alignment: left
+                  chips:
+                    - type: template
+                      icon: mdi:check-circle-outline
+                      icon_color: green
+                      content: Looks good
+                      tap_action:
+                        action: perform-action
+                        perform_action: input_select.select_option
+                        target:
+                          entity_id: input_select.garden_spinach_observation
+                        data:
+                          option: looking good
+                    - type: template
+                      icon: mdi:water-outline
+                      icon_color: blue
+                      content: Dry
+                      tap_action:
+                        action: perform-action
+                        perform_action: input_select.select_option
+                        target:
+                          entity_id: input_select.garden_spinach_observation
+                        data:
+                          option: dry
+                    - type: template
+                      icon: mdi:alert-circle-outline
+                      icon_color: red
+                      content: Stressed
+                      tap_action:
+                        action: perform-action
+                        perform_action: input_select.select_option
+                        target:
+                          entity_id: input_select.garden_spinach_observation
+                        data:
+                          option: stressed
+                    - type: template
+                      icon: mdi:chevron-up
+                      icon_color: grey
+                      content: Close
+                      tap_action:
+                        action: perform-action
+                        perform_action: input_boolean.turn_off
+                        target:
+                          entity_id: input_boolean.garden_spinach_tile_expanded
+                  card_mod:
+                    style: &garden_chips_style |
+                      ha-card {
+                        border: none;
+                        box-shadow: none;
+                        --chip-spacing: 8px;
+                      }
+                      mushroom-template-chip {
+                        --chip-background: rgba(15, 23, 42, 0.62);
+                        --chip-border-width: 1px;
+                        --chip-border-color: rgba(148, 163, 184, 0.14);
+                      }
+
+              - type: custom:mushroom-template-card
+                entity: sensor.garden_bok_choy_status
+                primary: Bok choy
+                secondary: >-
+                  {% if is_state('input_select.garden_bok_choy_observation', 'dry') %}
+                    Planted · looks dry. Keep the bed evenly moist while it settles.
+                  {% elif is_state('input_select.garden_bok_choy_observation', 'stressed') %}
+                    Planted · check moisture, flea beetles, and afternoon exposure.
+                  {% else %}
+                    Planted · keep evenly moist; watch heat and flea beetles.
+                  {% endif %}
+                icon: mdi:sprout-outline
+                icon_color: >-
+                  {% if is_state('input_select.garden_bok_choy_observation', 'stressed') %}red
+                  {% elif is_state('input_select.garden_bok_choy_observation', 'dry') %}amber
+                  {% else %}green{% endif %}
+                multiline_secondary: true
+                tap_action:
+                  action: perform-action
+                  perform_action: input_boolean.toggle
+                  target:
+                    entity_id: input_boolean.garden_bok_choy_tile_expanded
+                card_mod:
+                  style: *garden_compact_crop_card_style
+              - type: conditional
+                conditions:
+                  - entity: input_boolean.garden_bok_choy_tile_expanded
+                    state: "on"
+                card:
+                  type: custom:mushroom-template-card
+                  entity: sensor.garden_bok_choy_status
+                  primary: Bok choy details
+                  secondary: >-
+                    What matters now: establishment moisture and pest watch.
+                    Why: bok choy likes cool weather but can bolt as heat builds.
+                    Next care: keep soil evenly damp, give afternoon shade if needed, and cover only for hard frost.
+                  icon: mdi:sprout-outline
+                  icon_color: green
+                  multiline_secondary: true
+                  tap_action:
+                    action: none
+                  card_mod:
+                    style: *garden_detail_card_style
+              - type: conditional
+                conditions:
+                  - entity: input_boolean.garden_bok_choy_tile_expanded
+                    state: "on"
+                card:
+                  type: custom:mushroom-chips-card
+                  alignment: left
+                  chips:
+                    - type: template
+                      icon: mdi:check-circle-outline
+                      icon_color: green
+                      content: Looks good
+                      tap_action:
+                        action: perform-action
+                        perform_action: input_select.select_option
+                        target:
+                          entity_id: input_select.garden_bok_choy_observation
+                        data:
+                          option: looking good
+                    - type: template
+                      icon: mdi:water-outline
+                      icon_color: blue
+                      content: Dry
+                      tap_action:
+                        action: perform-action
+                        perform_action: input_select.select_option
+                        target:
+                          entity_id: input_select.garden_bok_choy_observation
+                        data:
+                          option: dry
+                    - type: template
+                      icon: mdi:alert-circle-outline
+                      icon_color: red
+                      content: Stressed
+                      tap_action:
+                        action: perform-action
+                        perform_action: input_select.select_option
+                        target:
+                          entity_id: input_select.garden_bok_choy_observation
+                        data:
+                          option: stressed
+                    - type: template
+                      icon: mdi:chevron-up
+                      icon_color: grey
+                      content: Close
+                      tap_action:
+                        action: perform-action
+                        perform_action: input_boolean.turn_off
+                        target:
+                          entity_id: input_boolean.garden_bok_choy_tile_expanded
+                  card_mod:
+                    style: *garden_chips_style
+
+              - type: custom:mushroom-template-card
+                entity: sensor.garden_tomatoes_status
+                primary: Tomatoes
+                secondary: >-
+                  {% if is_state('input_select.garden_tomatoes_observation', 'dry') %}
+                    Planted · looks dry. Even moisture matters while roots settle.
+                  {% elif is_state('input_select.garden_tomatoes_observation', 'stressed') %}
+                    Planted · check wind, watering swings, and support.
+                  {% else %}
+                    Planted · keep supports in place and moisture even.
+                  {% endif %}
+                icon: mdi:food-apple-outline
+                icon_color: >-
+                  {% if is_state('input_select.garden_tomatoes_observation', 'stressed') %}red
+                  {% elif is_state('input_select.garden_tomatoes_observation', 'dry') %}amber
+                  {% else %}green{% endif %}
+                multiline_secondary: true
+                tap_action:
+                  action: perform-action
+                  perform_action: input_boolean.toggle
+                  target:
+                    entity_id: input_boolean.garden_tomatoes_tile_expanded
+                card_mod:
+                  style: *garden_compact_crop_card_style
+              - type: conditional
+                conditions:
+                  - entity: input_boolean.garden_tomatoes_tile_expanded
+                    state: "on"
+                card:
+                  type: custom:mushroom-template-card
+                  entity: sensor.garden_tomatoes_status
+                  primary: Tomato details
+                  secondary: >-
+                    What matters now: even moisture, support, and wind protection.
+                    Why: tomatoes are in the ground, so the workflow is establishment care instead of planting readiness.
+                    Next care: check ties/cages, water deeply when soil dries, and protect if nights dip below 50°F.
+                  icon: mdi:food-apple-outline
+                  icon_color: green
+                  multiline_secondary: true
+                  tap_action:
+                    action: none
+                  card_mod:
+                    style: *garden_detail_card_style
+              - type: conditional
+                conditions:
+                  - entity: input_boolean.garden_tomatoes_tile_expanded
+                    state: "on"
+                card:
+                  type: custom:mushroom-chips-card
+                  alignment: left
+                  chips:
+                    - type: template
+                      icon: mdi:check-circle-outline
+                      icon_color: green
+                      content: Looks good
+                      tap_action:
+                        action: perform-action
+                        perform_action: input_select.select_option
+                        target:
+                          entity_id: input_select.garden_tomatoes_observation
+                        data:
+                          option: looking good
+                    - type: template
+                      icon: mdi:water-outline
+                      icon_color: blue
+                      content: Dry
+                      tap_action:
+                        action: perform-action
+                        perform_action: input_select.select_option
+                        target:
+                          entity_id: input_select.garden_tomatoes_observation
+                        data:
+                          option: dry
+                    - type: template
+                      icon: mdi:alert-circle-outline
+                      icon_color: red
+                      content: Stressed
+                      tap_action:
+                        action: perform-action
+                        perform_action: input_select.select_option
+                        target:
+                          entity_id: input_select.garden_tomatoes_observation
+                        data:
+                          option: stressed
+                    - type: template
+                      icon: mdi:chevron-up
+                      icon_color: grey
+                      content: Close
+                      tap_action:
+                        action: perform-action
+                        perform_action: input_boolean.turn_off
+                        target:
+                          entity_id: input_boolean.garden_tomatoes_tile_expanded
+                  card_mod:
+                    style: *garden_chips_style
+
+              - type: conditional
+                conditions:
+                  - entity: input_select.garden_peppers_stage
+                    state: planted
+                card:
+                  type: custom:mushroom-template-card
+                  entity: sensor.garden_peppers_status
+                  primary: Peppers
+                  secondary: >-
+                    {% if is_state('input_select.garden_peppers_observation', 'dry') %}
+                      Planted · looks dry. Keep warmth and moisture steady.
+                    {% elif is_state('input_select.garden_peppers_observation', 'stressed') %}
+                      Planted · check cold stress, sun exposure, and watering swings.
+                    {% else %}
+                      Planted · keep warm and avoid drought swings.
+                    {% endif %}
+                  icon: mdi:chili-mild
+                  icon_color: >-
+                    {% if is_state('input_select.garden_peppers_observation', 'stressed') %}red
+                    {% elif is_state('input_select.garden_peppers_observation', 'dry') %}amber
+                    {% else %}green{% endif %}
+                  multiline_secondary: true
+                  tap_action:
+                    action: perform-action
+                    perform_action: input_boolean.toggle
+                    target:
+                      entity_id: input_boolean.garden_peppers_tile_expanded
+                  card_mod:
                     style: *garden_compact_crop_card_style
+              - type: conditional
+                conditions:
+                  - entity: input_boolean.garden_peppers_tile_expanded
+                    state: "on"
+                  - entity: input_select.garden_peppers_stage
+                    state: planted
+                card:
+                  type: custom:mushroom-template-card
+                  entity: sensor.garden_peppers_status
+                  primary: Pepper care
+                  secondary: >-
+                    What matters now: warmth and steady watering.
+                    Why: peppers recover slowly from cold soil and drought swings.
+                    Next care: water deeply when dry, keep mulch gentle, and protect if nights slip below 55°F.
+                  icon: mdi:chili-mild
+                  icon_color: green
+                  multiline_secondary: true
+                  tap_action:
+                    action: none
+                  card_mod:
+                    style: *garden_detail_card_style
+              - type: conditional
+                conditions:
+                  - entity: input_boolean.garden_peppers_tile_expanded
+                    state: "on"
+                  - entity: input_select.garden_peppers_stage
+                    state: planted
+                card:
+                  type: custom:mushroom-chips-card
+                  alignment: left
+                  chips:
+                    - type: template
+                      icon: mdi:check-circle-outline
+                      icon_color: green
+                      content: Looks good
+                      tap_action:
+                        action: perform-action
+                        perform_action: input_select.select_option
+                        target:
+                          entity_id: input_select.garden_peppers_observation
+                        data:
+                          option: looking good
+                    - type: template
+                      icon: mdi:water-outline
+                      icon_color: blue
+                      content: Dry
+                      tap_action:
+                        action: perform-action
+                        perform_action: input_select.select_option
+                        target:
+                          entity_id: input_select.garden_peppers_observation
+                        data:
+                          option: dry
+                    - type: template
+                      icon: mdi:alert-circle-outline
+                      icon_color: red
+                      content: Stressed
+                      tap_action:
+                        action: perform-action
+                        perform_action: input_select.select_option
+                        target:
+                          entity_id: input_select.garden_peppers_observation
+                        data:
+                          option: stressed
+                    - type: template
+                      icon: mdi:chevron-up
+                      icon_color: grey
+                      content: Close
+                      tap_action:
+                        action: perform-action
+                        perform_action: input_boolean.turn_off
+                        target:
+                          entity_id: input_boolean.garden_peppers_tile_expanded
+                  card_mod:
+                    style: *garden_chips_style
+
+              - type: conditional
+                conditions:
+                  - entity: input_select.garden_cape_gooseberry_stage
+                    state: planted
+                card:
+                  type: custom:mushroom-template-card
+                  entity: sensor.garden_cape_gooseberry_status
+                  primary: Cape gooseberry
+                  secondary: >-
+                    {% if is_state('input_select.garden_cape_gooseberry_observation', 'dry') %}
+                      Potted · looks dry. Keep the container evenly moist.
+                    {% elif is_state('input_select.garden_cape_gooseberry_observation', 'stressed') %}
+                      Potted · check drainage, sun, and watering swings.
+                    {% else %}
+                      Potted · full sun, free drainage, ripe golden fruit only.
+                    {% endif %}
+                  icon: mdi:fruit-cherries
+                  icon_color: >-
+                    {% if is_state('input_select.garden_cape_gooseberry_observation', 'stressed') %}red
+                    {% elif is_state('input_select.garden_cape_gooseberry_observation', 'dry') %}amber
+                    {% else %}green{% endif %}
+                  multiline_secondary: true
+                  tap_action:
+                    action: perform-action
+                    perform_action: input_boolean.toggle
+                    target:
+                      entity_id: input_boolean.garden_cape_gooseberry_tile_expanded
+                  card_mod:
+                    style: *garden_compact_crop_card_style
+              - type: conditional
+                conditions:
+                  - entity: input_boolean.garden_cape_gooseberry_tile_expanded
+                    state: "on"
+                  - entity: input_select.garden_cape_gooseberry_stage
+                    state: planted
+                card:
+                  type: custom:mushroom-template-card
+                  entity: sensor.garden_cape_gooseberry_status
+                  primary: Cape gooseberry care
+                  secondary: >-
+                    What matters now: container moisture and drainage.
+                    Why: containers dry fast, but cape gooseberry dislikes wet feet.
+                    Next care: keep sun strong, water evenly, and avoid leaves, husks, and green fruit.
+                  icon: mdi:fruit-cherries
+                  icon_color: green
+                  multiline_secondary: true
+                  tap_action:
+                    action: none
+                  card_mod:
+                    style: *garden_detail_card_style
+              - type: conditional
+                conditions:
+                  - entity: input_boolean.garden_cape_gooseberry_tile_expanded
+                    state: "on"
+                  - entity: input_select.garden_cape_gooseberry_stage
+                    state: planted
+                card:
+                  type: custom:mushroom-chips-card
+                  alignment: left
+                  chips:
+                    - type: template
+                      icon: mdi:check-circle-outline
+                      icon_color: green
+                      content: Looks good
+                      tap_action:
+                        action: perform-action
+                        perform_action: input_select.select_option
+                        target:
+                          entity_id: input_select.garden_cape_gooseberry_observation
+                        data:
+                          option: looking good
+                    - type: template
+                      icon: mdi:water-outline
+                      icon_color: blue
+                      content: Dry
+                      tap_action:
+                        action: perform-action
+                        perform_action: input_select.select_option
+                        target:
+                          entity_id: input_select.garden_cape_gooseberry_observation
+                        data:
+                          option: dry
+                    - type: template
+                      icon: mdi:alert-circle-outline
+                      icon_color: red
+                      content: Stressed
+                      tap_action:
+                        action: perform-action
+                        perform_action: input_select.select_option
+                        target:
+                          entity_id: input_select.garden_cape_gooseberry_observation
+                        data:
+                          option: stressed
+                    - type: template
+                      icon: mdi:chevron-up
+                      icon_color: grey
+                      content: Close
+                      tap_action:
+                        action: perform-action
+                        perform_action: input_boolean.turn_off
+                        target:
+                          entity_id: input_boolean.garden_cape_gooseberry_tile_expanded
+                  card_mod:
+                    style: *garden_chips_style
+
+              - type: conditional
+                conditions:
+                  - entity: input_select.garden_honeynut_squash_stage
+                    state: planted
+                card:
+                  type: custom:mushroom-template-card
+                  entity: sensor.garden_honeynut_squash_status
+                  primary: Honeynut squash
+                  secondary: >-
+                    {% if is_state('input_select.garden_honeynut_squash_observation', 'dry') %}
+                      Planted · looks dry. Keep roots evenly moist.
+                    {% elif is_state('input_select.garden_honeynut_squash_observation', 'stressed') %}
+                      Planted · check cold, wet roots, and vine room.
+                    {% else %}
+                      Planted · give vines room and keep roots evenly moist.
+                    {% endif %}
+                  icon: mdi:pumpkin
+                  icon_color: >-
+                    {% if is_state('input_select.garden_honeynut_squash_observation', 'stressed') %}red
+                    {% elif is_state('input_select.garden_honeynut_squash_observation', 'dry') %}amber
+                    {% else %}green{% endif %}
+                  multiline_secondary: true
+                  tap_action:
+                    action: perform-action
+                    perform_action: input_boolean.toggle
+                    target:
+                      entity_id: input_boolean.garden_honeynut_squash_tile_expanded
+                  card_mod:
+                    style: *garden_compact_crop_card_style
+              - type: conditional
+                conditions:
+                  - entity: input_boolean.garden_honeynut_squash_tile_expanded
+                    state: "on"
+                  - entity: input_select.garden_honeynut_squash_stage
+                    state: planted
+                card:
+                  type: custom:mushroom-template-card
+                  entity: sensor.garden_honeynut_squash_status
+                  primary: Honeynut squash care
+                  secondary: >-
+                    What matters now: roots, warmth, and vine room.
+                    Why: squash dislikes cold wet roots but takes off fast once settled.
+                    Next care: water deeply, guide vines early, and protect below 55°F.
+                  icon: mdi:pumpkin
+                  icon_color: green
+                  multiline_secondary: true
+                  tap_action:
+                    action: none
+                  card_mod:
+                    style: *garden_detail_card_style
+              - type: conditional
+                conditions:
+                  - entity: input_boolean.garden_honeynut_squash_tile_expanded
+                    state: "on"
+                  - entity: input_select.garden_honeynut_squash_stage
+                    state: planted
+                card:
+                  type: custom:mushroom-chips-card
+                  alignment: left
+                  chips:
+                    - type: template
+                      icon: mdi:check-circle-outline
+                      icon_color: green
+                      content: Looks good
+                      tap_action:
+                        action: perform-action
+                        perform_action: input_select.select_option
+                        target:
+                          entity_id: input_select.garden_honeynut_squash_observation
+                        data:
+                          option: looking good
+                    - type: template
+                      icon: mdi:water-outline
+                      icon_color: blue
+                      content: Dry
+                      tap_action:
+                        action: perform-action
+                        perform_action: input_select.select_option
+                        target:
+                          entity_id: input_select.garden_honeynut_squash_observation
+                        data:
+                          option: dry
+                    - type: template
+                      icon: mdi:alert-circle-outline
+                      icon_color: red
+                      content: Stressed
+                      tap_action:
+                        action: perform-action
+                        perform_action: input_select.select_option
+                        target:
+                          entity_id: input_select.garden_honeynut_squash_observation
+                        data:
+                          option: stressed
+                    - type: template
+                      icon: mdi:chevron-up
+                      icon_color: grey
+                      content: Close
+                      tap_action:
+                        action: perform-action
+                        perform_action: input_boolean.turn_off
+                        target:
+                          entity_id: input_boolean.garden_honeynut_squash_tile_expanded
+                  card_mod:
+                    style: *garden_chips_style
 
           - type: custom:mushroom-title-card
-            title: Warm Starts
-            subtitle: >-
+            title: Still Starting
+            subtitle: Warm crops that are not in the ground yet
+
+          - type: conditional
+            conditions:
+              - entity: input_select.garden_peppers_stage
+                state_not: planted
+            card:
+              type: custom:mushroom-template-card
+              entity: sensor.garden_peppers_status
+              primary: Peppers
+              secondary: >-
+                {{ states('sensor.garden_peppers_status') }} · 3 shishito and 1 Lemon Spice jalapeno.
+                {% if state_attr('sensor.garden_weather_window', 'peppers_window') in [true, 'true', 'True'] %}
+                  Warm enough once hardened.
+                {% else %}
+                  Wait for steady 55°F nights.
+                {% endif %}
+              icon: mdi:chili-mild
+              icon_color: "{{ 'green' if state_attr('sensor.garden_weather_window', 'peppers_window') in [true, 'true', 'True'] else 'orange' }}"
+              multiline_secondary: true
+              tap_action:
+                action: perform-action
+                perform_action: input_boolean.toggle
+                target:
+                  entity_id: input_boolean.garden_peppers_tile_expanded
+              card_mod:
+                style: *garden_compact_crop_card_style
+          - type: conditional
+            conditions:
+              - entity: input_boolean.garden_peppers_tile_expanded
+                state: "on"
+              - entity: input_select.garden_peppers_stage
+                state_not: planted
+            card:
+              type: vertical-stack
+              cards:
+                - type: custom:mushroom-template-card
+                  entity: sensor.garden_peppers_status
+                  primary: Pepper details
+                  secondary: >-
+                    What matters now: hardening and warm nights.
+                    Why: peppers stall in cold soil and prefer a 55°F night floor.
+                    Next care: keep hardening; mark hardened or planted only after you intentionally choose it below.
+                  icon: mdi:chili-mild
+                  icon_color: orange
+                  multiline_secondary: true
+                  tap_action:
+                    action: none
+                  card_mod:
+                    style: *garden_detail_card_style
+                - type: custom:mushroom-chips-card
+                  alignment: left
+                  chips:
+                    - type: template
+                      icon: mdi:white-balance-sunny
+                      icon_color: amber
+                      content: Hardened
+                      tap_action:
+                        action: perform-action
+                        perform_action: script.garden_mark_peppers_hardened
+                    - type: template
+                      icon: mdi:shovel
+                      icon_color: green
+                      content: Mark planted
+                      tap_action:
+                        action: perform-action
+                        perform_action: script.garden_mark_peppers_planted
+                        confirmation:
+                          text: Mark peppers as planted?
+                    - type: template
+                      icon: mdi:alert-circle-outline
+                      icon_color: red
+                      content: Stressed
+                      tap_action:
+                        action: perform-action
+                        perform_action: input_select.select_option
+                        target:
+                          entity_id: input_select.garden_peppers_observation
+                        data:
+                          option: stressed
+                    - type: template
+                      icon: mdi:chevron-up
+                      icon_color: grey
+                      content: Close
+                      tap_action:
+                        action: perform-action
+                        perform_action: input_boolean.turn_off
+                        target:
+                          entity_id: input_boolean.garden_peppers_tile_expanded
+                  card_mod:
+                    style: *garden_chips_style
+
+          - type: conditional
+            conditions:
+              - entity: input_select.garden_cape_gooseberry_stage
+                state_not: planted
+            card:
+              type: custom:mushroom-template-card
+              entity: sensor.garden_cape_gooseberry_status
+              primary: Cape gooseberry
+              secondary: >-
+                {{ states('sensor.garden_cape_gooseberry_status') }} · container preferred.
+                {% if state_attr('sensor.garden_weather_window', 'cape_gooseberry_window') in [true, 'true', 'True'] %}
+                  Treat like tomato warmth before potting.
+                {% else %}
+                  Keep hardening until 50°F nights hold.
+                {% endif %}
+              icon: mdi:fruit-cherries
+              icon_color: "{{ 'green' if state_attr('sensor.garden_weather_window', 'cape_gooseberry_window') in [true, 'true', 'True'] else 'pink' }}"
+              multiline_secondary: true
+              tap_action:
+                action: perform-action
+                perform_action: input_boolean.toggle
+                target:
+                  entity_id: input_boolean.garden_cape_gooseberry_tile_expanded
+              card_mod:
+                style: *garden_compact_crop_card_style
+          - type: conditional
+            conditions:
+              - entity: input_boolean.garden_cape_gooseberry_tile_expanded
+                state: "on"
+              - entity: input_select.garden_cape_gooseberry_stage
+                state_not: planted
+            card:
+              type: vertical-stack
+              cards:
+                - type: custom:mushroom-template-card
+                  entity: sensor.garden_cape_gooseberry_status
+                  primary: Cape gooseberry details
+                  secondary: >-
+                    What matters now: container timing and steady warmth.
+                    Why: it behaves like a tomato-family crop and needs free drainage.
+                    Next care: harden fully, then use a 5-10 gallon container in full sun.
+                  icon: mdi:fruit-cherries
+                  icon_color: pink
+                  multiline_secondary: true
+                  tap_action:
+                    action: none
+                  card_mod:
+                    style: *garden_detail_card_style
+                - type: custom:mushroom-chips-card
+                  alignment: left
+                  chips:
+                    - type: template
+                      icon: mdi:white-balance-sunny
+                      icon_color: amber
+                      content: Hardened
+                      tap_action:
+                        action: perform-action
+                        perform_action: script.garden_mark_cape_gooseberry_hardened
+                    - type: template
+                      icon: mdi:shovel
+                      icon_color: green
+                      content: Mark potted
+                      tap_action:
+                        action: perform-action
+                        perform_action: script.garden_mark_cape_gooseberry_planted
+                        confirmation:
+                          text: Mark cape gooseberry as potted?
+                    - type: template
+                      icon: mdi:alert-circle-outline
+                      icon_color: red
+                      content: Stressed
+                      tap_action:
+                        action: perform-action
+                        perform_action: input_select.select_option
+                        target:
+                          entity_id: input_select.garden_cape_gooseberry_observation
+                        data:
+                          option: stressed
+                    - type: template
+                      icon: mdi:chevron-up
+                      icon_color: grey
+                      content: Close
+                      tap_action:
+                        action: perform-action
+                        perform_action: input_boolean.turn_off
+                        target:
+                          entity_id: input_boolean.garden_cape_gooseberry_tile_expanded
+                  card_mod:
+                    style: *garden_chips_style
+
+          - type: conditional
+            conditions:
+              - entity: input_select.garden_honeynut_squash_stage
+                state_not: planted
+            card:
+              type: custom:mushroom-template-card
+              entity: sensor.garden_honeynut_squash_status
+              primary: Honeynut squash
+              secondary: >-
+                {{ states('sensor.garden_honeynut_squash_status') }} · needs warm soil and a not-soggy pattern.
+                {% if state_attr('sensor.garden_weather_window', 'honeynut_squash_window') in [true, 'true', 'True'] %}
+                  Warm and dry enough once hardened.
+                {% else %}
+                  Wait for settled 55°F nights.
+                {% endif %}
+              icon: mdi:pumpkin
+              icon_color: "{{ 'green' if state_attr('sensor.garden_weather_window', 'honeynut_squash_window') in [true, 'true', 'True'] else 'deep-orange' }}"
+              multiline_secondary: true
+              tap_action:
+                action: perform-action
+                perform_action: input_boolean.toggle
+                target:
+                  entity_id: input_boolean.garden_honeynut_squash_tile_expanded
+              card_mod:
+                style: *garden_compact_crop_card_style
+          - type: conditional
+            conditions:
+              - entity: input_boolean.garden_honeynut_squash_tile_expanded
+                state: "on"
+              - entity: input_select.garden_honeynut_squash_stage
+                state_not: planted
+            card:
+              type: vertical-stack
+              cards:
+                - type: custom:mushroom-template-card
+                  entity: sensor.garden_honeynut_squash_status
+                  primary: Honeynut squash details
+                  secondary: >-
+                    What matters now: warmth, drainage, and room to vine.
+                    Why: squash dislikes cold wet roots and needs space once it takes off.
+                    Next care: harden fully, then plant at a warm sunny edge or trellis.
+                  icon: mdi:pumpkin
+                  icon_color: deep-orange
+                  multiline_secondary: true
+                  tap_action:
+                    action: none
+                  card_mod:
+                    style: *garden_detail_card_style
+                - type: custom:mushroom-chips-card
+                  alignment: left
+                  chips:
+                    - type: template
+                      icon: mdi:white-balance-sunny
+                      icon_color: amber
+                      content: Hardened
+                      tap_action:
+                        action: perform-action
+                        perform_action: script.garden_mark_honeynut_squash_hardened
+                    - type: template
+                      icon: mdi:shovel
+                      icon_color: green
+                      content: Mark planted
+                      tap_action:
+                        action: perform-action
+                        perform_action: script.garden_mark_honeynut_squash_planted
+                        confirmation:
+                          text: Mark honeynut squash as planted?
+                    - type: template
+                      icon: mdi:alert-circle-outline
+                      icon_color: red
+                      content: Stressed
+                      tap_action:
+                        action: perform-action
+                        perform_action: input_select.select_option
+                        target:
+                          entity_id: input_select.garden_honeynut_squash_observation
+                        data:
+                          option: stressed
+                    - type: template
+                      icon: mdi:chevron-up
+                      icon_color: grey
+                      content: Close
+                      tap_action:
+                        action: perform-action
+                        perform_action: input_boolean.turn_off
+                        target:
+                          entity_id: input_boolean.garden_honeynut_squash_tile_expanded
+                  card_mod:
+                    style: *garden_chips_style
+
+          - type: custom:mushroom-title-card
+            title: Weather Watch
+            subtitle: Four-night lows and protection thresholds
+
+          - type: custom:mushroom-template-card
+            entity: sensor.garden_weather_window
+            primary: "{{ states('sensor.garden_weather_window') }}"
+            secondary: >-
+              {% set low = state_attr('sensor.garden_weather_window', 'lowest_low_4_day') %}
+              {% set wet = state_attr('sensor.garden_weather_window', 'wet_days') %}
+              4-night low {{ low }}° · lows {{ state_attr('sensor.garden_weather_window', 'next_4_lows') }} · wet days {{ wet }}
+            icon: >-
+              {% if is_state('input_boolean.garden_weather_panel_expanded', 'on') %}mdi:chevron-up
+              {% else %}mdi:chevron-down{% endif %}
+            icon_color: >-
               {% set low_raw = state_attr('sensor.garden_weather_window', 'lowest_low_4_day') %}
               {% set low = low_raw | float(99) if is_number(low_raw) else 99 %}
-              {% set wet_days = state_attr('sensor.garden_weather_window', 'wet_days') %}
-              {% if low < 50 %}
-                Hardening outside by day; bring tender starts in for cool nights.
-              {% elif low < 55 %}
-                Tomatoes and cape gooseberry are close; peppers and squash still wait.
-              {% elif wet_days != 'None flagged' %}
-                Warm enough, but wet weather can set squash back.
-              {% else %}
-                Weather is warm enough once each crop is hardened.
-              {% endif %}
-
-          - type: custom:mushroom-template-card
-            entity: sensor.garden_tomatoes_status
-            primary: >-
-              {% if is_state('input_select.garden_tomatoes_observation', 'stressed') %}Tomatoes need a check
-              {% elif states('input_select.garden_tomatoes_stage') == 'planted' %}Tomatoes planted
-              {% elif state_attr('sensor.garden_weather_window', 'tomatoes_window') in [true, 'true', 'True'] %}Tomatoes: warm enough
-              {% else %}Tomatoes: wait for 50°F nights{% endif %}
-            secondary: >-
-              {{ state_attr('sensor.garden_tomatoes_status', 'count') }} starts · Honey Drop, Cherokee Purple, Sweet Pea basket, Bumblebee.
-              {% set low_raw = state_attr('sensor.garden_weather_window', 'lowest_low_4_day') %}
-              {% set low = low_raw | float(0) if is_number(low_raw) else none %}
-              {% if states('input_select.garden_tomatoes_stage') == 'planted' %}
-                Keep supports in place and moisture even.
-              {% elif state_attr('sensor.garden_weather_window', 'tomatoes_window') in [true, 'true', 'True'] %}
-                Finish hardening; plant when exposure looks steady.
-              {% elif low is not none %}
-                Current floor is {{ low | round(0) | int }}°F, so keep hardening but shelter at night.
-              {% else %}
-                Forecast unavailable; wait for a reliable window.
-              {% endif %}
-            icon: mdi:food-apple-outline
-            icon_color: >-
-              {% if is_state('input_select.garden_tomatoes_observation', 'stressed') %}red
-              {% elif state_attr('sensor.garden_weather_window', 'tomatoes_window') in [true, 'true', 'True'] %}green
-              {% else %}amber{% endif %}
+              {% if low < 32 %}red
+              {% elif low < 50 %}amber
+              {% else %}teal{% endif %}
             multiline_secondary: true
             tap_action:
-              action: more-info
+              action: perform-action
+              perform_action: input_boolean.toggle
+              target:
+                entity_id: input_boolean.garden_weather_panel_expanded
             card_mod:
-              style: &garden_list_crop_card_style |
-                ha-card {
-                  border: 1px solid rgba(148, 163, 184, 0.12);
-                  border-radius: 18px;
-                  box-shadow: 0 8px 18px rgba(2, 8, 23, 0.10);
-                  background: rgba(15, 23, 42, 0.68);
-                  padding: 4px 2px;
-                  min-height: 88px;
-                }
-                .primary {
-                  font-size: 16px !important;
-                  font-weight: 560 !important;
-                }
-                .secondary {
-                  line-height: 1.36 !important;
-                  opacity: 0.84 !important;
-                }
+              style: *garden_compact_crop_card_style
+          - type: conditional
+            conditions:
+              - entity: input_boolean.garden_weather_panel_expanded
+                state: "on"
+            card:
+              type: custom:mushroom-template-card
+              entity: sensor.garden_weather_window
+              primary: Forecast detail
+              secondary: >-
+                Bok choy and spinach: protect for hard frost below 32°F.
+                Tomatoes and cape gooseberry: protect below 50°F.
+                Peppers and honeynut squash: wait or protect below 55°F; squash also waits through cold wet patterns.
+              icon: mdi:weather-partly-cloudy
+              icon_color: teal
+              multiline_secondary: true
+              tap_action:
+                action: none
+              card_mod:
+                style: *garden_detail_card_style
+
+          - type: custom:mushroom-title-card
+            title: Garden Log
+            subtitle: Planting notes and quiet alerts
 
           - type: custom:mushroom-template-card
-            entity: sensor.garden_peppers_status
-            primary: >-
-              {% if is_state('input_select.garden_peppers_observation', 'stressed') %}Peppers need a check
-              {% elif states('input_select.garden_peppers_stage') == 'planted' %}Peppers planted
-              {% elif state_attr('sensor.garden_weather_window', 'peppers_window') in [true, 'true', 'True'] %}Peppers: warm enough
-              {% else %}Peppers: wait for 55°F nights{% endif %}
+            entity: sensor.garden_crop_summary
+            primary: Planting log
             secondary: >-
-              {{ state_attr('sensor.garden_peppers_status', 'count') }} starts · 3 shishito, 1 Lemon Spice jalapeno.
-              {% set low_raw = state_attr('sensor.garden_weather_window', 'lowest_low_4_day') %}
-              {% set low = low_raw | float(0) if is_number(low_raw) else none %}
-              {% if states('input_select.garden_peppers_stage') == 'planted' %}
-                Keep them warm and avoid drought swings.
-              {% elif state_attr('sensor.garden_weather_window', 'peppers_window') in [true, 'true', 'True'] %}
-                Finish hardening; plant after the warm nights hold.
-              {% elif low is not none %}
-                Current floor is {{ low | round(0) | int }}°F; peppers want 55°F+.
-              {% else %}
-                Forecast unavailable; wait for a reliable window.
-              {% endif %}
-            icon: mdi:chili-mild
-            icon_color: >-
-              {% if is_state('input_select.garden_peppers_observation', 'stressed') %}red
-              {% elif state_attr('sensor.garden_weather_window', 'peppers_window') in [true, 'true', 'True'] %}green
-              {% else %}orange{% endif %}
+              Spinach planted {{ states('input_datetime.garden_spinach_planted_in_ground')[:10] }}.
+              Bok choy planted {{ states('input_datetime.garden_bok_choy_planted')[:10] if states('input_datetime.garden_bok_choy_planted') not in ['unknown', 'unavailable', ''] else 'recently' }}.
+              Tomatoes planted {{ states('input_datetime.garden_tomatoes_planted')[:10] if states('input_datetime.garden_tomatoes_planted') not in ['unknown', 'unavailable', ''] else 'recently' }}.
+            icon: mdi:timeline-check-outline
+            icon_color: teal
             multiline_secondary: true
             tap_action:
-              action: more-info
+              action: none
             card_mod:
-              style: *garden_list_crop_card_style
+              style: *garden_compact_crop_card_style
 
-          - type: custom:mushroom-template-card
-            entity: sensor.garden_cape_gooseberry_status
-            primary: >-
-              {% if is_state('input_select.garden_cape_gooseberry_observation', 'stressed') %}Cape gooseberry needs a check
-              {% elif states('input_select.garden_cape_gooseberry_stage') == 'planted' %}Cape gooseberry potted
-              {% elif state_attr('sensor.garden_weather_window', 'cape_gooseberry_window') in [true, 'true', 'True'] %}Cape gooseberry: container soon
-              {% else %}Cape gooseberry: wait for 50°F nights{% endif %}
-            secondary: >-
-              {{ state_attr('sensor.garden_cape_gooseberry_status', 'count') }} Plant World Seeds start · container preferred.
-              {% set low_raw = state_attr('sensor.garden_weather_window', 'lowest_low_4_day') %}
-              {% set low = low_raw | float(0) if is_number(low_raw) else none %}
-              {% if states('input_select.garden_cape_gooseberry_stage') == 'planted' %}
-                Keep in full sun; only ripe golden fruit is edible.
-              {% elif state_attr('sensor.garden_weather_window', 'cape_gooseberry_window') in [true, 'true', 'True'] %}
-                Harden fully, then use a free-draining 5-10 gallon container.
-              {% elif low is not none %}
-                Current floor is {{ low | round(0) | int }}°F; treat it like a tomato.
-              {% else %}
-                Forecast unavailable; wait for a reliable window.
-              {% endif %}
-            icon: mdi:fruit-cherries
-            icon_color: >-
-              {% if is_state('input_select.garden_cape_gooseberry_observation', 'stressed') %}red
-              {% elif state_attr('sensor.garden_weather_window', 'cape_gooseberry_window') in [true, 'true', 'True'] %}green
-              {% else %}pink{% endif %}
-            multiline_secondary: true
-            tap_action:
-              action: more-info
+          - type: custom:mushroom-chips-card
+            alignment: left
+            chips:
+              - type: template
+                icon: mdi:bell-sleep-outline
+                icon_color: amber
+                content: Snooze 24h
+                tap_action:
+                  action: perform-action
+                  perform_action: script.garden_snooze_notifications
+              - type: template
+                icon: mdi:bell-outline
+                icon_color: "{{ 'green' if is_state('input_boolean.garden_notifications_enabled', 'on') else 'grey' }}"
+                content: "{{ 'Pushes on' if is_state('input_boolean.garden_notifications_enabled', 'on') else 'Pushes off' }}"
+                tap_action:
+                  action: perform-action
+                  perform_action: input_boolean.toggle
+                  target:
+                    entity_id: input_boolean.garden_notifications_enabled
             card_mod:
-              style: *garden_list_crop_card_style
-
-          - type: custom:mushroom-template-card
-            entity: sensor.garden_honeynut_squash_status
-            primary: >-
-              {% if is_state('input_select.garden_honeynut_squash_observation', 'stressed') %}Honeynut squash needs a check
-              {% elif states('input_select.garden_honeynut_squash_stage') == 'planted' %}Honeynut squash planted
-              {% elif state_attr('sensor.garden_weather_window', 'honeynut_squash_window') in [true, 'true', 'True'] %}Honeynut squash: warm and dry enough
-              {% else %}Honeynut squash: wait for settled warmth{% endif %}
-            secondary: >-
-              {{ state_attr('sensor.garden_honeynut_squash_status', 'count') }} starts · needs warm soil, room to vine, and no cold rain pattern.
-              {% set low_raw = state_attr('sensor.garden_weather_window', 'lowest_low_4_day') %}
-              {% set low = low_raw | float(0) if is_number(low_raw) else none %}
-              {% set wet_days = state_attr('sensor.garden_weather_window', 'wet_days') %}
-              {% if states('input_select.garden_honeynut_squash_stage') == 'planted' %}
-                Keep roots evenly moist and give vines space.
-              {% elif wet_days != 'None flagged' %}
-                Rain on {{ wet_days }}; wait so roots do not sit cold and wet.
-              {% elif low is not none and low < 55 %}
-                Current floor is {{ low | round(0) | int }}°F; squash wants 55°F+.
-              {% elif state_attr('sensor.garden_weather_window', 'honeynut_squash_window') in [true, 'true', 'True'] %}
-                Harden fully, then plant at a warm sunny edge or trellis.
-              {% else %}
-                Forecast unavailable; wait for a reliable window.
-              {% endif %}
-            icon: mdi:pumpkin
-            icon_color: >-
-              {% if is_state('input_select.garden_honeynut_squash_observation', 'stressed') %}red
-              {% elif state_attr('sensor.garden_weather_window', 'honeynut_squash_window') in [true, 'true', 'True'] %}green
-              {% else %}deep-orange{% endif %}
-            multiline_secondary: true
-            tap_action:
-              action: more-info
-            card_mod:
-              style: *garden_list_crop_card_style
+              style: *garden_chips_style
 
   - title: Environment
     path: climate
