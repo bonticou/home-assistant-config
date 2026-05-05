@@ -2572,8 +2572,11 @@ views:
     path: notices
     icon: mdi:bell-outline
     cards:
-      - type: custom:house-notices-card
+      - type: custom:mushroom-title-card
         title: Notification center
+
+      - type: custom:house-notices-card
+        show_title: false
         timeline_entity: sensor.house_notice_timeline
         history_entity: sensor.house_notice_history
 

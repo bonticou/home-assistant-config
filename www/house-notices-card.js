@@ -36,6 +36,10 @@ class HouseNoticesCard extends HTMLElement {
     return this._config.title || "Notification center";
   }
 
+  get showTitle() {
+    return this._config.show_title !== false;
+  }
+
   parseJson(value, fallback = []) {
     if (!value || value === "unknown" || value === "unavailable") return fallback;
     if (Array.isArray(value)) return value;
@@ -743,9 +747,11 @@ class HouseNoticesCard extends HTMLElement {
         }
       </style>
       <div class="wrap">
-        <header class="page-head">
-          <h1 class="page-title">${this.escape(this.cardTitle)}</h1>
-        </header>
+        ${this.showTitle ? `
+          <header class="page-head">
+            <h1 class="page-title">${this.escape(this.cardTitle)}</h1>
+          </header>
+        ` : ""}
         ${attention.length ? this.renderSection("Needs Attention", attention, { attention: true }) : ""}
         ${this.renderHistory(history)}
         ${this.renderSection("Upcoming", upcoming, { collapsible: true, sectionId: "upcoming" })}
