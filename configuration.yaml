@@ -9,7 +9,7 @@ lovelace:
   resources:
     - url: /local/calm-mobile-scrollbars.js?v=3
       type: module
-    - url: /local/house-notices-card.js?v=37
+    - url: /local/house-notices-card.js?v=38
       type: module
   dashboards:
     calm-mobile:
@@ -2032,6 +2032,7 @@ template:
                     'summary': 'Bonticou LLC has an annual Delaware franchise tax deadline on June 1. Pay it or schedule it before then, then mark it paid so the reminder clears.',
                     'facts': [
                       'Entity: Bonticou LLC',
+                      {'label': 'DE file no.', 'value': '6672495', 'copy_value': '6672495'},
                       'Jurisdiction: Delaware',
                       'Deadline: June 1',
                       'Current status: ' ~ states('sensor.bonticou_llc_de_franchise_tax_status')

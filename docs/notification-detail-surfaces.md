@@ -80,6 +80,9 @@ Notice items in `sensor.house_notice_timeline` may include:
   `What this means`.
 - `details.facts`: short facts or thresholds that justify the notice. Set this
   to an empty list when a notice should not show a facts section.
+  Fact entries may be strings or objects such as
+  `{'label': 'DE file no.', 'value': '6672495', 'copy_value': '6672495'}`
+  when the detail sheet should show a small copy control.
 - `details.facts_title`: optional section label for facts; defaults to
   `Why now`.
 - `details.after_action`: what changes after the primary action.

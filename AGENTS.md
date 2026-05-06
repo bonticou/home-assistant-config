@@ -187,6 +187,9 @@ is sequence-based, use a polished timeline rather than the raw HA log. Follow
 When a notice has an `Open page` affordance, point it to the actual next useful
 destination whenever possible, such as the official tax payment page, renewal
 portal, source document, or relevant dashboard. Avoid placeholder self-links.
+If opening that destination requires an identifier, account number, file number,
+serial number, or confirmation code, include it in the detail facts with a
+copyable value.
 
 ---
 

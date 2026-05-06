@@ -603,6 +603,28 @@ class HouseNoticesCard extends HTMLElement {
           line-height: 1.35;
           overflow-wrap: anywhere;
         }
+        .fact.has-copy {
+          display: grid;
+          grid-template-columns: minmax(0, 1fr) auto;
+          gap: 8px;
+          align-items: center;
+        }
+        .fact-copy {
+          min-height: 26px;
+          padding: 0 9px;
+          border-radius: 999px;
+          border-color: rgba(148, 163, 184, 0.18);
+          background: rgba(248, 250, 252, 0.08);
+          color: rgba(248, 250, 252, 0.82);
+          font-size: 11px;
+          font-weight: 650;
+          white-space: nowrap;
+        }
+        .fact-copy.copied {
+          background: rgba(52, 211, 153, 0.18);
+          border-color: rgba(52, 211, 153, 0.32);
+          color: rgba(220, 252, 231, 0.95);
+        }
         .sheet-timeline {
           display: grid;
           gap: 8px;
@@ -902,7 +924,7 @@ class HouseNoticesCard extends HTMLElement {
       ? `<div class="sheet-section">
           <div class="sheet-section-title">${this.escape(detail.factsTitle)}</div>
           <div class="fact-grid">
-            ${detail.facts.map((fact) => `<div class="fact">${this.escape(this.detailLine(fact))}</div>`).join("")}
+            ${detail.facts.map((fact) => this.renderFact(fact)).join("")}
           </div>
         </div>`
       : "";
@@ -995,6 +1017,24 @@ class HouseNoticesCard extends HTMLElement {
       return String(label || body || "").trim();
     }
     return String(value || "").trim();
+  }
+
+  renderFact(fact) {
+    const line = this.detailLine(fact);
+    const copyValue = this.factCopyValue(fact);
+    const copy = copyValue
+      ? `<button class="fact-copy" data-copy-value="${this.escapeAttr(copyValue)}" aria-label="Copy ${this.escapeAttr(line)}">Copy</button>`
+      : "";
+    return `<div class="fact ${copy ? "has-copy" : ""}"><span>${this.escape(line)}</span>${copy}</div>`;
+  }
+
+  factCopyValue(value) {
+    if (!value || typeof value !== "object") return "";
+    const explicit = value.copy_value ?? value.copyValue ?? value.copy;
+    if (explicit === true) {
+      return String(value.value || value.text || value.fact || "").trim();
+    }
+    return explicit ? String(explicit).trim() : "";
   }
 
   renderHistory(history) {
@@ -1094,6 +1134,12 @@ class HouseNoticesCard extends HTMLElement {
         event.stopPropagation();
         this._detailItemId = null;
         this.render();
+      });
+    });
+    this.shadowRoot.querySelectorAll("[data-copy-value]").forEach((button) => {
+      button.addEventListener("click", (event) => {
+        event.stopPropagation();
+        this.copyText(button.getAttribute("data-copy-value"), button);
       });
     });
     this.shadowRoot.querySelectorAll("[data-detail-backdrop]").forEach((backdrop) => {
@@ -1331,6 +1377,43 @@ class HouseNoticesCard extends HTMLElement {
       recent.forEach((event) => this._dismissedHistoryIds.delete(event.id));
       this.render();
     }
+  }
+
+  async copyText(value, button) {
+    if (!value) return;
+    let copied = false;
+    try {
+      if (navigator.clipboard?.writeText) {
+        await navigator.clipboard.writeText(value);
+      } else {
+        this.fallbackCopyText(value);
+      }
+      copied = true;
+    } catch (_err) {
+      this.fallbackCopyText(value);
+      copied = true;
+    }
+    if (copied) {
+      const original = button.textContent;
+      button.textContent = "Copied";
+      button.classList.add("copied");
+      window.setTimeout(() => {
+        button.textContent = original || "Copy";
+        button.classList.remove("copied");
+      }, 1200);
+    }
+  }
+
+  fallbackCopyText(value) {
+    const input = document.createElement("textarea");
+    input.value = value;
+    input.setAttribute("readonly", "");
+    input.style.position = "fixed";
+    input.style.opacity = "0";
+    document.body.appendChild(input);
+    input.select();
+    document.execCommand("copy");
+    document.body.removeChild(input);
   }
 
   navigate(path) {
