@@ -1348,8 +1348,10 @@ class HouseNoticesCard extends HTMLElement {
   }
 }
 
-["house-notices-card", "house-notices-card-v2"].forEach((tag) => {
-  if (!customElements.get(tag)) {
-    customElements.define(tag, HouseNoticesCard);
-  }
-});
+if (!customElements.get("house-notices-card")) {
+  customElements.define("house-notices-card", HouseNoticesCard);
+}
+
+if (!customElements.get("house-notices-card-v2")) {
+  customElements.define("house-notices-card-v2", class HouseNoticesCardV2 extends HouseNoticesCard {});
+}
