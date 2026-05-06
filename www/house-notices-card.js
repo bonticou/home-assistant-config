@@ -494,9 +494,14 @@ class HouseNoticesCard extends HTMLElement {
           -webkit-backdrop-filter: blur(18px);
         }
         .detail-sheet {
-          width: min(100%, 560px);
-          height: calc(100dvh - 18px);
-          max-height: calc(100dvh - 18px);
+          position: absolute;
+          top: max(12px, env(safe-area-inset-top));
+          right: 14px;
+          bottom: 0;
+          left: 14px;
+          width: auto;
+          max-width: 560px;
+          margin: 0 auto;
           display: flex;
           flex-direction: column;
           overflow: hidden;
@@ -643,6 +648,9 @@ class HouseNoticesCard extends HTMLElement {
             padding: 24px;
           }
           .detail-sheet {
+            position: static;
+            width: min(100%, 560px);
+            margin: 0;
             height: auto;
             max-height: min(88vh, 760px);
             overflow: auto;
@@ -652,12 +660,6 @@ class HouseNoticesCard extends HTMLElement {
           }
           .sheet-body {
             overflow: visible;
-          }
-        }
-        @supports not (height: 100dvh) {
-          .detail-sheet {
-            height: calc(100vh - 18px);
-            max-height: calc(100vh - 18px);
           }
         }
         @media (max-width: 420px) {
@@ -1346,6 +1348,8 @@ class HouseNoticesCard extends HTMLElement {
   }
 }
 
-if (!customElements.get("house-notices-card")) {
-  customElements.define("house-notices-card", HouseNoticesCard);
-}
+["house-notices-card", "house-notices-card-v2"].forEach((tag) => {
+  if (!customElements.get(tag)) {
+    customElements.define(tag, HouseNoticesCard);
+  }
+});
