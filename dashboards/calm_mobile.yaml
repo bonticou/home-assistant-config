@@ -1030,11 +1030,11 @@ views:
                 {% set entity = 'device_tracker.unifi_default_42_15_78_4a_d9_f8' %}
                 {% set changed = relative_time(states[entity].last_changed) %}
                 {% if is_state(entity, 'home') %}
-                  Casey's phone is on the home network. Presence changed {{ changed }} ago.
+                  On the home network. Updated {{ changed }} ago. UniFi may lag a few minutes.
                 {% elif is_state(entity, 'not_home') %}
-                  Casey's phone is off the home network. Presence changed {{ changed }} ago.
+                  Off the home network. Updated {{ changed }} ago. UniFi may lag a few minutes.
                 {% else %}
-                  Current state is {{ states(entity) | replace('_', ' ') | title }}. Presence changed {{ changed }} ago.
+                  Current state is {{ states(entity) | replace('_', ' ') | title }}. Updated {{ changed }} ago.
                 {% endif %}
               icon: >-
                 {% set entity = 'device_tracker.unifi_default_42_15_78_4a_d9_f8' %}
@@ -1079,6 +1079,56 @@ views:
                     line-height: 1.5 !important;
                     opacity: 1 !important;
                   }
+            - type: grid
+              columns: 2
+              square: false
+              cards:
+                - type: custom:mushroom-template-card
+                  primary: Call
+                  secondary: 908 461 8400
+                  icon: mdi:phone
+                  icon_color: green
+                  fill_container: true
+                  tap_action:
+                    action: url
+                    url_path: "tel:+19084618400"
+                  card_mod:
+                    style: &casey_contact_action_style |
+                      ha-card {
+                        min-height: 72px;
+                        border: none;
+                        box-shadow: 0 14px 30px rgba(2, 8, 23, 0.22);
+                        border-radius: 22px;
+                        border: 1px solid rgba(148, 163, 184, 0.18);
+                        background: rgba(15, 23, 42, 0.62);
+                        color: #f8fafc;
+                        --card-primary-color: #f8fafc;
+                        --card-secondary-color: #94a3b8;
+                        --primary-text-color: #f8fafc;
+                        --secondary-text-color: #94a3b8;
+                      }
+                      mushroom-shape-icon {
+                        --shape-color: rgba(255, 255, 255, 0.08) !important;
+                      }
+                      .primary {
+                        font-size: 18px !important;
+                        font-weight: 700 !important;
+                      }
+                      .secondary {
+                        font-size: 12px !important;
+                        opacity: 0.78 !important;
+                      }
+                - type: custom:mushroom-template-card
+                  primary: Text
+                  secondary: 908 461 8400
+                  icon: mdi:message-text-outline
+                  icon_color: blue
+                  fill_container: true
+                  tap_action:
+                    action: url
+                    url_path: "sms:+19084618400"
+                  card_mod:
+                    style: *casey_contact_action_style
             - type: custom:mushroom-chips-card
               alignment: left
               chips:
@@ -1104,6 +1154,15 @@ views:
                     {% else %}UniFi tracker{% endif %}
                   tap_action:
                     action: none
+                - type: template
+                  entity: device_tracker.unifi_default_42_15_78_4a_d9_f8
+                  icon: mdi:clock-outline
+                  icon_color: blue-grey
+                  content: >-
+                    {% set entity = 'device_tracker.unifi_default_42_15_78_4a_d9_f8' %}
+                    Updated {{ relative_time(states[entity].last_changed) }} ago
+                  tap_action:
+                    action: none
               card_mod:
                 style: &calm_popup_chip_style |
                   ha-card {
@@ -1120,7 +1179,7 @@ views:
                     --primary-text-color: #cbd5e1;
                   }
             - type: history-graph
-              title: Last 24 Hours
+              title: Network presence - last 24 hours
               hours_to_show: 24
               entities:
                 - entity: device_tracker.unifi_default_42_15_78_4a_d9_f8
