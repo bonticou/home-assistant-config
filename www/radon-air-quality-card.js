@@ -240,28 +240,12 @@ class RadonAirQualityCard extends HTMLElement {
           box-shadow: inset 0 0 0 1px rgba(248, 250, 252, 0.08), 0 8px 18px rgba(0, 0, 0, 0.18);
         }
         .chart-panel {
-          padding: 2px 0 8px;
+          padding: 0 0 8px;
           background: rgba(15, 23, 42, 0.22);
-        }
-        .chart-head {
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          margin: 0 18px 6px;
-          min-height: 58px;
-          border: 1px solid rgba(248, 250, 252, 0.52);
-          border-radius: 22px;
-          color: rgba(248, 250, 252, 0.92);
-        }
-        .chart-title {
-          text-align: center;
-          font-size: 21px;
-          line-height: 1;
-          font-weight: 740;
         }
         .chart-wrap {
           position: relative;
-          padding: 4px 0 0;
+          padding: 0;
         }
         svg {
           display: block;
@@ -405,9 +389,6 @@ class RadonAirQualityCard extends HTMLElement {
           `).join("")}
         </div>
         <section class="chart-panel">
-          <div class="chart-head">
-            <div class="chart-title">${this.escape(this._config.title || "Radon")}</div>
-          </div>
           ${this._error ? `<div class="error">${this.escape(this._error)}</div>` : ""}
           ${this._loadingKey ? `<div class="loading">Loading ${this.escape(horizon.title.toLowerCase())}...</div>` : ""}
           ${this.renderChart(this._horizon)}
