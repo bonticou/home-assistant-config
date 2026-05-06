@@ -53,6 +53,14 @@ Use a bespoke surface based on the message:
 
 Notice items in `sensor.house_notice_timeline` may include:
 
+- `date`: the real date the item is due, expires, should be reviewed, or should
+  otherwise appear on the Upcoming timeline.
+- `due_prefix`: the label for `date`, usually `Due`, `Expires`, `Review`, or
+  `Check`.
+- `basis_date` / `basis_prefix`: supporting context, such as when reminders
+  start, when the bill opens, or the prior maintenance record.
+- `show_in_upcoming`: true when an action-window item should still appear in
+  Upcoming by its real `date`.
 - `details.summary`: calm explanation of the notice.
 - `details.facts`: short facts or thresholds that justify the notice.
 - `details.after_action`: what changes after the primary action.
@@ -62,6 +70,26 @@ Notice items in `sensor.house_notice_timeline` may include:
 When details are missing, the UI may fall back to the notice narrative, due
 metadata, group, and existing actions. Fallbacks are acceptable for generic
 notices, but high-frequency or confusing reminders should get bespoke details.
+
+## Deadline and action-window model
+
+For notices with a real due date, model two concepts separately:
+
+- Timeline date: the actual due, expiration, review, or maintenance date. This
+  drives Upcoming, sorting, and the visible `Due ...` line.
+- Action window: when Trevor should start doing something. This drives Needs
+  Attention, push reminders, snoozes, and completion actions.
+
+If the action window is open and the due date is still inside the Upcoming
+horizon, show the same current-cycle notice in both sections. Needs Attention
+answers "what do I need to handle now?" Upcoming answers "what is coming when?"
+Do not replace the due date with the reminder-open date just to make it appear
+sooner.
+
+Completion should clear the current cycle only. For recurring notices, stamp the
+specific bill/month/year, tax year, document renewal window, or maintenance
+cycle that was handled; do not turn off future periods. Future cycles should
+continue to appear when their own due dates and action windows arrive.
 
 ## Design standards
 

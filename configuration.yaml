@@ -9,7 +9,7 @@ lovelace:
   resources:
     - url: /local/calm-mobile-scrollbars.js?v=3
       type: module
-    - url: /local/house-notices-card.js?v=31
+    - url: /local/house-notices-card.js?v=34
       type: module
   dashboards:
     calm-mobile:
@@ -1579,10 +1579,10 @@ template:
               (cafiza_last + 5184000) | timestamp_custom('%Y-%m-%d', true) if cafiza_last > 0 else '',
               states('sensor.piano_next_tuning_due'),
               states('sensor.dryer_vent_next_cleaning_due'),
-              states('sensor.passport_renewal_opens'),
-              states('sensor.driver_license_renewal_opens'),
-              states('sensor.casey_passport_renewal_opens'),
-              states('sensor.casey_driver_license_renewal_opens'),
+              states('input_datetime.passport_expiration_date'),
+              states('input_datetime.driver_license_expiration_date'),
+              states('input_datetime.casey_passport_expiration_date'),
+              states('input_datetime.casey_driver_license_expiration_date'),
               states('sensor.bonticou_llc_de_franchise_tax_due_date'),
               robison_tune if robison_tune >= today else (now().year + 1) ~ '-03-25',
               robison_price if robison_price >= today else (now().year + 1) ~ '-08-20',
@@ -1596,10 +1596,12 @@ template:
             {% if is_state('input_boolean.tax_reminders_enabled', 'on') %}
               {% for tax_year in range(now().year, now().year + 3) %}
                 {% for tax_month in [1, 4, 9] %}
-                  {% set bill_date = '%04d-%02d-01' | format(tax_year, tax_month) %}
-                  {% set notice_start = (strptime(bill_date, '%Y-%m-%d') - timedelta(days=21)).strftime('%Y-%m-%d') %}
-                  {% if bill_date >= today and bill_date <= horizon and today >= notice_start %}
-                    {% set ns.dates = ns.dates + [bill_date] %}
+                  {% set first_next_month = strptime('%04d-%02d-01' | format(tax_year, (tax_month | int) + 1), '%Y-%m-%d') %}
+                  {% set last_day = first_next_month - timedelta(days=1) %}
+                  {% set weekend_offset = 2 if last_day.weekday() == 6 else 1 if last_day.weekday() == 5 else 0 %}
+                  {% set due = (last_day - timedelta(days=weekend_offset)).strftime('%Y-%m-%d') %}
+                  {% if due >= today and due <= horizon %}
+                    {% set ns.dates = ns.dates + [due] %}
                   {% endif %}
                 {% endfor %}
               {% endfor %}
@@ -1623,10 +1625,10 @@ template:
               (cafiza_last + 5184000) | timestamp_custom('%Y-%m-%d', true) if cafiza_last > 0 else '',
               states('sensor.piano_next_tuning_due'),
               states('sensor.dryer_vent_next_cleaning_due'),
-              states('sensor.passport_renewal_opens'),
-              states('sensor.driver_license_renewal_opens'),
-              states('sensor.casey_passport_renewal_opens'),
-              states('sensor.casey_driver_license_renewal_opens'),
+              states('input_datetime.passport_expiration_date'),
+              states('input_datetime.driver_license_expiration_date'),
+              states('input_datetime.casey_passport_expiration_date'),
+              states('input_datetime.casey_driver_license_expiration_date'),
               states('sensor.bonticou_llc_de_franchise_tax_due_date'),
               robison_tune if robison_tune >= today else (now().year + 1) ~ '-03-25',
               robison_price if robison_price >= today else (now().year + 1) ~ '-08-20',
@@ -1640,10 +1642,12 @@ template:
             {% if is_state('input_boolean.tax_reminders_enabled', 'on') %}
               {% for tax_year in range(now().year, now().year + 3) %}
                 {% for tax_month in [1, 4, 9] %}
-                  {% set bill_date = '%04d-%02d-01' | format(tax_year, tax_month) %}
-                  {% set notice_start = (strptime(bill_date, '%Y-%m-%d') - timedelta(days=21)).strftime('%Y-%m-%d') %}
-                  {% if bill_date >= today and bill_date <= horizon and today >= notice_start %}
-                    {% set ns.dates = ns.dates + [bill_date] %}
+                  {% set first_next_month = strptime('%04d-%02d-01' | format(tax_year, (tax_month | int) + 1), '%Y-%m-%d') %}
+                  {% set last_day = first_next_month - timedelta(days=1) %}
+                  {% set weekend_offset = 2 if last_day.weekday() == 6 else 1 if last_day.weekday() == 5 else 0 %}
+                  {% set due = (last_day - timedelta(days=weekend_offset)).strftime('%Y-%m-%d') %}
+                  {% if due >= today and due <= horizon %}
+                    {% set ns.dates = ns.dates + [due] %}
                   {% endif %}
                 {% endfor %}
               {% endfor %}
@@ -1652,6 +1656,7 @@ template:
             {{ upcoming[0] if upcoming | count > 0 else '' }}
           items_json: >
             {% set today = now().strftime('%Y-%m-%d') %}
+            {% set horizon = (now() + timedelta(days=365)).strftime('%Y-%m-%d') %}
             {% set now_date = now().strftime('%Y-%m-%d') %}
             {% set now_stamp = now().strftime('%Y-%m-%d %H:%M:%S') %}
             {% set ns = namespace(items=[]) %}
@@ -1880,7 +1885,7 @@ template:
                 'id': 'trevor-passport',
                 'title': 'Trevor passport',
                 'emoji': '🇺🇸',
-                'date': states('sensor.passport_renewal_opens'),
+                'reminder_date': states('sensor.passport_renewal_opens'),
                 'expires': states('input_datetime.passport_expiration_date'),
                 'state_entity': 'binary_sensor.passport_renewal_due',
                 'status_entity': 'sensor.passport_renewal_status',
@@ -1892,7 +1897,7 @@ template:
                 'id': 'trevor-license',
                 'title': 'Trevor driver license',
                 'emoji': '🇺🇸',
-                'date': states('sensor.driver_license_renewal_opens'),
+                'reminder_date': states('sensor.driver_license_renewal_opens'),
                 'expires': states('input_datetime.driver_license_expiration_date'),
                 'state_entity': 'binary_sensor.driver_license_renewal_due',
                 'status_entity': 'sensor.driver_license_renewal_status',
@@ -1904,7 +1909,7 @@ template:
                 'id': 'casey-passport',
                 'title': 'Casey passport',
                 'emoji': '🇺🇸',
-                'date': states('sensor.casey_passport_renewal_opens'),
+                'reminder_date': states('sensor.casey_passport_renewal_opens'),
                 'expires': states('input_datetime.casey_passport_expiration_date'),
                 'state_entity': 'binary_sensor.casey_passport_renewal_due',
                 'status_entity': 'sensor.casey_passport_renewal_status',
@@ -1916,7 +1921,7 @@ template:
                 'id': 'casey-license',
                 'title': 'Casey driver license',
                 'emoji': '🇺🇸',
-                'date': states('sensor.casey_driver_license_renewal_opens'),
+                'reminder_date': states('sensor.casey_driver_license_renewal_opens'),
                 'expires': states('input_datetime.casey_driver_license_expiration_date'),
                 'state_entity': 'binary_sensor.casey_driver_license_renewal_due',
                 'status_entity': 'sensor.casey_driver_license_renewal_status',
@@ -1926,7 +1931,7 @@ template:
               }
             ] %}
             {% for doc in docs %}
-              {% if doc.date not in ['unknown', 'unavailable', 'none', ''] %}
+              {% if doc.expires not in ['unknown', 'unavailable', 'none', ''] %}
                 {% set ns.items = ns.items + [{
                   'id': doc.id,
                   'title': doc.title,
@@ -1935,10 +1940,13 @@ template:
                   'group': 'Personal admin',
                   'state': 'due' if is_state(doc.state_entity, 'on') else 'upcoming',
                   'severity': 'watch' if is_state(doc.state_entity, 'on') else 'info',
-                  'date': doc.date,
-                  'due_prefix': 'Opens',
-                  'basis_date': doc.expires,
-                  'basis_prefix': 'expires',
+                  'date': doc.expires,
+                  'due_prefix': 'Due',
+                  'badge': 'due',
+                  'badge_class': 'due',
+                  'show_in_upcoming': true,
+                  'basis_date': doc.reminder_date,
+                  'basis_prefix': 'reminders open',
                   'narrative': states(doc.status_entity),
                   'url': '/calm-mobile/notices',
                   'entity_id': doc.status_entity,
@@ -1960,14 +1968,13 @@ template:
               {% for tax_year in range(now().year, now().year + 3) %}
                 {% for tax in tax_items %}
                   {% set bill = '%04d-%02d-01' | format(tax_year, tax.bill_month | int) %}
-                  {% set notice_start = (strptime(bill, '%Y-%m-%d') - timedelta(days=21)).strftime('%Y-%m-%d') %}
                   {% set first_next_month = strptime('%04d-%02d-01' | format(tax_year, (tax.bill_month | int) + 1), '%Y-%m-%d') %}
                   {% set last_day = first_next_month - timedelta(days=1) %}
                   {% set weekend_offset = 2 if last_day.weekday() == 6 else 1 if last_day.weekday() == 5 else 0 %}
                   {% set due = (last_day - timedelta(days=weekend_offset)).strftime('%Y-%m-%d') %}
                   {% set paid = tax.paid not in ['unknown', 'unavailable', 'none', ''] and tax.paid[:10] >= bill %}
                   {% set active = today >= bill %}
-                  {% if not paid and (active or (bill >= today and today >= notice_start)) %}
+                  {% if not paid and (active or (due >= today and due <= horizon)) %}
                     {% set ns.items = ns.items + [{
                       'id': tax.id ~ '-' ~ tax_year,
                       'title': tax.title ~ ' ' ~ tax_year,
@@ -1976,10 +1983,13 @@ template:
                       'group': 'Property',
                       'state': 'due' if active else 'upcoming',
                       'severity': 'watch' if active else 'info',
-                      'date': due if active else bill,
-                      'due_prefix': 'Due' if active else 'Bill opens',
-                      'basis_date': bill if active else due,
-                      'basis_prefix': 'bill opened' if active else 'due',
+                      'date': due,
+                      'due_prefix': 'Due',
+                      'badge': 'due',
+                      'badge_class': 'due',
+                      'show_in_upcoming': true,
+                      'basis_date': bill,
+                      'basis_prefix': 'bill opens',
                       'narrative': 'Property tax reminder remains open until marked paid.',
                       'url': '/calm-mobile/notices',
                       'entity_id': 'input_boolean.tax_reminders_enabled',
@@ -2000,7 +2010,7 @@ template:
               {% if not llc_paid_for_due_year %}
                 {% set ns.items = ns.items + [{
                   'id': 'bonticou-de-franchise-tax-' ~ llc_due[:4],
-                  'title': 'Bonticou LLC DE franchise tax',
+                  'title': 'Bonticou - DE franchise tax',
                   'emoji': '🏛️',
                   'icon': 'mdi:briefcase-check-outline',
                   'group': 'Business admin',
@@ -2008,6 +2018,9 @@ template:
                   'severity': 'watch' if is_state('binary_sensor.bonticou_llc_de_franchise_tax_due', 'on') else 'info',
                   'date': llc_due,
                   'due_prefix': 'Due',
+                  'badge': 'due',
+                  'badge_class': 'due',
+                  'show_in_upcoming': true,
                   'basis_date': llc_notice_start,
                   'basis_prefix': 'reminders start',
                   'narrative': 'Annual Delaware LLC tax. Pay before June 1 to keep the entity in good standing.',

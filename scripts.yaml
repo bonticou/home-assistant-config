@@ -1259,6 +1259,15 @@ property_tax_send_reminder:
             on {{ due_label | trim }}.
             Tap Paid once the payment is submitted so Home Assistant stops the reminders and house-manager logs it.
           {% endif %}
+    - condition: template
+      value_template: >-
+        {{ reminder_stage != 'countdown'
+           or (
+             now().weekday() < 5
+             and (days_until | int) >= 0
+             and (days_until | int) <= 10
+             and (business_days_until | int) <= 5
+           ) }}
     - action: script.notify_trevor_phone
       data:
         title: "{{ notification_title | trim }}"
@@ -1366,13 +1375,13 @@ property_tax_clear_notification:
           tag: "{{ notification_tag }}"
 
 bonticou_llc_de_franchise_tax_send_reminder:
-  alias: Bonticou LLC DE Franchise Tax Send Reminder
-  description: Sends the annual Delaware franchise tax reminder for Bonticou LLC.
+  alias: Bonticou - DE Franchise Tax Send Reminder
+  description: Sends bill-ready and due-week Delaware franchise tax reminders for Bonticou LLC.
   icon: mdi:briefcase-check-outline
   mode: restart
   fields:
     stage:
-      description: Reminder stage, such as first, follow_up, countdown, due_today, or overdue
+      description: Reminder stage, either bill_ready or countdown
       example: countdown
     due_date:
       description: Annual due date
@@ -1403,33 +1412,34 @@ bonticou_llc_de_franchise_tax_send_reminder:
           {% endfor %}
           {{ ns.business_days }}
         notification_title: >-
-          {% if reminder_stage == 'overdue' %}
-            🏛️ Bonticou LLC tax overdue
-          {% elif reminder_stage == 'due_today' or (days_until | int) <= 0 %}
-            🏛️ Bonticou LLC tax due today
-          {% elif reminder_stage in ['first', 'follow_up'] %}
-            🏛️ Bonticou LLC franchise tax
+          {% if reminder_stage == 'bill_ready' %}
+            🏛️ Bonticou - DE franchise tax bill ready
+          {% elif (days_until | int) <= 0 %}
+            🏛️ Bonticou - DE franchise tax due today
           {% else %}
-            🏛️ Bonticou LLC tax due in {{ business_days_until }} business day{{ '' if (business_days_until | int) == 1 else 's' }}
+            🏛️ Bonticou - DE franchise tax due in {{ business_days_until }} business day{{ '' if (business_days_until | int) == 1 else 's' }}
           {% endif %}
         notification_message: >-
-          {% if reminder_stage == 'overdue' %}
-            Bonticou LLC's Delaware annual tax is past the June 1 deadline.
-            Pay it now, then tap Paid so Home Assistant stops the reminders.
-          {% elif reminder_stage == 'due_today' or (days_until | int) <= 0 %}
-            Bonticou LLC's Delaware annual tax is due today.
-            Pay it or confirm it is scheduled, then tap Paid.
-          {% elif reminder_stage == 'first' %}
+          {% if reminder_stage == 'bill_ready' %}
             Bonticou LLC's Delaware annual tax is due {{ due_label | trim }}.
             Pay it or schedule it before June 1, then tap Paid.
-          {% elif reminder_stage == 'follow_up' %}
-            Bonticou LLC's Delaware annual tax is still open and due {{ due_label | trim }}.
-            Pay it or schedule it, then tap Paid.
+          {% elif (days_until | int) <= 0 %}
+            Bonticou LLC's Delaware annual tax is due today.
+            Pay it or confirm it is scheduled, then tap Paid.
           {% else %}
             Bonticou LLC's Delaware annual tax is due in {{ business_days_until }} business day{{ '' if (business_days_until | int) == 1 else 's' }},
             on {{ due_label | trim }}.
             Tap Paid once the payment is submitted.
           {% endif %}
+    - condition: template
+      value_template: >-
+        {{ reminder_stage != 'countdown'
+           or (
+             now().weekday() < 5
+             and (days_until | int) >= 0
+             and (days_until | int) <= 10
+             and (business_days_until | int) <= 5
+           ) }}
     - action: script.notify_trevor_phone
       data:
         title: "{{ notification_title | trim }}"
@@ -1444,7 +1454,7 @@ bonticou_llc_de_franchise_tax_send_reminder:
               title: Paid
 
 bonticou_llc_de_franchise_tax_mark_paid:
-  alias: Bonticou LLC DE Franchise Tax Mark Paid
+  alias: Bonticou - DE Franchise Tax Mark Paid
   description: Stamps the annual Delaware franchise tax as paid and clears the reminder.
   icon: mdi:cash-check
   mode: restart
@@ -1459,7 +1469,7 @@ bonticou_llc_de_franchise_tax_mark_paid:
     - action: script.bonticou_llc_de_franchise_tax_clear_notification
 
 bonticou_llc_de_franchise_tax_clear_notification:
-  alias: Bonticou LLC DE Franchise Tax Clear Notification
+  alias: Bonticou - DE Franchise Tax Clear Notification
   description: Clears the active Bonticou LLC Delaware franchise tax notification tag.
   icon: mdi:calendar-check-outline
   mode: restart

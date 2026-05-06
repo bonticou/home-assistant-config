@@ -158,6 +158,22 @@ there is a clear audit or safety reason to surface the action; opt into Recent
 explicitly with action/event metadata such as `recent: true` or
 `keep_recent: true` / `history: recent`.
 
+For deadline-based notices, keep the due date and the action window separate.
+Upcoming is a timeline: if an item has a meaningful due, expiration, review, or
+deadline date and that date is inside the current Upcoming horizon, it should
+appear there by the actual due date, not by the first reminder date. Needs
+Attention is the action queue: it should appear when the current cycle's work is
+ready to be handled, paid, renewed, checked, or scheduled. It is acceptable and
+often preferred for the same current-cycle item to appear in both Needs
+Attention and Upcoming when the action window is open and the due date remains
+inside the timeline horizon. In those cases, use the real due date in the meta
+line and show the reminder/opening date only as supporting context.
+
+Recurring deadline notices must clear only the current period when marked done.
+For annual or periodic items such as property taxes, franchise tax, passport
+renewals, maintenance, or reviews, the completion action should stamp the active
+cycle and stop current notifications without suppressing future cycles.
+
 Reminder and task "Details" surfaces must be bespoke to the content. Do not
 route them to stock Home Assistant `more-info` history/activity popups unless
 the purpose is explicitly diagnostic. Use calm sheets or designed inline panels

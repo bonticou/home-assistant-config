@@ -141,6 +141,8 @@ class HouseNoticesCard extends HTMLElement {
         emoji: item.emoji || "",
         state: item.state || "upcoming",
         severity: item.severity || "info",
+        badge: item.badge || "",
+        badge_class: item.badge_class || "",
         group: item.group || "House",
         narrative: item.narrative || "",
         sortTime: this.parseDate(item.date)?.getTime() || Number.MAX_SAFE_INTEGER,
@@ -212,7 +214,10 @@ class HouseNoticesCard extends HTMLElement {
     const history = this.recentHistory(this.parseJson(historyState?.attributes?.events_json, []))
       .filter((event) => !this._dismissedHistoryIds.has(event.id));
     const attention = items.filter((item) => ["active", "due"].includes(item.state));
-    const upcoming = items.filter((item) => !["active", "due"].includes(item.state) && this.isInUpcomingWindow(item));
+    const upcoming = items.filter((item) => {
+      if (!this.isInUpcomingWindow(item)) return false;
+      return !["active", "due"].includes(item.state) || item.show_in_upcoming === true;
+    });
     const detailItem = this._detailItemId ? items.find((item) => item.id === this._detailItemId) : null;
     if (this._detailItemId && !detailItem) this._detailItemId = null;
 
@@ -374,11 +379,15 @@ class HouseNoticesCard extends HTMLElement {
           background: rgba(148, 163, 184, 0.16);
           border: 1px solid rgba(148, 163, 184, 0.12);
         }
-        .pill.active,
-        .pill.due {
+        .pill.active {
           background: rgba(251, 191, 36, 0.16);
           border-color: rgba(251, 191, 36, 0.22);
           color: #fde68a;
+        }
+        .pill.due {
+          background: rgba(248, 113, 113, 0.16);
+          border-color: rgba(248, 113, 113, 0.24);
+          color: #fecaca;
         }
         .meta {
           margin-top: 5px;
@@ -486,8 +495,11 @@ class HouseNoticesCard extends HTMLElement {
         }
         .detail-sheet {
           width: min(100%, 560px);
-          max-height: min(88vh, 760px);
-          overflow: auto;
+          height: calc(100dvh - 18px);
+          max-height: calc(100dvh - 18px);
+          display: flex;
+          flex-direction: column;
+          overflow: hidden;
           border: 1px solid rgba(148, 163, 184, 0.22);
           border-bottom: none;
           border-radius: 28px 28px 0 0;
@@ -501,7 +513,7 @@ class HouseNoticesCard extends HTMLElement {
           grid-template-columns: 46px minmax(0, 1fr) auto;
           gap: 12px;
           align-items: start;
-          padding: 18px 18px 14px;
+          padding: 14px 18px 13px;
           border-bottom: 1px solid rgba(148, 163, 184, 0.14);
         }
         .sheet-mark .mark {
@@ -547,7 +559,10 @@ class HouseNoticesCard extends HTMLElement {
           --mdc-icon-size: 18px;
         }
         .sheet-body {
-          padding: 16px 18px 18px;
+          flex: 1 1 auto;
+          overflow: auto;
+          -webkit-overflow-scrolling: touch;
+          padding: 14px 18px max(18px, env(safe-area-inset-bottom));
         }
         .sheet-section + .sheet-section {
           margin-top: 16px;
@@ -628,9 +643,21 @@ class HouseNoticesCard extends HTMLElement {
             padding: 24px;
           }
           .detail-sheet {
+            height: auto;
+            max-height: min(88vh, 760px);
+            overflow: auto;
             border-bottom: 1px solid rgba(148, 163, 184, 0.22);
             border-radius: 28px;
             box-shadow: 0 24px 90px rgba(0, 0, 0, 0.5);
+          }
+          .sheet-body {
+            overflow: visible;
+          }
+        }
+        @supports not (height: 100dvh) {
+          .detail-sheet {
+            height: calc(100vh - 18px);
+            max-height: calc(100vh - 18px);
           }
         }
         @media (max-width: 420px) {
@@ -824,7 +851,8 @@ class HouseNoticesCard extends HTMLElement {
 
   renderItem(item) {
     const expanded = this._expanded === item.id;
-    const stateLabel = item.state === "quiet" ? "current" : item.state;
+    const stateLabel = item.badge || (item.state === "quiet" ? "current" : item.state);
+    const stateClass = item.badge_class || item.state;
     const actions = Array.isArray(item.actions) ? item.actions : [];
     const inlineActionIndex = actions.findIndex((action) => action.inline !== false && !action.confirm);
     const inlineAction = ["active", "due"].includes(item.state) && inlineActionIndex >= 0
@@ -836,7 +864,7 @@ class HouseNoticesCard extends HTMLElement {
         <div class="copy">
           <div class="title-line">
             <div class="title">${this.escape(item.title)}</div>
-            <div class="pill ${this.escapeAttr(item.state)}">${this.escape(stateLabel)}</div>
+            <div class="pill ${this.escapeAttr(stateClass)}">${this.escape(stateLabel)}</div>
           </div>
           <div class="meta">${this.escape(this.metaLine(item))}</div>
           ${item.narrative ? `<div class="narrative">${this.escape(item.narrative)}</div>` : ""}
@@ -865,7 +893,8 @@ class HouseNoticesCard extends HTMLElement {
 
   renderDetailSheet(item) {
     const detail = this.noticeDetail(item);
-    const stateLabel = item.state === "quiet" ? "current" : item.state;
+    const stateLabel = item.badge || (item.state === "quiet" ? "current" : item.state);
+    const stateClass = item.badge_class || item.state;
     const facts = detail.facts.length
       ? `<div class="sheet-section">
           <div class="sheet-section-title">Why now</div>
@@ -902,7 +931,7 @@ class HouseNoticesCard extends HTMLElement {
             <div class="sheet-copy">
               <div class="sheet-title-line">
                 <div class="sheet-title">${this.escape(item.title)}</div>
-                <div class="pill ${this.escapeAttr(item.state)}">${this.escape(stateLabel)}</div>
+                <div class="pill ${this.escapeAttr(stateClass)}">${this.escape(stateLabel)}</div>
               </div>
               <div class="sheet-subtitle">${this.escape(item.group || "House")} · ${this.escape(this.metaLine(item) || "Current notice")}</div>
             </div>
