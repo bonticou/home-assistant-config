@@ -1079,50 +1079,45 @@ views:
                     line-height: 1.5 !important;
                     opacity: 1 !important;
                   }
-            - type: grid
-              columns: 2
-              square: false
-              cards:
-                - type: custom:button-card
-                  name: Call Casey
+            - type: custom:mushroom-chips-card
+              alignment: left
+              chips:
+                - type: template
                   icon: mdi:phone
+                  icon_color: green
+                  content: Call Casey
                   tap_action:
                     action: url
                     url_path: "tel:+19084618400"
-                  styles: &casey_contact_action_styles
-                    card:
-                      - height: 58px
-                      - border-radius: 22px
-                      - border: 1px solid rgba(148, 163, 184, 0.18)
-                      - box-shadow: 0 14px 30px rgba(2, 8, 23, 0.20)
-                      - background: rgba(15, 23, 42, 0.62)
-                      - color: "#f8fafc"
-                      - padding: 0 18px
-                    grid:
-                      - grid-template-areas: '"i n"'
-                      - grid-template-columns: 26px minmax(0, 1fr)
-                      - column-gap: 10px
-                      - align-items: center
-                    icon:
-                      - width: 24px
-                      - color: "#22c55e"
-                    name:
-                      - justify-self: start
-                      - font-size: 16px
-                      - font-weight: 720
-                      - letter-spacing: 0
-                      - white-space: nowrap
-                - type: custom:button-card
-                  name: Text Casey
+                - type: template
                   icon: mdi:message-text-outline
+                  icon_color: blue
+                  content: Text Casey
                   tap_action:
                     action: url
                     url_path: "sms:+19084618400"
-                  styles:
-                    <<: *casey_contact_action_styles
-                    icon:
-                      - width: 24px
-                      - color: "#38bdf8"
+                - type: template
+                  icon: mdi:map-marker-radius-outline
+                  icon_color: purple
+                  content: Track Casey
+                  tap_action:
+                    action: url
+                    url_path: "findmy://friends"
+              card_mod:
+                style: |
+                  ha-card {
+                    border: none;
+                    box-shadow: none;
+                    margin: -2px 0 2px;
+                    --chip-spacing: 10px;
+                  }
+                  mushroom-template-chip {
+                    --chip-background: rgba(15, 23, 42, 0.68);
+                    --chip-border-width: 1px;
+                    --chip-border-color: rgba(148, 163, 184, 0.20);
+                    --chip-box-shadow: 0 12px 26px rgba(2, 8, 23, 0.20);
+                    --primary-text-color: #f8fafc;
+                  }
             - type: custom:mushroom-chips-card
               alignment: left
               chips:
