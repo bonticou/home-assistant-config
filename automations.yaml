@@ -2660,6 +2660,103 @@
   mode: parallel
   max: 5
 
+- id: bonticou_llc_de_franchise_tax_reminder
+  alias: "Bonticou LLC - DE Franchise Tax Reminder"
+  description: Sends annual Delaware franchise tax reminders until Bonticou LLC is marked paid.
+  triggers:
+    - trigger: time
+      at: "09:06:00"
+      id: daily
+    - trigger: homeassistant
+      event: start
+      id: startup
+    - trigger: event
+      event_type: automation_reloaded
+      id: automation_reloaded
+  conditions:
+    - condition: state
+      entity_id: input_boolean.business_admin_reminders_enabled
+      state: "on"
+    - condition: state
+      entity_id: binary_sensor.bonticou_llc_de_franchise_tax_due
+      state: "on"
+  actions:
+    - if:
+        - condition: trigger
+          id: startup
+      then:
+        - delay:
+            minutes: 2
+    - variables:
+        today: "{{ now().strftime('%Y-%m-%d') }}"
+        due: "{{ states('sensor.bonticou_llc_de_franchise_tax_due_date') }}"
+        notice_start: >-
+          {{ due[:4] ~ '-05-01' if due not in ['unknown', 'unavailable', 'none', ''] else '' }}
+        follow_up: >-
+          {{ due[:4] ~ '-05-15' if due not in ['unknown', 'unavailable', 'none', ''] else '' }}
+        days_until: >-
+          {% if due in ['unknown', 'unavailable', 'none', ''] %}
+            999
+          {% else %}
+            {{ ((as_timestamp(strptime(due, '%Y-%m-%d')) - as_timestamp(today_at('00:00:00'))) / 86400) | int }}
+          {% endif %}
+        business_days_until: >-
+          {% if due in ['unknown', 'unavailable', 'none', ''] %}
+            999
+          {% else %}
+            {% set due_date = strptime(due, '%Y-%m-%d') %}
+            {% set today_date = strptime(today, '%Y-%m-%d') %}
+            {% set days = (as_timestamp(due_date) - as_timestamp(today_date)) // 86400 %}
+            {% set ns = namespace(business_days=0) %}
+            {% for offset in range(1, (days | int) + 1) %}
+              {% set day = today_date + timedelta(days=offset) %}
+              {% if day.weekday() < 5 %}
+                {% set ns.business_days = ns.business_days + 1 %}
+              {% endif %}
+            {% endfor %}
+            {{ ns.business_days }}
+          {% endif %}
+        due_week: >-
+          {{ due not in ['unknown', 'unavailable', 'none', '']
+             and now().weekday() < 5
+             and (days_until | int) >= 0
+             and (days_until | int) <= 10
+             and (business_days_until | int) <= 5 }}
+        reminder_stage: >-
+          {% if due in ['unknown', 'unavailable', 'none', ''] %}
+          {% elif today > due %}
+            overdue
+          {% elif today == due %}
+            due_today
+          {% elif today == notice_start %}
+            first
+          {% elif today == follow_up %}
+            follow_up
+          {% elif due_week in [true, 'true', 'True'] %}
+            countdown
+          {% endif %}
+    - condition: template
+      value_template: "{{ reminder_stage | trim != '' }}"
+    - action: script.bonticou_llc_de_franchise_tax_send_reminder
+      data:
+        stage: "{{ reminder_stage | trim }}"
+        due_date: "{{ due }}"
+  mode: single
+
+- id: bonticou_llc_de_franchise_tax_notification_actions
+  alias: "Bonticou LLC - DE Franchise Tax Notification Actions"
+  description: Handles Paid action from the annual Delaware franchise tax reminder.
+  triggers:
+    - trigger: event
+      event_type: mobile_app_notification_action
+  conditions:
+    - condition: template
+      value_template: "{{ trigger.event.data.action == 'BONTICOU_DE_FRANCHISE_TAX_PAID' }}"
+  actions:
+    - action: script.bonticou_llc_de_franchise_tax_mark_paid
+  mode: parallel
+  max: 5
+
 - id: piano_annual_tuning_reminder
   alias: "Piano — Annual Tuning Reminder"
   description: Sends the annual Steinway tuning check when piano care is due.

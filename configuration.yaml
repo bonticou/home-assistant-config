@@ -256,6 +256,11 @@ input_datetime:
     name: Town Tax Last Paid At
     has_date: true
     has_time: true
+  bonticou_llc_de_franchise_tax_last_paid_at:
+    name: Bonticou LLC DE Franchise Tax Last Paid At
+    has_date: true
+    has_time: true
+    initial: "1970-01-01 00:00:00"
   # Antique Steinway piano care
   # durable record: ../house-manager/assets/antique-steinway-piano.md
   piano_last_tuned:
@@ -418,6 +423,10 @@ input_boolean:
   tax_reminders_enabled:
     name: Tax Reminders Enabled
     icon: mdi:calendar-cash
+    initial: true
+  business_admin_reminders_enabled:
+    name: Business Admin Reminders Enabled
+    icon: mdi:briefcase-check-outline
     initial: true
   water_flow_alert_active:
     name: Water Flow Alert Active
@@ -939,6 +948,62 @@ template:
           bill_date: "{{ now().year }}-09-01"
           rule: "Last weekday of September"
 
+      - name: "Bonticou LLC DE Franchise Tax Due Date"
+        unique_id: bonticou_llc_de_franchise_tax_due_date
+        device_class: date
+        icon: mdi:briefcase-check-outline
+        state: >
+          {% set paid = states('input_datetime.bonticou_llc_de_franchise_tax_last_paid_at') %}
+          {% set year_start = now().year ~ '-01-01' %}
+          {% set paid_this_year = paid not in ['unknown', 'unavailable', 'none', '']
+             and paid[:10] >= year_start %}
+          {% if paid_this_year %}
+            {{ (now().year + 1) ~ '-06-01' }}
+          {% else %}
+            {{ now().year ~ '-06-01' }}
+          {% endif %}
+        attributes:
+          notice_start: >
+            {% set paid = states('input_datetime.bonticou_llc_de_franchise_tax_last_paid_at') %}
+            {% set year_start = now().year ~ '-01-01' %}
+            {% set paid_this_year = paid not in ['unknown', 'unavailable', 'none', '']
+               and paid[:10] >= year_start %}
+            {{ ((now().year + 1) if paid_this_year else now().year) ~ '-05-01' }}
+          rule: "Delaware LLC annual tax due on or before June 1"
+
+      - name: "Bonticou LLC DE Franchise Tax Status"
+        unique_id: bonticou_llc_de_franchise_tax_status
+        icon: >
+          {% if is_state('binary_sensor.bonticou_llc_de_franchise_tax_due', 'on') %}
+            mdi:calendar-alert
+          {% else %}
+            mdi:briefcase-check-outline
+          {% endif %}
+        state: >
+          {% set due = states('sensor.bonticou_llc_de_franchise_tax_due_date') %}
+          {% set paid = states('input_datetime.bonticou_llc_de_franchise_tax_last_paid_at') %}
+          {% if not is_state('input_boolean.business_admin_reminders_enabled', 'on') %}
+            Off
+          {% elif due in ['unknown', 'unavailable', 'none', ''] %}
+            Missing due date
+          {% else %}
+            {% set year_start = due[:4] ~ '-01-01' %}
+            {% set notice_start = due[:4] ~ '-05-01' %}
+            {% set paid_for_due_year = paid not in ['unknown', 'unavailable', 'none', '']
+               and paid[:10] >= year_start %}
+            {% if paid_for_due_year %}
+              Paid
+            {% elif now().strftime('%Y-%m-%d') > due %}
+              Overdue
+            {% elif now().strftime('%Y-%m-%d') == due %}
+              Due today
+            {% elif now().strftime('%Y-%m-%d') >= notice_start %}
+              Pay by Jun 1
+            {% else %}
+              Opens {{ strptime(notice_start, '%Y-%m-%d').strftime('%b %d, %Y') }}
+            {% endif %}
+          {% endif %}
+
       - name: "Piano Next Tuning Due"
         unique_id: piano_next_tuning_due
         device_class: date
@@ -1438,6 +1503,7 @@ template:
             is_state('binary_sensor.driver_license_renewal_due', 'on'),
             is_state('binary_sensor.casey_passport_renewal_due', 'on'),
             is_state('binary_sensor.casey_driver_license_renewal_due', 'on'),
+            is_state('binary_sensor.bonticou_llc_de_franchise_tax_due', 'on'),
             is_state('binary_sensor.wine_cave_maintenance_due', 'on')
           ] %}
             {% if active %}
@@ -1490,6 +1556,7 @@ template:
               is_state('binary_sensor.driver_license_renewal_due', 'on'),
               is_state('binary_sensor.casey_passport_renewal_due', 'on'),
               is_state('binary_sensor.casey_driver_license_renewal_due', 'on'),
+              is_state('binary_sensor.bonticou_llc_de_franchise_tax_due', 'on'),
               is_state('binary_sensor.wine_cave_maintenance_due', 'on')
             ] %}
               {% if active %}
@@ -1516,6 +1583,7 @@ template:
               states('sensor.driver_license_renewal_opens'),
               states('sensor.casey_passport_renewal_opens'),
               states('sensor.casey_driver_license_renewal_opens'),
+              states('sensor.bonticou_llc_de_franchise_tax_due_date'),
               robison_tune if robison_tune >= today else (now().year + 1) ~ '-03-25',
               robison_price if robison_price >= today else (now().year + 1) ~ '-08-20',
               wine_filter,
@@ -1559,6 +1627,7 @@ template:
               states('sensor.driver_license_renewal_opens'),
               states('sensor.casey_passport_renewal_opens'),
               states('sensor.casey_driver_license_renewal_opens'),
+              states('sensor.bonticou_llc_de_franchise_tax_due_date'),
               robison_tune if robison_tune >= today else (now().year + 1) ~ '-03-25',
               robison_price if robison_price >= today else (now().year + 1) ~ '-08-20',
               states('sensor.wine_cave_next_charcoal_filter_due'),
@@ -1919,6 +1988,47 @@ template:
                   {% endif %}
                 {% endfor %}
               {% endfor %}
+            {% endif %}
+            {% set llc_due = states('sensor.bonticou_llc_de_franchise_tax_due_date') %}
+            {% if is_state('input_boolean.business_admin_reminders_enabled', 'on')
+               and llc_due not in ['unknown', 'unavailable', 'none', ''] %}
+              {% set llc_paid = states('input_datetime.bonticou_llc_de_franchise_tax_last_paid_at') %}
+              {% set llc_year_start = llc_due[:4] ~ '-01-01' %}
+              {% set llc_notice_start = llc_due[:4] ~ '-05-01' %}
+              {% set llc_paid_for_due_year = llc_paid not in ['unknown', 'unavailable', 'none', '']
+                 and llc_paid[:10] >= llc_year_start %}
+              {% if not llc_paid_for_due_year %}
+                {% set ns.items = ns.items + [{
+                  'id': 'bonticou-de-franchise-tax-' ~ llc_due[:4],
+                  'title': 'Bonticou LLC DE franchise tax',
+                  'emoji': '🏛️',
+                  'icon': 'mdi:briefcase-check-outline',
+                  'group': 'Business admin',
+                  'state': 'due' if is_state('binary_sensor.bonticou_llc_de_franchise_tax_due', 'on') else 'upcoming',
+                  'severity': 'watch' if is_state('binary_sensor.bonticou_llc_de_franchise_tax_due', 'on') else 'info',
+                  'date': llc_due,
+                  'due_prefix': 'Due',
+                  'basis_date': llc_notice_start,
+                  'basis_prefix': 'reminders start',
+                  'narrative': 'Annual Delaware LLC tax. Pay before June 1 to keep the entity in good standing.',
+                  'url': '/calm-mobile/notices',
+                  'entity_id': 'sensor.bonticou_llc_de_franchise_tax_status',
+                  'details': {
+                    'summary': 'Bonticou LLC has an annual Delaware franchise tax deadline on June 1. Pay it or schedule it before then, then mark it paid so the reminder clears.',
+                    'facts': [
+                      'Entity: Bonticou LLC',
+                      'Jurisdiction: Delaware',
+                      'Deadline: June 1',
+                      'Current status: ' ~ states('sensor.bonticou_llc_de_franchise_tax_status')
+                    ],
+                    'after_action': 'After you mark it paid, Home Assistant stamps this year as handled, clears the push notification, and starts tracking the next annual cycle.',
+                    'tracking': 'This notice is a house reminder only; the payment confirmation should still be kept with the LLC records.'
+                  },
+                  'actions': [
+                    {'label': 'Paid', 'service': 'script.bonticou_llc_de_franchise_tax_mark_paid', 'confirm': true, 'inline': false}
+                  ]
+                }] %}
+              {% endif %}
             {% endif %}
             {% set robison_tune = now().year ~ '-03-25' %}
             {% set robison_price = now().year ~ '-08-20' %}
@@ -2295,6 +2405,25 @@ template:
           {% endif %}
         icon: >
           {{ 'mdi:calendar-alert' if is_state('binary_sensor.casey_driver_license_renewal_due', 'on') else 'mdi:card-account-details-outline' }}
+
+      - name: "Bonticou LLC DE Franchise Tax Due"
+        unique_id: bonticou_llc_de_franchise_tax_due
+        state: >
+          {% set due = states('sensor.bonticou_llc_de_franchise_tax_due_date') %}
+          {% set paid = states('input_datetime.bonticou_llc_de_franchise_tax_last_paid_at') %}
+          {% if not is_state('input_boolean.business_admin_reminders_enabled', 'on')
+             or due in ['unknown', 'unavailable', 'none', ''] %}
+            false
+          {% else %}
+            {% set year_start = due[:4] ~ '-01-01' %}
+            {% set notice_start = due[:4] ~ '-05-01' %}
+            {% set paid_for_due_year = paid not in ['unknown', 'unavailable', 'none', '']
+               and paid[:10] >= year_start %}
+            {{ not paid_for_due_year
+               and now().strftime('%Y-%m-%d') >= notice_start }}
+          {% endif %}
+        icon: >
+          {{ 'mdi:calendar-alert' if is_state('binary_sensor.bonticou_llc_de_franchise_tax_due', 'on') else 'mdi:briefcase-check-outline' }}
 
   - sensor:
       - name: "Main Floor Temp Avg"
