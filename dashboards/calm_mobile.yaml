@@ -1191,14 +1191,53 @@ views:
                 style: &calm_popup_panel_style |
                   ha-card {
                     border: none;
-                    box-shadow: 0 12px 28px rgba(2, 8, 23, 0.24);
-                    border-radius: 24px;
-                    padding: 8px 10px 0;
-                    border: 1px solid rgba(148, 163, 184, 0.18);
-                    background: linear-gradient(180deg, rgba(15, 23, 42, 0.82), rgba(30, 41, 59, 0.76));
+                    box-shadow: 0 18px 44px rgba(2, 8, 23, 0.30);
+                    border-radius: 30px;
+                    padding: 10px 10px 12px;
+                    overflow: hidden;
+                    border: 1px solid rgba(148, 163, 184, 0.22);
+                    background:
+                      radial-gradient(circle at top right, rgba(56, 189, 248, 0.16), transparent 32%),
+                      linear-gradient(180deg, rgba(15, 23, 42, 0.88), rgba(15, 23, 42, 0.66));
                     --primary-text-color: #f8fafc;
                     --secondary-text-color: #94a3b8;
-                    pointer-events: none;
+                  }
+                  h1.card-header {
+                    display: flex !important;
+                    align-items: center !important;
+                    justify-content: space-between !important;
+                    gap: 14px;
+                    padding: 18px 18px 10px !important;
+                    font-size: 28px !important;
+                    font-weight: 560 !important;
+                    line-height: 1.1 !important;
+                    letter-spacing: 0;
+                  }
+                  h1.card-header a {
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+                    flex: 0 0 40px;
+                    width: 40px;
+                    height: 40px;
+                    border-radius: 999px;
+                    background: rgba(148, 163, 184, 0.12);
+                    border: 1px solid rgba(148, 163, 184, 0.18);
+                    color: #cbd5e1;
+                  }
+                  h1.card-header ha-icon-next {
+                    --mdc-icon-size: 22px;
+                  }
+                  div.content {
+                    margin: 0 8px 6px;
+                    padding: 12px 12px 14px !important;
+                    border-radius: 22px;
+                    overflow: hidden;
+                    background: linear-gradient(180deg, rgba(15, 23, 42, 0.48), rgba(2, 8, 23, 0.20));
+                    border: 1px solid rgba(148, 163, 184, 0.10);
+                  }
+                  state-history-charts {
+                    --divider-color: rgba(148, 163, 184, 0.16);
                   }
 
       - type: custom:popup-card
