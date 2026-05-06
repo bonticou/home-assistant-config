@@ -1025,20 +1025,20 @@ views:
             - type: custom:mushroom-template-card
               entity: device_tracker.unifi_default_42_15_78_4a_d9_f8
               primary: >-
-                {{ 'Home' if is_state('device_tracker.unifi_default_42_15_78_4a_d9_f8', 'home') else 'Away' if is_state('device_tracker.unifi_default_42_15_78_4a_d9_f8', 'not_home') else states('device_tracker.unifi_default_42_15_78_4a_d9_f8') | replace('_', ' ') | title }}
+                {{ 'Casey is home' if is_state('device_tracker.unifi_default_42_15_78_4a_d9_f8', 'home') else 'Casey is away' if is_state('device_tracker.unifi_default_42_15_78_4a_d9_f8', 'not_home') else 'Casey is ' ~ (states('device_tracker.unifi_default_42_15_78_4a_d9_f8') | replace('_', ' ') | title) }}
               secondary: >-
                 {% set entity = 'device_tracker.unifi_default_42_15_78_4a_d9_f8' %}
                 {% set changed = relative_time(states[entity].last_changed) %}
                 {% if is_state(entity, 'home') %}
-                  On the home network. Updated {{ changed }} ago. UniFi may lag a few minutes.
+                  On the home Wi-Fi. Updated {{ changed }} ago. UniFi may lag a few minutes.
                 {% elif is_state(entity, 'not_home') %}
-                  Off the home network. Updated {{ changed }} ago. UniFi may lag a few minutes.
+                  Off the home Wi-Fi. Updated {{ changed }} ago. UniFi may lag a few minutes.
                 {% else %}
                   Current state is {{ states(entity) | replace('_', ' ') | title }}. Updated {{ changed }} ago.
                 {% endif %}
               icon: >-
                 {% set entity = 'device_tracker.unifi_default_42_15_78_4a_d9_f8' %}
-                {{ 'mdi:home-heart' if is_state(entity, 'home') else 'mdi:map-marker-path' }}
+                {{ 'mdi:home-heart' if is_state(entity, 'home') else 'mdi:home-export-outline' }}
               icon_color: >-
                 {% set entity = 'device_tracker.unifi_default_42_15_78_4a_d9_f8' %}
                 {{ 'teal' if is_state(entity, 'home') else 'grey' }}
@@ -1083,52 +1083,46 @@ views:
               columns: 2
               square: false
               cards:
-                - type: custom:mushroom-template-card
-                  primary: Call
-                  secondary: 908 461 8400
+                - type: custom:button-card
+                  name: Call Casey
                   icon: mdi:phone
-                  icon_color: green
-                  fill_container: true
                   tap_action:
                     action: url
                     url_path: "tel:+19084618400"
-                  card_mod:
-                    style: &casey_contact_action_style |
-                      ha-card {
-                        min-height: 72px;
-                        border: none;
-                        box-shadow: 0 14px 30px rgba(2, 8, 23, 0.22);
-                        border-radius: 22px;
-                        border: 1px solid rgba(148, 163, 184, 0.18);
-                        background: rgba(15, 23, 42, 0.62);
-                        color: #f8fafc;
-                        --card-primary-color: #f8fafc;
-                        --card-secondary-color: #94a3b8;
-                        --primary-text-color: #f8fafc;
-                        --secondary-text-color: #94a3b8;
-                      }
-                      mushroom-shape-icon {
-                        --shape-color: rgba(255, 255, 255, 0.08) !important;
-                      }
-                      .primary {
-                        font-size: 18px !important;
-                        font-weight: 700 !important;
-                      }
-                      .secondary {
-                        font-size: 12px !important;
-                        opacity: 0.78 !important;
-                      }
-                - type: custom:mushroom-template-card
-                  primary: Text
-                  secondary: 908 461 8400
+                  styles: &casey_contact_action_styles
+                    card:
+                      - height: 58px
+                      - border-radius: 22px
+                      - border: 1px solid rgba(148, 163, 184, 0.18)
+                      - box-shadow: 0 14px 30px rgba(2, 8, 23, 0.20)
+                      - background: rgba(15, 23, 42, 0.62)
+                      - color: "#f8fafc"
+                      - padding: 0 18px
+                    grid:
+                      - grid-template-areas: '"i n"'
+                      - grid-template-columns: 26px minmax(0, 1fr)
+                      - column-gap: 10px
+                      - align-items: center
+                    icon:
+                      - width: 24px
+                      - color: "#22c55e"
+                    name:
+                      - justify-self: start
+                      - font-size: 16px
+                      - font-weight: 720
+                      - letter-spacing: 0
+                      - white-space: nowrap
+                - type: custom:button-card
+                  name: Text Casey
                   icon: mdi:message-text-outline
-                  icon_color: blue
-                  fill_container: true
                   tap_action:
                     action: url
                     url_path: "sms:+19084618400"
-                  card_mod:
-                    style: *casey_contact_action_style
+                  styles:
+                    <<: *casey_contact_action_styles
+                    icon:
+                      - width: 24px
+                      - color: "#38bdf8"
             - type: custom:mushroom-chips-card
               alignment: left
               chips:
@@ -1139,7 +1133,7 @@ views:
                   icon_color: >-
                     {{ 'teal' if is_state('device_tracker.unifi_default_42_15_78_4a_d9_f8', 'home') else 'grey' }}
                   content: >-
-                    {{ 'On home network' if is_state('device_tracker.unifi_default_42_15_78_4a_d9_f8', 'home') else 'Off home network' }}
+                    {{ 'On home Wi-Fi' if is_state('device_tracker.unifi_default_42_15_78_4a_d9_f8', 'home') else 'Off home Wi-Fi' }}
                   tap_action:
                     action: none
                 - type: template
@@ -1148,10 +1142,10 @@ views:
                   icon_color: blue-grey
                   content: >-
                     {% set source = state_attr('device_tracker.unifi_default_42_15_78_4a_d9_f8', 'source_type') %}
-                    {% if source == 'router' %}Router presence
-                    {% elif source == 'gps' %}GPS presence
+                    {% if source == 'router' %}Wi-Fi based
+                    {% elif source == 'gps' %}GPS based
                     {% elif source %}{{ source | replace('_', ' ') | title }}
-                    {% else %}UniFi tracker{% endif %}
+                    {% else %}Presence source{% endif %}
                   tap_action:
                     action: none
                 - type: template
@@ -1179,7 +1173,7 @@ views:
                     --primary-text-color: #cbd5e1;
                   }
             - type: history-graph
-              title: Network presence - last 24 hours
+              title: Last 24 hours
               hours_to_show: 24
               entities:
                 - entity: device_tracker.unifi_default_42_15_78_4a_d9_f8
