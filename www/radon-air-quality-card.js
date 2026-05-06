@@ -440,15 +440,20 @@ class RadonAirQualityCard extends HTMLElement {
     const latest = points[points.length - 1];
     const latestValue = data[data.length - 1]?.[1] ?? null;
     const latestStatus = this.statusFor(latestValue);
-    const gradientId = `radon-gradient-${horizonKey}`;
+    const clipIds = {
+      high: `radon-clip-high-${horizonKey}`,
+      watch: `radon-clip-watch-${horizonKey}`,
+      good: `radon-clip-good-${horizonKey}`,
+    };
     const gridTicks = this.xTicks(xMin, xMax, horizonKey);
     const yLabels = [0.9, 1.8, 2.7, 3.6].filter((value) => value >= yMin && value <= yMax);
+    const bandClips = this.thresholdClipRects(clipIds, yFor(4), yFor(2.7), pad, innerWidth, innerHeight);
 
     return `
       <div class="chart-wrap">
         <svg viewBox="0 0 ${width} ${height}" role="img" aria-label="${this.escapeAttr(horizon.title)} radon chart">
           <defs>
-            ${this.gradientStops(gradientId, yFor(4), yFor(2.7), pad.top, innerHeight)}
+            ${bandClips.defs}
           </defs>
           ${gridTicks.map((tick) => `<line class="grid-line" x1="${xFor(tick)}" x2="${xFor(tick)}" y1="${pad.top}" y2="${pad.top + innerHeight}"></line>`).join("")}
           ${yLabels.map((value) => `<line class="soft-line" x1="${pad.left}" x2="${pad.left + innerWidth}" y1="${yFor(value)}" y2="${yFor(value)}"></line>`).join("")}
@@ -462,7 +467,7 @@ class RadonAirQualityCard extends HTMLElement {
               <text class="axis-text" x="${pad.left + innerWidth + 45}" y="${yFor(value)}">${this.formatNumber(value, 1)}</text>
             </g>
           `).join("")}
-          ${path ? `<path class="radon-line" d="${path}" stroke="url(#${gradientId})"></path>` : ""}
+          ${path ? this.renderThresholdLine(path, clipIds) : ""}
           ${latest ? `
             <circle class="marker-ring" cx="${latest[0]}" cy="${latest[1]}" r="18"></circle>
             <circle class="marker-core" cx="${latest[0]}" cy="${latest[1]}" r="12" fill="${latestStatus.color}"></circle>
@@ -478,18 +483,37 @@ class RadonAirQualityCard extends HTMLElement {
     `;
   }
 
-  gradientStops(id, yHigh, yWatch, top, innerHeight) {
-    const high = this.clamp(((yHigh - top) / innerHeight) * 100, 0, 100);
-    const watch = this.clamp(((yWatch - top) / innerHeight) * 100, 0, 100);
+  thresholdClipRects(ids, yHigh, yWatch, pad, innerWidth, innerHeight) {
+    const top = pad.top;
+    const bottom = pad.top + innerHeight;
+    const x = pad.left - 24;
+    const width = innerWidth + 48;
+    const high = this.clamp(yHigh, top, bottom);
+    const watch = this.clamp(yWatch, top, bottom);
+    const highHeight = Math.max(0, high - top);
+    const watchHeight = Math.max(0, watch - high);
+    const goodHeight = Math.max(0, bottom - watch);
+
+    const rect = (id, y, height) => `
+      <clipPath id="${id}">
+        <rect x="${x}" y="${y}" width="${width}" height="${height}"></rect>
+      </clipPath>
+    `;
+
+    return {
+      defs: `
+        ${rect(ids.high, top, highHeight)}
+        ${rect(ids.watch, high, watchHeight)}
+        ${rect(ids.good, watch, goodHeight)}
+      `,
+    };
+  }
+
+  renderThresholdLine(path, ids) {
     return `
-      <linearGradient id="${id}" x1="0" x2="0" y1="0" y2="1">
-        <stop offset="0%" stop-color="#ef4444"></stop>
-        <stop offset="${high}%" stop-color="#ef4444"></stop>
-        <stop offset="${Math.min(100, high + 0.01)}%" stop-color="#fbbf24"></stop>
-        <stop offset="${watch}%" stop-color="#fbbf24"></stop>
-        <stop offset="${Math.min(100, watch + 0.01)}%" stop-color="#4ade80"></stop>
-        <stop offset="100%" stop-color="#4ade80"></stop>
-      </linearGradient>
+      <g clip-path="url(#${ids.good})"><path class="radon-line" d="${path}" stroke="#4ade80"></path></g>
+      <g clip-path="url(#${ids.watch})"><path class="radon-line" d="${path}" stroke="#fbbf24"></path></g>
+      <g clip-path="url(#${ids.high})"><path class="radon-line" d="${path}" stroke="#ef4444"></path></g>
     `;
   }
 
