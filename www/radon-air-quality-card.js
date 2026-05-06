@@ -111,15 +111,15 @@ class RadonAirQualityCard extends HTMLElement {
 
   statusFor(value) {
     if (!Number.isFinite(value)) {
-      return { label: "Waiting for data", className: "unknown", color: "#94a3b8", copy: "Airthings has not reported a radon value yet." };
+      return { label: "Waiting for data", className: "unknown", color: "#94a3b8", copy: "Waiting on the Airthings sensor." };
     }
     if (value >= 4) {
-      return { label: "Action band", className: "high", color: "#ef4444", copy: "Radon is in the action band. Ventilation and mitigation deserve attention." };
+      return { label: "Action band", className: "high", color: "#ef4444", copy: "Basement radon is high enough to deserve attention if it stays here." };
     }
     if (value >= 2.7) {
-      return { label: "Watch", className: "watch", color: "#fbbf24", copy: "Radon is elevated. The longer trend matters more than one reading." };
+      return { label: "Watch", className: "watch", color: "#fbbf24", copy: "Basement radon is elevated; the longer trend matters most." };
     }
-    return { label: "Good", className: "good", color: "#4ade80", copy: "Basement radon is in the good band." };
+    return { label: "Good", className: "good", color: "#4ade80", copy: "Basement air is in the good range." };
   }
 
   statsFor(horizon) {
@@ -139,10 +139,10 @@ class RadonAirQualityCard extends HTMLElement {
     if (!this.shadowRoot) return;
     const current = this.currentPoint();
     const currentValue = current?.[1] ?? null;
-    const currentBq = Number(this._hass?.states?.[this._config.entity]?.state);
     const status = this.statusFor(currentValue);
     const h24 = Number(this._hass?.states?.["sensor.basement_radon_24h_stats"]?.state);
     const avg24 = Number.isFinite(h24) ? this.bqToPci(h24) : null;
+    const heroCopy = `${status.copy}${avg24 !== null ? ` Last day averaged ${this.formatNumber(avg24, 1)} pCi/L.` : ""}`;
     const horizons = this.horizons();
     const horizon = horizons[this._horizon] || horizons["30d"];
     const stats = this.statsFor(this._horizon);
@@ -376,11 +376,7 @@ class RadonAirQualityCard extends HTMLElement {
           <div>
             <div class="eyebrow">${this.escape(status.label)}</div>
             <div class="metric">${this.formatNumber(currentValue, 1)} <span>pCi/L</span></div>
-            <div class="subcopy">
-              ${Number.isFinite(currentBq) ? `${Math.round(currentBq)} Bq/m3` : "Current reading unavailable"}
-              ${avg24 !== null ? ` · 24h avg ${this.formatNumber(avg24, 1)} pCi/L` : ""}
-              · ${this.escape(status.copy)}
-            </div>
+            <div class="subcopy">${this.escape(heroCopy)}</div>
           </div>
         </section>
         <div class="tabs" role="tablist" aria-label="Radon chart horizon">
@@ -556,6 +552,93 @@ class RadonAirQualityCard extends HTMLElement {
 
 if (!customElements.get("radon-air-quality-card")) {
   customElements.define("radon-air-quality-card", RadonAirQualityCard);
+}
+
+const openRadonAirQualityPopup = (options = {}) => {
+  const prior = document.querySelector("[data-radon-air-overlay]");
+  if (prior) prior.remove();
+
+  const overlay = document.createElement("div");
+  overlay.setAttribute("data-radon-air-overlay", "");
+  overlay.style.cssText = `
+    position: fixed;
+    inset: 0;
+    z-index: 2147483647;
+    display: grid;
+    place-items: center;
+    padding: 20px;
+    background: rgba(2, 6, 23, 0.52);
+    backdrop-filter: blur(26px) saturate(170%);
+    -webkit-backdrop-filter: blur(26px) saturate(170%);
+  `;
+
+  const panel = document.createElement("div");
+  panel.style.cssText = `
+    position: relative;
+    width: min(560px, calc(100vw - 24px));
+    max-height: calc(100vh - 32px);
+    overflow: auto;
+    border-radius: 32px;
+    box-shadow: 0 30px 90px rgba(0, 0, 0, 0.46);
+    scrollbar-width: none;
+  `;
+
+  const close = document.createElement("button");
+  close.setAttribute("aria-label", "Close");
+  close.innerHTML = '<ha-icon icon="mdi:close"></ha-icon>';
+  close.style.cssText = `
+    position: absolute;
+    top: 16px;
+    right: 16px;
+    z-index: 2;
+    display: grid;
+    place-items: center;
+    width: 44px;
+    height: 44px;
+    border: 1px solid rgba(148, 163, 184, 0.28);
+    border-radius: 999px;
+    color: rgba(248, 250, 252, 0.86);
+    background: rgba(15, 23, 42, 0.76);
+    cursor: pointer;
+  `;
+
+  const card = document.createElement("radon-air-quality-card");
+  card.setConfig({
+    entity: options.entity || "sensor.basement_air_quality_radon",
+    title: options.title || "Radon",
+  });
+  card.hass = options.hass || document.querySelector("home-assistant")?.hass;
+
+  const dismiss = () => {
+    document.removeEventListener("keydown", onKey);
+    overlay.remove();
+  };
+  const onKey = (event) => {
+    if (event.key === "Escape") dismiss();
+  };
+  close.addEventListener("click", dismiss);
+  overlay.addEventListener("click", (event) => {
+    if (event.target === overlay) dismiss();
+  });
+  document.addEventListener("keydown", onKey);
+
+  panel.append(close, card);
+  overlay.append(panel);
+  document.body.append(overlay);
+};
+
+window.openRadonAirQualityPopup = openRadonAirQualityPopup;
+
+if (!window.__radonAirQualityPopupListener) {
+  window.__radonAirQualityPopupListener = true;
+  const handleRadonAirQualityPopupEvent = (event) => {
+    if (!event.detail?.radon_air_quality_popup) return;
+    if (event.__radonAirQualityPopupHandled) return;
+    event.__radonAirQualityPopupHandled = true;
+    openRadonAirQualityPopup();
+  };
+  document.addEventListener("ll-custom", handleRadonAirQualityPopupEvent);
+  window.addEventListener("ll-custom", handleRadonAirQualityPopupEvent);
 }
 
 window.customCards = window.customCards || [];
