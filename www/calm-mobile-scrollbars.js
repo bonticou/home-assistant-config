@@ -6,6 +6,7 @@
   const observerByRoot = new Map();
   let active = false;
   let scheduled = false;
+  let viewRecoveryScheduled = false;
   let attachShadowPatched = false;
 
   const documentCss = `
@@ -111,6 +112,61 @@
     }
   };
 
+  const findDeep = (root, selector) => {
+    if (!root?.querySelector) return null;
+    const match = root.querySelector(selector);
+    if (match) return match;
+    for (const element of root.querySelectorAll("*")) {
+      if (element.shadowRoot) {
+        const shadowMatch = findDeep(element.shadowRoot, selector);
+        if (shadowMatch) return shadowMatch;
+      }
+    }
+    return null;
+  };
+
+  const selectedViewIndexFor = (huiRoot) => {
+    const views = huiRoot?.config?.views || [];
+    const path = huiRoot?.route?.path?.split("/").filter(Boolean)[0];
+    if (!path) return 0;
+    const numericPath = Number(path);
+    const index = views.findIndex((view, viewIndex) => (
+      view.path === path || (Number.isFinite(numericPath) && viewIndex === numericPath)
+    ));
+    return index >= 0 ? index : 0;
+  };
+
+  const recoverEmptyLovelaceView = () => {
+    viewRecoveryScheduled = false;
+    if (!active || !isCalmMobilePath()) return;
+
+    const huiRoot = findDeep(document, "hui-root");
+    const viewRoot = huiRoot?._viewRoot || huiRoot?.shadowRoot?.querySelector("#view");
+    if (
+      !huiRoot?.hass ||
+      !huiRoot?.lovelace ||
+      !huiRoot?.config?.views?.length ||
+      typeof huiRoot._selectView !== "function" ||
+      !viewRoot ||
+      viewRoot.querySelector("hui-view")
+    ) {
+      return;
+    }
+
+    // HA can occasionally hard-load the dashboard shell without mounting the
+    // selected view. Keep this scoped to calm-mobile and only repair emptiness.
+    huiRoot._viewCache = huiRoot._viewCache || {};
+    huiRoot._selectView(selectedViewIndexFor(huiRoot), true);
+  };
+
+  const scheduleViewRecovery = () => {
+    if (viewRecoveryScheduled) return;
+    viewRecoveryScheduled = true;
+    [150, 500, 1200].forEach((delay) => {
+      window.setTimeout(recoverEmptyLovelaceView, delay);
+    });
+  };
+
   const removeStylesAndObservers = () => {
     for (const style of styleByRoot.values()) {
       style.remove();
@@ -145,6 +201,7 @@
     document.body?.classList.add(ACTIVE_CLASS);
     patchAttachShadow();
     scanRoot(document);
+    scheduleViewRecovery();
     logAuditIfEnabled();
   };
 
@@ -158,6 +215,7 @@
     const shouldBeActive = isCalmMobilePath();
     if (shouldBeActive) {
       activate();
+      scheduleViewRecovery();
     } else if (active || styleByRoot.size) {
       deactivate();
     }
@@ -255,12 +313,26 @@
     }, 250);
   };
 
-  patchHistory();
+  window.calmMobileScrollbarRefresh = () => {
+    refresh();
+    scheduleViewRecovery();
+    return {
+      active,
+      path: window.location.pathname,
+      calmMobile: isCalmMobilePath(),
+    };
+  };
+
+  try {
+    patchHistory();
+  } catch (error) {
+    console.warn("[calm-mobile-scrollbars] history patch skipped", error);
+  }
 
   if (document.readyState === "loading") {
-    document.addEventListener("DOMContentLoaded", scheduleRefresh, { once: true });
+    document.addEventListener("DOMContentLoaded", window.calmMobileScrollbarRefresh, { once: true });
   } else {
-    scheduleRefresh();
+    window.calmMobileScrollbarRefresh();
   }
-  window.addEventListener("load", scheduleRefresh, { once: true });
+  window.addEventListener("load", window.calmMobileScrollbarRefresh, { once: true });
 })();

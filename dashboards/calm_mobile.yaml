@@ -3,6 +3,7 @@ views:
   - title: Home
     path: home
     icon: mdi:home-variant-outline
+    type: masonry
     cards:
       - type: custom:mushroom-title-card
         title: >-
@@ -202,105 +203,227 @@ views:
               opacity: 0.65 !important;
             }
 
-      - type: custom:mushroom-chips-card
-        alignment: left
-        chips:
-          - type: template
+      - type: grid
+        columns: 4
+        square: false
+        cards:
+          - type: custom:button-card
             entity: device_tracker.unifi_default_42_15_78_4a_d9_f8
-            icon: >-
-              {{ 'mdi:home' if is_state('device_tracker.unifi_default_42_15_78_4a_d9_f8', 'home') else 'mdi:home-export-outline' }}
-            icon_color: >-
-              {{ 'green' if is_state('device_tracker.unifi_default_42_15_78_4a_d9_f8', 'home') else 'grey' }}
-            content: >-
-              {{ 'Casey home' if is_state('device_tracker.unifi_default_42_15_78_4a_d9_f8', 'home') else 'Casey away' }}
+            show_icon: false
+            show_name: false
+            show_state: false
+            custom_fields:
+              chip: >-
+                [[[
+                  const home = entity.state === 'home';
+                  const icon = home ? 'mdi:home' : 'mdi:home-export-outline';
+                  const color = home ? '#22c55e' : '#64748b';
+                  const label = home ? 'Casey home' : 'Casey away';
+                  return `<div class="home-status-chip"><ha-icon icon="${icon}" style="color:${color}"></ha-icon><span>${label}</span></div>`;
+                ]]]
             tap_action:
               action: more-info
-          - type: template
-            icon: >-
-              {% set ignore_door_lights = is_state('binary_sensor.door_lights_schedule_active', 'on') %}
-              {% set light_count = states.light
-                | selectattr('state', 'eq', 'on')
-                | rejectattr('attributes.entity_id', 'defined')
-                | list
-                | count %}
-              {% set door_switch_count = [
-                states('switch.master_lantern'),
-                states('switch.front_foyer_sconces')
-              ] | select('eq', 'on') | list | count %}
-              {% set switch_count = 0 if ignore_door_lights else door_switch_count %}
-              {{ 'mdi:lightbulb-on-outline' if (light_count + switch_count) > 0 else 'mdi:lightbulb-off-outline' }}
-            icon_color: >-
-              {% set ignore_door_lights = is_state('binary_sensor.door_lights_schedule_active', 'on') %}
-              {% set light_count = states.light
-                | selectattr('state', 'eq', 'on')
-                | rejectattr('attributes.entity_id', 'defined')
-                | list
-                | count %}
-              {% set door_switch_count = [
-                states('switch.master_lantern'),
-                states('switch.front_foyer_sconces')
-              ] | select('eq', 'on') | list | count %}
-              {% set switch_count = 0 if ignore_door_lights else door_switch_count %}
-              {{ 'amber' if (light_count + switch_count) > 0 else 'grey' }}
-            content: >-
-              {% set ignore_door_lights = is_state('binary_sensor.door_lights_schedule_active', 'on') %}
-              {% set light_count = states.light
-                | selectattr('state', 'eq', 'on')
-                | rejectattr('attributes.entity_id', 'defined')
-                | list
-                | count %}
-              {% set door_switch_count = [
-                states('switch.master_lantern'),
-                states('switch.front_foyer_sconces')
-              ] | select('eq', 'on') | list | count %}
-              {% set switch_count = 0 if ignore_door_lights else door_switch_count %}
-              {{ 'Lights on' if (light_count + switch_count) > 0 else 'Lights off' }}
+            styles: &home_status_chip_styles
+              card:
+                - height: 34px
+                - border-radius: 999px
+                - padding: 0
+                - box-shadow: none
+                - border: 1px solid rgba(148, 163, 184, 0.22)
+                - background: rgba(15, 23, 42, 0.52)
+                - overflow: hidden
+              grid:
+                - grid-template-areas: '"chip"'
+                - grid-template-columns: 1fr
+                - grid-template-rows: 1fr
+              custom_fields:
+                chip:
+                  - min-width: 0
+            extra_styles: &home_status_chip_extra |
+              .home-status-chip {
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                gap: 6px;
+                height: 32px;
+                padding: 0 9px;
+                min-width: 0;
+                color: rgba(248, 250, 252, 0.88);
+                font-size: 12px;
+                font-weight: 650;
+                line-height: 1;
+                white-space: nowrap;
+              }
+              .home-status-chip span {
+                overflow: hidden;
+                text-overflow: ellipsis;
+              }
+              .home-status-chip ha-icon {
+                --mdc-icon-size: 16px;
+                flex: 0 0 auto;
+              }
+          - type: custom:button-card
+            show_icon: false
+            show_name: false
+            show_state: false
+            custom_fields:
+              chip: >-
+                [[[
+                  const ignore = states['binary_sensor.door_lights_schedule_active']?.state === 'on';
+                  const lightCount = Object.values(states).filter((state) =>
+                    state.entity_id?.startsWith('light.') &&
+                    state.state === 'on' &&
+                    !state.attributes?.entity_id
+                  ).length;
+                  const doorSwitchCount = ['switch.master_lantern', 'switch.front_foyer_sconces']
+                    .filter((id) => states[id]?.state === 'on').length;
+                  const count = lightCount + (ignore ? 0 : doorSwitchCount);
+                  const icon = count > 0 ? 'mdi:lightbulb-on-outline' : 'mdi:lightbulb-off-outline';
+                  const color = count > 0 ? '#f59e0b' : '#64748b';
+                  const label = count > 0 ? 'Lights on' : 'Lights off';
+                  return `<div class="home-status-chip"><ha-icon icon="${icon}" style="color:${color}"></ha-icon><span>${label}</span></div>`;
+                ]]]
             tap_action:
               action: navigate
               navigation_path: /calm-mobile/lights
-          - type: template
+            styles:
+              <<: *home_status_chip_styles
+            extra_styles: *home_status_chip_extra
+          - type: custom:button-card
             entity: climate.dining_room
-            icon: >-
-              {% set profile = states('select.dining_room_current_mode') %}
-              {% set hvac_action = state_attr('climate.dining_room', 'hvac_action') %}
-              {% if profile == 'away' %}mdi:home-export-outline
-              {% elif profile == 'sleep' %}mdi:sleep
-              {% elif hvac_action == 'heating' %}mdi:radiator
-              {% elif hvac_action == 'cooling' %}mdi:snowflake
-              {% elif is_state('binary_sensor.downstairs_open_window_eligible', 'on') %}mdi:window-open-variant
-              {% else %}mdi:home-thermometer-outline{% endif %}
-            icon_color: >-
-              {% set profile = states('select.dining_room_current_mode') %}
-              {% set hvac_action = state_attr('climate.dining_room', 'hvac_action') %}
-              {% if profile == 'away' %}amber
-              {% elif profile == 'sleep' %}indigo
-              {% elif hvac_action == 'heating' %}orange
-              {% elif hvac_action == 'cooling' %}blue
-              {% elif is_state('binary_sensor.downstairs_open_window_eligible', 'on') %}teal
-              {% else %}grey{% endif %}
-            content: >-
-              {% set profile = states('select.dining_room_current_mode') %}
-              {% set temp = states('sensor.downstairs_temp_avg') %}
-              {% if profile == 'away' %}Dining Away
-              {% elif profile == 'sleep' %}Dining Sleep
-              {% elif is_number(temp) %}Dining {{ temp | float(0) | round(0) }}°
-              {% else %}Dining HVAC{% endif %}
+            show_icon: false
+            show_name: false
+            show_state: false
+            custom_fields:
+              chip: >-
+                [[[
+                  const profile = states['select.dining_room_current_mode']?.state;
+                  const hvac = states['climate.dining_room']?.attributes?.hvac_action;
+                  const temp = Number(states['sensor.downstairs_temp_avg']?.state);
+                  let icon = 'mdi:home-thermometer-outline';
+                  let color = '#64748b';
+                  if (profile === 'away') {
+                    icon = 'mdi:home-export-outline';
+                    color = '#f59e0b';
+                  } else if (profile === 'sleep') {
+                    icon = 'mdi:sleep';
+                    color = '#818cf8';
+                  } else if (hvac === 'heating') {
+                    icon = 'mdi:radiator';
+                    color = '#f97316';
+                  } else if (hvac === 'cooling') {
+                    icon = 'mdi:snowflake';
+                    color = '#60a5fa';
+                  } else if (states['binary_sensor.downstairs_open_window_eligible']?.state === 'on') {
+                    icon = 'mdi:window-open-variant';
+                    color = '#2dd4bf';
+                  }
+                  let label = 'Dining HVAC';
+                  if (profile === 'away') label = 'Dining Away';
+                  else if (profile === 'sleep') label = 'Dining Sleep';
+                  else if (Number.isFinite(temp)) label = `Dining ${Math.round(temp)}°`;
+                  return `<div class="home-status-chip"><ha-icon icon="${icon}" style="color:${color}"></ha-icon><span>${label}</span></div>`;
+                ]]]
             tap_action:
               action: navigate
               navigation_path: /calm-mobile/climate
             hold_action:
               action: more-info
-          - type: template
+            styles:
+              <<: *home_status_chip_styles
+            extra_styles: *home_status_chip_extra
+          - type: custom:button-card
             entity: sensor.basement_air_quality_radon
-            icon: mdi:radioactive
-            icon_color: >-
-              {% set radon = states('sensor.basement_air_quality_radon') | float(0) %}
-              {% if radon < 100 %}green
-              {% elif radon < 148 %}orange
-              {% else %}red{% endif %}
-            content: Radon
+            show_icon: false
+            show_name: false
+            show_state: false
+            custom_fields:
+              chip: >-
+                [[[
+                  const bq = Number(entity.state);
+                  const color = !Number.isFinite(bq) ? '#64748b' : bq < 100 ? '#22c55e' : bq < 148 ? '#f59e0b' : '#ef4444';
+                  return `<div class="home-status-chip"><ha-icon icon="mdi:radioactive" style="color:${color}"></ha-icon><span>Radon</span></div>`;
+                ]]]
             tap_action:
+              action: javascript
+              javascript: |
+                [[[
+                  const prior = document.querySelector('[data-radon-air-overlay]');
+                  if (prior) prior.remove();
+
+                  const overlay = document.createElement('div');
+                  overlay.setAttribute('data-radon-air-overlay', '');
+                  overlay.style.cssText = `
+                    position: fixed;
+                    inset: 0;
+                    z-index: 2147483647;
+                    display: grid;
+                    place-items: center;
+                    padding: 20px;
+                    background: rgba(2, 6, 23, 0.52);
+                    backdrop-filter: blur(26px) saturate(170%);
+                    -webkit-backdrop-filter: blur(26px) saturate(170%);
+                  `;
+
+                  const panel = document.createElement('div');
+                  panel.style.cssText = `
+                    position: relative;
+                    width: min(560px, calc(100vw - 24px));
+                    max-height: calc(100vh - 32px);
+                    overflow: auto;
+                    border-radius: 32px;
+                    box-shadow: 0 30px 90px rgba(0, 0, 0, 0.46);
+                    scrollbar-width: none;
+                  `;
+
+                  const close = document.createElement('button');
+                  close.setAttribute('aria-label', 'Close');
+                  close.innerHTML = '<ha-icon icon="mdi:close"></ha-icon>';
+                  close.style.cssText = `
+                    position: absolute;
+                    top: 16px;
+                    right: 16px;
+                    z-index: 2;
+                    display: grid;
+                    place-items: center;
+                    width: 44px;
+                    height: 44px;
+                    border: 1px solid rgba(148, 163, 184, 0.28);
+                    border-radius: 999px;
+                    color: rgba(248, 250, 252, 0.86);
+                    background: rgba(15, 23, 42, 0.76);
+                    cursor: pointer;
+                  `;
+
+                  const card = document.createElement('radon-air-quality-card');
+                  card.setConfig({
+                    entity: 'sensor.basement_air_quality_radon',
+                    title: 'Radon',
+                  });
+                  card.hass = document.querySelector('home-assistant')?.hass || hass;
+
+                  const dismiss = () => {
+                    document.removeEventListener('keydown', onKey);
+                    overlay.remove();
+                  };
+                  const onKey = (event) => {
+                    if (event.key === 'Escape') dismiss();
+                  };
+                  close.addEventListener('click', dismiss);
+                  overlay.addEventListener('click', (event) => {
+                    if (event.target === overlay) dismiss();
+                  });
+                  document.addEventListener('keydown', onKey);
+
+                  panel.append(close, card);
+                  overlay.append(panel);
+                  document.body.append(overlay);
+                ]]]
+            hold_action:
               action: more-info
+            styles:
+              <<: *home_status_chip_styles
+            extra_styles: *home_status_chip_extra
       - type: grid
         columns: 2
         square: false
@@ -1500,46 +1623,6 @@ views:
 
       - type: custom:popup-card
         target:
-          entity_id: sensor.basement_air_quality_radon
-        title: Radon
-        dismiss_icon: mdi:close
-        initial_style: wide
-        popup_styles: *calm_popup_styles
-        card:
-          type: vertical-stack
-          cards:
-            - type: custom:mushroom-template-card
-              entity: sensor.basement_air_quality_radon
-              primary: >-
-                {{ states('sensor.basement_air_quality_radon') | float(0) | round(0) }}
-                {{ state_attr('sensor.basement_air_quality_radon', 'unit_of_measurement') or '' }}
-              secondary: >-
-                {% set radon = states('sensor.basement_air_quality_radon') | float(0) %}
-                {% if radon < 100 %}Good air quality in the basement.
-                {% elif radon < 148 %}Elevated, but still moderate.
-                {% else %}High radon level. Keep an eye on ventilation.{% endif %}
-              icon: mdi:radioactive
-              icon_color: >-
-                {% set radon = states('sensor.basement_air_quality_radon') | float(0) %}
-                {% if radon < 100 %}teal
-                {% elif radon < 148 %}orange
-                {% else %}red{% endif %}
-              fill_container: true
-              tap_action:
-                action: none
-              card_mod:
-                style: *calm_popup_hero_style
-            - type: history-graph
-              title: Last 24 Hours
-              hours_to_show: 24
-              entities:
-                - entity: sensor.basement_air_quality_radon
-                  name: Radon
-              card_mod:
-                style: *calm_popup_panel_style
-
-      - type: custom:popup-card
-        target:
           entity_id: sensor.master_temperature
         title: Primary Bedroom
         dismiss_icon: mdi:close
@@ -2639,6 +2722,7 @@ views:
   - title: Notification center
     path: notices
     icon: mdi:bell-outline
+    type: masonry
     cards:
       - type: custom:mushroom-title-card
         title: Notification center
@@ -2651,6 +2735,7 @@ views:
   - title: Lights
     path: lights
     icon: mdi:lightbulb-outline
+    type: masonry
     cards:
       - type: custom:mushroom-title-card
         title: Scenes
@@ -3028,6 +3113,7 @@ views:
   - title: Water
     path: water
     icon: mdi:water-outline
+    type: masonry
     cards:
       - type: custom:mushroom-title-card
         title: Water
@@ -5595,6 +5681,7 @@ views:
   - title: Wine
     path: wine
     icon: mdi:glass-wine
+    type: masonry
     cards:
       - type: custom:mushroom-title-card
         title: Wine Cave
@@ -7294,6 +7381,7 @@ views:
   - title: Garden
     path: garden
     icon: mdi:leaf
+    type: masonry
     cards:
       - type: vertical-stack
         cards:
@@ -8427,6 +8515,7 @@ views:
   - title: Environment
     path: climate
     icon: mdi:home-thermometer-outline
+    type: masonry
     cards:
       - type: custom:mushroom-title-card
         title: Environment
