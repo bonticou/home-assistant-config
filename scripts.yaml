@@ -1275,7 +1275,7 @@ property_tax_send_reminder:
         data:
           group: property-tax
           tag: "{{ notification_tag }}"
-          url: /calm-mobile/home
+          url: https://northcastle.municipaltaxpayments.com/
           actions:
             - action: "{{ paid_action | trim }}"
               title: Paid
@@ -1447,7 +1447,7 @@ bonticou_llc_de_franchise_tax_send_reminder:
         data:
           group: business-admin
           tag: bonticou-de-franchise-tax
-          url: /calm-mobile/notices
+          url: https://icis.corp.delaware.gov/ecorp/logintax.aspx?FilingType=FranchiseTax
           recent: true
           actions:
             - action: BONTICOU_DE_FRANCHISE_TAX_PAID

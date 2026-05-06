@@ -177,11 +177,16 @@ cycle and stop current notifications without suppressing future cycles.
 Reminder and task "Details" surfaces must be bespoke to the content. Do not
 route them to stock Home Assistant `more-info` history/activity popups unless
 the purpose is explicitly diagnostic. Use calm sheets or designed inline panels
-that explain the task, the trigger facts, the primary action, what changes after
-acting, and what the home will keep watching. If the detail is data-based, use a
+that fit the notice. Actionable reminders should explain the task, trigger
+facts, primary action, what changes after acting, and what the home keeps
+watching. Ambient notes, FYIs, seasonal observations, and fun facts may use
+softer labels and omit action-heavy sections. If the detail is data-based, use a
 beautiful compact chart; if it is educational, provide a rich explainer; if it
 is sequence-based, use a polished timeline rather than the raw HA log. Follow
 `docs/notification-detail-surfaces.md` for project-wide detail-surface rules.
+When a notice has an `Open page` affordance, point it to the actual next useful
+destination whenever possible, such as the official tax payment page, renewal
+portal, source document, or relevant dashboard. Avoid placeholder self-links.
 
 ---
 

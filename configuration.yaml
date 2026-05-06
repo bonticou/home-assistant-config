@@ -9,7 +9,7 @@ lovelace:
   resources:
     - url: /local/calm-mobile-scrollbars.js?v=3
       type: module
-    - url: /local/house-notices-card.js?v=36
+    - url: /local/house-notices-card.js?v=37
       type: module
   dashboards:
     calm-mobile:
@@ -1959,10 +1959,12 @@ template:
                 }] %}
               {% endif %}
             {% endfor %}
+            {% set north_castle_tax_url = 'https://northcastle.municipaltaxpayments.com/' %}
+            {% set delaware_llc_tax_url = 'https://icis.corp.delaware.gov/ecorp/logintax.aspx?FilingType=FranchiseTax' %}
             {% set tax_items = [
-              {'id': 'school-tax-jan', 'title': 'School tax January', 'emoji': '📚', 'paid': states('input_datetime.school_tax_january_last_paid_at'), 'tax_type': 'school', 'bill_month': 1},
-              {'id': 'town-tax-apr', 'title': 'Town tax April', 'emoji': '🏛️', 'paid': states('input_datetime.town_tax_last_paid_at'), 'tax_type': 'town', 'bill_month': 4},
-              {'id': 'school-tax-sep', 'title': 'School tax September', 'emoji': '📚', 'paid': states('input_datetime.school_tax_september_last_paid_at'), 'tax_type': 'school', 'bill_month': 9}
+              {'id': 'school-tax-jan', 'title': 'School tax January', 'emoji': '📚', 'paid': states('input_datetime.school_tax_january_last_paid_at'), 'tax_type': 'school', 'bill_month': 1, 'url': north_castle_tax_url},
+              {'id': 'town-tax-apr', 'title': 'Town tax April', 'emoji': '🏛️', 'paid': states('input_datetime.town_tax_last_paid_at'), 'tax_type': 'town', 'bill_month': 4, 'url': north_castle_tax_url},
+              {'id': 'school-tax-sep', 'title': 'School tax September', 'emoji': '📚', 'paid': states('input_datetime.school_tax_september_last_paid_at'), 'tax_type': 'school', 'bill_month': 9, 'url': north_castle_tax_url}
             ] %}
             {% if is_state('input_boolean.tax_reminders_enabled', 'on') %}
               {% for tax_year in range(now().year, now().year + 3) %}
@@ -1991,7 +1993,7 @@ template:
                       'basis_date': bill,
                       'basis_prefix': 'bill opens',
                       'narrative': 'Property tax reminder remains open until marked paid.',
-                      'url': '/calm-mobile/notices',
+                      'url': tax.url,
                       'entity_id': 'input_boolean.tax_reminders_enabled',
                       'actions': ([{'label': 'Paid', 'service': 'script.property_tax_mark_paid', 'confirm': true, 'data': {'tax_type': tax.tax_type, 'bill_month': tax.bill_month, 'due_date': due}}] if active else [])
                     }] %}
@@ -2024,7 +2026,7 @@ template:
                   'basis_date': llc_notice_start,
                   'basis_prefix': 'reminders start',
                   'narrative': 'Annual Delaware LLC tax. Pay before June 1 to keep the entity in good standing.',
-                  'url': '/calm-mobile/notices',
+                  'url': delaware_llc_tax_url,
                   'entity_id': 'sensor.bonticou_llc_de_franchise_tax_status',
                   'details': {
                     'summary': 'Bonticou LLC has an annual Delaware franchise tax deadline on June 1. Pay it or schedule it before then, then mark it paid so the reminder clears.',

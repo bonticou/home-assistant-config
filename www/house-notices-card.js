@@ -497,20 +497,20 @@ class HouseNoticesCard extends HTMLElement {
           position: absolute;
           top: max(12px, env(safe-area-inset-top));
           right: 14px;
-          bottom: 0;
+          bottom: auto;
           left: 14px;
           width: auto;
           max-width: 560px;
+          max-height: calc(100dvh - max(12px, env(safe-area-inset-top)) - max(10px, env(safe-area-inset-bottom)));
           margin: 0 auto;
           display: flex;
           flex-direction: column;
           overflow: hidden;
           border: 1px solid rgba(148, 163, 184, 0.22);
-          border-bottom: none;
-          border-radius: 28px 28px 0 0;
+          border-radius: 28px;
           background:
             linear-gradient(180deg, rgba(15, 23, 42, 0.98), rgba(2, 6, 23, 0.98));
-          box-shadow: 0 -20px 80px rgba(0, 0, 0, 0.42);
+          box-shadow: 0 22px 80px rgba(0, 0, 0, 0.42);
           outline: none;
         }
         .sheet-header {
@@ -565,6 +565,7 @@ class HouseNoticesCard extends HTMLElement {
         }
         .sheet-body {
           flex: 1 1 auto;
+          min-height: 0;
           overflow: auto;
           -webkit-overflow-scrolling: touch;
           padding: 14px 18px max(18px, env(safe-area-inset-bottom));
@@ -899,7 +900,7 @@ class HouseNoticesCard extends HTMLElement {
     const stateClass = item.badge_class || item.state;
     const facts = detail.facts.length
       ? `<div class="sheet-section">
-          <div class="sheet-section-title">Why now</div>
+          <div class="sheet-section-title">${this.escape(detail.factsTitle)}</div>
           <div class="fact-grid">
             ${detail.facts.map((fact) => `<div class="fact">${this.escape(this.detailLine(fact))}</div>`).join("")}
           </div>
@@ -907,14 +908,14 @@ class HouseNoticesCard extends HTMLElement {
       : "";
     const after = detail.afterAction
       ? `<div class="sheet-section">
-          <div class="sheet-section-title">What happens next</div>
+          <div class="sheet-section-title">${this.escape(detail.afterActionTitle)}</div>
           <div class="sheet-copy-block">${this.escape(detail.afterAction)}</div>
           ${detail.tracking ? `<div class="tracking-line">${this.escape(detail.tracking)}</div>` : ""}
         </div>`
       : "";
     const timeline = detail.timeline.length
       ? `<div class="sheet-section">
-          <div class="sheet-section-title">Timeline</div>
+          <div class="sheet-section-title">${this.escape(detail.timelineTitle)}</div>
           <div class="sheet-timeline">
             ${detail.timeline.map((step) => `
               <div class="timeline-step">
@@ -941,7 +942,7 @@ class HouseNoticesCard extends HTMLElement {
           </div>
           <div class="sheet-body">
             <div class="sheet-section">
-              <div class="sheet-section-title">What this means</div>
+              <div class="sheet-section-title">${this.escape(detail.summaryTitle)}</div>
               <div class="sheet-summary">${this.escape(detail.summary)}</div>
             </div>
             ${facts}
@@ -966,10 +967,14 @@ class HouseNoticesCard extends HTMLElement {
     const facts = Array.isArray(raw.facts) ? raw.facts.filter((fact) => this.detailLine(fact)) : fallbackFacts;
     return {
       summary,
-      facts: facts.length ? facts : fallbackFacts,
+      summaryTitle: raw.summary_title || raw.summaryTitle || "What this means",
+      facts,
+      factsTitle: raw.facts_title || raw.factsTitle || raw.why_title || raw.whyTitle || "Why now",
       afterAction: raw.after_action || raw.afterAction || "",
+      afterActionTitle: raw.after_action_title || raw.afterActionTitle || "What happens next",
       tracking: raw.tracking || "",
       timeline: Array.isArray(raw.timeline) ? raw.timeline.filter((step) => this.detailLine(step)) : [],
+      timelineTitle: raw.timeline_title || raw.timelineTitle || "Timeline",
     };
   }
 
@@ -1330,6 +1335,10 @@ class HouseNoticesCard extends HTMLElement {
 
   navigate(path) {
     if (!path) return;
+    if (/^https?:\/\//i.test(path)) {
+      window.open(path, "_blank", "noopener");
+      return;
+    }
     history.pushState(null, "", path);
     window.dispatchEvent(new CustomEvent("location-changed", { bubbles: true, composed: true }));
   }
