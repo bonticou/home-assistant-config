@@ -9,7 +9,7 @@ lovelace:
   resources:
     - url: /local/calm-mobile-scrollbars.js?v=6
       type: module
-    - url: /local/house-notices-card.js?v=39
+    - url: /local/house-notices-card.js?v=40
       type: module
     - url: /local/radon-air-quality-card.js?v=6
       type: module
@@ -2018,7 +2018,6 @@ template:
                 'basis_date': garbage_scheduled if garbage_exception | length > 0 else '',
                 'basis_prefix': 'normal Thursday',
                 'narrative': ('Put out garbage and ' ~ garbage_recycling_label ~ '.') ~ (' ' ~ garbage_exception ~ '.' if garbage_exception | length > 0 else ''),
-                'url': state_attr('sensor.garbage_recycling_schedule', 'official_schedule_url'),
                 'entity_id': 'sensor.garbage_recycling_status',
                 'details': {
                   'summary_title': 'What to do',
@@ -2031,7 +2030,11 @@ template:
                     'Recycling stream: ' ~ garbage_recycling_label,
                     ('Exception: ' ~ garbage_exception if garbage_exception | length > 0 else ''),
                     'Set-out window: after 4:00 PM the day before pickup and before 7:00 AM pickup day',
-                    'Source: 2026 North Castle Waste and Alternate Week Recycling Schedule'
+                    {
+                      'label': 'Source',
+                      'value': '2026 North Castle Waste and Alternate Week Recycling Schedule',
+                      'url': state_attr('sensor.garbage_recycling_schedule', 'official_schedule_url')
+                    }
                   ] | reject('eq', '') | list,
                   'after_action': 'After you tap Taken out, Home Assistant stamps this pickup date as handled, clears the push notification, and removes this cycle from Needs Attention.',
                   'tracking': 'Future weekly garbage and alternate recycling pickups stay on the timeline from the 2026 Zone 4 schedule.',

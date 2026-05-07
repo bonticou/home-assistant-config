@@ -630,6 +630,15 @@ class HouseNoticesCard extends HTMLElement {
           gap: 8px;
           align-items: center;
         }
+        .fact a {
+          color: rgba(191, 219, 254, 0.92);
+          text-decoration: none;
+          border-bottom: 1px solid rgba(147, 197, 253, 0.32);
+        }
+        .fact a:hover {
+          color: #dbeafe;
+          border-bottom-color: rgba(219, 234, 254, 0.6);
+        }
         .fact-copy {
           min-height: 26px;
           padding: 0 9px;
@@ -1045,10 +1054,14 @@ class HouseNoticesCard extends HTMLElement {
   renderFact(fact) {
     const line = this.detailLine(fact);
     const copyValue = this.factCopyValue(fact);
+    const url = this.factUrl(fact);
+    const content = url
+      ? this.renderLinkedFact(fact, line, url)
+      : `<span>${this.escape(line)}</span>`;
     const copy = copyValue
       ? `<button class="fact-copy" data-copy-value="${this.escapeAttr(copyValue)}" aria-label="Copy ${this.escapeAttr(line)}">Copy</button>`
       : "";
-    return `<div class="fact ${copy ? "has-copy" : ""}"><span>${this.escape(line)}</span>${copy}</div>`;
+    return `<div class="fact ${copy ? "has-copy" : ""}">${content}${copy}</div>`;
   }
 
   factCopyValue(value) {
@@ -1058,6 +1071,20 @@ class HouseNoticesCard extends HTMLElement {
       return String(value.value || value.text || value.fact || "").trim();
     }
     return explicit ? String(explicit).trim() : "";
+  }
+
+  factUrl(value) {
+    if (!value || typeof value !== "object") return "";
+    return String(value.url || value.href || value.link || "").trim();
+  }
+
+  renderLinkedFact(fact, line, url) {
+    const label = String(fact.label || fact.title || "").trim();
+    const body = String(fact.value || fact.text || fact.fact || line || "").trim();
+    const text = label && body
+      ? `${this.escape(label)}: <a href="${this.escapeAttr(url)}" target="_blank" rel="noopener noreferrer">${this.escape(body)}</a>`
+      : `<a href="${this.escapeAttr(url)}" target="_blank" rel="noopener noreferrer">${this.escape(line || url)}</a>`;
+    return `<span>${text}</span>`;
   }
 
   renderHistory(history) {
