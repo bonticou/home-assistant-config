@@ -1153,16 +1153,15 @@ views:
                 action: none
               triggers_update:
                 - device_tracker.unifi_default_42_15_78_4a_d9_f8
+                - sensor.casey_presence_timeline
               custom_fields:
                 timeline: |
                   [[[
                     var entityId = 'device_tracker.unifi_default_42_15_78_4a_d9_f8';
                     var entity = states[entityId] || {};
+                    var historyEntity = states['sensor.casey_presence_timeline'] || {};
                     var rawState = String(entity.state || 'unknown');
                     var changed = entity.last_changed ? new Date(entity.last_changed) : null;
-                    var updated = entity.last_updated ? new Date(entity.last_updated) : changed;
-                    var attrs = entity.attributes || {};
-                    var source = attrs.source_type || '';
                     var label = rawState === 'home'
                       ? 'Home'
                       : rawState === 'not_home'
@@ -1189,47 +1188,75 @@ views:
                       return sameDay ? clock : date.toLocaleDateString([], { month: 'short', day: 'numeric' }) + ' - ' + clock;
                     }
 
-                    var sourceLabel = source === 'router' ? 'Router presence' : source === 'gps' ? 'GPS presence' : 'Presence signal';
+                    function durationLabel(minutes) {
+                      minutes = Math.max(0, Math.round(Number(minutes) || 0));
+                      if (minutes < 1) return 'just now';
+                      if (minutes < 60) return minutes + 'm';
+                      var hours = Math.floor(minutes / 60);
+                      var rest = minutes % 60;
+                      if (hours < 24) return rest ? hours + 'h ' + rest + 'm' : hours + 'h';
+                      var days = Math.floor(hours / 24);
+                      var dayHours = hours % 24;
+                      return dayHours ? days + 'd ' + dayHours + 'h' : days + 'd';
+                    }
+
+                    function parseEvents(value) {
+                      if (Array.isArray(value)) return value;
+                      if (!value) return [];
+                      try { return JSON.parse(value); } catch (e) { return []; }
+                    }
+
+                    var history = parseEvents((historyEntity.attributes || {}).events_json)
+                      .filter(function(event) {
+                        var ended = event && event.ended_at ? new Date(String(event.ended_at).replace(' ', 'T')) : null;
+                        return ended && !isNaN(ended.getTime()) && Date.now() - ended.getTime() <= 86400000;
+                      })
+                      .slice(0, 4);
+
                     var steps = [
                       {
                         eyebrow: 'Now',
-                        title: label,
+                        title: label + (changed ? ' for ' + age(changed) : ''),
                         body: rawState === 'home'
-                          ? 'Casey is currently seen on the home network.'
+                          ? 'Seen on the home network.'
                           : rawState === 'not_home'
-                            ? 'Casey is currently off the home network. UniFi can lag a few minutes.'
+                            ? 'Off the home network. UniFi can lag a few minutes.'
                             : 'Current state is ' + label + '.',
                         tone: rawState === 'home' ? 'home' : 'away'
-                      },
-                      {
+                      }
+                    ];
+
+                    if (history.length) {
+                      for (var h = 0; h < history.length; h += 1) {
+                        var event = history[h] || {};
+                        var endedAt = event.ended_at ? new Date(String(event.ended_at).replace(' ', 'T')) : null;
+                        var eventLabel = event.label || (event.state === 'home' ? 'Home' : 'Away');
+                        var duration = durationLabel(event.duration_minutes);
+                        steps.push({
+                          eyebrow: time(endedAt),
+                          title: eventLabel + ' for ' + duration,
+                          body: event.ended_by ? 'Ended when Casey ' + event.ended_by + '.' : 'Previous presence period.',
+                          tone: event.state === 'home' ? 'home' : 'away'
+                        });
+                      }
+                    } else {
+                      steps.push({
                         eyebrow: time(changed),
                         title: rawState === 'home' ? 'Arrived home ' + age(changed) + ' ago' : 'Left home ' + age(changed) + ' ago',
                         body: rawState === 'home'
-                          ? 'Her phone came back onto the home network at this transition.'
-                          : 'Her phone was last detected at home before this transition.',
+                          ? 'Her phone came back onto the home network.'
+                          : 'Her phone was last detected at home before this.',
                         tone: 'transition'
-                      },
-                      {
-                        eyebrow: 'Signal',
-                        title: sourceLabel,
-                        body: 'Last checked ' + age(updated) + ' ago. This is a home/away signal, not exact location.',
-                        tone: 'signal'
-                      },
-                      {
-                        eyebrow: 'Location',
-                        title: 'Use Track Casey for live location',
-                        body: 'Find My is the right source when you need the actual map position.',
-                        tone: 'track'
-                      }
-                    ];
+                      });
+                    }
 
                     var html = '<div class="casey-story">';
                     for (var i = 0; i < steps.length; i += 1) {
                       var step = steps[i];
                       html += '<div class="casey-step casey-step-' + step.tone + '">'
+                        + '<div class="casey-when">' + step.eyebrow + '</div>'
                         + '<span class="casey-dot"></span>'
                         + '<div class="casey-copy">'
-                        + '<div class="casey-eyebrow">' + step.eyebrow + '</div>'
                         + '<div class="casey-title">' + step.title + '</div>'
                         + '<div class="casey-body">' + step.body + '</div>'
                         + '</div>'
@@ -1238,88 +1265,117 @@ views:
                     return html + '</div>';
                   ]]]
               styles:
+                grid:
+                  - grid-template-areas: '"timeline"'
+                  - grid-template-columns: 1fr
+                  - grid-template-rows: auto
                 card:
                   - border: 1px solid rgba(148, 163, 184, 0.22)
                   - box-shadow: 0 18px 44px rgba(2, 8, 23, 0.30)
                   - border-radius: 30px
-                  - padding: 18px 16px 16px
-                  - background: linear-gradient(180deg, rgba(15, 23, 42, 0.88), rgba(15, 23, 42, 0.68))
+                  - padding: 16px 14px
+                  - background: linear-gradient(180deg, rgba(15, 23, 42, 0.96), rgba(15, 23, 42, 0.90))
                   - text-align: left
+                  - overflow: hidden
                 custom_fields:
                   timeline:
                     - justify-self: stretch
                     - align-self: stretch
+                    - width: 100%
+                    - min-width: 0
+                    - max-width: 100%
+                    - overflow: hidden
+                    - text-align: left
               extra_styles: |
                 .casey-story {
                   position: relative;
                   display: grid;
                   gap: 0;
-                  padding: 2px 2px 0;
+                  width: 100%;
+                  max-width: 100%;
+                  padding: 2px 0 0;
+                  box-sizing: border-box;
+                  overflow: hidden;
                 }
                 .casey-story:before {
                   content: '';
                   position: absolute;
-                  left: 14px;
-                  top: 13px;
-                  bottom: 22px;
+                  left: 84px;
+                  top: 10px;
+                  bottom: 24px;
                   width: 2px;
                   border-radius: 999px;
-                  background: linear-gradient(180deg, rgba(45, 212, 191, 0.76), rgba(56, 189, 248, 0.26), rgba(148, 163, 184, 0.12));
+                  background: linear-gradient(180deg, rgba(45, 212, 191, 0.62), rgba(56, 189, 248, 0.36));
                 }
                 .casey-step {
                   position: relative;
                   display: grid;
-                  grid-template-columns: 30px 1fr;
-                  gap: 14px;
-                  min-height: 74px;
+                  grid-template-columns: 68px 18px minmax(0, 1fr);
+                  gap: 8px;
+                  align-items: start;
+                  min-height: auto;
+                  width: 100%;
+                  max-width: 100%;
+                }
+                .casey-when {
+                  color: #94a3b8;
+                  font-size: 11px;
+                  font-weight: 700;
+                  line-height: 1.25;
+                  letter-spacing: 0;
+                  text-align: right;
+                  text-transform: uppercase;
+                  padding-top: 1px;
+                  white-space: normal;
+                  overflow-wrap: break-word;
                 }
                 .casey-dot {
                   position: relative;
                   z-index: 1;
-                  width: 13px;
-                  height: 13px;
-                  margin: 7px 0 0 8px;
+                  width: 10px;
+                  height: 10px;
+                  margin: 3px 0 0 4px;
                   border-radius: 999px;
                   background: #38bdf8;
-                  box-shadow: 0 0 0 5px rgba(56, 189, 248, 0.14);
+                  box-shadow: 0 0 0 4px rgba(56, 189, 248, 0.14);
+                  border: 1px solid rgba(15, 23, 42, 0.92);
+                  box-sizing: border-box;
                 }
                 .casey-step-home .casey-dot {
                   background: #2dd4bf;
-                  box-shadow: 0 0 0 5px rgba(45, 212, 191, 0.16);
+                  box-shadow: 0 0 0 4px rgba(45, 212, 191, 0.16);
                 }
                 .casey-step-away .casey-dot {
                   background: #94a3b8;
-                  box-shadow: 0 0 0 5px rgba(148, 163, 184, 0.14);
+                  box-shadow: 0 0 0 4px rgba(148, 163, 184, 0.14);
                 }
                 .casey-copy {
-                  padding: 0 0 20px;
+                  min-width: 0;
+                  max-width: 100%;
+                  padding: 0 0 16px;
                   border-bottom: 1px solid rgba(148, 163, 184, 0.11);
+                  overflow: hidden;
                 }
                 .casey-step:last-child .casey-copy {
                   padding-bottom: 0;
                   border-bottom: none;
                 }
-                .casey-eyebrow {
-                  margin: 0 0 6px;
-                  color: #94a3b8;
-                  font-size: 12px;
-                  font-weight: 700;
-                  line-height: 1.2;
-                  text-transform: uppercase;
-                  letter-spacing: 0;
-                }
                 .casey-title {
                   color: #f8fafc;
-                  font-size: 18px;
+                  font-size: 15px;
                   font-weight: 700;
-                  line-height: 1.25;
+                  line-height: 1.2;
                   letter-spacing: 0;
+                  white-space: normal;
+                  overflow-wrap: anywhere;
                 }
                 .casey-body {
-                  margin-top: 6px;
+                  margin-top: 4px;
                   color: #cbd5e1;
-                  font-size: 14px;
-                  line-height: 1.45;
+                  font-size: 13px;
+                  line-height: 1.35;
+                  white-space: normal;
+                  overflow-wrap: anywhere;
                 }
 
       - type: custom:popup-card
