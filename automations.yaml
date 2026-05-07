@@ -35,7 +35,6 @@
         {% set old = trigger.event.data.old_state %}
         {% set motion_sources = {
           'binary_sensor.g6_instant_motion': 'Play Room',
-          'binary_sensor.g6_instant_motion_2': 'Front Yard',
           'binary_sensor.wynn_s_room_motion': "Wynn's Room",
           'binary_sensor.wynn_s_room_person_detected': "Wynn's Room",
           'binary_sensor.mud_room_motion': 'Mud Room',
@@ -52,7 +51,6 @@
         label: >-
           {% set motion_sources = {
             'binary_sensor.g6_instant_motion': 'Play Room',
-            'binary_sensor.g6_instant_motion_2': 'Front Yard',
             'binary_sensor.wynn_s_room_motion': "Wynn's Room",
             'binary_sensor.wynn_s_room_person_detected': "Wynn's Room",
             'binary_sensor.mud_room_motion': 'Mud Room',
@@ -2075,14 +2073,14 @@
         title: "🌙 Garden: protect starts tonight"
         message: >-
           Forecast lows: {{ state_attr('sensor.garden_weather_window', 'next_4_lows') }}.
-          Cover or bring in the crops whose thresholds are crossed before evening.
+          Cover planted warm crops only if practical; move potted outdoor starts somewhere warmer before evening.
         data:
           group: garden
           tag: garden-protection
           url: /calm-mobile/garden
           actions:
             - action: GARDEN_SNOOZE
-              title: Snooze
+              title: Dismiss today
     - action: input_datetime.set_datetime
       target:
         entity_id: input_datetime.garden_weather_last_notified_at

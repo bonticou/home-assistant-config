@@ -617,7 +617,6 @@ views:
           {% set stamp = states('input_datetime.latest_camera_motion_at') %}
           {% set motion_sources = {
             'binary_sensor.g6_instant_motion': 'Play Room',
-            'binary_sensor.g6_instant_motion_2': 'Front Yard',
             'binary_sensor.wynn_s_room_motion': "Wynn's Room",
             'binary_sensor.wynn_s_room_person_detected': "Wynn's Room",
             'binary_sensor.mud_room_motion': 'Mud Room',
@@ -636,7 +635,6 @@ views:
         icon_color: >-
           {% set motion_entities = [
             'binary_sensor.g6_instant_motion',
-            'binary_sensor.g6_instant_motion_2',
             'binary_sensor.wynn_s_room_motion',
             'binary_sensor.wynn_s_room_person_detected',
             'binary_sensor.mud_room_motion',

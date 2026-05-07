@@ -1662,6 +1662,9 @@ template:
             'binary_sensor.environment_attic_humidity_high_alert',
             'binary_sensor.environment_basement_radon_high_alert'
           ] %}
+          {% set garden_snooze = states('input_datetime.garden_notifications_snooze_until') %}
+          {% set garden_snoozed = garden_snooze not in ['unknown', 'unavailable', 'none', '']
+             and as_timestamp(garden_snooze, 0) > as_timestamp(now()) %}
           {% set ns = namespace(count=0, env_active=false) %}
           {% for entity_id in env_entities %}
             {% if is_state(entity_id, 'on') %}
@@ -1673,7 +1676,7 @@ template:
             is_state('binary_sensor.house_unsecured_while_away', 'on'),
             ns.env_active,
             is_state('binary_sensor.house_low_battery_alert', 'on'),
-            is_state('binary_sensor.garden_needs_attention', 'on'),
+            is_state('binary_sensor.garden_needs_attention', 'on') and not garden_snoozed,
             is_state('binary_sensor.wine_cave_actionable_alert', 'on'),
             is_state('binary_sensor.wine_cave_sensor_unavailable', 'on'),
             is_state('binary_sensor.espresso_maintenance_due', 'on'),
@@ -1716,6 +1719,9 @@ template:
               'binary_sensor.environment_attic_humidity_high_alert',
               'binary_sensor.environment_basement_radon_high_alert'
             ] %}
+            {% set garden_snooze = states('input_datetime.garden_notifications_snooze_until') %}
+            {% set garden_snoozed = garden_snooze not in ['unknown', 'unavailable', 'none', '']
+               and as_timestamp(garden_snooze, 0) > as_timestamp(now()) %}
             {% set ns = namespace(count=0, env_active=false) %}
             {% for entity_id in env_entities %}
               {% if is_state(entity_id, 'on') %}
@@ -1727,7 +1733,7 @@ template:
               is_state('binary_sensor.house_unsecured_while_away', 'on'),
               ns.env_active,
               is_state('binary_sensor.house_low_battery_alert', 'on'),
-              is_state('binary_sensor.garden_needs_attention', 'on'),
+              is_state('binary_sensor.garden_needs_attention', 'on') and not garden_snoozed,
               is_state('binary_sensor.wine_cave_actionable_alert', 'on'),
               is_state('binary_sensor.wine_cave_sensor_unavailable', 'on'),
               is_state('binary_sensor.espresso_maintenance_due', 'on'),
@@ -1936,43 +1942,53 @@ template:
                 'entity_id': 'sensor.house_low_battery_summary'
               }] %}
             {% endif %}
-            {% if is_state('binary_sensor.garden_needs_attention', 'on') %}
+            {% set garden_snooze = states('input_datetime.garden_notifications_snooze_until') %}
+            {% set garden_snoozed = garden_snooze not in ['unknown', 'unavailable', 'none', '']
+               and as_timestamp(garden_snooze, 0) > as_timestamp(now()) %}
+            {% if is_state('binary_sensor.garden_needs_attention', 'on') and not garden_snoozed %}
               {% set garden_action = state_attr('sensor.garden_next_action', 'action_id') | default('none', true) | string %}
-              {% set garden_action_label = 'Issue resolved' if garden_action[:14] == 'GARDEN_RESOLVE' else 'Mark planted' if garden_action[:11] == 'GARDEN_MARK' else 'Snooze' %}
               {% set garden_attention = state_attr('sensor.garden_workflow_status', 'attention_reason') | default(state_attr('sensor.garden_next_action', 'detail'), true) %}
               {% set garden_attention_type = state_attr('sensor.garden_workflow_status', 'attention_type') | default('garden_watch', true) %}
               {% set garden_lows = state_attr('sensor.garden_weather_window', 'next_4_lows') | default('Forecast unavailable', true) %}
               {% set garden_low = state_attr('sensor.garden_weather_window', 'lowest_low_4_day') | default('unknown', true) %}
               {% set garden_window = states('sensor.garden_weather_window') %}
               {% set garden_action_name = states('sensor.garden_next_action') %}
-              {% set garden_policy = state_attr('sensor.garden_workflow_status', 'notification_policy') | default('Garden attention is active.', true) %}
+              {% set garden_is_weather = garden_attention_type == 'weather_protection' %}
+              {% set garden_title = 'Garden cold-night watch' if garden_is_weather else 'Garden needs attention' %}
+              {% set garden_emoji = '🌙' if garden_is_weather else '🌱' %}
+              {% set garden_icon = 'mdi:weather-night' if garden_is_weather else 'mdi:sprout-outline' %}
+              {% set garden_due_prefix = 'Tonight' if garden_is_weather else 'Now' %}
+              {% set garden_summary = 'A cool night is forecast. Cover planted warm crops only if practical; move potted outdoor starts somewhere warmer before evening.' if garden_is_weather else garden_attention %}
+              {% set garden_facts = [
+                'Forecast lows: ' ~ garden_lows,
+                'Lowest forecast night: ' ~ garden_low ~ '°',
+                'Window: ' ~ garden_window,
+                'Dismissal: hides this garden watch until tomorrow'
+              ] if garden_is_weather else [
+                'Active task: ' ~ garden_action_name,
+                'Forecast lows: ' ~ garden_lows,
+                'Window: ' ~ garden_window,
+                'Dismissal: hides this garden notice until tomorrow'
+              ] %}
               {% set ns.items = ns.items + [{
                 'id': 'garden-window',
-                'title': 'Garden needs attention',
-                'emoji': '🌱',
-                'icon': 'mdi:sprout-outline',
+                'title': garden_title,
+                'emoji': garden_emoji,
+                'icon': garden_icon,
                 'group': 'Garden',
                 'state': 'active',
                 'severity': 'watch',
                 'date': now_stamp,
-                'due_prefix': 'Now',
-                'narrative': garden_attention,
-                'url': '/calm-mobile/garden',
+                'due_prefix': garden_due_prefix,
+                'narrative': garden_summary,
                 'entity_id': 'sensor.garden_workflow_status',
                 'details': {
-                  'summary': garden_attention,
-                  'facts': [
-                    'Attention type: ' ~ garden_attention_type,
-                    'Active task: ' ~ garden_action_name,
-                    'Forecast lows: ' ~ garden_lows,
-                    'Lowest forecast night: ' ~ garden_low ~ '°',
-                    'Window: ' ~ garden_window,
-                    'Policy: ' ~ garden_policy
-                  ],
-                  'after_action': 'After you handle or snooze this, Home Assistant clears the active garden notice and keeps watching planted-crop protection, unplanted crop stages, and stressed crop observations.',
+                  'summary': garden_summary,
+                  'facts': garden_facts,
+                  'after_action': 'After you dismiss this, Home Assistant keeps the garden model unchanged and stays quiet about this watch until tomorrow.',
                   'tracking': 'Garden details stay in the calm sheet; raw Home Assistant history is only for diagnostics.'
                 },
-                'actions': ([{'label': garden_action_label, 'service': 'script.garden_apply_next_action', 'confirm': true, 'inline': false}] if garden_action != 'none' else []) + [{'label': 'Snooze', 'service': 'script.garden_snooze_notifications'}]
+                'actions': ([{'label': 'Issue resolved' if garden_action[:14] == 'GARDEN_RESOLVE' else 'Mark planted', 'service': 'script.garden_apply_next_action', 'confirm': true, 'inline': false}] if garden_action != 'none' else []) + [{'label': 'Dismiss', 'service': 'script.garden_snooze_notifications'}]
               }] %}
             {% endif %}
             {% if is_state('binary_sensor.wine_cave_actionable_alert', 'on') or is_state('binary_sensor.wine_cave_sensor_unavailable', 'on') %}
@@ -4428,7 +4444,7 @@ template:
             {% elif states('binary_sensor.garden_stage_action_due') == 'on' %}
               Forecast lows: {{ lows }}. {{ states('sensor.garden_weather_window') }}.
             {% elif states('binary_sensor.garden_weather_protection_due') == 'on' %}
-              Forecast lows: {{ lows }}. Protect planted crops or outdoor starts whose threshold is crossed before evening.
+              Forecast lows: {{ lows }}. Cover planted warm crops only if practical; move potted outdoor starts somewhere warmer before evening.
             {% else %}
               Forecast lows: {{ lows }}. Climate normals are context; the live forecast decides.
             {% endif %}
