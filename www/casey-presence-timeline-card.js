@@ -171,6 +171,36 @@ class CaseyPresenceTimelineCard extends HTMLElement {
     return `${startLabel} - ${endLabel}`;
   }
 
+  dayWord(time) {
+    const date = new Date(time);
+    if (!Number.isFinite(date.getTime())) return "";
+    const today = new Date();
+    const yesterday = new Date(today);
+    yesterday.setDate(today.getDate() - 1);
+    if (date.toDateString() === today.toDateString()) return "today";
+    if (date.toDateString() === yesterday.toDateString()) return "yesterday";
+    return date.toLocaleDateString([], { month: "short", day: "numeric" });
+  }
+
+  contextualPeriod(period) {
+    const startDate = new Date(period.start);
+    const endDate = new Date(period.end);
+    const sameDay = startDate.toDateString() === endDate.toDateString();
+    const startDay = this.dayWord(period.start);
+    const endDay = this.dayWord(period.end);
+    const detail = `${startDay ? `${startDay} ` : ""}${this.timeLabel(period.start)} to ${endDay ? `${endDay} ` : ""}${this.timeLabel(period.end)}`;
+
+    if (sameDay) {
+      return { title: this.periodLabel(period.start, period.end), body: "" };
+    }
+
+    if (startDay === "yesterday" && endDay === "today") {
+      return { title: "Overnight", body: detail };
+    }
+
+    return { title: "Across days", body: detail };
+  }
+
   sourceLine() {
     const entity = this.currentEntity();
     const updated = new Date(entity?.last_updated || entity?.last_changed || Date.now()).getTime();
@@ -383,12 +413,13 @@ class CaseyPresenceTimelineCard extends HTMLElement {
     const tone = this.toneFor(period.state);
     const label = this.labelFor(period.state);
     const duration = this.durationLabel(period.end - period.start);
+    const completed = period.current ? null : this.contextualPeriod(period);
     const title = period.current
       ? `${label} for ${duration}`
-      : this.periodLabel(period.start, period.end);
+      : completed.title;
     const body = period.current
       ? `Since ${this.timeLabel(period.start)}${period.state === "not_home" ? " · UniFi can lag" : ""}.`
-      : "";
+      : completed.body;
     const stamp = period.current ? "Now" : label;
     const durationBadge = period.current ? "" : `<div class="duration">${duration}</div>`;
     const bodyMarkup = body ? `<div class="body">${body}</div>` : "";
