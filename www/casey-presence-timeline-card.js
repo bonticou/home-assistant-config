@@ -191,14 +191,14 @@ class CaseyPresenceTimelineCard extends HTMLElement {
     const detail = `${startDay ? `${startDay} ` : ""}${this.timeLabel(period.start)} to ${endDay ? `${endDay} ` : ""}${this.timeLabel(period.end)}`;
 
     if (sameDay) {
-      return { title: this.periodLabel(period.start, period.end), body: "" };
+      return { title: this.periodLabel(period.start, period.end), body: "", kind: "" };
     }
 
     if (startDay === "yesterday" && endDay === "today") {
-      return { title: "Overnight", body: detail };
+      return { title: "Overnight", body: detail, kind: "overnight" };
     }
 
-    return { title: "Across days", body: detail };
+    return { title: "Across days", body: detail, kind: "overnight" };
   }
 
   sourceLine() {
@@ -308,6 +308,10 @@ class CaseyPresenceTimelineCard extends HTMLElement {
           background: var(--casey-red);
           box-shadow: 0 0 0 4px rgba(251, 113, 133, 0.15);
         }
+        .overnight .dot {
+          background: #a78bfa;
+          box-shadow: 0 0 0 4px rgba(167, 139, 250, 0.17);
+        }
         .copy {
           min-width: 0;
           max-width: 100%;
@@ -325,6 +329,10 @@ class CaseyPresenceTimelineCard extends HTMLElement {
         .away .copy {
           border-color: rgba(251, 113, 133, 0.18);
           background: linear-gradient(180deg, rgba(127, 29, 29, 0.20), rgba(15, 23, 42, 0.44));
+        }
+        .overnight .copy {
+          border-color: rgba(167, 139, 250, 0.22);
+          background: linear-gradient(180deg, rgba(88, 28, 135, 0.24), rgba(15, 23, 42, 0.44));
         }
         .stamp {
           display: inline-flex;
@@ -364,6 +372,10 @@ class CaseyPresenceTimelineCard extends HTMLElement {
         .away .stamp {
           background: rgba(251, 113, 133, 0.13);
           color: #fecdd3;
+        }
+        .overnight .stamp {
+          background: rgba(167, 139, 250, 0.15);
+          color: #ddd6fe;
         }
         .title {
           margin-top: 7px;
@@ -423,9 +435,10 @@ class CaseyPresenceTimelineCard extends HTMLElement {
     const stamp = period.current ? "Now" : label;
     const durationBadge = period.current ? "" : `<div class="duration">${duration}</div>`;
     const bodyMarkup = body ? `<div class="body">${body}</div>` : "";
+    const contextClass = completed?.kind || "";
 
     return `
-      <div class="period ${tone}">
+      <div class="period ${tone} ${contextClass}">
         <div class="rail"><span class="dot"></span></div>
         <div class="copy">
           <div class="stamp-line"><div class="stamp">${stamp}</div>${durationBadge}</div>
