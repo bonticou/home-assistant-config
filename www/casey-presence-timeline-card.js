@@ -201,7 +201,7 @@ class CaseyPresenceTimelineCard extends HTMLElement {
           border: 1px solid rgba(148, 163, 184, 0.22);
           border-radius: 30px;
           overflow: hidden;
-          padding: 16px 14px 14px;
+          padding: 13px 12px 12px;
           background:
             radial-gradient(circle at 22px 26px, rgba(56, 189, 248, 0.13), transparent 34%),
             linear-gradient(180deg, rgba(15, 23, 42, 0.97), rgba(15, 23, 42, 0.91));
@@ -211,8 +211,8 @@ class CaseyPresenceTimelineCard extends HTMLElement {
           display: flex;
           align-items: center;
           justify-content: space-between;
-          gap: 12px;
-          padding: 1px 2px 13px 38px;
+          gap: 10px;
+          padding: 1px 2px 10px 34px;
         }
         .head-title {
           color: #f8fafc;
@@ -230,7 +230,7 @@ class CaseyPresenceTimelineCard extends HTMLElement {
         .timeline {
           position: relative;
           display: grid;
-          gap: 10px;
+          gap: 7px;
           width: 100%;
           box-sizing: border-box;
           overflow: hidden;
@@ -239,8 +239,8 @@ class CaseyPresenceTimelineCard extends HTMLElement {
           content: "";
           position: absolute;
           left: 12px;
-          top: 20px;
-          bottom: 22px;
+          top: 17px;
+          bottom: 18px;
           width: 2px;
           border-radius: 999px;
           background: linear-gradient(180deg, rgba(56, 189, 248, 0.76), rgba(251, 113, 133, 0.52), rgba(148, 163, 184, 0.18));
@@ -249,7 +249,7 @@ class CaseyPresenceTimelineCard extends HTMLElement {
           position: relative;
           display: grid;
           grid-template-columns: 26px minmax(0, 1fr);
-          gap: 10px;
+          gap: 8px;
           align-items: stretch;
           width: 100%;
           max-width: 100%;
@@ -259,31 +259,31 @@ class CaseyPresenceTimelineCard extends HTMLElement {
           z-index: 1;
           display: flex;
           justify-content: center;
-          padding-top: 18px;
+          padding-top: 15px;
         }
         .dot {
           position: relative;
           z-index: 1;
-          width: 13px;
-          height: 13px;
+          width: 11px;
+          height: 11px;
           border-radius: 999px;
           border: 1px solid rgba(15, 23, 42, 0.92);
           box-sizing: border-box;
         }
         .home .dot {
           background: var(--casey-blue);
-          box-shadow: 0 0 0 5px rgba(56, 189, 248, 0.18);
+          box-shadow: 0 0 0 4px rgba(56, 189, 248, 0.16);
         }
         .away .dot {
           background: var(--casey-red);
-          box-shadow: 0 0 0 5px rgba(251, 113, 133, 0.17);
+          box-shadow: 0 0 0 4px rgba(251, 113, 133, 0.15);
         }
         .copy {
           min-width: 0;
           max-width: 100%;
-          padding: 12px 13px 13px;
+          padding: 10px 11px 11px;
           border: 1px solid rgba(148, 163, 184, 0.14);
-          border-radius: 22px;
+          border-radius: 18px;
           background: linear-gradient(180deg, rgba(30, 41, 59, 0.54), rgba(15, 23, 42, 0.42));
           box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.035);
           overflow: hidden;
@@ -301,11 +301,11 @@ class CaseyPresenceTimelineCard extends HTMLElement {
           align-items: center;
           width: fit-content;
           max-width: 100%;
-          min-height: 22px;
-          padding: 3px 9px;
+          min-height: 20px;
+          padding: 3px 8px;
           border-radius: 999px;
           color: #cbd5e1;
-          font-size: 11px;
+          font-size: 10px;
           font-weight: 740;
           line-height: 1.1;
           letter-spacing: 0;
@@ -321,9 +321,9 @@ class CaseyPresenceTimelineCard extends HTMLElement {
           color: #fecdd3;
         }
         .title {
-          margin-top: 8px;
+          margin-top: 7px;
           color: #f8fafc;
-          font-size: 16px;
+          font-size: 14px;
           font-weight: 760;
           line-height: 1.18;
           letter-spacing: 0;
@@ -331,10 +331,10 @@ class CaseyPresenceTimelineCard extends HTMLElement {
           overflow-wrap: anywhere;
         }
         .body {
-          margin-top: 4px;
+          margin-top: 3px;
           color: #cbd5e1;
-          font-size: 13px;
-          line-height: 1.35;
+          font-size: 12px;
+          line-height: 1.32;
           white-space: normal;
           overflow-wrap: anywhere;
         }
@@ -367,14 +367,13 @@ class CaseyPresenceTimelineCard extends HTMLElement {
   renderPeriod(period) {
     const tone = this.toneFor(period.state);
     const label = this.labelFor(period.state);
-    const word = this.wordFor(period.state);
     const duration = this.durationLabel(period.end - period.start);
     const title = period.current
       ? `${label} for ${duration}`
-      : `Casey was ${word} from ${this.periodLabel(period.start, period.end)}`;
+      : `${label} · ${this.periodLabel(period.start, period.end)}`;
     const body = period.current
-      ? `${period.state === "home" ? "Home" : "Away"} since ${this.timeLabel(period.start)}.${period.state === "not_home" ? " UniFi can lag a few minutes." : ""}`
-      : `${duration} ${period.state === "home" ? "on" : "off"} the home network.`;
+      ? `Since ${this.timeLabel(period.start)}${period.state === "not_home" ? " · UniFi can lag" : ""}.`
+      : `${duration} ${period.state === "home" ? "on" : "off"} network.`;
     const stamp = period.current ? "Now" : label;
 
     return `

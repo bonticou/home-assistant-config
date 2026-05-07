@@ -1024,11 +1024,10 @@ views:
               entity: device_tracker.unifi_default_42_15_78_4a_d9_f8
               primary: >-
                 {% set entity = 'device_tracker.unifi_default_42_15_78_4a_d9_f8' %}
-                {% set since = relative_time(states[entity].last_changed) %}
                 {% if is_state(entity, 'home') %}
-                  Casey has been home for {{ since }}
+                  Casey is home
                 {% elif is_state(entity, 'not_home') %}
-                  Casey has been away for {{ since }}
+                  Casey is away
                 {% else %}
                   Casey is {{ states(entity) | replace('_', ' ') | title }}
                 {% endif %}
@@ -1090,6 +1089,7 @@ views:
               cards:
                 - type: custom:button-card
                   name: Call Casey
+                  show_name: false
                   icon: mdi:phone
                   tap_action:
                     action: url
@@ -1099,12 +1099,12 @@ views:
                       - border: 1px solid rgba(148, 163, 184, 0.20)
                       - box-shadow: 0 14px 28px rgba(2, 8, 23, 0.20)
                       - border-radius: 24px
-                      - padding: 14px 10px
-                      - min-height: 62px
+                      - padding: 12px 10px
+                      - min-height: 58px
                       - background: linear-gradient(180deg, rgba(22, 101, 52, 0.34), rgba(15, 23, 42, 0.72))
                     icon:
                       - color: '#4ade80'
-                      - width: 24px
+                      - width: 28px
                     name:
                       - color: '#f8fafc'
                       - font-size: 14px
@@ -1112,6 +1112,7 @@ views:
                       - letter-spacing: 0
                 - type: custom:button-card
                   name: Text Casey
+                  show_name: false
                   icon: mdi:message-text-outline
                   tap_action:
                     action: url
@@ -1122,14 +1123,15 @@ views:
                       - border: 1px solid rgba(148, 163, 184, 0.20)
                       - box-shadow: 0 14px 28px rgba(2, 8, 23, 0.20)
                       - border-radius: 24px
-                      - padding: 14px 10px
-                      - min-height: 62px
+                      - padding: 12px 10px
+                      - min-height: 58px
                       - background: linear-gradient(180deg, rgba(37, 99, 235, 0.34), rgba(15, 23, 42, 0.72))
                     icon:
                       - color: '#38bdf8'
-                      - width: 24px
+                      - width: 28px
                 - type: custom:button-card
                   name: Track Casey
+                  show_name: false
                   icon: mdi:map-marker-radius-outline
                   tap_action:
                     action: url
@@ -1140,12 +1142,12 @@ views:
                       - border: 1px solid rgba(148, 163, 184, 0.20)
                       - box-shadow: 0 14px 28px rgba(2, 8, 23, 0.20)
                       - border-radius: 24px
-                      - padding: 14px 10px
-                      - min-height: 62px
+                      - padding: 12px 10px
+                      - min-height: 58px
                       - background: linear-gradient(180deg, rgba(124, 58, 237, 0.30), rgba(15, 23, 42, 0.72))
                     icon:
                       - color: '#c4b5fd'
-                      - width: 24px
+                      - width: 28px
             - type: custom:casey-presence-timeline-card
               entity: device_tracker.unifi_default_42_15_78_4a_d9_f8
               hours: 24
