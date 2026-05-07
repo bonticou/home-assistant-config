@@ -13,7 +13,7 @@ lovelace:
       type: module
     - url: /local/radon-air-quality-card.js?v=6
       type: module
-    - url: /local/casey-presence-timeline-card.js?v=2
+    - url: /local/casey-presence-timeline-card.js?v=3
       type: module
   dashboards:
     calm-mobile:

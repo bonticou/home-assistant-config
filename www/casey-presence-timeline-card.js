@@ -312,6 +312,21 @@ class CaseyPresenceTimelineCard extends HTMLElement {
           white-space: normal;
           overflow-wrap: anywhere;
         }
+        .stamp-line {
+          display: flex;
+          align-items: center;
+          gap: 8px;
+          min-width: 0;
+        }
+        .duration {
+          min-width: 0;
+          color: rgba(203, 213, 225, 0.70);
+          font-size: 12px;
+          font-weight: 680;
+          line-height: 1.2;
+          letter-spacing: 0;
+          white-space: nowrap;
+        }
         .home .stamp {
           background: rgba(56, 189, 248, 0.14);
           color: #bae6fd;
@@ -370,19 +385,21 @@ class CaseyPresenceTimelineCard extends HTMLElement {
     const duration = this.durationLabel(period.end - period.start);
     const title = period.current
       ? `${label} for ${duration}`
-      : `${label} · ${this.periodLabel(period.start, period.end)}`;
+      : this.periodLabel(period.start, period.end);
     const body = period.current
       ? `Since ${this.timeLabel(period.start)}${period.state === "not_home" ? " · UniFi can lag" : ""}.`
-      : `${duration} ${period.state === "home" ? "on" : "off"} network.`;
+      : "";
     const stamp = period.current ? "Now" : label;
+    const durationBadge = period.current ? "" : `<div class="duration">${duration}</div>`;
+    const bodyMarkup = body ? `<div class="body">${body}</div>` : "";
 
     return `
       <div class="period ${tone}">
         <div class="rail"><span class="dot"></span></div>
         <div class="copy">
-          <div class="stamp">${stamp}</div>
+          <div class="stamp-line"><div class="stamp">${stamp}</div>${durationBadge}</div>
           <div class="title">${title}</div>
-          <div class="body">${body}</div>
+          ${bodyMarkup}
         </div>
       </div>
     `;
