@@ -2795,6 +2795,59 @@ views:
               icon:
                 - width: 18px
                 - color: '#818cf8'
+          - type: custom:button-card
+            entity: input_boolean.interior_lights_guest_override
+            name: Guest override
+            label: "[[[ return entity.state === 'on' ? 'Schedules paused' : 'Schedules normal'; ]]]"
+            icon: mdi:account-group-outline
+            show_state: false
+            show_label: true
+            tap_action:
+              action: toggle
+            styles:
+              <<: *lights_scene_button_styles
+              card:
+                - height: 64px
+                - padding: 0 14px
+                - border-radius: 18px
+                - border: 1px solid rgba(226, 232, 240, 0.1)
+                - background: linear-gradient(180deg, rgba(15, 23, 42, 0.34), rgba(30, 41, 59, 0.24))
+                - backdrop-filter: blur(12px)
+                - -webkit-backdrop-filter: blur(12px)
+                - box-shadow: 0 10px 22px rgba(2, 6, 23, 0.16)
+                - text-align: left
+              grid:
+                - grid-template-areas: '"i n" "i l"'
+                - grid-template-columns: 20px minmax(0, 1fr)
+                - grid-template-rows: min-content min-content
+                - column-gap: 10px
+                - align-content: center
+                - align-items: center
+              icon:
+                - width: 18px
+                - color: '#94a3b8'
+              label:
+                - justify-self: start
+                - margin-top: 2px
+                - font-size: 11px
+                - font-weight: 500
+                - color: rgba(203, 213, 225, 0.72)
+              name:
+                - justify-self: start
+                - font-size: 15px
+                - font-weight: 560
+                - letter-spacing: -0.01em
+                - color: rgba(248, 250, 252, 0.96)
+            state:
+              - value: "on"
+                styles:
+                  card:
+                    - border: 1px solid rgba(251, 191, 36, 0.42)
+                    - background: linear-gradient(180deg, rgba(146, 64, 14, 0.42), rgba(15, 23, 42, 0.28))
+                  icon:
+                    - color: '#fbbf24'
+                  label:
+                    - color: rgba(254, 243, 199, 0.86)
 
       - type: custom:mushroom-title-card
         title: Common areas
@@ -3046,18 +3099,21 @@ views:
         entity: binary_sensor.front_stairs_schedule_active
         primary: Front stairs light
         secondary: >-
+          {% set guest_override = is_state('input_boolean.interior_lights_guest_override', 'on') %}
           {% set active = is_state('binary_sensor.front_stairs_schedule_active', 'on') %}
           {% set target = states('sensor.front_stairs_schedule_brightness') | int(0) %}
           {% set threshold = 10 %}
           {% set elevation = state_attr('sun.sun', 'elevation') | float(0) | round(1) %}
-          {{ 'Active now' if active else 'Inactive now' }}
+          {{ 'Paused by guest override' if guest_override else ('Active now' if active else 'Inactive now') }}
           {% if active %} • {{ target }}% target{% endif %}
           • Sun {{ elevation }}°
           • Adaptive below {{ threshold }}°
         multiline_secondary: true
         icon: mdi:stairs
         icon_color: >-
-          {{ 'amber' if is_state('binary_sensor.front_stairs_schedule_active', 'on') else 'grey' }}
+          {% if is_state('input_boolean.interior_lights_guest_override', 'on') %}amber
+          {% elif is_state('binary_sensor.front_stairs_schedule_active', 'on') %}amber
+          {% else %}grey{% endif %}
         tap_action:
           action: more-info
         card_mod:
@@ -3067,18 +3123,21 @@ views:
         entity: binary_sensor.front_stairs_schedule_active
         primary: Foyer chandelier
         secondary: >-
+          {% set guest_override = is_state('input_boolean.interior_lights_guest_override', 'on') %}
           {% set active = is_state('binary_sensor.front_stairs_schedule_active', 'on') %}
           {% set target = 7 %}
           {% set threshold = 10 %}
           {% set elevation = state_attr('sun.sun', 'elevation') | float(0) | round(1) %}
-          {{ 'Active now' if active else 'Inactive now' }}
+          {{ 'Paused by guest override' if guest_override else ('Active now' if active else 'Inactive now') }}
           {% if active %} • {{ target }}% target{% endif %}
           • Sun {{ elevation }}°
           • Adaptive below {{ threshold }}°
         multiline_secondary: true
         icon: mdi:chandelier
         icon_color: >-
-          {{ 'amber' if is_state('binary_sensor.front_stairs_schedule_active', 'on') else 'grey' }}
+          {% if is_state('input_boolean.interior_lights_guest_override', 'on') %}amber
+          {% elif is_state('binary_sensor.front_stairs_schedule_active', 'on') %}amber
+          {% else %}grey{% endif %}
         tap_action:
           action: more-info
         card_mod:

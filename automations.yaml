@@ -924,18 +924,25 @@
 
 - id: front_stairs_schedule_sync
   alias: "Lights — Front Stairs Schedule Sync"
-  description: Keep the front stairs light synced to the adaptive sun-elevation evening schedule, while honoring the bedtime 4 percent override until the overnight schedule ends.
+  description: Keep the front stairs light synced to the adaptive sun-elevation evening schedule, while honoring the guest lighting override and bedtime 4 percent override until the overnight schedule ends.
   triggers:
     - trigger: homeassistant
       event: start
     - trigger: time_pattern
       minutes: "/15"
     - trigger: state
+      entity_id: input_boolean.interior_lights_guest_override
+      to: "off"
+    - trigger: state
       entity_id: binary_sensor.front_stairs_schedule_active
       to: "on"
     - trigger: state
       entity_id: binary_sensor.front_stairs_schedule_active
       to: "off"
+  conditions:
+    - condition: state
+      entity_id: input_boolean.interior_lights_guest_override
+      state: "off"
   actions:
     - choose:
         - conditions:
@@ -953,7 +960,7 @@
 
 - id: foyer_chandelier_schedule_sync
   alias: "Lights — Foyer Chandelier Schedule Sync"
-  description: Keep the foyer chandelier synced to the front stairs evening schedule while honoring the bedtime hold for the rest of the night.
+  description: Keep the foyer chandelier synced to the front stairs evening schedule while honoring the guest lighting override and bedtime hold for the rest of the night.
   triggers:
     - trigger: homeassistant
       event: start
@@ -961,6 +968,10 @@
     - trigger: time_pattern
       minutes: "/15"
       id: refresh
+    - trigger: state
+      entity_id: input_boolean.interior_lights_guest_override
+      to: "off"
+      id: guest_override_off
     - trigger: state
       entity_id: binary_sensor.front_stairs_schedule_active
       to: "on"
@@ -971,6 +982,10 @@
       for:
         minutes: 2
       id: schedule_off
+  conditions:
+    - condition: state
+      entity_id: input_boolean.interior_lights_guest_override
+      state: "off"
   actions:
     - choose:
         - conditions:
