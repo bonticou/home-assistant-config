@@ -4643,9 +4643,9 @@ template:
                 'duration_minutes': minutes,
                 'ended_by': 'arrived home' if to_state == 'home' else 'left home'
               } %}
-              {{ ([event] + kept.items)[:12] | to_json }}
+              {{ ([event] + kept.items)[:24] | to_json }}
             {% else %}
-              {{ kept.items[:12] | to_json }}
+              {{ kept.items[:24] | to_json }}
             {% endif %}
 
   - trigger:
