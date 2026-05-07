@@ -9,7 +9,7 @@ lovelace:
   resources:
     - url: /local/calm-mobile-scrollbars.js?v=6
       type: module
-    - url: /local/house-notices-card.js?v=40
+    - url: /local/house-notices-card.js?v=41
       type: module
     - url: /local/radon-air-quality-card.js?v=6
       type: module
@@ -2022,16 +2022,10 @@ template:
                 'details': {
                   'summary_title': 'What to do',
                   'summary': 'Put out household garbage plus ' ~ garbage_recycling_label ~ ' for the next North Castle Zone 4 pickup.',
-                  'facts_title': 'Schedule facts',
+                  'facts_title': 'Source',
                   'facts': [
-                    'Route: North Castle Zone 4 - Thursday',
-                    'Actual pickup: ' ~ garbage_pickup,
-                    'Scheduled Thursday: ' ~ garbage_scheduled,
-                    'Recycling stream: ' ~ garbage_recycling_label,
-                    ('Exception: ' ~ garbage_exception if garbage_exception | length > 0 else ''),
-                    'Set-out window: after 4:00 PM the day before pickup and before 7:00 AM pickup day',
                     {
-                      'label': 'Source',
+                      'label': 'Schedule',
                       'value': '2026 North Castle Waste and Alternate Week Recycling Schedule',
                       'url': state_attr('sensor.garbage_recycling_schedule', 'official_schedule_url')
                     }

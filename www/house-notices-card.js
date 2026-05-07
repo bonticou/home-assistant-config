@@ -208,6 +208,7 @@ class HouseNoticesCard extends HTMLElement {
 
   render() {
     if (!this.shadowRoot) return;
+    const detailScroll = this.captureDetailScroll();
     const timelineState = this._hass?.states?.[this.timelineEntity];
     const historyState = this._hass?.states?.[this.historyEntity];
     const items = this.normalizeItems(this.parseJson(timelineState?.attributes?.items_json, []));
@@ -841,6 +842,28 @@ class HouseNoticesCard extends HTMLElement {
       ${detailItem ? this.renderDetailSheet(detailItem) : ""}
     `;
     this.bindEvents();
+    this.restoreDetailScroll(detailScroll);
+  }
+
+  captureDetailScroll() {
+    if (!this._detailItemId) return null;
+    const body = this.shadowRoot.querySelector("[data-sheet-body]");
+    if (!body) return null;
+    return {
+      itemId: this._detailItemId,
+      top: body.scrollTop,
+      left: body.scrollLeft,
+    };
+  }
+
+  restoreDetailScroll(detailScroll) {
+    if (!detailScroll || detailScroll.itemId !== this._detailItemId) return;
+    window.requestAnimationFrame(() => {
+      const body = this.shadowRoot.querySelector("[data-sheet-body]");
+      if (!body) return;
+      body.scrollTop = detailScroll.top;
+      body.scrollLeft = detailScroll.left;
+    });
   }
 
   renderSection(title, items, opts = {}) {
@@ -994,7 +1017,7 @@ class HouseNoticesCard extends HTMLElement {
             </div>
             <button class="sheet-close" data-close-detail aria-label="Close details"><ha-icon icon="mdi:close"></ha-icon></button>
           </div>
-          <div class="sheet-body">
+          <div class="sheet-body" data-sheet-body>
             <div class="sheet-section">
               <div class="sheet-section-title">${this.escape(detail.summaryTitle)}</div>
               <div class="sheet-summary">${this.escape(detail.summary)}</div>
