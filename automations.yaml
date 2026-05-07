@@ -635,6 +635,8 @@
             Paid
           {% elif 'DONE' in action_id or 'REPLACED' in action_id or 'CAPTURED' in action_id %}
             Done
+          {% elif 'TAKEN_OUT' in action_id %}
+            Taken out
           {% elif 'APPLIED' in action_id %}
             Applied
           {% elif 'RENEWED' in action_id %}
@@ -2449,6 +2451,65 @@
       value_template: "{{ trigger.event.data.action == 'ROBISON_OIL_PRICE_CHECK_DONE' }}"
   actions:
     - action: script.robison_oil_mark_price_check_done
+  mode: parallel
+  max: 5
+
+- id: garbage_recycling_reminders
+  alias: "Garbage Recycling - Night Before And Morning Reminders"
+  description: Sends North Castle Zone 4 garbage and recycling reminders until the current pickup is marked taken out.
+  triggers:
+    - trigger: time
+      at: "19:00:00"
+      id: evening
+    - trigger: time
+      at: "06:30:00"
+      id: morning
+  conditions:
+    - condition: state
+      entity_id: input_boolean.garbage_recycling_reminders_enabled
+      state: "on"
+  actions:
+    - variables:
+        pickup: "{{ states('sensor.garbage_recycling_next_pickup') }}"
+        today: "{{ now().strftime('%Y-%m-%d') }}"
+        tomorrow: "{{ (now() + timedelta(days=1)).strftime('%Y-%m-%d') }}"
+        taken: "{{ states('input_text.garbage_recycling_last_taken_out_pickup') }}"
+        should_send: >-
+          {{ pickup not in ['unknown', 'unavailable', 'none', '']
+             and taken != pickup
+             and (
+               (trigger.id == 'evening' and pickup == tomorrow)
+               or (trigger.id == 'morning' and pickup == today)
+             ) }}
+    - condition: template
+      value_template: "{{ should_send }}"
+    - action: script.garbage_recycling_send_reminder
+      data:
+        stage: "{{ trigger.id }}"
+        pickup_date: "{{ pickup }}"
+  mode: single
+
+- id: garbage_recycling_notification_actions
+  alias: "Garbage Recycling - Notification Actions"
+  description: Handles Taken out actions from garbage and recycling reminders.
+  triggers:
+    - trigger: event
+      event_type: mobile_app_notification_action
+  conditions:
+    - condition: template
+      value_template: "{{ trigger.event.data.action == 'GARBAGE_RECYCLING_TAKEN_OUT' }}"
+  actions:
+    - variables:
+        tag: "{{ trigger.event.data.tag | default('', true) }}"
+        pickup: >-
+          {% if tag[:18] == 'garbage-recycling-' and tag | length >= 28 %}
+            {{ tag[-10:] }}
+          {% else %}
+            {{ states('sensor.garbage_recycling_next_pickup') }}
+          {% endif %}
+    - action: script.garbage_recycling_mark_taken_out
+      data:
+        pickup_date: "{{ pickup | trim }}"
   mode: parallel
   max: 5
 

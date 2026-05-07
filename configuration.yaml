@@ -263,6 +263,10 @@ input_datetime:
     has_date: true
     has_time: true
     initial: "1970-01-01 00:00:00"
+  garbage_recycling_last_taken_out_at:
+    name: Garbage Recycling Last Taken Out At
+    has_date: true
+    has_time: true
   # Antique Steinway piano care
   # durable record: ../house-manager/assets/antique-steinway-piano.md
   piano_last_tuned:
@@ -398,6 +402,9 @@ input_text:
   latest_camera_motion_entity:
     name: Latest Camera Motion Entity
     max: 255
+  garbage_recycling_last_taken_out_pickup:
+    name: Garbage Recycling Last Taken Out Pickup
+    max: 10
 
 input_boolean:
   foyer_chandelier_sleep_hold:
@@ -429,6 +436,10 @@ input_boolean:
   business_admin_reminders_enabled:
     name: Business Admin Reminders Enabled
     icon: mdi:briefcase-check-outline
+    initial: true
+  garbage_recycling_reminders_enabled:
+    name: Garbage Recycling Reminders Enabled
+    icon: mdi:trash-can-outline
     initial: true
   water_flow_alert_active:
     name: Water Flow Alert Active
@@ -1006,6 +1017,173 @@ template:
             {% endif %}
           {% endif %}
 
+      - name: "Garbage Recycling Schedule"
+        unique_id: garbage_recycling_schedule
+        icon: mdi:trash-can-outline
+        state: "Zone 4 - Thursday"
+        attributes:
+          address: "45 Chestnut Ridge Rd"
+          authority: "Town of North Castle"
+          route: "Zone 4 - Thursday"
+          contractor: "Suburban Carting"
+          contractor_phone: "1-800-273-9394"
+          official_schedule_url: "https://northcastleny.com/DocumentCenter/View/368/Waste-and-Alternate-Week-Recycling-Calendar-PDF"
+          source: "house-manager/utilities/garbage-recycling-ha-notification-handoff-2026.md"
+          items_json: >
+            {% set schedule = [
+              {'scheduled_thursday': '2026-01-01', 'actual_pickup': '2026-01-02', 'recycling': 'paper recycling', 'exception': "New Year's Day; no Thursday pickup", 'rescheduled_pickup': '2026-01-02'},
+              {'scheduled_thursday': '2026-01-08', 'actual_pickup': '2026-01-08', 'recycling': 'non-paper', 'exception': '', 'rescheduled_pickup': ''},
+              {'scheduled_thursday': '2026-01-15', 'actual_pickup': '2026-01-15', 'recycling': 'paper recycling', 'exception': '', 'rescheduled_pickup': ''},
+              {'scheduled_thursday': '2026-01-22', 'actual_pickup': '2026-01-22', 'recycling': 'non-paper', 'exception': '', 'rescheduled_pickup': ''},
+              {'scheduled_thursday': '2026-01-29', 'actual_pickup': '2026-01-29', 'recycling': 'paper recycling', 'exception': '', 'rescheduled_pickup': ''},
+              {'scheduled_thursday': '2026-02-05', 'actual_pickup': '2026-02-05', 'recycling': 'non-paper', 'exception': '', 'rescheduled_pickup': ''},
+              {'scheduled_thursday': '2026-02-12', 'actual_pickup': '2026-02-12', 'recycling': 'paper recycling', 'exception': '', 'rescheduled_pickup': ''},
+              {'scheduled_thursday': '2026-02-19', 'actual_pickup': '2026-02-20', 'recycling': 'non-paper', 'exception': "Presidents' Day week one-day delay; no Thursday pickup", 'rescheduled_pickup': '2026-02-20'},
+              {'scheduled_thursday': '2026-02-26', 'actual_pickup': '2026-02-26', 'recycling': 'paper recycling', 'exception': '', 'rescheduled_pickup': ''},
+              {'scheduled_thursday': '2026-03-05', 'actual_pickup': '2026-03-05', 'recycling': 'non-paper', 'exception': '', 'rescheduled_pickup': ''},
+              {'scheduled_thursday': '2026-03-12', 'actual_pickup': '2026-03-12', 'recycling': 'paper recycling', 'exception': '', 'rescheduled_pickup': ''},
+              {'scheduled_thursday': '2026-03-19', 'actual_pickup': '2026-03-19', 'recycling': 'non-paper', 'exception': '', 'rescheduled_pickup': ''},
+              {'scheduled_thursday': '2026-03-26', 'actual_pickup': '2026-03-26', 'recycling': 'paper recycling', 'exception': '', 'rescheduled_pickup': ''},
+              {'scheduled_thursday': '2026-04-02', 'actual_pickup': '2026-04-02', 'recycling': 'non-paper', 'exception': '', 'rescheduled_pickup': ''},
+              {'scheduled_thursday': '2026-04-09', 'actual_pickup': '2026-04-09', 'recycling': 'paper recycling', 'exception': '', 'rescheduled_pickup': ''},
+              {'scheduled_thursday': '2026-04-16', 'actual_pickup': '2026-04-16', 'recycling': 'non-paper', 'exception': '', 'rescheduled_pickup': ''},
+              {'scheduled_thursday': '2026-04-23', 'actual_pickup': '2026-04-23', 'recycling': 'paper recycling', 'exception': '', 'rescheduled_pickup': ''},
+              {'scheduled_thursday': '2026-04-30', 'actual_pickup': '2026-04-30', 'recycling': 'non-paper', 'exception': '', 'rescheduled_pickup': ''},
+              {'scheduled_thursday': '2026-05-07', 'actual_pickup': '2026-05-07', 'recycling': 'paper recycling', 'exception': '', 'rescheduled_pickup': ''},
+              {'scheduled_thursday': '2026-05-14', 'actual_pickup': '2026-05-14', 'recycling': 'non-paper', 'exception': '', 'rescheduled_pickup': ''},
+              {'scheduled_thursday': '2026-05-21', 'actual_pickup': '2026-05-21', 'recycling': 'paper recycling', 'exception': '', 'rescheduled_pickup': ''},
+              {'scheduled_thursday': '2026-05-28', 'actual_pickup': '2026-05-29', 'recycling': 'non-paper', 'exception': 'Memorial Day week one-day delay; no Thursday pickup', 'rescheduled_pickup': '2026-05-29'},
+              {'scheduled_thursday': '2026-06-04', 'actual_pickup': '2026-06-04', 'recycling': 'paper recycling', 'exception': '', 'rescheduled_pickup': ''},
+              {'scheduled_thursday': '2026-06-11', 'actual_pickup': '2026-06-11', 'recycling': 'non-paper', 'exception': '', 'rescheduled_pickup': ''},
+              {'scheduled_thursday': '2026-06-18', 'actual_pickup': '2026-06-18', 'recycling': 'paper recycling', 'exception': '', 'rescheduled_pickup': ''},
+              {'scheduled_thursday': '2026-06-25', 'actual_pickup': '2026-06-25', 'recycling': 'non-paper', 'exception': '', 'rescheduled_pickup': ''},
+              {'scheduled_thursday': '2026-07-02', 'actual_pickup': '2026-07-02', 'recycling': 'paper recycling', 'exception': '', 'rescheduled_pickup': ''},
+              {'scheduled_thursday': '2026-07-09', 'actual_pickup': '2026-07-09', 'recycling': 'non-paper', 'exception': '', 'rescheduled_pickup': ''},
+              {'scheduled_thursday': '2026-07-16', 'actual_pickup': '2026-07-16', 'recycling': 'paper recycling', 'exception': '', 'rescheduled_pickup': ''},
+              {'scheduled_thursday': '2026-07-23', 'actual_pickup': '2026-07-23', 'recycling': 'non-paper', 'exception': '', 'rescheduled_pickup': ''},
+              {'scheduled_thursday': '2026-07-30', 'actual_pickup': '2026-07-30', 'recycling': 'paper recycling', 'exception': '', 'rescheduled_pickup': ''},
+              {'scheduled_thursday': '2026-08-06', 'actual_pickup': '2026-08-06', 'recycling': 'non-paper', 'exception': '', 'rescheduled_pickup': ''},
+              {'scheduled_thursday': '2026-08-13', 'actual_pickup': '2026-08-13', 'recycling': 'paper recycling', 'exception': '', 'rescheduled_pickup': ''},
+              {'scheduled_thursday': '2026-08-20', 'actual_pickup': '2026-08-20', 'recycling': 'non-paper', 'exception': '', 'rescheduled_pickup': ''},
+              {'scheduled_thursday': '2026-08-27', 'actual_pickup': '2026-08-27', 'recycling': 'paper recycling', 'exception': '', 'rescheduled_pickup': ''},
+              {'scheduled_thursday': '2026-09-03', 'actual_pickup': '2026-09-03', 'recycling': 'non-paper', 'exception': '', 'rescheduled_pickup': ''},
+              {'scheduled_thursday': '2026-09-10', 'actual_pickup': '2026-09-11', 'recycling': 'paper recycling', 'exception': 'Labor Day week one-day delay; no Thursday pickup', 'rescheduled_pickup': '2026-09-11'},
+              {'scheduled_thursday': '2026-09-17', 'actual_pickup': '2026-09-17', 'recycling': 'non-paper', 'exception': '', 'rescheduled_pickup': ''},
+              {'scheduled_thursday': '2026-09-24', 'actual_pickup': '2026-09-24', 'recycling': 'paper recycling', 'exception': '', 'rescheduled_pickup': ''},
+              {'scheduled_thursday': '2026-10-01', 'actual_pickup': '2026-10-01', 'recycling': 'non-paper', 'exception': '', 'rescheduled_pickup': ''},
+              {'scheduled_thursday': '2026-10-08', 'actual_pickup': '2026-10-08', 'recycling': 'paper recycling', 'exception': '', 'rescheduled_pickup': ''},
+              {'scheduled_thursday': '2026-10-15', 'actual_pickup': '2026-10-15', 'recycling': 'non-paper', 'exception': '', 'rescheduled_pickup': ''},
+              {'scheduled_thursday': '2026-10-22', 'actual_pickup': '2026-10-22', 'recycling': 'paper recycling', 'exception': '', 'rescheduled_pickup': ''},
+              {'scheduled_thursday': '2026-10-29', 'actual_pickup': '2026-10-29', 'recycling': 'non-paper', 'exception': '', 'rescheduled_pickup': ''},
+              {'scheduled_thursday': '2026-11-05', 'actual_pickup': '2026-11-05', 'recycling': 'paper recycling', 'exception': '', 'rescheduled_pickup': ''},
+              {'scheduled_thursday': '2026-11-12', 'actual_pickup': '2026-11-12', 'recycling': 'non-paper', 'exception': '', 'rescheduled_pickup': ''},
+              {'scheduled_thursday': '2026-11-19', 'actual_pickup': '2026-11-19', 'recycling': 'paper recycling', 'exception': '', 'rescheduled_pickup': ''},
+              {'scheduled_thursday': '2026-11-26', 'actual_pickup': '2026-11-27', 'recycling': 'non-paper', 'exception': 'Thanksgiving Day; no Thursday pickup', 'rescheduled_pickup': '2026-11-27'},
+              {'scheduled_thursday': '2026-12-03', 'actual_pickup': '2026-12-03', 'recycling': 'paper recycling', 'exception': '', 'rescheduled_pickup': ''},
+              {'scheduled_thursday': '2026-12-10', 'actual_pickup': '2026-12-10', 'recycling': 'non-paper', 'exception': '', 'rescheduled_pickup': ''},
+              {'scheduled_thursday': '2026-12-17', 'actual_pickup': '2026-12-17', 'recycling': 'paper recycling', 'exception': '', 'rescheduled_pickup': ''},
+              {'scheduled_thursday': '2026-12-24', 'actual_pickup': '2026-12-24', 'recycling': 'non-paper', 'exception': '', 'rescheduled_pickup': ''},
+              {'scheduled_thursday': '2026-12-31', 'actual_pickup': '2026-12-31', 'recycling': 'paper recycling', 'exception': '', 'rescheduled_pickup': ''}
+            ] %}
+            {{ schedule | to_json }}
+
+      - name: "Garbage Recycling Next Pickup"
+        unique_id: garbage_recycling_next_pickup
+        device_class: date
+        icon: mdi:trash-can-outline
+        state: >
+          {% set raw = state_attr('sensor.garbage_recycling_schedule', 'items_json') | default('[]', true) %}
+          {% set schedule = raw | from_json if raw is string else raw %}
+          {% set today = now().strftime('%Y-%m-%d') %}
+          {% set taken = states('input_text.garbage_recycling_last_taken_out_pickup') %}
+          {% set ns = namespace(pickup='') %}
+          {% for item in schedule %}
+            {% if ns.pickup == ''
+               and item.actual_pickup >= today
+               and item.actual_pickup != taken %}
+              {% set ns.pickup = item.actual_pickup %}
+            {% endif %}
+          {% endfor %}
+          {{ ns.pickup if ns.pickup else 'unknown' }}
+        attributes:
+          scheduled_thursday: >
+            {% set raw = state_attr('sensor.garbage_recycling_schedule', 'items_json') | default('[]', true) %}
+            {% set schedule = raw | from_json if raw is string else raw %}
+            {% set pickup = states('sensor.garbage_recycling_next_pickup') %}
+            {% set ns = namespace(value='') %}
+            {% for item in schedule %}
+              {% if ns.value == '' and item.actual_pickup == pickup %}
+                {% set ns.value = item.scheduled_thursday %}
+              {% endif %}
+            {% endfor %}
+            {{ ns.value }}
+          recycling: >
+            {% set raw = state_attr('sensor.garbage_recycling_schedule', 'items_json') | default('[]', true) %}
+            {% set schedule = raw | from_json if raw is string else raw %}
+            {% set pickup = states('sensor.garbage_recycling_next_pickup') %}
+            {% set ns = namespace(value='') %}
+            {% for item in schedule %}
+              {% if ns.value == '' and item.actual_pickup == pickup %}
+                {% set ns.value = item.recycling %}
+              {% endif %}
+            {% endfor %}
+            {{ ns.value }}
+          recycling_label: >
+            {% set stream = state_attr('sensor.garbage_recycling_next_pickup', 'recycling') %}
+            {{ 'paper/cardboard recycling' if stream == 'paper recycling' else 'glass, cans and plastic recycling' if stream == 'non-paper' else stream }}
+          exception: >
+            {% set raw = state_attr('sensor.garbage_recycling_schedule', 'items_json') | default('[]', true) %}
+            {% set schedule = raw | from_json if raw is string else raw %}
+            {% set pickup = states('sensor.garbage_recycling_next_pickup') %}
+            {% set ns = namespace(value='') %}
+            {% for item in schedule %}
+              {% if ns.value == '' and item.actual_pickup == pickup %}
+                {% set ns.value = item.exception %}
+              {% endif %}
+            {% endfor %}
+            {{ ns.value }}
+          rescheduled_pickup: >
+            {% set raw = state_attr('sensor.garbage_recycling_schedule', 'items_json') | default('[]', true) %}
+            {% set schedule = raw | from_json if raw is string else raw %}
+            {% set pickup = states('sensor.garbage_recycling_next_pickup') %}
+            {% set ns = namespace(value='') %}
+            {% for item in schedule %}
+              {% if ns.value == '' and item.actual_pickup == pickup %}
+                {% set ns.value = item.rescheduled_pickup %}
+              {% endif %}
+            {% endfor %}
+            {{ ns.value }}
+          route: "North Castle Zone 4 - Thursday"
+          set_out_window: "After 4:00 PM the day before pickup and before 7:00 AM pickup day"
+          last_taken_out_pickup: "{{ states('input_text.garbage_recycling_last_taken_out_pickup') }}"
+          last_taken_out_at: "{{ states('input_datetime.garbage_recycling_last_taken_out_at') }}"
+
+      - name: "Garbage Recycling Status"
+        unique_id: garbage_recycling_status
+        icon: >
+          {% if is_state('binary_sensor.garbage_recycling_takeout_due', 'on') %}
+            mdi:trash-can-outline
+          {% else %}
+            mdi:trash-can-check-outline
+          {% endif %}
+        state: >
+          {% set pickup = states('sensor.garbage_recycling_next_pickup') %}
+          {% set stream = state_attr('sensor.garbage_recycling_next_pickup', 'recycling_label') %}
+          {% if not is_state('input_boolean.garbage_recycling_reminders_enabled', 'on') %}
+            Off
+          {% elif pickup in ['unknown', 'unavailable', 'none', ''] %}
+            No 2026 pickup scheduled
+          {% else %}
+            {% set days = ((as_timestamp(strptime(pickup, '%Y-%m-%d')) - as_timestamp(today_at('00:00:00'))) / 86400) | int %}
+            {% if days == 0 %}
+              Pickup today: garbage + {{ stream }}
+            {% elif days == 1 %}
+              Put out tonight: garbage + {{ stream }}
+            {% else %}
+              Next pickup {{ as_timestamp(strptime(pickup, '%Y-%m-%d')) | timestamp_custom('%b %-d', true) }}: garbage + {{ stream }}
+            {% endif %}
+          {% endif %}
+
       - name: "Piano Next Tuning Due"
         unique_id: piano_next_tuning_due
         device_class: date
@@ -1506,6 +1684,7 @@ template:
             is_state('binary_sensor.casey_passport_renewal_due', 'on'),
             is_state('binary_sensor.casey_driver_license_renewal_due', 'on'),
             is_state('binary_sensor.bonticou_llc_de_franchise_tax_due', 'on'),
+            is_state('binary_sensor.garbage_recycling_takeout_due', 'on'),
             is_state('binary_sensor.wine_cave_maintenance_due', 'on')
           ] %}
             {% if active %}
@@ -1559,6 +1738,7 @@ template:
               is_state('binary_sensor.casey_passport_renewal_due', 'on'),
               is_state('binary_sensor.casey_driver_license_renewal_due', 'on'),
               is_state('binary_sensor.bonticou_llc_de_franchise_tax_due', 'on'),
+              is_state('binary_sensor.garbage_recycling_takeout_due', 'on'),
               is_state('binary_sensor.wine_cave_maintenance_due', 'on')
             ] %}
               {% if active %}
@@ -1586,6 +1766,7 @@ template:
               states('input_datetime.casey_passport_expiration_date'),
               states('input_datetime.casey_driver_license_expiration_date'),
               states('sensor.bonticou_llc_de_franchise_tax_due_date'),
+              states('sensor.garbage_recycling_next_pickup'),
               robison_tune if robison_tune >= today else (now().year + 1) ~ '-03-25',
               robison_price if robison_price >= today else (now().year + 1) ~ '-08-20',
               wine_filter,
@@ -1632,6 +1813,7 @@ template:
               states('input_datetime.casey_passport_expiration_date'),
               states('input_datetime.casey_driver_license_expiration_date'),
               states('sensor.bonticou_llc_de_franchise_tax_due_date'),
+              states('sensor.garbage_recycling_next_pickup'),
               robison_tune if robison_tune >= today else (now().year + 1) ~ '-03-25',
               robison_price if robison_price >= today else (now().year + 1) ~ '-08-20',
               states('sensor.wine_cave_next_charcoal_filter_due'),
@@ -1807,6 +1989,58 @@ template:
                 'narrative': 'Sensor unavailable' if is_state('binary_sensor.wine_cave_sensor_unavailable', 'on') else states('sensor.wine_cave_status'),
                 'url': '/calm-mobile/wine',
                 'entity_id': 'sensor.wine_cave_status'
+              }] %}
+            {% endif %}
+            {% set garbage_pickup = states('sensor.garbage_recycling_next_pickup') %}
+            {% if is_state('input_boolean.garbage_recycling_reminders_enabled', 'on')
+               and garbage_pickup not in ['unknown', 'unavailable', 'none', ''] %}
+              {% set garbage_active = is_state('binary_sensor.garbage_recycling_takeout_due', 'on') %}
+              {% set garbage_stream = state_attr('sensor.garbage_recycling_next_pickup', 'recycling') | default('', true) %}
+              {% set garbage_recycling_label = state_attr('sensor.garbage_recycling_next_pickup', 'recycling_label') | default(garbage_stream, true) %}
+              {% set garbage_exception = state_attr('sensor.garbage_recycling_next_pickup', 'exception') | default('', true) %}
+              {% set garbage_scheduled = state_attr('sensor.garbage_recycling_next_pickup', 'scheduled_thursday') | default('', true) %}
+              {% set garbage_title = 'Garbage + paper recycling' if garbage_stream == 'paper recycling' else 'Garbage + non-paper recycling' %}
+              {% set ns.items = ns.items + [{
+                'id': 'garbage-recycling-' ~ garbage_pickup,
+                'title': garbage_title,
+                'emoji': '🗑️',
+                'icon': 'mdi:trash-can-outline',
+                'group': 'House care',
+                'state': 'due' if garbage_active else 'upcoming',
+                'severity': 'watch' if garbage_active else 'info',
+                'date': garbage_pickup,
+                'due_prefix': 'Pickup',
+                'badge': 'pickup' if garbage_active else '',
+                'badge_class': 'due' if garbage_active else '',
+                'show_in_upcoming': true,
+                'basis_date': garbage_scheduled if garbage_exception | length > 0 else '',
+                'basis_prefix': 'normal Thursday',
+                'narrative': ('Put out garbage and ' ~ garbage_recycling_label ~ '.') ~ (' ' ~ garbage_exception ~ '.' if garbage_exception | length > 0 else ''),
+                'url': state_attr('sensor.garbage_recycling_schedule', 'official_schedule_url'),
+                'entity_id': 'sensor.garbage_recycling_status',
+                'details': {
+                  'summary_title': 'What to do',
+                  'summary': 'Put out household garbage plus ' ~ garbage_recycling_label ~ ' for the next North Castle Zone 4 pickup.',
+                  'facts_title': 'Schedule facts',
+                  'facts': [
+                    'Route: North Castle Zone 4 - Thursday',
+                    'Actual pickup: ' ~ garbage_pickup,
+                    'Scheduled Thursday: ' ~ garbage_scheduled,
+                    'Recycling stream: ' ~ garbage_recycling_label,
+                    ('Exception: ' ~ garbage_exception if garbage_exception | length > 0 else ''),
+                    'Set-out window: after 4:00 PM the day before pickup and before 7:00 AM pickup day',
+                    'Source: 2026 North Castle Waste and Alternate Week Recycling Schedule'
+                  ] | reject('eq', '') | list,
+                  'after_action': 'After you tap Taken out, Home Assistant stamps this pickup date as handled, clears the push notification, and removes this cycle from Needs Attention.',
+                  'tracking': 'Future weekly garbage and alternate recycling pickups stay on the timeline from the 2026 Zone 4 schedule.',
+                  'timeline_title': 'Timing',
+                  'timeline': [
+                    'After 4:00 PM the day before: bins may go to the curb.',
+                    'By 7:00 AM pickup day: garbage and the listed recycling stream should be out.',
+                    'Within 12 hours after collection: bring containers back from the curb.'
+                  ]
+                },
+                'actions': ([{'label': 'Taken out', 'service': 'script.garbage_recycling_mark_taken_out', 'data': {'pickup_date': garbage_pickup}, 'inline': false}] if garbage_active else [])
               }] %}
             {% endif %}
             {% set water_last = as_timestamp(states('input_datetime.espresso_last_water_backflush'), 0) %}
@@ -2442,6 +2676,20 @@ template:
           {% endif %}
         icon: >
           {{ 'mdi:calendar-alert' if is_state('binary_sensor.bonticou_llc_de_franchise_tax_due', 'on') else 'mdi:briefcase-check-outline' }}
+
+      - name: "Garbage Recycling Takeout Due"
+        unique_id: garbage_recycling_takeout_due
+        state: >
+          {% set pickup = states('sensor.garbage_recycling_next_pickup') %}
+          {% set taken = states('input_text.garbage_recycling_last_taken_out_pickup') %}
+          {% set today = now().strftime('%Y-%m-%d') %}
+          {% set tomorrow = (now() + timedelta(days=1)).strftime('%Y-%m-%d') %}
+          {{ is_state('input_boolean.garbage_recycling_reminders_enabled', 'on')
+             and pickup not in ['unknown', 'unavailable', 'none', '']
+             and pickup in [today, tomorrow]
+             and taken != pickup }}
+        icon: >
+          {{ 'mdi:trash-can-outline' if is_state('binary_sensor.garbage_recycling_takeout_due', 'on') else 'mdi:trash-can-check-outline' }}
 
   - sensor:
       - name: "Main Floor Temp Avg"

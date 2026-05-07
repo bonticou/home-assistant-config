@@ -1174,6 +1174,116 @@ robison_oil_mark_price_check_done:
         data:
           tag: robison-oil-price-check
 
+garbage_recycling_send_reminder:
+  alias: Garbage Recycling Send Reminder
+  description: Sends Zone 4 garbage and recycling reminders the night before and morning of pickup.
+  icon: mdi:trash-can-outline
+  mode: restart
+  fields:
+    stage:
+      description: Reminder stage, either evening or morning
+      example: evening
+    pickup_date:
+      description: Actual pickup date from the Zone 4 schedule
+      example: "2026-05-14"
+  sequence:
+    - variables:
+        reminder_stage: "{{ stage | default('evening', true) }}"
+        pickup: >-
+          {% set provided = pickup_date | default('', true) %}
+          {{ provided if provided not in ['unknown', 'unavailable', 'none', ''] else states('sensor.garbage_recycling_next_pickup') }}
+        pickup_label: "{{ strptime(pickup | trim, '%Y-%m-%d').strftime('%A, %B %-d') }}"
+        pickup_day: "{{ strptime(pickup | trim, '%Y-%m-%d').strftime('%A') }}"
+        recycling_stream: "{{ state_attr('sensor.garbage_recycling_next_pickup', 'recycling') | default('', true) }}"
+        recycling_label: "{{ state_attr('sensor.garbage_recycling_next_pickup', 'recycling_label') | default(recycling_stream, true) }}"
+        title_stream: "{{ 'paper recycling' if recycling_stream == 'paper recycling' else 'non-paper recycling' }}"
+        exception: "{{ state_attr('sensor.garbage_recycling_next_pickup', 'exception') | default('', true) }}"
+        notification_tag: "{{ 'garbage-recycling-' ~ (pickup | trim) }}"
+        notification_title: >-
+          {% if exception | length > 0 %}
+            🗑️ Garbage pickup moved to {{ pickup_day }}
+          {% elif reminder_stage == 'morning' %}
+            🗑️ Garbage + {{ title_stream }} this morning
+          {% else %}
+            🗑️ Garbage + {{ title_stream }} tomorrow
+          {% endif %}
+        notification_message: >-
+          {% if exception | length > 0 %}
+            {{ exception }}.
+            Actual pickup is {{ pickup_label }}.
+          {% else %}
+            Pickup is {{ pickup_label }}.
+          {% endif %}
+          Put out household garbage plus {{ recycling_label }}
+          {{ 'before 7:00 AM.' if reminder_stage == 'morning' else 'after 4:00 PM tonight.' }}
+          Tap Taken out once the bins are at the curb.
+    - condition: template
+      value_template: >-
+        {{ pickup | trim not in ['unknown', 'unavailable', 'none', '']
+           and states('input_text.garbage_recycling_last_taken_out_pickup') != (pickup | trim) }}
+    - action: script.notify_trevor_phone
+      data:
+        title: "{{ notification_title | trim }}"
+        message: "{{ notification_message | regex_replace('\\s+', ' ') | trim }}"
+        data:
+          group: house-care
+          tag: "{{ notification_tag }}"
+          url: /calm-mobile/notices
+          actions:
+            - action: GARBAGE_RECYCLING_TAKEN_OUT
+              title: Taken out
+
+garbage_recycling_mark_taken_out:
+  alias: Garbage Recycling Mark Taken Out
+  description: Marks the current garbage and recycling pickup as taken out and clears the reminder.
+  icon: mdi:trash-can-check-outline
+  mode: restart
+  fields:
+    pickup_date:
+      description: Actual pickup date being handled
+      example: "2026-05-14"
+  sequence:
+    - variables:
+        pickup: >-
+          {% set provided = pickup_date | default('', true) %}
+          {{ provided if provided not in ['unknown', 'unavailable', 'none', ''] else states('sensor.garbage_recycling_next_pickup') }}
+        taken_now: "{{ now().strftime('%Y-%m-%d %H:%M:%S') }}"
+    - condition: template
+      value_template: "{{ pickup | trim not in ['unknown', 'unavailable', 'none', ''] }}"
+    - action: input_text.set_value
+      target:
+        entity_id: input_text.garbage_recycling_last_taken_out_pickup
+      data:
+        value: "{{ pickup | trim }}"
+    - action: input_datetime.set_datetime
+      target:
+        entity_id: input_datetime.garbage_recycling_last_taken_out_at
+      data:
+        datetime: "{{ taken_now }}"
+    - action: script.garbage_recycling_clear_notification
+      data:
+        pickup_date: "{{ pickup | trim }}"
+
+garbage_recycling_clear_notification:
+  alias: Garbage Recycling Clear Notification
+  description: Clears the active garbage and recycling reminder notification tag.
+  icon: mdi:trash-can-check-outline
+  mode: restart
+  fields:
+    pickup_date:
+      description: Actual pickup date to clear
+      example: "2026-05-14"
+  sequence:
+    - variables:
+        pickup: >-
+          {% set provided = pickup_date | default('', true) %}
+          {{ provided if provided not in ['unknown', 'unavailable', 'none', ''] else states('input_text.garbage_recycling_last_taken_out_pickup') }}
+    - action: script.notify_trevor_phone
+      data:
+        message: clear_notification
+        data:
+          tag: "{{ 'garbage-recycling-' ~ (pickup | trim) }}"
+
 property_tax_send_reminder:
   alias: Property Tax Send Reminder
   description: Sends bill-ready and daily due-week property tax reminders.
