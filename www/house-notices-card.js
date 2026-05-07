@@ -1116,7 +1116,7 @@ class HouseNoticesCard extends HTMLElement {
       : "";
     const rows = history.length
       ? history.map((event) => this.renderHistoryRow(event)).join("")
-      : `<div class="empty">All quiet. Recent notices will appear here when something needs your attention.</div>`;
+      : `<div class="empty">Hear that? Enjoy the peace and quiet.</div>`;
     return `
       <section class="section">
         <div class="section-head">
