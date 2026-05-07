@@ -13,6 +13,8 @@ lovelace:
       type: module
     - url: /local/radon-air-quality-card.js?v=6
       type: module
+    - url: /local/casey-presence-timeline-card.js?v=1
+      type: module
   dashboards:
     calm-mobile:
       mode: yaml
@@ -4584,69 +4586,6 @@ template:
           attention_type: "{{ state_attr('sensor.garden_workflow_status', 'attention_type') }}"
           reason: "{{ state_attr('sensor.garden_workflow_status', 'attention_reason') }}"
           ready_to_plant: "{{ state_attr('sensor.garden_workflow_status', 'ready_to_plant') }}"
-
-  - trigger:
-      - platform: state
-        entity_id: device_tracker.unifi_default_42_15_78_4a_d9_f8
-      - platform: time_pattern
-        minutes: "/15"
-      - platform: homeassistant
-        event: start
-    sensor:
-      - name: "Casey Presence Timeline"
-        unique_id: casey_presence_timeline
-        state: >
-          {% set casey = states('device_tracker.unifi_default_42_15_78_4a_d9_f8') %}
-          {% if casey == 'home' %}
-            Home
-          {% elif casey == 'not_home' %}
-            Away
-          {% else %}
-            {{ casey | replace('_', ' ') | title }}
-          {% endif %}
-        icon: >
-          {{ 'mdi:home-heart'
-             if is_state('device_tracker.unifi_default_42_15_78_4a_d9_f8', 'home')
-             else 'mdi:home-export-outline' }}
-        attributes:
-          events_json: >
-            {% set existing_raw = this.attributes.get('events_json', []) if this is defined and this.attributes is defined else [] %}
-            {% set parsed = namespace(items=[]) %}
-            {% if existing_raw is string and existing_raw | length > 0 %}
-              {% set parsed.items = existing_raw | from_json %}
-            {% elif existing_raw is iterable %}
-              {% set parsed.items = existing_raw | list %}
-            {% endif %}
-            {% set cutoff = as_timestamp(now()) - 86400 %}
-            {% set kept = namespace(items=[]) %}
-            {% for item in parsed.items %}
-              {% if as_timestamp(item.ended_at | default('', true), 0) >= cutoff %}
-                {% set kept.items = kept.items + [item] %}
-              {% endif %}
-            {% endfor %}
-            {% set from_state = trigger.from_state.state | default('', true) if trigger is defined and trigger.from_state is defined and trigger.from_state else '' %}
-            {% set to_state = trigger.to_state.state | default('', true) if trigger is defined and trigger.to_state is defined and trigger.to_state else '' %}
-            {% set valid_states = ['home', 'not_home'] %}
-            {% if trigger is defined
-               and trigger.platform == 'state'
-               and from_state in valid_states
-               and to_state in valid_states
-               and from_state != to_state %}
-              {% set start_ts = as_timestamp(trigger.from_state.last_changed, 0) %}
-              {% set end_ts = as_timestamp(trigger.to_state.last_changed, as_timestamp(now())) %}
-              {% set minutes = ((end_ts - start_ts) / 60) | round(0) | int(0) %}
-              {% set event = {
-                'state': from_state,
-                'label': 'Home' if from_state == 'home' else 'Away',
-                'started_at': start_ts | timestamp_custom('%Y-%m-%d %H:%M:%S', true),
-                'ended_at': end_ts | timestamp_custom('%Y-%m-%d %H:%M:%S', true),
-                'duration_minutes': minutes,
-                'ended_by': 'arrived home' if to_state == 'home' else 'left home'
-              } %}
-              {{ ([event] + kept.items)[:24] | to_json }}
-            {% else %}
-              {{ kept.items[:24] | to_json }}
-            {% endif %}
 
   - trigger:
       - platform: event
