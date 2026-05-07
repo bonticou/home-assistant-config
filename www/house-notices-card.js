@@ -339,6 +339,7 @@ class HouseNoticesCard extends HTMLElement {
           line-height: 1;
         }
         .emoji-mark {
+          position: relative;
           display: inline-flex;
           align-items: center;
           justify-content: center;
@@ -348,6 +349,17 @@ class HouseNoticesCard extends HTMLElement {
         .emoji-mark span {
           display: block;
           line-height: 1;
+        }
+        .emoji-mark.emoji-pair span:first-child {
+          position: absolute;
+          left: 5px;
+          top: 5px;
+          font-size: 11px;
+          opacity: 0.9;
+        }
+        .emoji-mark.emoji-pair span:last-child {
+          font-size: 17px;
+          transform: translate(5px, 5px);
         }
         .mark ha-icon {
           --mdc-icon-size: 18px;
@@ -526,6 +538,15 @@ class HouseNoticesCard extends HTMLElement {
           height: 44px;
           font-size: 20px;
           background: rgba(148, 163, 184, 0.16);
+        }
+        .sheet-mark .emoji-mark.emoji-pair span:first-child {
+          left: 7px;
+          top: 7px;
+          font-size: 13px;
+        }
+        .sheet-mark .emoji-mark.emoji-pair span:last-child {
+          font-size: 21px;
+          transform: translate(6px, 6px);
         }
         .sheet-copy {
           min-width: 0;
@@ -839,8 +860,10 @@ class HouseNoticesCard extends HTMLElement {
   renderMark(item) {
     const emoji = item.emoji || "";
     if (emoji) {
-      const mark = this.emojiParts(emoji)[0] || emoji;
-      return `<div class="mark emoji-mark"><span>${this.escape(mark)}</span></div>`;
+      const parts = this.emojiParts(emoji).slice(0, 2);
+      const mark = parts.length ? parts : [emoji];
+      const pairClass = mark.length > 1 ? " emoji-pair" : "";
+      return `<div class="mark emoji-mark${pairClass}">${mark.map((part) => `<span>${this.escape(part)}</span>`).join("")}</div>`;
     }
     return `<div class="mark"><ha-icon icon="${this.escapeAttr(item.icon || "mdi:bell-outline")}"></ha-icon></div>`;
   }
@@ -869,7 +892,7 @@ class HouseNoticesCard extends HTMLElement {
     }
     if (!leading.length) return { emoji: "", title: text };
     return {
-      emoji: leading[leading.length - 1],
+      emoji: leading.slice(0, 2).join(""),
       title: parts.join("").trim() || text,
     };
   }

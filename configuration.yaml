@@ -9,7 +9,7 @@ lovelace:
   resources:
     - url: /local/calm-mobile-scrollbars.js?v=6
       type: module
-    - url: /local/house-notices-card.js?v=38
+    - url: /local/house-notices-card.js?v=39
       type: module
     - url: /local/radon-air-quality-card.js?v=6
       type: module
@@ -2000,11 +2000,13 @@ template:
               {% set garbage_exception = state_attr('sensor.garbage_recycling_next_pickup', 'exception') | default('', true) %}
               {% set garbage_scheduled = state_attr('sensor.garbage_recycling_next_pickup', 'scheduled_thursday') | default('', true) %}
               {% set garbage_title = 'Garbage + paper recycling' if garbage_stream == 'paper recycling' else 'Garbage + non-paper recycling' %}
+              {% set garbage_emoji = '♻️📦' if garbage_stream == 'paper recycling' else '♻️🥫' %}
+              {% set garbage_icon = 'mdi:package-variant-closed' if garbage_stream == 'paper recycling' else 'mdi:bottle-soda-classic-outline' %}
               {% set ns.items = ns.items + [{
                 'id': 'garbage-recycling-' ~ garbage_pickup,
                 'title': garbage_title,
-                'emoji': '🗑️',
-                'icon': 'mdi:trash-can-outline',
+                'emoji': garbage_emoji,
+                'icon': garbage_icon,
                 'group': 'House care',
                 'state': 'due' if garbage_active else 'upcoming',
                 'severity': 'watch' if garbage_active else 'info',
