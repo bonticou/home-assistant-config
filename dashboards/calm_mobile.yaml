@@ -1156,41 +1156,41 @@ views:
               custom_fields:
                 timeline: |
                   [[[
-                    const entityId = 'device_tracker.unifi_default_42_15_78_4a_d9_f8';
-                    const entity = states[entityId];
-                    const rawState = entity?.state || 'unknown';
-                    const changed = entity?.last_changed ? new Date(entity.last_changed) : null;
-                    const updated = entity?.last_updated ? new Date(entity.last_updated) : changed;
-                    const source = entity?.attributes?.source_type;
-                    const label = rawState === 'home'
+                    var entityId = 'device_tracker.unifi_default_42_15_78_4a_d9_f8';
+                    var entity = states[entityId] || {};
+                    var rawState = String(entity.state || 'unknown');
+                    var changed = entity.last_changed ? new Date(entity.last_changed) : null;
+                    var updated = entity.last_updated ? new Date(entity.last_updated) : changed;
+                    var attrs = entity.attributes || {};
+                    var source = attrs.source_type || '';
+                    var label = rawState === 'home'
                       ? 'Home'
                       : rawState === 'not_home'
                         ? 'Away'
-                        : rawState.replace(/_/g, ' ').replace(/\b\w/g, (m) => m.toUpperCase());
-                    const age = (date) => {
-                      if (!date || Number.isNaN(date.getTime())) return 'recently';
-                      const minutes = Math.max(0, Math.round((Date.now() - date.getTime()) / 60000));
+                        : rawState.replace(/_/g, ' ');
+
+                    function age(date) {
+                      if (!date || isNaN(date.getTime())) return 'recently';
+                      var minutes = Math.max(0, Math.round((Date.now() - date.getTime()) / 60000));
                       if (minutes < 1) return 'just now';
-                      if (minutes < 60) return `${minutes}m`;
-                      const hours = Math.floor(minutes / 60);
-                      const rest = minutes % 60;
-                      if (hours < 24) return rest ? `${hours}h ${rest}m` : `${hours}h`;
-                      const days = Math.floor(hours / 24);
-                      const dayHours = hours % 24;
-                      return dayHours ? `${days}d ${dayHours}h` : `${days}d`;
-                    };
-                    const time = (date) => {
-                      if (!date || Number.isNaN(date.getTime())) return 'Recently';
-                      const sameDay = date.toDateString() === new Date().toDateString();
-                      const clock = date.toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' });
-                      return sameDay ? clock : `${date.toLocaleDateString([], { month: 'short', day: 'numeric' })} · ${clock}`;
-                    };
-                    const sourceLabel = source === 'router'
-                      ? 'Router presence'
-                      : source === 'gps'
-                        ? 'GPS presence'
-                        : 'Presence signal';
-                    const steps = [
+                      if (minutes < 60) return minutes + 'm';
+                      var hours = Math.floor(minutes / 60);
+                      var rest = minutes % 60;
+                      if (hours < 24) return rest ? hours + 'h ' + rest + 'm' : hours + 'h';
+                      var days = Math.floor(hours / 24);
+                      var dayHours = hours % 24;
+                      return dayHours ? days + 'd ' + dayHours + 'h' : days + 'd';
+                    }
+
+                    function time(date) {
+                      if (!date || isNaN(date.getTime())) return 'Recently';
+                      var sameDay = date.toDateString() === new Date().toDateString();
+                      var clock = date.toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' });
+                      return sameDay ? clock : date.toLocaleDateString([], { month: 'short', day: 'numeric' }) + ' - ' + clock;
+                    }
+
+                    var sourceLabel = source === 'router' ? 'Router presence' : source === 'gps' ? 'GPS presence' : 'Presence signal';
+                    var steps = [
                       {
                         eyebrow: 'Now',
                         title: label,
@@ -1198,44 +1198,44 @@ views:
                           ? 'Casey is currently seen on the home network.'
                           : rawState === 'not_home'
                             ? 'Casey is currently off the home network. UniFi can lag a few minutes.'
-                            : `Current state is ${label.toLowerCase()}.`,
-                        tone: rawState === 'home' ? 'home' : 'away',
+                            : 'Current state is ' + label + '.',
+                        tone: rawState === 'home' ? 'home' : 'away'
                       },
                       {
                         eyebrow: time(changed),
-                        title: rawState === 'home' ? `Arrived home ${age(changed)} ago` : `Left home ${age(changed)} ago`,
+                        title: rawState === 'home' ? 'Arrived home ' + age(changed) + ' ago' : 'Left home ' + age(changed) + ' ago',
                         body: rawState === 'home'
                           ? 'Her phone came back onto the home network at this transition.'
                           : 'Her phone was last detected at home before this transition.',
-                        tone: 'transition',
+                        tone: 'transition'
                       },
                       {
                         eyebrow: 'Signal',
                         title: sourceLabel,
-                        body: `Last checked ${age(updated)} ago. This is a home/away signal, not exact location.`,
-                        tone: 'signal',
+                        body: 'Last checked ' + age(updated) + ' ago. This is a home/away signal, not exact location.',
+                        tone: 'signal'
                       },
                       {
                         eyebrow: 'Location',
                         title: 'Use Track Casey for live location',
                         body: 'Find My is the right source when you need the actual map position.',
-                        tone: 'track',
-                      },
+                        tone: 'track'
+                      }
                     ];
-                    return `
-                      <div class="casey-story">
-                        ${steps.map((step) => `
-                          <div class="casey-step casey-step-${step.tone}">
-                            <span class="casey-dot"></span>
-                            <div class="casey-copy">
-                              <div class="casey-eyebrow">${step.eyebrow}</div>
-                              <div class="casey-title">${step.title}</div>
-                              <div class="casey-body">${step.body}</div>
-                            </div>
-                          </div>
-                        `).join('')}
-                      </div>
-                    `;
+
+                    var html = '<div class="casey-story">';
+                    for (var i = 0; i < steps.length; i += 1) {
+                      var step = steps[i];
+                      html += '<div class="casey-step casey-step-' + step.tone + '">'
+                        + '<span class="casey-dot"></span>'
+                        + '<div class="casey-copy">'
+                        + '<div class="casey-eyebrow">' + step.eyebrow + '</div>'
+                        + '<div class="casey-title">' + step.title + '</div>'
+                        + '<div class="casey-body">' + step.body + '</div>'
+                        + '</div>'
+                        + '</div>';
+                    }
+                    return html + '</div>';
                   ]]]
               styles:
                 card:
