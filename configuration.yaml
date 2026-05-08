@@ -1540,11 +1540,28 @@ template:
       - name: "away_security_issue_summary"
         unique_id: away_security_issue_summary
         state: >
+          {% set entry_locks = {
+            'lock.garage_entry_lock': 'garage entry',
+            'lock.mudroom_door_lock': 'mudroom door'
+          } %}
+          {% set lock_ns = namespace(names=[]) %}
+          {% for entity_id, label in entry_locks.items() %}
+            {% if is_state(entity_id, 'unlocked') %}
+              {% set lock_ns.names = lock_ns.names + [label] %}
+            {% endif %}
+          {% endfor %}
+          {% if lock_ns.names | count == 1 %}
+            {% set unlocked_entry_issue = lock_ns.names[0] ~ ' unlocked' %}
+          {% elif lock_ns.names | count > 1 %}
+            {% set unlocked_entry_issue = lock_ns.names | count ~ ' entry doors unlocked' %}
+          {% else %}
+            {% set unlocked_entry_issue = '' %}
+          {% endif %}
           {% set light_names = state_attr('sensor.away_security_active_lights', 'names') | default('', true) %}
           {% set lights = (light_names.split('||') if light_names else []) | reject('eq', '') | list %}
           {% set ns = namespace(items=[]) %}
-          {% if is_state('lock.garage_entry_lock', 'unlocked') %}
-            {% set ns.items = ns.items + ['garage door unlocked'] %}
+          {% if unlocked_entry_issue %}
+            {% set ns.items = ns.items + [unlocked_entry_issue] %}
           {% endif %}
           {% if lights | count == 1 %}
             {% set ns.items = ns.items + [lights[0] ~ ' on'] %}
@@ -1553,13 +1570,113 @@ template:
           {% endif %}
           {{ ns.items | join(' and ') if ns.items else 'House secure' }}
         icon: >
-          {% if is_state('lock.garage_entry_lock', 'unlocked') %}
+          {% set entry_locks = [
+            'lock.garage_entry_lock',
+            'lock.mudroom_door_lock'
+          ] %}
+          {% set ns = namespace(unlocked=false) %}
+          {% for entity_id in entry_locks %}
+            {% if is_state(entity_id, 'unlocked') %}
+              {% set ns.unlocked = true %}
+            {% endif %}
+          {% endfor %}
+          {% if ns.unlocked %}
             mdi:lock-open-alert-outline
           {% elif states('sensor.away_security_active_lights') | int(0) > 0 %}
             mdi:lightbulb-alert-outline
           {% else %}
             mdi:shield-home-outline
           {% endif %}
+
+      - name: "away_security_unlocked_entry_locks"
+        unique_id: away_security_unlocked_entry_locks
+        icon: >
+          {% set locks = {
+            'lock.garage_entry_lock': 'garage entry',
+            'lock.mudroom_door_lock': 'mudroom door'
+          } %}
+          {% set ns = namespace(count=0) %}
+          {% for entity_id, label in locks.items() %}
+            {% if is_state(entity_id, 'unlocked') %}
+              {% set ns.count = ns.count + 1 %}
+            {% endif %}
+          {% endfor %}
+          {{ 'mdi:lock-open-alert-outline' if ns.count > 0 else 'mdi:lock-check-outline' }}
+        state: >
+          {% set locks = {
+            'lock.garage_entry_lock': 'garage entry',
+            'lock.mudroom_door_lock': 'mudroom door'
+          } %}
+          {% set ns = namespace(count=0) %}
+          {% for entity_id, label in locks.items() %}
+            {% if is_state(entity_id, 'unlocked') %}
+              {% set ns.count = ns.count + 1 %}
+            {% endif %}
+          {% endfor %}
+          {{ ns.count }}
+        attributes:
+          names: >
+            {% set locks = {
+              'lock.garage_entry_lock': 'garage entry',
+              'lock.mudroom_door_lock': 'mudroom door'
+            } %}
+            {% set ns = namespace(names=[]) %}
+            {% for entity_id, label in locks.items() %}
+              {% if is_state(entity_id, 'unlocked') %}
+                {% set ns.names = ns.names + [label] %}
+              {% endif %}
+            {% endfor %}
+            {{ ns.names | join('||') }}
+          entity_ids: >
+            {% set locks = {
+              'lock.garage_entry_lock': 'garage entry',
+              'lock.mudroom_door_lock': 'mudroom door'
+            } %}
+            {% set ns = namespace(entity_ids=[]) %}
+            {% for entity_id, label in locks.items() %}
+              {% if is_state(entity_id, 'unlocked') %}
+                {% set ns.entity_ids = ns.entity_ids + [entity_id] %}
+              {% endif %}
+            {% endfor %}
+            {{ ns.entity_ids | join('||') }}
+          label: >
+            {% set locks = {
+              'lock.garage_entry_lock': 'garage entry',
+              'lock.mudroom_door_lock': 'mudroom door'
+            } %}
+            {% set ns = namespace(names=[]) %}
+            {% for entity_id, label in locks.items() %}
+              {% if is_state(entity_id, 'unlocked') %}
+                {% set ns.names = ns.names + [label] %}
+              {% endif %}
+            {% endfor %}
+            {% set names = ns.names %}
+            {% if names | count == 1 %}
+              {{ names[0] }}
+            {% elif names | count > 1 %}
+              {{ names | count }} entry doors
+            {% else %}
+              Clear
+            {% endif %}
+          issue: >
+            {% set locks = {
+              'lock.garage_entry_lock': 'garage entry',
+              'lock.mudroom_door_lock': 'mudroom door'
+            } %}
+            {% set ns = namespace(names=[]) %}
+            {% for entity_id, label in locks.items() %}
+              {% if is_state(entity_id, 'unlocked') %}
+                {% set ns.names = ns.names + [label] %}
+              {% endif %}
+            {% endfor %}
+            {% set names = ns.names %}
+            {% if names | count == 1 %}
+              {{ names[0] }} unlocked
+            {% elif names | count > 1 %}
+              {{ names | count }} entry doors unlocked
+            {% else %}
+              {{ '' }}
+            {% endif %}
 
       - name: "Espresso Maintenance Status"
         unique_id: espresso_maintenance_status
@@ -2448,9 +2565,14 @@ template:
           {% set casey_away = casey_state not in ['home', 'unknown', 'unavailable', ''] %}
           {% set everyone_away = trevor_away and casey_away %}
           {% set lights_on = states('sensor.away_security_active_lights') | int(0) > 0 %}
-          {{ everyone_away and (is_state('lock.garage_entry_lock', 'unlocked') or lights_on) }}
+          {% set entry_locks_unlocked = (
+            is_state('lock.garage_entry_lock', 'unlocked')
+            or is_state('lock.mudroom_door_lock', 'unlocked')
+          ) %}
+          {{ everyone_away and (entry_locks_unlocked or lights_on) }}
         icon: >
-          {% if is_state('lock.garage_entry_lock', 'unlocked') %}
+          {% if is_state('lock.garage_entry_lock', 'unlocked')
+             or is_state('lock.mudroom_door_lock', 'unlocked') %}
             mdi:lock-open-alert-outline
           {% elif states('sensor.away_security_active_lights') | int(0) > 0 %}
             mdi:lightbulb-alert-outline
@@ -2458,6 +2580,10 @@ template:
             mdi:shield-home-outline
           {% endif %}
         attributes:
+          unlocked_entry_lock_count: >
+            {{ states('sensor.away_security_unlocked_entry_locks') | int(0) }}
+          unlocked_entry_locks: >
+            {{ state_attr('sensor.away_security_unlocked_entry_locks', 'names') | default('', true) }}
           lights_on_count: >
             {{ states('sensor.away_security_active_lights') | int(0) }}
           summary: "{{ states('sensor.away_security_issue_summary') }}"

@@ -2375,6 +2375,23 @@ water_send_alert:
                   url: /calm-mobile/water
                   sticky: false
 
+away_security_lock_unlocked_entry_doors:
+  alias: Away Security Lock Unlocked Entry Doors
+  description: Locks whichever monitored entry locks are currently unlocked.
+  icon: mdi:lock-check-outline
+  mode: restart
+  sequence:
+    - variables:
+        unlocked_entry_locks: >
+          {% set lock_ids = state_attr('sensor.away_security_unlocked_entry_locks', 'entity_ids') | default('', true) %}
+          {{ (lock_ids.split('||') if lock_ids else []) | reject('eq', '') | list }}
+    - repeat:
+        for_each: "{{ unlocked_entry_locks }}"
+        sequence:
+          - action: lock.lock
+            target:
+              entity_id: "{{ repeat.item }}"
+
 away_security_send_alert:
   alias: Away Security Send Alert
   description: Sends the active away-security issue with quick actions.
@@ -2386,11 +2403,15 @@ away_security_send_alert:
     - action: script.casey_left_lights_clear_alert
     - variables:
         issue_summary: "{{ states('sensor.away_security_issue_summary') }}"
+        unlocked_entry_count: "{{ states('sensor.away_security_unlocked_entry_locks') | int(0) }}"
+        unlocked_entry_issue: "{{ state_attr('sensor.away_security_unlocked_entry_locks', 'issue') | default('', true) }}"
     - action: script.notify_trevor_phone
       data:
         title: >-
-          {% if 'garage door unlocked' in issue_summary %}
-            🔐 Garage door unlocked while away
+          {% if unlocked_entry_count | int(0) > 1 %}
+            🔐 Entry doors unlocked while away
+          {% elif unlocked_entry_count | int(0) == 1 %}
+            🔐 {{ unlocked_entry_issue | replace(' unlocked', '') | title }} unlocked while away
           {% else %}
             🏠 House left unsecured
           {% endif %}
@@ -2403,8 +2424,9 @@ away_security_send_alert:
           priority: high
           url: /calm-mobile/home
           actions:
-            - action: LOCK_AWAY_GARAGE
-              title: Lock garage
+            - action: LOCK_AWAY_ENTRY_DOORS
+              title: >-
+                {{ 'Lock doors' if unlocked_entry_count | int(0) > 1 else 'Lock door' }}
             - action: TURN_OFF_AWAY_LIGHTS
               title: Turn off lights
             - action: SNOOZE_AWAY_SECURITY_30
@@ -2425,20 +2447,23 @@ away_security_clear_alert:
           tag: away-security
 
 casey_left_garage_send_alert:
-  alias: Casey Left Garage Send Alert
-  description: Sends Trevor a contextual push when Casey leaves home and the garage is still unlocked.
+  alias: Casey Left Entry Send Alert
+  description: Sends Trevor a contextual push when Casey leaves home and an entry door is still unlocked.
   icon: mdi:garage-alert-variant
   mode: restart
   sequence:
     - action: script.away_security_clear_alert
     - action: script.casey_left_combo_clear_alert
     - action: script.casey_left_lights_clear_alert
+    - variables:
+        unlocked_entry_count: "{{ states('sensor.away_security_unlocked_entry_locks') | int(0) }}"
+        unlocked_entry_issue: "{{ state_attr('sensor.away_security_unlocked_entry_locks', 'issue') | default('an entry door unlocked', true) }}"
     - action: script.notify_trevor_phone
       data:
-        title: "🔐 Casey left the garage unlocked"
+        title: "🔐 Casey left {{ unlocked_entry_issue }}"
         message: >-
-          Casey just left home and the garage is still unlocked.
-          Tap below to lock it.
+          Casey just left home and {{ unlocked_entry_issue }}.
+          Tap below to lock {{ 'them' if unlocked_entry_count | int(0) > 1 else 'it' }}.
         data:
           tag: casey-left-garage-unlocked
           group: away-security
@@ -2446,12 +2471,13 @@ casey_left_garage_send_alert:
           ttl: 0
           priority: high
           actions:
-            - action: LOCK_CASEY_LEFT_GARAGE
-              title: Lock garage
+            - action: LOCK_CASEY_LEFT_ENTRY_DOORS
+              title: >-
+                {{ 'Lock doors' if unlocked_entry_count | int(0) > 1 else 'Lock door' }}
 
 casey_left_garage_clear_alert:
-  alias: Casey Left Garage Clear Alert
-  description: Clears the contextual Casey-left-garage notification tag.
+  alias: Casey Left Entry Clear Alert
+  description: Clears the contextual Casey-left-entry notification tag.
   icon: mdi:garage-variant-lock
   mode: restart
   sequence:
@@ -2463,7 +2489,7 @@ casey_left_garage_clear_alert:
 
 casey_left_combo_send_alert:
   alias: Casey Left Combo Send Alert
-  description: Sends Trevor a contextual push when Casey leaves during daylight with the garage unlocked and lights still on.
+  description: Sends Trevor a contextual push when Casey leaves during daylight with an entry door unlocked and lights still on.
   icon: mdi:home-lightning-bolt-outline
   mode: restart
   sequence:
@@ -2471,19 +2497,21 @@ casey_left_combo_send_alert:
     - action: script.casey_left_garage_clear_alert
     - action: script.casey_left_lights_clear_alert
     - variables:
+        unlocked_entry_count: "{{ states('sensor.away_security_unlocked_entry_locks') | int(0) }}"
+        unlocked_entry_issue: "{{ state_attr('sensor.away_security_unlocked_entry_locks', 'issue') | default('an entry door unlocked', true) }}"
         active_light_names: >
           {% set light_names = state_attr('sensor.away_security_active_lights', 'names') | default('', true) %}
           {{ (light_names.split('||') if light_names else []) | reject('eq', '') | list }}
     - action: script.notify_trevor_phone
       data:
-        title: "🏠 Casey left the garage unlocked and lights on"
+        title: "🏠 Casey left {{ unlocked_entry_issue }} and lights on"
         message: >-
           {% if active_light_names | count == 1 %}
-            Casey just left home, the garage is still unlocked, and {{ active_light_names[0] }} is still on.
+            Casey just left home, {{ unlocked_entry_issue }}, and {{ active_light_names[0] }} is still on.
           {% elif active_light_names | count == 2 %}
-            Casey just left home, the garage is still unlocked, and {{ active_light_names | join(' and ') }} are still on.
+            Casey just left home, {{ unlocked_entry_issue }}, and {{ active_light_names | join(' and ') }} are still on.
           {% else %}
-            Casey just left home, the garage is still unlocked, and {{ active_light_names | count }} lights are still on.
+            Casey just left home, {{ unlocked_entry_issue }}, and {{ active_light_names | count }} lights are still on.
           {% endif %}
           Tap below to secure everything.
         data:
