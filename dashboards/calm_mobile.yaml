@@ -327,7 +327,7 @@ views:
         square: false
         cards:
           - type: custom:button-card
-            entity: lock.aqara_smart_lock_u100
+            entity: lock.garage_entry_lock
             show_icon: false
             show_name: false
             show_state: false
@@ -1550,7 +1550,7 @@ views:
 
       - type: custom:popup-card
         target:
-          entity_id: lock.aqara_smart_lock_u100
+          entity_id: lock.garage_entry_lock
         title: Garage
         dismiss_icon: mdi:close
         initial_style: wide
@@ -1559,15 +1559,15 @@ views:
           type: vertical-stack
           cards:
             - type: custom:mushroom-template-card
-              entity: lock.aqara_smart_lock_u100
+              entity: lock.garage_entry_lock
               primary: >-
-                {{ 'Locked' if is_state('lock.aqara_smart_lock_u100', 'locked') else 'Unlocked' }}
+                {{ 'Locked' if is_state('lock.garage_entry_lock', 'locked') else 'Unlocked' }}
               secondary: >-
-                {{ 'Garage entry is secure.' if is_state('lock.aqara_smart_lock_u100', 'locked') else 'Garage entry needs attention.' }}
+                {{ 'Garage entry is secure.' if is_state('lock.garage_entry_lock', 'locked') else 'Garage entry needs attention.' }}
               icon: >-
-                {{ 'mdi:lock-outline' if is_state('lock.aqara_smart_lock_u100', 'locked') else 'mdi:lock-open-variant-outline' }}
+                {{ 'mdi:lock-outline' if is_state('lock.garage_entry_lock', 'locked') else 'mdi:lock-open-variant-outline' }}
               icon_color: >-
-                {{ 'teal' if is_state('lock.aqara_smart_lock_u100', 'locked') else 'red' }}
+                {{ 'teal' if is_state('lock.garage_entry_lock', 'locked') else 'red' }}
               fill_container: true
               tap_action:
                 action: none
@@ -1577,19 +1577,19 @@ views:
               alignment: left
               chips:
                 - type: template
-                  entity: lock.aqara_smart_lock_u100
+                  entity: lock.garage_entry_lock
                   icon: mdi:garage
                   icon_color: blue-grey
                   content: Garage entry
                   tap_action:
                     action: none
                 - type: template
-                  entity: lock.aqara_smart_lock_u100
+                  entity: lock.garage_entry_lock
                   icon: mdi:shield-lock-outline
                   icon_color: >-
-                    {{ 'teal' if is_state('lock.aqara_smart_lock_u100', 'locked') else 'red' }}
+                    {{ 'teal' if is_state('lock.garage_entry_lock', 'locked') else 'red' }}
                   content: >-
-                    {{ 'Secure' if is_state('lock.aqara_smart_lock_u100', 'locked') else 'Unlocked' }}
+                    {{ 'Secure' if is_state('lock.garage_entry_lock', 'locked') else 'Unlocked' }}
                   tap_action:
                     action: none
               card_mod:

@@ -1105,7 +1105,7 @@
              and trigger.to_state is not none
              and trigger.from_state.state == 'home'
              and trigger.to_state.state not in ['home', 'unknown', 'unavailable', ''] }}
-        garage_unlocked: "{{ is_state('lock.aqara_smart_lock_u100', 'unlocked') }}"
+        garage_unlocked: "{{ is_state('lock.garage_entry_lock', 'unlocked') }}"
         daylight: "{{ is_state('sun.sun', 'above_horizon') }}"
         active_lights_on: >
           {{ states('sensor.away_security_active_lights') | int(0) > 0 }}
@@ -1170,12 +1170,12 @@
           sequence:
             - if:
                 - condition: state
-                  entity_id: lock.aqara_smart_lock_u100
+                  entity_id: lock.garage_entry_lock
                   state: unlocked
               then:
                 - action: lock.lock
                   target:
-                    entity_id: lock.aqara_smart_lock_u100
+                    entity_id: lock.garage_entry_lock
             - variables:
                 active_lights: >
                   {% set light_ids = state_attr('sensor.away_security_active_lights', 'entity_ids') | default('', true) %}
@@ -1200,7 +1200,7 @@
                     {% set casey_away = casey_state not in ['home', 'unknown', 'unavailable', ''] %}
                     {% set lights_on = states('sensor.away_security_active_lights') | int(0) > 0 %}
                     {{ trevor_away and casey_away and
-                       (is_state('lock.aqara_smart_lock_u100', 'unlocked') or lights_on) }}
+                       (is_state('lock.garage_entry_lock', 'unlocked') or lights_on) }}
               then:
                 - action: script.away_security_send_alert
               else:
@@ -1212,12 +1212,12 @@
           sequence:
             - if:
                 - condition: state
-                  entity_id: lock.aqara_smart_lock_u100
+                  entity_id: lock.garage_entry_lock
                   state: unlocked
               then:
                 - action: lock.lock
                   target:
-                    entity_id: lock.aqara_smart_lock_u100
+                    entity_id: lock.garage_entry_lock
             - delay:
                 seconds: 2
             - action: script.casey_left_garage_clear_alert
@@ -1230,7 +1230,7 @@
                     {% set casey_away = casey_state not in ['home', 'unknown', 'unavailable', ''] %}
                     {% set lights_on = states('sensor.away_security_active_lights') | int(0) > 0 %}
                     {{ trevor_away and casey_away and
-                       (is_state('lock.aqara_smart_lock_u100', 'unlocked') or lights_on) }}
+                       (is_state('lock.garage_entry_lock', 'unlocked') or lights_on) }}
               then:
                 - action: script.away_security_send_alert
               else:
@@ -1262,7 +1262,7 @@
                     {% set casey_away = casey_state not in ['home', 'unknown', 'unavailable', ''] %}
                     {% set lights_on = states('sensor.away_security_active_lights') | int(0) > 0 %}
                     {{ trevor_away and casey_away and
-                       (is_state('lock.aqara_smart_lock_u100', 'unlocked') or lights_on) }}
+                       (is_state('lock.garage_entry_lock', 'unlocked') or lights_on) }}
               then:
                 - action: script.away_security_send_alert
               else:
@@ -1320,7 +1320,7 @@
   description: Clears the contextual Casey-left-garage push once it is no longer relevant.
   triggers:
     - trigger: state
-      entity_id: lock.aqara_smart_lock_u100
+      entity_id: lock.garage_entry_lock
       to: locked
     - trigger: state
       entity_id: device_tracker.tk_iphone_16_pro
@@ -1338,7 +1338,7 @@
   description: Clears the contextual Casey-left combo push once it is no longer relevant.
   triggers:
     - trigger: state
-      entity_id: lock.aqara_smart_lock_u100
+      entity_id: lock.garage_entry_lock
       to: locked
     - trigger: state
       entity_id: sun.sun
@@ -1369,7 +1369,7 @@
               is_state('sun.sun', 'above_horizon')
               and states('device_tracker.tk_iphone_16_pro') not in ['home', 'unknown', 'unavailable', '']
               and states('device_tracker.unifi_default_42_15_78_4a_d9_f8') not in ['home', 'unknown', 'unavailable', '']
-              and is_state('lock.aqara_smart_lock_u100', 'unlocked')
+              and is_state('lock.garage_entry_lock', 'unlocked')
               and states('sensor.away_security_active_lights') | int(0) > 0
             ) }}
       then:

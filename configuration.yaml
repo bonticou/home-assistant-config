@@ -1543,7 +1543,7 @@ template:
           {% set light_names = state_attr('sensor.away_security_active_lights', 'names') | default('', true) %}
           {% set lights = (light_names.split('||') if light_names else []) | reject('eq', '') | list %}
           {% set ns = namespace(items=[]) %}
-          {% if is_state('lock.aqara_smart_lock_u100', 'unlocked') %}
+          {% if is_state('lock.garage_entry_lock', 'unlocked') %}
             {% set ns.items = ns.items + ['garage door unlocked'] %}
           {% endif %}
           {% if lights | count == 1 %}
@@ -1553,7 +1553,7 @@ template:
           {% endif %}
           {{ ns.items | join(' and ') if ns.items else 'House secure' }}
         icon: >
-          {% if is_state('lock.aqara_smart_lock_u100', 'unlocked') %}
+          {% if is_state('lock.garage_entry_lock', 'unlocked') %}
             mdi:lock-open-alert-outline
           {% elif states('sensor.away_security_active_lights') | int(0) > 0 %}
             mdi:lightbulb-alert-outline
@@ -2448,9 +2448,9 @@ template:
           {% set casey_away = casey_state not in ['home', 'unknown', 'unavailable', ''] %}
           {% set everyone_away = trevor_away and casey_away %}
           {% set lights_on = states('sensor.away_security_active_lights') | int(0) > 0 %}
-          {{ everyone_away and (is_state('lock.aqara_smart_lock_u100', 'unlocked') or lights_on) }}
+          {{ everyone_away and (is_state('lock.garage_entry_lock', 'unlocked') or lights_on) }}
         icon: >
-          {% if is_state('lock.aqara_smart_lock_u100', 'unlocked') %}
+          {% if is_state('lock.garage_entry_lock', 'unlocked') %}
             mdi:lock-open-alert-outline
           {% elif states('sensor.away_security_active_lights') | int(0) > 0 %}
             mdi:lightbulb-alert-outline
@@ -3518,7 +3518,7 @@ template:
         unique_id: house_low_battery_summary
         state: >
           {% set batteries = {
-            'sensor.aqara_smart_lock_u100_battery': 'Garage entry lock',
+            'sensor.garage_entry_lock_battery': 'Garage entry lock',
             'sensor.back_patio_battery': 'Back Patio sensor',
             'sensor.back_stairs_battery': 'Back Stairs sensor',
             'sensor.basement_air_quality_battery': 'Basement Airthings',
@@ -3555,7 +3555,7 @@ template:
           excluded: "Phones, tablets, battery type sensors, and voltage-only sensors."
           severity: >
             {% set batteries = {
-              'sensor.aqara_smart_lock_u100_battery': 'Garage entry lock',
+              'sensor.garage_entry_lock_battery': 'Garage entry lock',
               'sensor.back_patio_battery': 'Back Patio sensor',
               'sensor.back_stairs_battery': 'Back Stairs sensor',
               'sensor.basement_air_quality_battery': 'Basement Airthings',
@@ -3590,7 +3590,7 @@ template:
             {% else %}clear{% endif %}
           critical_batteries: >
             {% set batteries = {
-              'sensor.aqara_smart_lock_u100_battery': 'Garage entry lock',
+              'sensor.garage_entry_lock_battery': 'Garage entry lock',
               'sensor.back_patio_battery': 'Back Patio sensor',
               'sensor.back_stairs_battery': 'Back Stairs sensor',
               'sensor.basement_air_quality_battery': 'Basement Airthings',
@@ -3618,7 +3618,7 @@ template:
             {{ ns.items | join(', ') if ns.items else 'Clear' }}
           replace_soon_batteries: >
             {% set batteries = {
-              'sensor.aqara_smart_lock_u100_battery': 'Garage entry lock',
+              'sensor.garage_entry_lock_battery': 'Garage entry lock',
               'sensor.back_patio_battery': 'Back Patio sensor',
               'sensor.back_stairs_battery': 'Back Stairs sensor',
               'sensor.basement_air_quality_battery': 'Basement Airthings',
@@ -3646,7 +3646,7 @@ template:
             {{ ns.items | join(', ') if ns.items else 'Clear' }}
           getting_low_batteries: >
             {% set batteries = {
-              'sensor.aqara_smart_lock_u100_battery': 'Garage entry lock',
+              'sensor.garage_entry_lock_battery': 'Garage entry lock',
               'sensor.back_patio_battery': 'Back Patio sensor',
               'sensor.back_stairs_battery': 'Back Stairs sensor',
               'sensor.basement_air_quality_battery': 'Basement Airthings',
@@ -3674,7 +3674,7 @@ template:
             {{ ns.items | join(', ') if ns.items else 'Clear' }}
           low_batteries: >
             {% set batteries = {
-              'sensor.aqara_smart_lock_u100_battery': 'Garage entry lock',
+              'sensor.garage_entry_lock_battery': 'Garage entry lock',
               'sensor.back_patio_battery': 'Back Patio sensor',
               'sensor.back_stairs_battery': 'Back Stairs sensor',
               'sensor.basement_air_quality_battery': 'Basement Airthings',
@@ -3702,7 +3702,7 @@ template:
             {{ ns.items | join(', ') if ns.items else 'Clear' }}
           low_battery_entities: >
             {% set batteries = [
-              'sensor.aqara_smart_lock_u100_battery',
+              'sensor.garage_entry_lock_battery',
               'sensor.back_patio_battery',
               'sensor.back_stairs_battery',
               'sensor.basement_air_quality_battery',
@@ -3730,7 +3730,7 @@ template:
             {{ ns.items | join(', ') if ns.items else 'Clear' }}
           unknown_batteries: >
             {% set batteries = {
-              'sensor.aqara_smart_lock_u100_battery': 'Garage entry lock',
+              'sensor.garage_entry_lock_battery': 'Garage entry lock',
               'sensor.back_patio_battery': 'Back Patio sensor',
               'sensor.back_stairs_battery': 'Back Stairs sensor',
               'sensor.basement_air_quality_battery': 'Basement Airthings',
