@@ -1563,7 +1563,7 @@ views:
               primary: >-
                 {{ 'Locked' if is_state('lock.garage_entry_lock', 'locked') else 'Unlocked' }}
               secondary: >-
-                {{ 'Garage entry is secure.' if is_state('lock.garage_entry_lock', 'locked') else 'Garage entry needs attention.' }}
+                {{ 'Garage door is secure.' if is_state('lock.garage_entry_lock', 'locked') else 'Garage door needs attention.' }}
               icon: >-
                 {{ 'mdi:lock-outline' if is_state('lock.garage_entry_lock', 'locked') else 'mdi:lock-open-variant-outline' }}
               icon_color: >-
@@ -1580,7 +1580,7 @@ views:
                   entity: lock.garage_entry_lock
                   icon: mdi:garage
                   icon_color: blue-grey
-                  content: Garage entry
+                  content: Garage door
                   tap_action:
                     action: none
                 - type: template

@@ -1541,8 +1541,8 @@ template:
         unique_id: away_security_issue_summary
         state: >
           {% set entry_locks = {
-            'lock.garage_entry_lock': 'garage entry',
-            'lock.mudroom_door_lock': 'mudroom door'
+            'lock.garage_entry_lock': 'Garage door',
+            'lock.mudroom_door_lock': 'Mudroom door'
           } %}
           {% set lock_ns = namespace(names=[]) %}
           {% for entity_id, label in entry_locks.items() %}
@@ -1592,8 +1592,8 @@ template:
         unique_id: away_security_unlocked_entry_locks
         icon: >
           {% set locks = {
-            'lock.garage_entry_lock': 'garage entry',
-            'lock.mudroom_door_lock': 'mudroom door'
+            'lock.garage_entry_lock': 'Garage door',
+            'lock.mudroom_door_lock': 'Mudroom door'
           } %}
           {% set ns = namespace(count=0) %}
           {% for entity_id, label in locks.items() %}
@@ -1604,8 +1604,8 @@ template:
           {{ 'mdi:lock-open-alert-outline' if ns.count > 0 else 'mdi:lock-check-outline' }}
         state: >
           {% set locks = {
-            'lock.garage_entry_lock': 'garage entry',
-            'lock.mudroom_door_lock': 'mudroom door'
+            'lock.garage_entry_lock': 'Garage door',
+            'lock.mudroom_door_lock': 'Mudroom door'
           } %}
           {% set ns = namespace(count=0) %}
           {% for entity_id, label in locks.items() %}
@@ -1617,8 +1617,8 @@ template:
         attributes:
           names: >
             {% set locks = {
-              'lock.garage_entry_lock': 'garage entry',
-              'lock.mudroom_door_lock': 'mudroom door'
+              'lock.garage_entry_lock': 'Garage door',
+              'lock.mudroom_door_lock': 'Mudroom door'
             } %}
             {% set ns = namespace(names=[]) %}
             {% for entity_id, label in locks.items() %}
@@ -1629,8 +1629,8 @@ template:
             {{ ns.names | join('||') }}
           entity_ids: >
             {% set locks = {
-              'lock.garage_entry_lock': 'garage entry',
-              'lock.mudroom_door_lock': 'mudroom door'
+              'lock.garage_entry_lock': 'Garage door',
+              'lock.mudroom_door_lock': 'Mudroom door'
             } %}
             {% set ns = namespace(entity_ids=[]) %}
             {% for entity_id, label in locks.items() %}
@@ -1641,8 +1641,8 @@ template:
             {{ ns.entity_ids | join('||') }}
           label: >
             {% set locks = {
-              'lock.garage_entry_lock': 'garage entry',
-              'lock.mudroom_door_lock': 'mudroom door'
+              'lock.garage_entry_lock': 'Garage door',
+              'lock.mudroom_door_lock': 'Mudroom door'
             } %}
             {% set ns = namespace(names=[]) %}
             {% for entity_id, label in locks.items() %}
@@ -1660,8 +1660,8 @@ template:
             {% endif %}
           issue: >
             {% set locks = {
-              'lock.garage_entry_lock': 'garage entry',
-              'lock.mudroom_door_lock': 'mudroom door'
+              'lock.garage_entry_lock': 'Garage door',
+              'lock.mudroom_door_lock': 'Mudroom door'
             } %}
             {% set ns = namespace(names=[]) %}
             {% for entity_id, label in locks.items() %}
@@ -3644,7 +3644,7 @@ template:
         unique_id: house_low_battery_summary
         state: >
           {% set batteries = {
-            'sensor.garage_entry_lock_battery': 'Garage entry lock',
+            'sensor.garage_entry_lock_battery': 'Garage door lock',
             'sensor.back_patio_battery': 'Back Patio sensor',
             'sensor.back_stairs_battery': 'Back Stairs sensor',
             'sensor.basement_air_quality_battery': 'Basement Airthings',
@@ -3681,7 +3681,7 @@ template:
           excluded: "Phones, tablets, battery type sensors, and voltage-only sensors."
           severity: >
             {% set batteries = {
-              'sensor.garage_entry_lock_battery': 'Garage entry lock',
+              'sensor.garage_entry_lock_battery': 'Garage door lock',
               'sensor.back_patio_battery': 'Back Patio sensor',
               'sensor.back_stairs_battery': 'Back Stairs sensor',
               'sensor.basement_air_quality_battery': 'Basement Airthings',
@@ -3716,7 +3716,7 @@ template:
             {% else %}clear{% endif %}
           critical_batteries: >
             {% set batteries = {
-              'sensor.garage_entry_lock_battery': 'Garage entry lock',
+              'sensor.garage_entry_lock_battery': 'Garage door lock',
               'sensor.back_patio_battery': 'Back Patio sensor',
               'sensor.back_stairs_battery': 'Back Stairs sensor',
               'sensor.basement_air_quality_battery': 'Basement Airthings',
@@ -3744,7 +3744,7 @@ template:
             {{ ns.items | join(', ') if ns.items else 'Clear' }}
           replace_soon_batteries: >
             {% set batteries = {
-              'sensor.garage_entry_lock_battery': 'Garage entry lock',
+              'sensor.garage_entry_lock_battery': 'Garage door lock',
               'sensor.back_patio_battery': 'Back Patio sensor',
               'sensor.back_stairs_battery': 'Back Stairs sensor',
               'sensor.basement_air_quality_battery': 'Basement Airthings',
@@ -3772,7 +3772,7 @@ template:
             {{ ns.items | join(', ') if ns.items else 'Clear' }}
           getting_low_batteries: >
             {% set batteries = {
-              'sensor.garage_entry_lock_battery': 'Garage entry lock',
+              'sensor.garage_entry_lock_battery': 'Garage door lock',
               'sensor.back_patio_battery': 'Back Patio sensor',
               'sensor.back_stairs_battery': 'Back Stairs sensor',
               'sensor.basement_air_quality_battery': 'Basement Airthings',
@@ -3800,7 +3800,7 @@ template:
             {{ ns.items | join(', ') if ns.items else 'Clear' }}
           low_batteries: >
             {% set batteries = {
-              'sensor.garage_entry_lock_battery': 'Garage entry lock',
+              'sensor.garage_entry_lock_battery': 'Garage door lock',
               'sensor.back_patio_battery': 'Back Patio sensor',
               'sensor.back_stairs_battery': 'Back Stairs sensor',
               'sensor.basement_air_quality_battery': 'Basement Airthings',
@@ -3856,7 +3856,7 @@ template:
             {{ ns.items | join(', ') if ns.items else 'Clear' }}
           unknown_batteries: >
             {% set batteries = {
-              'sensor.garage_entry_lock_battery': 'Garage entry lock',
+              'sensor.garage_entry_lock_battery': 'Garage door lock',
               'sensor.back_patio_battery': 'Back Patio sensor',
               'sensor.back_stairs_battery': 'Back Stairs sensor',
               'sensor.basement_air_quality_battery': 'Basement Airthings',

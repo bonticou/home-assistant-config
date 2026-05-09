@@ -2411,34 +2411,101 @@ away_security_send_alert:
         issue_summary: "{{ states('sensor.away_security_issue_summary') }}"
         unlocked_entry_count: "{{ states('sensor.away_security_unlocked_entry_locks') | int(0) }}"
         unlocked_entry_issue: "{{ state_attr('sensor.away_security_unlocked_entry_locks', 'issue') | default('', true) }}"
-    - action: script.notify_trevor_phone
-      data:
-        title: >-
+        active_light_count: "{{ states('sensor.away_security_active_lights') | int(0) }}"
+        notification_title: >-
           {% if unlocked_entry_count | int(0) > 1 %}
             🔐 Entry doors unlocked while away
           {% elif unlocked_entry_count | int(0) == 1 %}
-            🔐 {{ unlocked_entry_issue | replace(' unlocked', '') | title }} unlocked while away
+            🔐 {{ unlocked_entry_issue }} while away
           {% else %}
             🏠 House left unsecured
           {% endif %}
-        message: >-
+        notification_message: >-
           Casey and Trevor are away, and {{ issue_summary }}.
-        data:
-          tag: away-security
-          sticky: true
-          ttl: 0
-          priority: high
-          url: /calm-mobile/home
-          actions:
-            - action: LOCK_AWAY_ENTRY_DOORS
-              title: >-
-                {{ 'Lock doors' if unlocked_entry_count | int(0) > 1 else 'Lock door' }}
-            - action: TURN_OFF_AWAY_LIGHTS
-              title: Turn off lights
-            - action: SNOOZE_AWAY_SECURITY_30
-              title: Sleep 30 min
-            - action: SNOOZE_AWAY_SECURITY_120
-              title: Sleep 2 hr
+    - choose:
+        - conditions:
+            - condition: template
+              value_template: "{{ unlocked_entry_count | int(0) > 0 and active_light_count | int(0) > 0 }}"
+          sequence:
+            - action: script.notify_trevor_phone
+              data:
+                title: "{{ notification_title }}"
+                message: "{{ notification_message }}"
+                data:
+                  tag: away-security
+                  sticky: true
+                  ttl: 0
+                  priority: high
+                  url: /calm-mobile/home
+                  actions:
+                    - action: LOCK_AWAY_ENTRY_DOORS
+                      title: >-
+                        {{ 'Lock doors' if unlocked_entry_count | int(0) > 1 else 'Lock door' }}
+                    - action: TURN_OFF_AWAY_LIGHTS
+                      title: Turn off lights
+                    - action: SNOOZE_AWAY_SECURITY_30
+                      title: Sleep 30 min
+                    - action: SNOOZE_AWAY_SECURITY_120
+                      title: Sleep 2 hr
+        - conditions:
+            - condition: template
+              value_template: "{{ unlocked_entry_count | int(0) > 0 }}"
+          sequence:
+            - action: script.notify_trevor_phone
+              data:
+                title: "{{ notification_title }}"
+                message: "{{ notification_message }}"
+                data:
+                  tag: away-security
+                  sticky: true
+                  ttl: 0
+                  priority: high
+                  url: /calm-mobile/home
+                  actions:
+                    - action: LOCK_AWAY_ENTRY_DOORS
+                      title: >-
+                        {{ 'Lock doors' if unlocked_entry_count | int(0) > 1 else 'Lock door' }}
+                    - action: SNOOZE_AWAY_SECURITY_30
+                      title: Sleep 30 min
+                    - action: SNOOZE_AWAY_SECURITY_120
+                      title: Sleep 2 hr
+        - conditions:
+            - condition: template
+              value_template: "{{ active_light_count | int(0) > 0 }}"
+          sequence:
+            - action: script.notify_trevor_phone
+              data:
+                title: "{{ notification_title }}"
+                message: "{{ notification_message }}"
+                data:
+                  tag: away-security
+                  sticky: true
+                  ttl: 0
+                  priority: high
+                  url: /calm-mobile/home
+                  actions:
+                    - action: TURN_OFF_AWAY_LIGHTS
+                      title: Turn off lights
+                    - action: SNOOZE_AWAY_SECURITY_30
+                      title: Sleep 30 min
+                    - action: SNOOZE_AWAY_SECURITY_120
+                      title: Sleep 2 hr
+      default:
+        - action: script.notify_trevor_phone
+          data:
+            title: "{{ notification_title }}"
+            message: "{{ notification_message }}"
+            data:
+              tag: away-security
+              sticky: true
+              ttl: 0
+              priority: high
+              url: /calm-mobile/home
+              actions:
+                - action: SNOOZE_AWAY_SECURITY_30
+                  title: Sleep 30 min
+                - action: SNOOZE_AWAY_SECURITY_120
+                  title: Sleep 2 hr
 
 away_security_clear_alert:
   alias: Away Security Clear Alert
