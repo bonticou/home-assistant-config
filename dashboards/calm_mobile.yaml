@@ -1619,7 +1619,7 @@ views:
                 meta: >-
                   [[[
                     const vehicle = hass.states['binary_sensor.ratgdo32disco_c26634_vehicle_detected']?.state || 'unknown';
-                    const distance = hass.states['sensor.ratgdo32disco_c26634_vehicle_distance_actual']?.state || 'unknown';
+                    const distance = hass.states['sensor.ratgdo32disco_c26634_vehicle_distance_actual_filtered']?.state || 'unknown';
                     const target = hass.states['number.ratgdo32disco_c26634_vehicle_distance_target']?.state || 'unknown';
                     const vehicleLabel = vehicle === 'on' ? 'vehicle detected' : vehicle === 'off' ? 'no vehicle detected' : 'vehicle unknown';
                     return `${vehicleLabel} · ${distance} actual · ${target} target`;

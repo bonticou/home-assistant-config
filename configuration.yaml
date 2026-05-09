@@ -1656,7 +1656,7 @@ template:
           garage_door_open: "{{ is_state('binary_sensor.away_security_garage_door_open', 'on') }}"
           garage_door_entity: cover.ratgdo32disco_c26634_door
           vehicle_detected: "{{ states('binary_sensor.ratgdo32disco_c26634_vehicle_detected') }}"
-          vehicle_distance_actual: "{{ states('sensor.ratgdo32disco_c26634_vehicle_distance_actual') }}"
+          vehicle_distance_actual: "{{ states('sensor.ratgdo32disco_c26634_vehicle_distance_actual_filtered') }}"
           vehicle_distance_target: "{{ states('number.ratgdo32disco_c26634_vehicle_distance_target') }}"
           unlocked_entry_lock_count: "{{ states('sensor.away_security_unlocked_entry_locks') | int(0) }}"
 
@@ -2101,7 +2101,7 @@ template:
                 'Trevor presence: ' ~ states('device_tracker.tk_iphone_16_pro'),
                 'Casey presence: ' ~ states('device_tracker.unifi_default_42_15_78_4a_d9_f8'),
                 'Vehicle detection: ' ~ states('binary_sensor.ratgdo32disco_c26634_vehicle_detected'),
-                'Vehicle distance: ' ~ states('sensor.ratgdo32disco_c26634_vehicle_distance_actual')
+                'Vehicle distance: ' ~ states('sensor.ratgdo32disco_c26634_vehicle_distance_actual_filtered')
               ] %}
               {% set ns.items = ns.items + [{
                 'id': 'away-security',
@@ -2695,8 +2695,8 @@ template:
           cover_state: "{{ states('cover.ratgdo32disco_c26634_door') }}"
           vehicle_detected_entity: binary_sensor.ratgdo32disco_c26634_vehicle_detected
           vehicle_detected: "{{ states('binary_sensor.ratgdo32disco_c26634_vehicle_detected') }}"
-          vehicle_distance_actual_entity: sensor.ratgdo32disco_c26634_vehicle_distance_actual
-          vehicle_distance_actual: "{{ states('sensor.ratgdo32disco_c26634_vehicle_distance_actual') }}"
+          vehicle_distance_actual_entity: sensor.ratgdo32disco_c26634_vehicle_distance_actual_filtered
+          vehicle_distance_actual: "{{ states('sensor.ratgdo32disco_c26634_vehicle_distance_actual_filtered') }}"
           vehicle_distance_target_entity: number.ratgdo32disco_c26634_vehicle_distance_target
           vehicle_distance_target: "{{ states('number.ratgdo32disco_c26634_vehicle_distance_target') }}"
 
