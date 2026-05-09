@@ -2421,27 +2421,197 @@ away_security_close_garage_door:
             casey_away: "{{ states('device_tracker.unifi_default_42_15_78_4a_d9_f8') not in ['home', 'unknown', 'unavailable', ''] }}"
         - if:
             - condition: template
-              value_template: "{{ not is_state(garage_cover, 'closed') and trevor_away and casey_away }}"
+              value_template: "{{ is_state(garage_cover, 'closed') }}"
           then:
+            - action: script.garage_security_clear_alerts
+          else:
             - action: script.notify_trevor_phone
               data:
                 title: "🚗 Garage did not close"
                 message: >-
                   Home Assistant sent the close command, but the garage door still reports
-                  {{ states(garage_cover) }} while Casey and Trevor are away. It currently sees
-                  {{ states('sensor.away_security_issue_summary') }}.
+                  {{ states(garage_cover) }}.
+                  {% if trevor_away | bool and casey_away | bool %}
+                    Casey and Trevor are away, and Home Assistant still sees {{ states('sensor.away_security_issue_summary') }}.
+                  {% else %}
+                    Home Assistant will keep watching ratgdo until the door reports closed.
+                  {% endif %}
                 data:
-                  tag: away-security
-                  group: away-security
+                  tag: garage-did-not-close
+                  group: garage-security
                   sticky: true
                   ttl: 0
                   priority: high
                   url: /calm-mobile/home
                   actions:
-                    - action: CLOSE_AWAY_GARAGE
+                    - action: CLOSE_GARAGE_SECURITY
                       title: Try closing again
-                    - action: SNOOZE_AWAY_SECURITY_30
+                    - action: SNOOZE_GARAGE_SECURITY_30
                       title: Sleep 30 min
+
+garage_security_clear_alerts:
+  alias: Garage Security Clear Alerts
+  description: Clears active garage-security notification tags.
+  icon: mdi:garage-check-variant
+  mode: parallel
+  sequence:
+    - repeat:
+        for_each:
+          - garage-open-too-long
+          - garage-open-at-night
+          - garage-opened-overnight
+          - garage-did-not-close
+          - garage-obstruction
+        sequence:
+          - action: script.notify_trevor_phone
+            data:
+              message: clear_notification
+              data:
+                tag: "{{ repeat.item }}"
+
+garage_security_snooze_30:
+  alias: Garage Security Snooze 30 Minutes
+  description: Pauses garage-security reminders for 30 minutes.
+  icon: mdi:garage-clock
+  mode: restart
+  sequence:
+    - action: input_datetime.set_datetime
+      target:
+        entity_id: input_datetime.garage_security_snooze_until
+      data:
+        datetime: "{{ (now() + timedelta(minutes=30)).strftime('%Y-%m-%d %H:%M:%S') }}"
+    - action: script.garage_security_clear_alerts
+    - action: script.notify_trevor_phone
+      data:
+        title: "🚗 Garage reminders sleeping"
+        message: Garage reminders paused for 30 minutes.
+        data:
+          tag: garage-security-snooze
+
+garage_security_snooze_until_morning:
+  alias: Garage Security Snooze Until Morning
+  description: Pauses garage-security reminders until 7 AM.
+  icon: mdi:weather-sunset-up
+  mode: restart
+  sequence:
+    - variables:
+        morning: >-
+          {% set target = today_at('07:00') %}
+          {% if as_timestamp(target) <= as_timestamp(now()) %}
+            {% set target = target + timedelta(days=1) %}
+          {% endif %}
+          {{ target.strftime('%Y-%m-%d %H:%M:%S') }}
+    - action: input_datetime.set_datetime
+      target:
+        entity_id: input_datetime.garage_security_snooze_until
+      data:
+        datetime: "{{ morning }}"
+    - action: script.garage_security_clear_alerts
+    - action: script.notify_trevor_phone
+      data:
+        title: "🚗 Garage reminders sleeping"
+        message: Garage reminders paused until 7 AM.
+        data:
+          tag: garage-security-snooze
+
+garage_security_send_alert:
+  alias: Garage Security Send Alert
+  description: Sends ratgdo garage reminders that are not part of the away-security system.
+  icon: mdi:garage-alert-variant
+  mode: restart
+  fields:
+    alert_kind:
+      description: Garage alert type
+      example: open_too_long
+  sequence:
+    - variables:
+        kind: "{{ alert_kind | default('open_too_long', true) }}"
+        garage_cover: cover.ratgdo32disco_c26634_door
+        garage_state: "{{ states('cover.ratgdo32disco_c26634_door') }}"
+        opened_for: "{{ relative_time(states.cover.ratgdo32disco_c26634_door.last_changed) }}"
+        obstruction_state: "{{ states('binary_sensor.ratgdo32disco_c26634_obstruction') }}"
+        title: >-
+          {% if kind == 'open_at_night' %}
+            🚗 Garage open at night
+          {% elif kind == 'opened_overnight' %}
+            🚗 Garage opened overnight
+          {% elif kind == 'obstruction' %}
+            🚗 Garage obstruction detected
+          {% else %}
+            🚗 Garage still open
+          {% endif %}
+        tag: >-
+          {% if kind == 'open_at_night' %}garage-open-at-night
+          {% elif kind == 'opened_overnight' %}garage-opened-overnight
+          {% elif kind == 'obstruction' %}garage-obstruction
+          {% else %}garage-open-too-long{% endif %}
+        priority: "{{ 'high' if kind in ['open_at_night', 'opened_overnight', 'obstruction'] else 'normal' }}"
+        message: >-
+          {% if kind == 'open_at_night' %}
+            The garage door is open during the overnight window. It currently reports {{ garage_state }}.
+          {% elif kind == 'opened_overnight' %}
+            The garage door changed from closed to {{ garage_state }} overnight, and I did not see a recent arrival home.
+          {% elif kind == 'obstruction' %}
+            ratgdo reports an obstruction while the garage door is {{ garage_state }}. Check the door path before closing again.
+          {% else %}
+            The garage door has been open for {{ opened_for }} while someone is home.
+          {% endif %}
+    - choose:
+        - conditions:
+            - condition: template
+              value_template: "{{ kind == 'obstruction' }}"
+          sequence:
+            - action: script.notify_trevor_phone
+              data:
+                title: "{{ title }}"
+                message: "{{ message }}"
+                data:
+                  tag: "{{ tag }}"
+                  group: garage-security
+                  sticky: true
+                  ttl: 0
+                  priority: "{{ priority }}"
+                  url: /calm-mobile/home
+                  actions:
+                    - action: SNOOZE_GARAGE_SECURITY_30
+                      title: Sleep 30 min
+        - conditions:
+            - condition: template
+              value_template: "{{ kind == 'open_at_night' }}"
+          sequence:
+            - action: script.notify_trevor_phone
+              data:
+                title: "{{ title }}"
+                message: "{{ message }}"
+                data:
+                  tag: "{{ tag }}"
+                  group: garage-security
+                  sticky: true
+                  ttl: 0
+                  priority: "{{ priority }}"
+                  url: /calm-mobile/home
+                  actions:
+                    - action: CLOSE_GARAGE_SECURITY
+                      title: Close garage
+                    - action: SNOOZE_GARAGE_SECURITY_MORNING
+                      title: Sleep until morning
+      default:
+        - action: script.notify_trevor_phone
+          data:
+            title: "{{ title }}"
+            message: "{{ message }}"
+            data:
+              tag: "{{ tag }}"
+              group: garage-security
+              sticky: true
+              ttl: 0
+              priority: "{{ priority }}"
+              url: /calm-mobile/home
+              actions:
+                - action: CLOSE_GARAGE_SECURITY
+                  title: Close garage
+                - action: SNOOZE_GARAGE_SECURITY_30
+                  title: Sleep 30 min
 
 away_security_snooze_30:
   alias: Away Security Snooze 30 Minutes

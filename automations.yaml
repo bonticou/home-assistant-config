@@ -629,7 +629,7 @@
         action_label: >-
           {% if 'SNOOZE' in action_id %}
             Snoozed
-          {% elif action_id == 'CLOSE_AWAY_GARAGE' %}
+          {% elif action_id in ['CLOSE_AWAY_GARAGE', 'CLOSE_GARAGE_SECURITY'] %}
             Garage close requested
           {% elif 'PAID' in action_id %}
             Paid
@@ -663,10 +663,11 @@
         source: mobile_app_notification_action
         recent: >-
           {{ action_id == 'CLOSE_AWAY_GARAGE'
+             or action_id == 'CLOSE_GARAGE_SECURITY'
              or trigger.event.data.recent | default(false, true) }}
         keep_recent: "{{ trigger.event.data.keep_recent | default(false, true) }}"
         history: >-
-          {{ 'recent' if action_id == 'CLOSE_AWAY_GARAGE'
+          {{ 'recent' if action_id in ['CLOSE_AWAY_GARAGE', 'CLOSE_GARAGE_SECURITY']
              else trigger.event.data.history | default('', true) }}
   mode: parallel
   max: 20
@@ -1338,6 +1339,212 @@
                   tag: away-security-snooze
   mode: parallel
   max: 10
+
+- id: garage_security_notification_actions
+  alias: "Garage — Notification Actions"
+  description: Handles quick actions from ratgdo garage reminders.
+  triggers:
+    - trigger: event
+      event_type: mobile_app_notification_action
+  conditions:
+    - condition: template
+      value_template: >
+        {{ trigger.event.data.action in [
+          'CLOSE_GARAGE_SECURITY',
+          'SNOOZE_GARAGE_SECURITY_30',
+          'SNOOZE_GARAGE_SECURITY_MORNING'
+        ] }}
+  actions:
+    - choose:
+        - conditions:
+            - condition: template
+              value_template: "{{ trigger.event.data.action == 'CLOSE_GARAGE_SECURITY' }}"
+          sequence:
+            - action: script.away_security_close_garage_door
+            - delay:
+                seconds: 2
+            - if:
+                - condition: state
+                  entity_id: cover.ratgdo32disco_c26634_door
+                  state: "closed"
+              then:
+                - action: script.garage_security_clear_alerts
+        - conditions:
+            - condition: template
+              value_template: "{{ trigger.event.data.action == 'SNOOZE_GARAGE_SECURITY_30' }}"
+          sequence:
+            - action: script.garage_security_snooze_30
+        - conditions:
+            - condition: template
+              value_template: "{{ trigger.event.data.action == 'SNOOZE_GARAGE_SECURITY_MORNING' }}"
+          sequence:
+            - action: script.garage_security_snooze_until_morning
+  mode: parallel
+  max: 10
+
+- id: garage_security_open_too_long
+  alias: "Garage — Open Too Long"
+  description: Low-noise reminder when the ratgdo garage door stays open while someone is home.
+  triggers:
+    - trigger: state
+      entity_id: cover.ratgdo32disco_c26634_door
+      to: "open"
+      for:
+        minutes: 30
+      id: open_30
+    - trigger: time_pattern
+      minutes: "/30"
+      id: repeat
+  conditions:
+    - condition: state
+      entity_id: binary_sensor.away_security_garage_door_open
+      state: "on"
+    - condition: template
+      value_template: >
+        {{ is_state('device_tracker.tk_iphone_16_pro', 'home')
+           or is_state('device_tracker.unifi_default_42_15_78_4a_d9_f8', 'home') }}
+    - condition: template
+      value_template: >
+        {% set snooze = states('input_datetime.garage_security_snooze_until') %}
+        {{ snooze in ['unknown', 'unavailable', '']
+           or as_timestamp(snooze, 0) <= as_timestamp(now()) }}
+    - condition: template
+      value_template: >
+        {% set minutes_now = now().hour * 60 + now().minute %}
+        {{ minutes_now >= 360 and minutes_now < 1350 }}
+    - condition: template
+      value_template: >
+        {{ trigger.id != 'repeat'
+           or (as_timestamp(now()) - as_timestamp(states.cover.ratgdo32disco_c26634_door.last_changed, 0)) >= 1800 }}
+  actions:
+    - action: script.garage_security_send_alert
+      data:
+        alert_kind: open_too_long
+  mode: single
+
+- id: garage_security_open_at_night
+  alias: "Garage — Open At Night"
+  description: Higher-priority reminder when the ratgdo garage door is open during the overnight window.
+  triggers:
+    - trigger: time
+      at: "22:30:00"
+      id: bedtime_check
+    - trigger: time_pattern
+      minutes: "/15"
+      id: repeat
+  conditions:
+    - condition: state
+      entity_id: binary_sensor.away_security_garage_door_open
+      state: "on"
+    - condition: template
+      value_template: >
+        {% set snooze = states('input_datetime.garage_security_snooze_until') %}
+        {{ snooze in ['unknown', 'unavailable', '']
+           or as_timestamp(snooze, 0) <= as_timestamp(now()) }}
+    - condition: template
+      value_template: >
+        {% set minutes_now = now().hour * 60 + now().minute %}
+        {{ minutes_now >= 1350 or minutes_now < 360 }}
+    - condition: template
+      value_template: >
+        {% set trevor_away = states('device_tracker.tk_iphone_16_pro') not in ['home', 'unknown', 'unavailable', ''] %}
+        {% set casey_away = states('device_tracker.unifi_default_42_15_78_4a_d9_f8') not in ['home', 'unknown', 'unavailable', ''] %}
+        {{ not (trevor_away and casey_away) }}
+  actions:
+    - action: script.garage_security_send_alert
+      data:
+        alert_kind: open_at_night
+  mode: single
+
+- id: garage_security_opened_overnight
+  alias: "Garage — Opened Overnight"
+  description: Immediate alert when the ratgdo garage door opens overnight without a recent arrival home.
+  triggers:
+    - trigger: state
+      entity_id: cover.ratgdo32disco_c26634_door
+      from: "closed"
+      to: "opening"
+      id: opening
+    - trigger: state
+      entity_id: cover.ratgdo32disco_c26634_door
+      from: "closed"
+      to: "open"
+      id: open
+  conditions:
+    - condition: template
+      value_template: >
+        {% set minutes_now = now().hour * 60 + now().minute %}
+        {{ minutes_now >= 1380 or minutes_now < 360 }}
+    - condition: template
+      value_template: >
+        {% set snooze = states('input_datetime.garage_security_snooze_until') %}
+        {{ snooze in ['unknown', 'unavailable', '']
+           or as_timestamp(snooze, 0) <= as_timestamp(now()) }}
+    - condition: template
+      value_template: >
+        {% set recent_window = 600 %}
+        {% set trevor_recent = is_state('device_tracker.tk_iphone_16_pro', 'home')
+           and (as_timestamp(now()) - as_timestamp(states.device_tracker.tk_iphone_16_pro.last_changed, 0)) < recent_window %}
+        {% set casey_recent = is_state('device_tracker.unifi_default_42_15_78_4a_d9_f8', 'home')
+           and (as_timestamp(now()) - as_timestamp(states.device_tracker.unifi_default_42_15_78_4a_d9_f8.last_changed, 0)) < recent_window %}
+        {{ not (trevor_recent or casey_recent) }}
+  actions:
+    - action: script.garage_security_send_alert
+      data:
+        alert_kind: opened_overnight
+  mode: single
+
+- id: garage_security_obstruction_detected
+  alias: "Garage — Obstruction Detected"
+  description: Pushes only when ratgdo reports an obstruction while the garage door is moving.
+  triggers:
+    - trigger: state
+      entity_id: binary_sensor.ratgdo32disco_c26634_obstruction
+      to: "on"
+  conditions:
+    - condition: template
+      value_template: "{{ states('cover.ratgdo32disco_c26634_door') in ['opening', 'closing'] }}"
+    - condition: template
+      value_template: >
+        {% set snooze = states('input_datetime.garage_security_snooze_until') %}
+        {{ snooze in ['unknown', 'unavailable', '']
+           or as_timestamp(snooze, 0) <= as_timestamp(now()) }}
+  actions:
+    - action: script.garage_security_send_alert
+      data:
+        alert_kind: obstruction
+  mode: single
+
+- id: garage_security_clear_when_resolved
+  alias: "Garage — Clear Alerts When Resolved"
+  description: Clears active garage-security pushes when the door closes or obstruction clears.
+  triggers:
+    - trigger: state
+      entity_id: cover.ratgdo32disco_c26634_door
+      to: "closed"
+      id: door_closed
+    - trigger: state
+      entity_id: binary_sensor.ratgdo32disco_c26634_obstruction
+      to: "off"
+      id: obstruction_clear
+  conditions: []
+  actions:
+    - choose:
+        - conditions:
+            - condition: template
+              value_template: "{{ trigger.id == 'door_closed' }}"
+          sequence:
+            - action: script.garage_security_clear_alerts
+        - conditions:
+            - condition: template
+              value_template: "{{ trigger.id == 'obstruction_clear' }}"
+          sequence:
+            - action: script.notify_trevor_phone
+              data:
+                message: clear_notification
+                data:
+                  tag: garage-obstruction
+  mode: single
 - id: away_security_clear_when_resolved
   alias: "Security — Clear Away Reminder When Resolved"
   description: Clears the active away-security push once the issue is resolved.

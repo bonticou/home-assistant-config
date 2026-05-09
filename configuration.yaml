@@ -148,6 +148,10 @@ input_datetime:
     name: Away Security Snooze Until
     has_date: true
     has_time: true
+  garage_security_snooze_until:
+    name: Garage Security Snooze Until
+    has_date: true
+    has_time: true
   water_pressure_snooze_until:
     name: Water Pressure Snooze Until
     has_date: true
