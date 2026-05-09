@@ -2106,7 +2106,7 @@ template:
               {% set ns.items = ns.items + [{
                 'id': 'away-security',
                 'title': 'Away security',
-                'emoji': '🚪' if garage_open and entry_count == 1 and lights_count == 0 else '🏠',
+                'emoji': '🚗' if garage_open and entry_count == 1 and lights_count == 0 else '🏠',
                 'icon': 'mdi:garage-open-variant' if garage_open else 'mdi:shield-alert-outline',
                 'group': 'Guardrails',
                 'state': 'active',
