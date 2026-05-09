@@ -2438,6 +2438,8 @@ away_security_send_alert:
                   priority: high
                   url: /calm-mobile/home
                   actions:
+                    - action: SECURE_AWAY_HOME
+                      title: Lock + lights off
                     - action: LOCK_AWAY_ENTRY_DOORS
                       title: >-
                         {{ 'Lock doors' if unlocked_entry_count | int(0) > 1 else 'Lock door' }}

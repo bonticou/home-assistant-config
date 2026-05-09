@@ -423,6 +423,32 @@ views:
                 text-overflow: ellipsis;
               }
           - type: custom:button-card
+            entity: lock.mudroom_door_lock
+            show_icon: false
+            show_name: false
+            show_state: false
+            custom_fields:
+              icon: >-
+                [[[
+                  const icon = entity.state === 'unlocked'
+                    ? 'mdi:lock-open-variant-outline'
+                    : 'mdi:lock-outline';
+                  const color = entity.state === 'unlocked' ? '#ef4444' : '#22c55e';
+                  return `<div class="tile-icon"><ha-icon icon="${icon}" style="color:${color}"></ha-icon></div>`;
+                ]]]
+              text: >-
+                [[[
+                  const meta = entity.state === 'unlocked' ? 'Unlocked' : 'Locked';
+                  return `<div class="tile-copy"><div class="tile-label">Mudroom</div><div class="tile-meta">${meta}</div></div>`;
+                ]]]
+            tap_action:
+              action: toggle
+            hold_action:
+              action: more-info
+            styles:
+              <<: *compact_tile_styles
+            extra_styles: *compact_tile_extra
+          - type: custom:button-card
             entity: switch.flo_shutoff_shutoff_valve
             show_icon: false
             show_name: false
@@ -1590,6 +1616,53 @@ views:
                     {{ 'teal' if is_state('lock.garage_entry_lock', 'locked') else 'red' }}
                   content: >-
                     {{ 'Secure' if is_state('lock.garage_entry_lock', 'locked') else 'Unlocked' }}
+                  tap_action:
+                    action: none
+              card_mod:
+                style: *calm_popup_chip_style
+
+      - type: custom:popup-card
+        target:
+          entity_id: lock.mudroom_door_lock
+        title: Mudroom
+        dismiss_icon: mdi:close
+        initial_style: wide
+        popup_styles: *calm_popup_styles
+        card:
+          type: vertical-stack
+          cards:
+            - type: custom:mushroom-template-card
+              entity: lock.mudroom_door_lock
+              primary: >-
+                {{ 'Locked' if is_state('lock.mudroom_door_lock', 'locked') else 'Unlocked' }}
+              secondary: >-
+                {{ 'Mudroom door is secure.' if is_state('lock.mudroom_door_lock', 'locked') else 'Mudroom door needs attention.' }}
+              icon: >-
+                {{ 'mdi:lock-outline' if is_state('lock.mudroom_door_lock', 'locked') else 'mdi:lock-open-variant-outline' }}
+              icon_color: >-
+                {{ 'teal' if is_state('lock.mudroom_door_lock', 'locked') else 'red' }}
+              fill_container: true
+              tap_action:
+                action: none
+              card_mod:
+                style: *calm_popup_hero_style
+            - type: custom:mushroom-chips-card
+              alignment: left
+              chips:
+                - type: template
+                  entity: lock.mudroom_door_lock
+                  icon: mdi:door-closed-lock
+                  icon_color: blue-grey
+                  content: Mudroom door
+                  tap_action:
+                    action: none
+                - type: template
+                  entity: lock.mudroom_door_lock
+                  icon: mdi:shield-lock-outline
+                  icon_color: >-
+                    {{ 'teal' if is_state('lock.mudroom_door_lock', 'locked') else 'red' }}
+                  content: >-
+                    {{ 'Secure' if is_state('lock.mudroom_door_lock', 'locked') else 'Unlocked' }}
                   tap_action:
                     action: none
               card_mod:

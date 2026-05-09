@@ -1158,6 +1158,7 @@
           'LOCK_AWAY_ENTRY_DOORS',
           'LOCK_CASEY_LEFT_GARAGE',
           'LOCK_CASEY_LEFT_ENTRY_DOORS',
+          'SECURE_AWAY_HOME',
           'SECURE_CASEY_LEFT_HOME',
           'TURN_OFF_AWAY_LIGHTS',
           'TURN_OFF_CASEY_LEFT_LIGHTS',
@@ -1168,7 +1169,7 @@
     - choose:
         - conditions:
             - condition: template
-              value_template: "{{ trigger.event.data.action == 'SECURE_CASEY_LEFT_HOME' }}"
+              value_template: "{{ trigger.event.data.action in ['SECURE_AWAY_HOME', 'SECURE_CASEY_LEFT_HOME'] }}"
           sequence:
             - action: script.away_security_lock_unlocked_entry_doors
             - variables:
