@@ -2381,16 +2381,22 @@ away_security_lock_unlocked_entry_doors:
   icon: mdi:lock-check-outline
   mode: restart
   sequence:
-    - variables:
-        unlocked_entry_locks: >
-          {% set lock_ids = state_attr('sensor.away_security_unlocked_entry_locks', 'entity_ids') | default('', true) %}
-          {{ (lock_ids.split('||') if lock_ids else []) | reject('eq', '') | list }}
-    - repeat:
-        for_each: "{{ unlocked_entry_locks }}"
-        sequence:
-          - action: lock.lock
-            target:
-              entity_id: "{{ repeat.item }}"
+    - if:
+        - condition: state
+          entity_id: lock.garage_entry_lock
+          state: "unlocked"
+      then:
+        - action: lock.lock
+          target:
+            entity_id: lock.garage_entry_lock
+    - if:
+        - condition: state
+          entity_id: lock.mudroom_door_lock
+          state: "unlocked"
+      then:
+        - action: lock.lock
+          target:
+            entity_id: lock.mudroom_door_lock
 
 away_security_send_alert:
   alias: Away Security Send Alert
