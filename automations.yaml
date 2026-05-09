@@ -629,6 +629,8 @@
         action_label: >-
           {% if 'SNOOZE' in action_id %}
             Snoozed
+          {% elif action_id == 'CLOSE_AWAY_GARAGE' %}
+            Garage close requested
           {% elif 'PAID' in action_id %}
             Paid
           {% elif 'DONE' in action_id or 'REPLACED' in action_id or 'CAPTURED' in action_id %}
@@ -659,9 +661,13 @@
         severity: info
         action: "{{ action_id }}"
         source: mobile_app_notification_action
-        recent: "{{ trigger.event.data.recent | default(false, true) }}"
+        recent: >-
+          {{ action_id == 'CLOSE_AWAY_GARAGE'
+             or trigger.event.data.recent | default(false, true) }}
         keep_recent: "{{ trigger.event.data.keep_recent | default(false, true) }}"
-        history: "{{ trigger.event.data.history | default('', true) }}"
+        history: >-
+          {{ 'recent' if action_id == 'CLOSE_AWAY_GARAGE'
+             else trigger.event.data.history | default('', true) }}
   mode: parallel
   max: 20
 
@@ -1044,8 +1050,8 @@
 - id: away_security_unsecured_reminder
   alias: "Security — House Unsecured While Away"
   description: >
-    Reminds Trevor when both Trevor and Casey are away while an entry door is
-    unlocked or lights are still on. Reminder can be snoozed from the push.
+    Reminds Trevor when both Trevor and Casey are away while an entry point is
+    unsecured or lights are still on. Reminder can be snoozed from the push.
   triggers:
     - trigger: state
       entity_id: binary_sensor.house_unsecured_while_away
@@ -1105,14 +1111,14 @@
              and trigger.to_state is not none
              and trigger.from_state.state == 'home'
              and trigger.to_state.state not in ['home', 'unknown', 'unavailable', ''] }}
-        entry_locks_unlocked: "{{ states('sensor.away_security_unlocked_entry_locks') | int(0) > 0 }}"
+        entry_points_unsecured: "{{ states('sensor.away_security_entry_point_issues') | int(0) > 0 }}"
         daylight: "{{ is_state('sun.sun', 'above_horizon') }}"
         active_lights_on: >
           {{ states('sensor.away_security_active_lights') | int(0) > 0 }}
         home_unsecured: >
           {{ trevor_away | bool
              and casey_away | bool
-             and (entry_locks_unlocked | bool or active_lights_on | bool) }}
+             and (entry_points_unsecured | bool or active_lights_on | bool) }}
     - if:
         - condition: template
           value_template: "{{ home_unsecured | bool }}"
@@ -1123,13 +1129,13 @@
                   value_template: >
                     {{ use_casey_context | bool
                        and daylight | bool
-                       and entry_locks_unlocked | bool
+                       and entry_points_unsecured | bool
                        and active_lights_on | bool }}
               sequence:
                 - action: script.casey_left_combo_send_alert
             - conditions:
                 - condition: template
-                  value_template: "{{ use_casey_context | bool and entry_locks_unlocked | bool }}"
+                  value_template: "{{ use_casey_context | bool and entry_points_unsecured | bool }}"
               sequence:
                 - action: script.casey_left_garage_send_alert
             - conditions:
@@ -1154,6 +1160,7 @@
     - condition: template
       value_template: >
         {{ trigger.event.data.action in [
+          'CLOSE_AWAY_GARAGE',
           'LOCK_AWAY_GARAGE',
           'LOCK_AWAY_ENTRY_DOORS',
           'LOCK_CASEY_LEFT_GARAGE',
@@ -1182,6 +1189,7 @@
                   - action: light.turn_off
                     target:
                       entity_id: "{{ repeat.item }}"
+            - action: script.away_security_close_garage_door
             - delay:
                 seconds: 2
             - action: script.casey_left_combo_clear_alert
@@ -1194,14 +1202,60 @@
                     {% set casey_state = states('device_tracker.unifi_default_42_15_78_4a_d9_f8') %}
                     {% set trevor_away = trevor_state not in ['home', 'unknown', 'unavailable', ''] %}
                     {% set casey_away = casey_state not in ['home', 'unknown', 'unavailable', ''] %}
-                    {% set lights_on = states('sensor.away_security_active_lights') | int(0) > 0 %}
-                    {% set entry_locks_unlocked = states('sensor.away_security_unlocked_entry_locks') | int(0) > 0 %}
-                    {{ trevor_away and casey_away and
-                       (entry_locks_unlocked or lights_on) }}
+                    {{ not (trevor_away and casey_away and is_state('binary_sensor.away_security_garage_door_open', 'on')) }}
               then:
-                - action: script.away_security_send_alert
-              else:
-                - action: script.away_security_clear_alert
+                - if:
+                    - condition: template
+                      value_template: >
+                        {% set trevor_state = states('device_tracker.tk_iphone_16_pro') %}
+                        {% set casey_state = states('device_tracker.unifi_default_42_15_78_4a_d9_f8') %}
+                        {% set trevor_away = trevor_state not in ['home', 'unknown', 'unavailable', ''] %}
+                        {% set casey_away = casey_state not in ['home', 'unknown', 'unavailable', ''] %}
+                        {% set lights_on = states('sensor.away_security_active_lights') | int(0) > 0 %}
+                        {% set entry_points_unsecured = states('sensor.away_security_entry_point_issues') | int(0) > 0 %}
+                        {{ trevor_away and casey_away and
+                           (entry_points_unsecured or lights_on) }}
+                  then:
+                    - action: script.away_security_send_alert
+                  else:
+                    - action: script.away_security_clear_alert
+
+        - conditions:
+            - condition: template
+              value_template: "{{ trigger.event.data.action == 'CLOSE_AWAY_GARAGE' }}"
+          sequence:
+            - action: script.away_security_close_garage_door
+            - delay:
+                seconds: 2
+            - if:
+                - condition: template
+                  value_template: "{{ not is_state('binary_sensor.away_security_garage_door_open', 'on') }}"
+              then:
+                - action: script.casey_left_garage_clear_alert
+            - if:
+                - condition: template
+                  value_template: >
+                    {% set trevor_state = states('device_tracker.tk_iphone_16_pro') %}
+                    {% set casey_state = states('device_tracker.unifi_default_42_15_78_4a_d9_f8') %}
+                    {% set trevor_away = trevor_state not in ['home', 'unknown', 'unavailable', ''] %}
+                    {% set casey_away = casey_state not in ['home', 'unknown', 'unavailable', ''] %}
+                    {{ not (trevor_away and casey_away and is_state('binary_sensor.away_security_garage_door_open', 'on')) }}
+              then:
+                - if:
+                    - condition: template
+                      value_template: >
+                        {% set trevor_state = states('device_tracker.tk_iphone_16_pro') %}
+                        {% set casey_state = states('device_tracker.unifi_default_42_15_78_4a_d9_f8') %}
+                        {% set trevor_away = trevor_state not in ['home', 'unknown', 'unavailable', ''] %}
+                        {% set casey_away = casey_state not in ['home', 'unknown', 'unavailable', ''] %}
+                        {% set lights_on = states('sensor.away_security_active_lights') | int(0) > 0 %}
+                        {% set entry_points_unsecured = states('sensor.away_security_entry_point_issues') | int(0) > 0 %}
+                        {{ trevor_away and casey_away and
+                           (entry_points_unsecured or lights_on) }}
+                  then:
+                    - action: script.away_security_send_alert
+                  else:
+                    - action: script.away_security_clear_alert
 
         - conditions:
             - condition: template
@@ -1219,9 +1273,9 @@
                     {% set trevor_away = trevor_state not in ['home', 'unknown', 'unavailable', ''] %}
                     {% set casey_away = casey_state not in ['home', 'unknown', 'unavailable', ''] %}
                     {% set lights_on = states('sensor.away_security_active_lights') | int(0) > 0 %}
-                    {% set entry_locks_unlocked = states('sensor.away_security_unlocked_entry_locks') | int(0) > 0 %}
+                    {% set entry_points_unsecured = states('sensor.away_security_entry_point_issues') | int(0) > 0 %}
                     {{ trevor_away and casey_away and
-                       (entry_locks_unlocked or lights_on) }}
+                       (entry_points_unsecured or lights_on) }}
               then:
                 - action: script.away_security_send_alert
               else:
@@ -1252,9 +1306,9 @@
                     {% set trevor_away = trevor_state not in ['home', 'unknown', 'unavailable', ''] %}
                     {% set casey_away = casey_state not in ['home', 'unknown', 'unavailable', ''] %}
                     {% set lights_on = states('sensor.away_security_active_lights') | int(0) > 0 %}
-                    {% set entry_locks_unlocked = states('sensor.away_security_unlocked_entry_locks') | int(0) > 0 %}
+                    {% set entry_points_unsecured = states('sensor.away_security_entry_point_issues') | int(0) > 0 %}
                     {{ trevor_away and casey_away and
-                       (entry_locks_unlocked or lights_on) }}
+                       (entry_points_unsecured or lights_on) }}
               then:
                 - action: script.away_security_send_alert
               else:
@@ -1264,18 +1318,7 @@
             - condition: template
               value_template: "{{ trigger.event.data.action == 'SNOOZE_AWAY_SECURITY_30' }}"
           sequence:
-            - action: input_datetime.set_datetime
-              target:
-                entity_id: input_datetime.away_security_snooze_until
-              data:
-                datetime: "{{ (now() + timedelta(minutes=30)).strftime('%Y-%m-%d %H:%M:%S') }}"
-            - action: script.away_security_clear_alert
-            - action: script.notify_trevor_phone
-              data:
-                title: House reminder sleeping
-                message: Away security reminders paused for 30 minutes.
-                data:
-                  tag: away-security-snooze
+            - action: script.away_security_snooze_30
 
         - conditions:
             - condition: template
@@ -1312,6 +1355,9 @@
   description: Clears the contextual Casey-left-entry push once it is no longer relevant.
   triggers:
     - trigger: state
+      entity_id: cover.ratgdo32disco_c26634_door
+      to: closed
+    - trigger: state
       entity_id:
         - lock.garage_entry_lock
         - lock.mudroom_door_lock
@@ -1329,10 +1375,7 @@
           value_template: >
             {{ is_state('device_tracker.tk_iphone_16_pro', 'home')
                or is_state('device_tracker.unifi_default_42_15_78_4a_d9_f8', 'home')
-               or (
-                 not is_state('lock.garage_entry_lock', 'unlocked')
-                 and not is_state('lock.mudroom_door_lock', 'unlocked')
-               ) }}
+               or states('sensor.away_security_entry_point_issues') | int(0) == 0 }}
       then:
         - action: script.casey_left_garage_clear_alert
   mode: single
@@ -1341,6 +1384,9 @@
   alias: "Security — Clear Casey Left Combo Alert"
   description: Clears the contextual Casey-left combo push once it is no longer relevant.
   triggers:
+    - trigger: state
+      entity_id: cover.ratgdo32disco_c26634_door
+      to: closed
     - trigger: state
       entity_id:
         - lock.garage_entry_lock
@@ -1375,10 +1421,7 @@
               is_state('sun.sun', 'above_horizon')
               and states('device_tracker.tk_iphone_16_pro') not in ['home', 'unknown', 'unavailable', '']
               and states('device_tracker.unifi_default_42_15_78_4a_d9_f8') not in ['home', 'unknown', 'unavailable', '']
-              and (
-                is_state('lock.garage_entry_lock', 'unlocked')
-                or is_state('lock.mudroom_door_lock', 'unlocked')
-              )
+              and states('sensor.away_security_entry_point_issues') | int(0) > 0
               and states('sensor.away_security_active_lights') | int(0) > 0
             ) }}
       then:

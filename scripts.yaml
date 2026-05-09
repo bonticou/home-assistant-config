@@ -2398,6 +2398,70 @@ away_security_lock_unlocked_entry_doors:
           target:
             entity_id: lock.mudroom_door_lock
 
+away_security_close_garage_door:
+  alias: Away Security Close Garage Door
+  description: Closes the ratgdo garage door only from an explicit user action.
+  icon: mdi:garage-arrow-down
+  mode: restart
+  sequence:
+    - variables:
+        garage_cover: cover.ratgdo32disco_c26634_door
+    - if:
+        - condition: template
+          value_template: "{{ states(garage_cover) in ['open', 'opening'] }}"
+      then:
+        - action: cover.close_cover
+          target:
+            entity_id: cover.ratgdo32disco_c26634_door
+        - wait_template: "{{ is_state(garage_cover, 'closed') }}"
+          timeout: "00:01:00"
+          continue_on_timeout: true
+        - variables:
+            trevor_away: "{{ states('device_tracker.tk_iphone_16_pro') not in ['home', 'unknown', 'unavailable', ''] }}"
+            casey_away: "{{ states('device_tracker.unifi_default_42_15_78_4a_d9_f8') not in ['home', 'unknown', 'unavailable', ''] }}"
+        - if:
+            - condition: template
+              value_template: "{{ not is_state(garage_cover, 'closed') and trevor_away and casey_away }}"
+          then:
+            - action: script.notify_trevor_phone
+              data:
+                title: "🚪 Garage did not close"
+                message: >-
+                  Home Assistant sent the close command, but the garage door still reports
+                  {{ states(garage_cover) }} while Casey and Trevor are away. It currently sees
+                  {{ states('sensor.away_security_issue_summary') }}.
+                data:
+                  tag: away-security
+                  group: away-security
+                  sticky: true
+                  ttl: 0
+                  priority: high
+                  url: /calm-mobile/home
+                  actions:
+                    - action: CLOSE_AWAY_GARAGE
+                      title: Try closing again
+                    - action: SNOOZE_AWAY_SECURITY_30
+                      title: Sleep 30 min
+
+away_security_snooze_30:
+  alias: Away Security Snooze 30 Minutes
+  description: Pauses away-security reminders for 30 minutes.
+  icon: mdi:alarm-snooze
+  mode: restart
+  sequence:
+    - action: input_datetime.set_datetime
+      target:
+        entity_id: input_datetime.away_security_snooze_until
+      data:
+        datetime: "{{ (now() + timedelta(minutes=30)).strftime('%Y-%m-%d %H:%M:%S') }}"
+    - action: script.away_security_clear_alert
+    - action: script.notify_trevor_phone
+      data:
+        title: House reminder sleeping
+        message: Away security reminders paused for 30 minutes.
+        data:
+          tag: away-security-snooze
+
 away_security_send_alert:
   alias: Away Security Send Alert
   description: Sends the active away-security issue with quick actions.
@@ -2409,20 +2473,118 @@ away_security_send_alert:
     - action: script.casey_left_lights_clear_alert
     - variables:
         issue_summary: "{{ states('sensor.away_security_issue_summary') }}"
+        garage_door_open: "{{ is_state('binary_sensor.away_security_garage_door_open', 'on') }}"
+        entry_point_count: "{{ states('sensor.away_security_entry_point_issues') | int(0) }}"
+        entry_point_issue: "{{ state_attr('sensor.away_security_entry_point_issues', 'issue') | default('', true) }}"
         unlocked_entry_count: "{{ states('sensor.away_security_unlocked_entry_locks') | int(0) }}"
-        unlocked_entry_issue: "{{ state_attr('sensor.away_security_unlocked_entry_locks', 'issue') | default('', true) }}"
         active_light_count: "{{ states('sensor.away_security_active_lights') | int(0) }}"
+        secure_action_title: >-
+          {% set garage = garage_door_open | bool %}
+          {% set locks = unlocked_entry_count | int(0) > 0 %}
+          {% set lights = active_light_count | int(0) > 0 %}
+          {% if garage and locks and lights %}Close + lock + lights off
+          {% elif garage and locks %}Close + lock
+          {% elif garage and lights %}Close + lights off
+          {% elif locks and lights %}Lock + lights off
+          {% else %}Secure home{% endif %}
         notification_title: >-
-          {% if unlocked_entry_count | int(0) > 1 %}
-            🔐 Entry doors unlocked while away
-          {% elif unlocked_entry_count | int(0) == 1 %}
-            🔐 {{ unlocked_entry_issue }} while away
+          {% if garage_door_open | bool and entry_point_count | int(0) == 1 and active_light_count | int(0) == 0 %}
+            🚪 Garage door open while away
+          {% elif entry_point_count | int(0) > 1 and active_light_count | int(0) == 0 %}
+            🔐 Entry points unsecured while away
+          {% elif entry_point_count | int(0) == 1 and active_light_count | int(0) == 0 %}
+            🔐 {{ entry_point_issue }} while away
           {% else %}
             🏠 House left unsecured
           {% endif %}
         notification_message: >-
           Casey and Trevor are away, and {{ issue_summary }}.
     - choose:
+        - conditions:
+            - condition: template
+              value_template: >
+                {{ garage_door_open | bool
+                   and unlocked_entry_count | int(0) > 0
+                   and active_light_count | int(0) > 0 }}
+          sequence:
+            - action: script.notify_trevor_phone
+              data:
+                title: "{{ notification_title }}"
+                message: "{{ notification_message }}"
+                data:
+                  tag: away-security
+                  group: away-security
+                  sticky: true
+                  ttl: 0
+                  priority: high
+                  url: /calm-mobile/home
+                  actions:
+                    - action: SECURE_AWAY_HOME
+                      title: "{{ secure_action_title }}"
+                    - action: CLOSE_AWAY_GARAGE
+                      title: Close garage
+                    - action: LOCK_AWAY_ENTRY_DOORS
+                      title: >-
+                        {{ 'Lock doors' if unlocked_entry_count | int(0) > 1 else 'Lock door' }}
+                    - action: TURN_OFF_AWAY_LIGHTS
+                      title: Turn off lights
+                    - action: SNOOZE_AWAY_SECURITY_30
+                      title: Sleep 30 min
+                    - action: SNOOZE_AWAY_SECURITY_120
+                      title: Sleep 2 hr
+        - conditions:
+            - condition: template
+              value_template: "{{ garage_door_open | bool and unlocked_entry_count | int(0) > 0 }}"
+          sequence:
+            - action: script.notify_trevor_phone
+              data:
+                title: "{{ notification_title }}"
+                message: "{{ notification_message }}"
+                data:
+                  tag: away-security
+                  group: away-security
+                  sticky: true
+                  ttl: 0
+                  priority: high
+                  url: /calm-mobile/home
+                  actions:
+                    - action: SECURE_AWAY_HOME
+                      title: "{{ secure_action_title }}"
+                    - action: CLOSE_AWAY_GARAGE
+                      title: Close garage
+                    - action: LOCK_AWAY_ENTRY_DOORS
+                      title: >-
+                        {{ 'Lock doors' if unlocked_entry_count | int(0) > 1 else 'Lock door' }}
+                    - action: SNOOZE_AWAY_SECURITY_30
+                      title: Sleep 30 min
+                    - action: SNOOZE_AWAY_SECURITY_120
+                      title: Sleep 2 hr
+        - conditions:
+            - condition: template
+              value_template: "{{ garage_door_open | bool and active_light_count | int(0) > 0 }}"
+          sequence:
+            - action: script.notify_trevor_phone
+              data:
+                title: "{{ notification_title }}"
+                message: "{{ notification_message }}"
+                data:
+                  tag: away-security
+                  group: away-security
+                  sticky: true
+                  ttl: 0
+                  priority: high
+                  url: /calm-mobile/home
+                  actions:
+                    - action: SECURE_AWAY_HOME
+                      title: "{{ secure_action_title }}"
+                    - action: CLOSE_AWAY_GARAGE
+                      title: Close garage
+                    - action: TURN_OFF_AWAY_LIGHTS
+                      title: Turn off lights
+                    - action: SNOOZE_AWAY_SECURITY_30
+                      title: Sleep 30 min
+                    - action: SNOOZE_AWAY_SECURITY_120
+                      title: Sleep 2 hr
         - conditions:
             - condition: template
               value_template: "{{ unlocked_entry_count | int(0) > 0 and active_light_count | int(0) > 0 }}"
@@ -2433,18 +2595,41 @@ away_security_send_alert:
                 message: "{{ notification_message }}"
                 data:
                   tag: away-security
+                  group: away-security
                   sticky: true
                   ttl: 0
                   priority: high
                   url: /calm-mobile/home
                   actions:
                     - action: SECURE_AWAY_HOME
-                      title: Lock + lights off
+                      title: "{{ secure_action_title }}"
                     - action: LOCK_AWAY_ENTRY_DOORS
                       title: >-
                         {{ 'Lock doors' if unlocked_entry_count | int(0) > 1 else 'Lock door' }}
                     - action: TURN_OFF_AWAY_LIGHTS
                       title: Turn off lights
+                    - action: SNOOZE_AWAY_SECURITY_30
+                      title: Sleep 30 min
+                    - action: SNOOZE_AWAY_SECURITY_120
+                      title: Sleep 2 hr
+        - conditions:
+            - condition: template
+              value_template: "{{ garage_door_open | bool }}"
+          sequence:
+            - action: script.notify_trevor_phone
+              data:
+                title: "{{ notification_title }}"
+                message: "{{ notification_message }}"
+                data:
+                  tag: away-security
+                  group: away-security
+                  sticky: true
+                  ttl: 0
+                  priority: high
+                  url: /calm-mobile/home
+                  actions:
+                    - action: CLOSE_AWAY_GARAGE
+                      title: Close garage
                     - action: SNOOZE_AWAY_SECURITY_30
                       title: Sleep 30 min
                     - action: SNOOZE_AWAY_SECURITY_120
@@ -2459,6 +2644,7 @@ away_security_send_alert:
                 message: "{{ notification_message }}"
                 data:
                   tag: away-security
+                  group: away-security
                   sticky: true
                   ttl: 0
                   priority: high
@@ -2481,6 +2667,7 @@ away_security_send_alert:
                 message: "{{ notification_message }}"
                 data:
                   tag: away-security
+                  group: away-security
                   sticky: true
                   ttl: 0
                   priority: high
@@ -2499,6 +2686,7 @@ away_security_send_alert:
             message: "{{ notification_message }}"
             data:
               tag: away-security
+              group: away-security
               sticky: true
               ttl: 0
               priority: high
@@ -2523,7 +2711,7 @@ away_security_clear_alert:
 
 casey_left_garage_send_alert:
   alias: Casey Left Entry Send Alert
-  description: Sends Trevor a contextual push when Casey leaves home and an entry door is still unlocked.
+  description: Sends Trevor a contextual push when Casey leaves home and an entry point is unsecured.
   icon: mdi:garage-alert-variant
   mode: restart
   sequence:
@@ -2531,24 +2719,76 @@ casey_left_garage_send_alert:
     - action: script.casey_left_combo_clear_alert
     - action: script.casey_left_lights_clear_alert
     - variables:
+        garage_door_open: "{{ is_state('binary_sensor.away_security_garage_door_open', 'on') }}"
+        entry_point_count: "{{ states('sensor.away_security_entry_point_issues') | int(0) }}"
+        entry_point_issue: "{{ state_attr('sensor.away_security_entry_point_issues', 'issue') | default('an entry point unsecured', true) }}"
         unlocked_entry_count: "{{ states('sensor.away_security_unlocked_entry_locks') | int(0) }}"
-        unlocked_entry_issue: "{{ state_attr('sensor.away_security_unlocked_entry_locks', 'issue') | default('an entry door unlocked', true) }}"
-    - action: script.notify_trevor_phone
-      data:
-        title: "🔐 Casey left {{ unlocked_entry_issue }}"
-        message: >-
-          Casey just left home and {{ unlocked_entry_issue }}.
-          Tap below to lock {{ 'them' if unlocked_entry_count | int(0) > 1 else 'it' }}.
-        data:
-          tag: casey-left-garage-unlocked
-          group: away-security
-          sticky: true
-          ttl: 0
-          priority: high
-          actions:
-            - action: LOCK_CASEY_LEFT_ENTRY_DOORS
-              title: >-
-                {{ 'Lock doors' if unlocked_entry_count | int(0) > 1 else 'Lock door' }}
+        notification_title: >-
+          {% if garage_door_open | bool and entry_point_count | int(0) == 1 %}
+            🚪 Casey left the garage open
+          {% elif entry_point_count | int(0) > 1 %}
+            🔐 Casey left entry points unsecured
+          {% else %}
+            🔐 Casey left {{ entry_point_issue }}
+          {% endif %}
+        notification_message: >-
+          Casey just left home and {{ entry_point_issue }}.
+          Tap below to {{ 'close it' if garage_door_open | bool and unlocked_entry_count | int(0) == 0 else 'secure it' }}.
+    - choose:
+        - conditions:
+            - condition: template
+              value_template: "{{ garage_door_open | bool and unlocked_entry_count | int(0) > 0 }}"
+          sequence:
+            - action: script.notify_trevor_phone
+              data:
+                title: "{{ notification_title }}"
+                message: "{{ notification_message }}"
+                data:
+                  tag: casey-left-garage-unlocked
+                  group: away-security
+                  sticky: true
+                  ttl: 0
+                  priority: high
+                  actions:
+                    - action: SECURE_CASEY_LEFT_HOME
+                      title: Close + lock
+                    - action: CLOSE_AWAY_GARAGE
+                      title: Close garage
+                    - action: LOCK_CASEY_LEFT_ENTRY_DOORS
+                      title: >-
+                        {{ 'Lock doors' if unlocked_entry_count | int(0) > 1 else 'Lock door' }}
+        - conditions:
+            - condition: template
+              value_template: "{{ garage_door_open | bool }}"
+          sequence:
+            - action: script.notify_trevor_phone
+              data:
+                title: "{{ notification_title }}"
+                message: "{{ notification_message }}"
+                data:
+                  tag: casey-left-garage-unlocked
+                  group: away-security
+                  sticky: true
+                  ttl: 0
+                  priority: high
+                  actions:
+                    - action: CLOSE_AWAY_GARAGE
+                      title: Close garage
+      default:
+        - action: script.notify_trevor_phone
+          data:
+            title: "{{ notification_title }}"
+            message: "{{ notification_message }}"
+            data:
+              tag: casey-left-garage-unlocked
+              group: away-security
+              sticky: true
+              ttl: 0
+              priority: high
+              actions:
+                - action: LOCK_CASEY_LEFT_ENTRY_DOORS
+                  title: >-
+                    {{ 'Lock doors' if unlocked_entry_count | int(0) > 1 else 'Lock door' }}
 
 casey_left_garage_clear_alert:
   alias: Casey Left Entry Clear Alert
@@ -2564,7 +2804,7 @@ casey_left_garage_clear_alert:
 
 casey_left_combo_send_alert:
   alias: Casey Left Combo Send Alert
-  description: Sends Trevor a contextual push when Casey leaves during daylight with an entry door unlocked and lights still on.
+  description: Sends Trevor a contextual push when Casey leaves during daylight with an entry point unsecured and lights still on.
   icon: mdi:home-lightning-bolt-outline
   mode: restart
   sequence:
@@ -2572,21 +2812,26 @@ casey_left_combo_send_alert:
     - action: script.casey_left_garage_clear_alert
     - action: script.casey_left_lights_clear_alert
     - variables:
+        garage_door_open: "{{ is_state('binary_sensor.away_security_garage_door_open', 'on') }}"
+        entry_point_issue: "{{ state_attr('sensor.away_security_entry_point_issues', 'issue') | default('an entry point unsecured', true) }}"
         unlocked_entry_count: "{{ states('sensor.away_security_unlocked_entry_locks') | int(0) }}"
-        unlocked_entry_issue: "{{ state_attr('sensor.away_security_unlocked_entry_locks', 'issue') | default('an entry door unlocked', true) }}"
         active_light_names: >
           {% set light_names = state_attr('sensor.away_security_active_lights', 'names') | default('', true) %}
           {{ (light_names.split('||') if light_names else []) | reject('eq', '') | list }}
+        secure_action_title: >-
+          {% if garage_door_open | bool and unlocked_entry_count | int(0) > 0 %}Close + lock + lights off
+          {% elif garage_door_open | bool %}Close + lights off
+          {% else %}Lock + lights off{% endif %}
     - action: script.notify_trevor_phone
       data:
-        title: "🏠 Casey left {{ unlocked_entry_issue }} and lights on"
+        title: "🏠 Casey left {{ entry_point_issue }} and lights on"
         message: >-
           {% if active_light_names | count == 1 %}
-            Casey just left home, {{ unlocked_entry_issue }}, and {{ active_light_names[0] }} is still on.
+            Casey just left home, {{ entry_point_issue }}, and {{ active_light_names[0] }} is still on.
           {% elif active_light_names | count == 2 %}
-            Casey just left home, {{ unlocked_entry_issue }}, and {{ active_light_names | join(' and ') }} are still on.
+            Casey just left home, {{ entry_point_issue }}, and {{ active_light_names | join(' and ') }} are still on.
           {% else %}
-            Casey just left home, {{ unlocked_entry_issue }}, and {{ active_light_names | count }} lights are still on.
+            Casey just left home, {{ entry_point_issue }}, and {{ active_light_names | count }} lights are still on.
           {% endif %}
           Tap below to secure everything.
         data:
@@ -2597,7 +2842,7 @@ casey_left_combo_send_alert:
           priority: high
           actions:
             - action: SECURE_CASEY_LEFT_HOME
-              title: Lock + lights off
+              title: "{{ secure_action_title }}"
 
 casey_left_combo_clear_alert:
   alias: Casey Left Combo Clear Alert
