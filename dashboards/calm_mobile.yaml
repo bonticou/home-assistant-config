@@ -327,26 +327,33 @@ views:
         square: false
         cards:
           - type: custom:button-card
-            entity: lock.garage_entry_lock
+            entity: sensor.away_security_unlocked_entry_locks
             show_icon: false
             show_name: false
             show_state: false
             custom_fields:
               icon: >-
                 [[[
-                  const icon = entity.state === 'unlocked'
+                  const count = Number(entity.state || 0);
+                  const icon = count > 0
                     ? 'mdi:lock-open-variant-outline'
                     : 'mdi:lock-outline';
-                  const color = entity.state === 'unlocked' ? '#ef4444' : '#22c55e';
+                  const color = count > 0 ? '#ef4444' : '#22c55e';
                   return `<div class="tile-icon"><ha-icon icon="${icon}" style="color:${color}"></ha-icon></div>`;
                 ]]]
               text: >-
                 [[[
-                  const meta = entity.state === 'unlocked' ? 'Unlocked' : 'Locked';
-                  return `<div class="tile-copy"><div class="tile-label">Garage</div><div class="tile-meta">${meta}</div></div>`;
+                  const count = Number(entity.state || 0);
+                  const label = entity.attributes?.label || '';
+                  const meta = count === 0
+                    ? 'All locked'
+                    : count === 1
+                      ? `${label} unlocked`
+                      : `${count} unlocked`;
+                  return `<div class="tile-copy"><div class="tile-label">Doors</div><div class="tile-meta">${meta}</div></div>`;
                 ]]]
             tap_action:
-              action: toggle
+              action: more-info
             hold_action:
               action: more-info
             styles:
@@ -422,32 +429,6 @@ views:
                 overflow: hidden;
                 text-overflow: ellipsis;
               }
-          - type: custom:button-card
-            entity: lock.mudroom_door_lock
-            show_icon: false
-            show_name: false
-            show_state: false
-            custom_fields:
-              icon: >-
-                [[[
-                  const icon = entity.state === 'unlocked'
-                    ? 'mdi:lock-open-variant-outline'
-                    : 'mdi:lock-outline';
-                  const color = entity.state === 'unlocked' ? '#ef4444' : '#22c55e';
-                  return `<div class="tile-icon"><ha-icon icon="${icon}" style="color:${color}"></ha-icon></div>`;
-                ]]]
-              text: >-
-                [[[
-                  const meta = entity.state === 'unlocked' ? 'Unlocked' : 'Locked';
-                  return `<div class="tile-copy"><div class="tile-label">Mudroom</div><div class="tile-meta">${meta}</div></div>`;
-                ]]]
-            tap_action:
-              action: toggle
-            hold_action:
-              action: more-info
-            styles:
-              <<: *compact_tile_styles
-            extra_styles: *compact_tile_extra
           - type: custom:button-card
             entity: switch.flo_shutoff_shutoff_valve
             show_icon: false
@@ -1576,8 +1557,8 @@ views:
 
       - type: custom:popup-card
         target:
-          entity_id: lock.garage_entry_lock
-        title: Garage
+          entity_id: sensor.away_security_unlocked_entry_locks
+        title: Door locks
         dismiss_icon: mdi:close
         initial_style: wide
         popup_styles: *calm_popup_styles
@@ -1585,88 +1566,207 @@ views:
           type: vertical-stack
           cards:
             - type: custom:mushroom-template-card
-              entity: lock.garage_entry_lock
+              entity: sensor.away_security_unlocked_entry_locks
               primary: >-
-                {{ 'Locked' if is_state('lock.garage_entry_lock', 'locked') else 'Unlocked' }}
-              secondary: >-
-                {{ 'Garage door is secure.' if is_state('lock.garage_entry_lock', 'locked') else 'Garage door needs attention.' }}
+                {{ 'Doors secure' if states('sensor.away_security_unlocked_entry_locks') | int(0) == 0 else state_attr('sensor.away_security_unlocked_entry_locks', 'issue') }}
+              secondary: Garage + mudroom
               icon: >-
-                {{ 'mdi:lock-outline' if is_state('lock.garage_entry_lock', 'locked') else 'mdi:lock-open-variant-outline' }}
+                {{ 'mdi:lock-check-outline' if states('sensor.away_security_unlocked_entry_locks') | int(0) == 0 else 'mdi:lock-open-alert-outline' }}
               icon_color: >-
-                {{ 'teal' if is_state('lock.garage_entry_lock', 'locked') else 'red' }}
+                {{ 'teal' if states('sensor.away_security_unlocked_entry_locks') | int(0) == 0 else 'red' }}
               fill_container: true
               tap_action:
                 action: none
               card_mod:
                 style: *calm_popup_hero_style
-            - type: custom:mushroom-chips-card
-              alignment: left
-              chips:
-                - type: template
+            - type: conditional
+              conditions:
+                - entity: sensor.away_security_unlocked_entry_locks
+                  state: "2"
+              card:
+                type: custom:button-card
+                entity: sensor.away_security_unlocked_entry_locks
+                show_icon: false
+                show_name: false
+                show_state: false
+                custom_fields:
+                  icon: >-
+                    [[[
+                      return '<div class="door-lock-all-icon"><ha-icon icon="mdi:lock-alert-outline"></ha-icon></div>';
+                    ]]]
+                  name: Lock both
+                tap_action:
+                  action: call-service
+                  service: script.away_security_lock_unlocked_entry_doors
+                styles:
+                  card:
+                    - height: 56px
+                    - padding: 0 13px
+                    - border-radius: 24px
+                    - border: 1px solid rgba(94, 234, 212, 0.26)
+                    - background: linear-gradient(180deg, rgba(20, 184, 166, 0.30), rgba(15, 23, 42, 0.90))
+                    - box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.08), 0 12px 24px rgba(2, 8, 23, 0.14)
+                  grid:
+                    - grid-template-areas: '"icon name"'
+                    - grid-template-columns: 38px minmax(0, 1fr)
+                    - column-gap: 10px
+                    - align-items: center
+                  custom_fields:
+                    icon:
+                      - grid-area: icon
+                    name:
+                      - grid-area: name
+                      - justify-self: start
+                      - color: "#f8fafc"
+                      - font-size: 15px
+                      - font-weight: 760
+                      - line-height: 1
+                extra_styles: |
+                  .door-lock-all-icon {
+                    width: 38px;
+                    height: 38px;
+                    border-radius: 16px;
+                    display: grid;
+                    place-items: center;
+                    background: rgba(20, 184, 166, 0.18);
+                    color: #5eead4;
+                    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.08);
+                  }
+                  .door-lock-all-icon ha-icon {
+                    --mdc-icon-size: 21px;
+                  }
+            - type: horizontal-stack
+              cards:
+                - type: custom:button-card
                   entity: lock.garage_entry_lock
-                  icon: mdi:garage
-                  icon_color: blue-grey
-                  content: Garage door
+                  show_icon: false
+                  show_name: false
+                  show_state: false
+                  custom_fields:
+                    icon: >-
+                      [[[
+                        const unlocked = entity.state === 'unlocked';
+                        const icon = unlocked ? 'mdi:lock-open-variant-outline' : 'mdi:lock-outline';
+                        return `<div class="door-lock-icon ${unlocked ? 'open' : 'closed'}"><ha-icon icon="${icon}"></ha-icon></div>`;
+                      ]]]
+                    name: Garage
+                    state: >-
+                      [[[
+                        const unlocked = entity.state === 'unlocked';
+                        return `<span class="door-lock-state ${unlocked ? 'open' : 'closed'}">${unlocked ? 'Unlocked' : 'Locked'}</span>`;
+                      ]]]
                   tap_action:
-                    action: none
-                - type: template
-                  entity: lock.garage_entry_lock
-                  icon: mdi:shield-lock-outline
-                  icon_color: >-
-                    {{ 'teal' if is_state('lock.garage_entry_lock', 'locked') else 'red' }}
-                  content: >-
-                    {{ 'Secure' if is_state('lock.garage_entry_lock', 'locked') else 'Unlocked' }}
-                  tap_action:
-                    action: none
-              card_mod:
-                style: *calm_popup_chip_style
-
-      - type: custom:popup-card
-        target:
-          entity_id: lock.mudroom_door_lock
-        title: Mudroom
-        dismiss_icon: mdi:close
-        initial_style: wide
-        popup_styles: *calm_popup_styles
-        card:
-          type: vertical-stack
-          cards:
-            - type: custom:mushroom-template-card
-              entity: lock.mudroom_door_lock
-              primary: >-
-                {{ 'Locked' if is_state('lock.mudroom_door_lock', 'locked') else 'Unlocked' }}
-              secondary: >-
-                {{ 'Mudroom door is secure.' if is_state('lock.mudroom_door_lock', 'locked') else 'Mudroom door needs attention.' }}
-              icon: >-
-                {{ 'mdi:lock-outline' if is_state('lock.mudroom_door_lock', 'locked') else 'mdi:lock-open-variant-outline' }}
-              icon_color: >-
-                {{ 'teal' if is_state('lock.mudroom_door_lock', 'locked') else 'red' }}
-              fill_container: true
-              tap_action:
-                action: none
-              card_mod:
-                style: *calm_popup_hero_style
-            - type: custom:mushroom-chips-card
-              alignment: left
-              chips:
-                - type: template
+                    action: call-service
+                    service: lock.lock
+                    target:
+                      entity_id: lock.garage_entry_lock
+                  hold_action:
+                    action: more-info
+                  styles:
+                    &door_lock_tile_styles
+                    card:
+                      - min-width: 0
+                      - width: 100%
+                      - box-sizing: border-box
+                      - min-height: 106px
+                      - padding: 12px 10px 11px
+                      - border-radius: 26px
+                      - border: 1px solid rgba(148, 163, 184, 0.26)
+                      - background: linear-gradient(180deg, rgba(51, 65, 85, 0.88), rgba(15, 23, 42, 0.92))
+                      - box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.06), 0 12px 24px rgba(2, 8, 23, 0.16)
+                    grid:
+                      - grid-template-areas: '"icon" "name" "state"'
+                      - grid-template-rows: 50px min-content min-content
+                      - justify-items: center
+                      - align-items: center
+                      - row-gap: 5px
+                    custom_fields:
+                      icon:
+                        - grid-area: icon
+                      name:
+                        - grid-area: name
+                        - color: "#f8fafc"
+                        - font-size: 13px
+                        - font-weight: 740
+                        - line-height: 1.1
+                      state:
+                        - grid-area: state
+                        - line-height: 1
+                  state:
+                    &door_lock_tile_state_styles
+                    - value: unlocked
+                      styles:
+                        card:
+                          - border-color: rgba(248, 113, 113, 0.30)
+                          - background: linear-gradient(180deg, rgba(69, 26, 26, 0.78), rgba(15, 23, 42, 0.92))
+                  extra_styles: &door_lock_tile_extra |
+                    .door-lock-icon {
+                      width: 50px;
+                      height: 50px;
+                      border-radius: 19px;
+                      display: grid;
+                      place-items: center;
+                      background: rgba(34, 197, 94, 0.14);
+                      color: #22c55e;
+                      box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.08);
+                    }
+                    .door-lock-icon.open {
+                      background: rgba(239, 68, 68, 0.14);
+                      color: #f87171;
+                    }
+                    .door-lock-icon ha-icon {
+                      --mdc-icon-size: 24px;
+                    }
+                    .door-lock-state {
+                      display: inline-flex;
+                      align-items: center;
+                      justify-content: center;
+                      min-height: 22px;
+                      padding: 0 9px;
+                      border-radius: 999px;
+                      font-size: 11px;
+                      font-weight: 760;
+                      line-height: 1;
+                      white-space: nowrap;
+                      box-sizing: border-box;
+                    }
+                    .door-lock-state.closed {
+                      color: #bbf7d0;
+                      background: rgba(34, 197, 94, 0.13);
+                    }
+                    .door-lock-state.open {
+                      color: #fecaca;
+                      background: rgba(239, 68, 68, 0.16);
+                    }
+                - type: custom:button-card
                   entity: lock.mudroom_door_lock
-                  icon: mdi:door-closed-lock
-                  icon_color: blue-grey
-                  content: Mudroom door
+                  show_icon: false
+                  show_name: false
+                  show_state: false
+                  custom_fields:
+                    icon: >-
+                      [[[
+                        const unlocked = entity.state === 'unlocked';
+                        const icon = unlocked ? 'mdi:lock-open-variant-outline' : 'mdi:lock-outline';
+                        return `<div class="door-lock-icon ${unlocked ? 'open' : 'closed'}"><ha-icon icon="${icon}"></ha-icon></div>`;
+                      ]]]
+                    name: Mudroom
+                    state: >-
+                      [[[
+                        const unlocked = entity.state === 'unlocked';
+                        return `<span class="door-lock-state ${unlocked ? 'open' : 'closed'}">${unlocked ? 'Unlocked' : 'Locked'}</span>`;
+                      ]]]
                   tap_action:
-                    action: none
-                - type: template
-                  entity: lock.mudroom_door_lock
-                  icon: mdi:shield-lock-outline
-                  icon_color: >-
-                    {{ 'teal' if is_state('lock.mudroom_door_lock', 'locked') else 'red' }}
-                  content: >-
-                    {{ 'Secure' if is_state('lock.mudroom_door_lock', 'locked') else 'Unlocked' }}
-                  tap_action:
-                    action: none
-              card_mod:
-                style: *calm_popup_chip_style
+                    action: call-service
+                    service: lock.lock
+                    target:
+                      entity_id: lock.mudroom_door_lock
+                  hold_action:
+                    action: more-info
+                  styles:
+                    <<: *door_lock_tile_styles
+                  state: *door_lock_tile_state_styles
+                  extra_styles: *door_lock_tile_extra
 
       - type: custom:popup-card
         target:
