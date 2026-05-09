@@ -192,8 +192,15 @@ views:
         card_mod:
           style: |
             ha-card {
-              border: none;
-              box-shadow: none;
+              border: 1px solid rgba(148, 163, 184, 0.08);
+              border-radius: 24px;
+              background:
+                radial-gradient(circle at 72% -20%, rgba(56, 189, 248, 0.20), transparent 34%),
+                linear-gradient(135deg, rgba(15, 23, 42, 0.92), rgba(18, 48, 61, 0.72) 52%, rgba(15, 23, 42, 0.90));
+              box-shadow: 0 14px 34px rgba(2, 6, 23, 0.18);
+              -webkit-backdrop-filter: blur(18px) saturate(140%);
+              backdrop-filter: blur(18px) saturate(140%);
+              overflow: hidden;
             }
             .primary {
               font-size: 20px !important;
