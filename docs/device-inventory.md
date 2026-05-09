@@ -623,7 +623,7 @@ Generated from Home Assistant registries and UniFi-tracked network clients. Sens
 
 #### Garage Entry Lock
 
-- Device ID: `device_bf15aa774d53`
+- Device ID: `device_ab2b71f3a01a`
 - Integration: matter
 - Model: Aqara Aqara Smart Lock U100
 - Capability mix: 4 telemetry, 3 control, 0 network, 0 other
@@ -1107,7 +1107,7 @@ Generated from Home Assistant registries and UniFi-tracked network clients. Sens
 
 #### Mudroom Door Lock
 
-- Device ID: `device_ab2b71f3a01a`
+- Device ID: `device_bf15aa774d53`
 - Integration: matter
 - Model: Aqara Aqara Smart Lock U100
 - Capability mix: 4 telemetry, 3 control, 0 network, 0 other
