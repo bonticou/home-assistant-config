@@ -180,7 +180,14 @@ function browserScript(files, reload) {
         body: JSON.stringify(payload || {}),
       });
       const text = await response.text();
-      if (!response.ok) throw new Error(method + " " + endpoint + " -> " + response.status + ": " + text.slice(0, 500));
+      if (!response.ok) {
+        const hass = frontendHass();
+        if (hass && [401, 403].includes(response.status)) {
+          const apiPath = endpoint.replace(/^\\/api\\//, "").replace(/^\\//, "");
+          return hass.callApi(method, apiPath, payload);
+        }
+        throw new Error(method + " " + endpoint + " -> " + response.status + ": " + text.slice(0, 500));
+      }
       try { return JSON.parse(text); } catch (_) { return text; }
     }
 

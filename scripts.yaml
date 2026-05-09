@@ -3157,7 +3157,7 @@ wine_cave_send_alert:
           {% elif kind == 'cycle_settled' %}
             ✅ Wine cave cycle settled
           {% elif kind == 'cycle_overdue' %}
-            ⚠️ Wine cave cycle is still recovering
+            ⏳ Wine cave cycle is still settling
           {% elif kind == 'unresolved' %}
             🚨 Wine cave still needs attention
           {% elif kind == 'temp_high' %}
