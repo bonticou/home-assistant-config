@@ -1561,80 +1561,32 @@ views:
         title: Door locks
         dismiss_icon: mdi:close
         initial_style: wide
-        popup_styles: *calm_popup_styles
+        popup_styles:
+          - style: all
+            styles: |
+              :host {
+                --primary-text-color: #f8fafc;
+                --secondary-text-color: #cbd5e1;
+                --popup-padding-x: 0px;
+                --popup-padding-y: 0px;
+              }
+              ha-dialog {
+                --mdc-dialog-scrim-color: rgba(15, 23, 42, 0.44);
+                --dialog-backdrop-filter: blur(28px) saturate(180%);
+                --ha-dialog-border-radius: 30px;
+              }
+          - style: wide
+            styles: |
+              .content {
+                width: min(360px, calc(100vw - 32px)) !important;
+                margin-inline: auto;
+              }
+              .content .container {
+                padding: 0 0 20px !important;
+              }
         card:
           type: vertical-stack
           cards:
-            - type: custom:mushroom-template-card
-              entity: sensor.away_security_unlocked_entry_locks
-              primary: >-
-                {{ 'Doors secure' if states('sensor.away_security_unlocked_entry_locks') | int(0) == 0 else state_attr('sensor.away_security_unlocked_entry_locks', 'issue') }}
-              secondary: Garage + mudroom
-              icon: >-
-                {{ 'mdi:lock-check-outline' if states('sensor.away_security_unlocked_entry_locks') | int(0) == 0 else 'mdi:lock-open-alert-outline' }}
-              icon_color: >-
-                {{ 'teal' if states('sensor.away_security_unlocked_entry_locks') | int(0) == 0 else 'red' }}
-              fill_container: true
-              tap_action:
-                action: none
-              card_mod:
-                style: *calm_popup_hero_style
-            - type: conditional
-              conditions:
-                - entity: sensor.away_security_unlocked_entry_locks
-                  state: "2"
-              card:
-                type: custom:button-card
-                entity: sensor.away_security_unlocked_entry_locks
-                show_icon: false
-                show_name: false
-                show_state: false
-                custom_fields:
-                  icon: >-
-                    [[[
-                      return '<div class="door-lock-all-icon"><ha-icon icon="mdi:lock-alert-outline"></ha-icon></div>';
-                    ]]]
-                  name: Lock both
-                tap_action:
-                  action: call-service
-                  service: script.away_security_lock_unlocked_entry_doors
-                styles:
-                  card:
-                    - height: 56px
-                    - padding: 0 13px
-                    - border-radius: 24px
-                    - border: 1px solid rgba(94, 234, 212, 0.26)
-                    - background: linear-gradient(180deg, rgba(20, 184, 166, 0.30), rgba(15, 23, 42, 0.90))
-                    - box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.08), 0 12px 24px rgba(2, 8, 23, 0.14)
-                  grid:
-                    - grid-template-areas: '"icon name"'
-                    - grid-template-columns: 38px minmax(0, 1fr)
-                    - column-gap: 10px
-                    - align-items: center
-                  custom_fields:
-                    icon:
-                      - grid-area: icon
-                    name:
-                      - grid-area: name
-                      - justify-self: start
-                      - color: "#f8fafc"
-                      - font-size: 15px
-                      - font-weight: 760
-                      - line-height: 1
-                extra_styles: |
-                  .door-lock-all-icon {
-                    width: 38px;
-                    height: 38px;
-                    border-radius: 16px;
-                    display: grid;
-                    place-items: center;
-                    background: rgba(20, 184, 166, 0.18);
-                    color: #5eead4;
-                    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.08);
-                  }
-                  .door-lock-all-icon ha-icon {
-                    --mdc-icon-size: 21px;
-                  }
             - type: horizontal-stack
               cards:
                 - type: custom:button-card
@@ -1671,6 +1623,7 @@ views:
                       - width: 150px
                       - min-width: 150px
                       - max-width: 150px
+                      - margin: 0 auto
                       - box-sizing: border-box
                       - min-height: 138px
                       - padding: 17px 12px 15px
@@ -1774,6 +1727,110 @@ views:
                     <<: *door_lock_tile_styles
                   state: *door_lock_tile_state_styles
                   extra_styles: *door_lock_tile_extra
+              card_mod:
+                style: |
+                  :host {
+                    display: block;
+                    width: min(330px, calc(100vw - 32px));
+                    max-width: 330px;
+                    margin: clamp(150px, 30vh, 220px) auto 0;
+                  }
+                  #root {
+                    justify-content: center !important;
+                    gap: 10px !important;
+                  }
+            - type: conditional
+              conditions:
+                - entity: sensor.away_security_unlocked_entry_locks
+                  state: "2"
+              card:
+                type: custom:button-card
+                entity: sensor.away_security_unlocked_entry_locks
+                show_icon: false
+                show_name: false
+                show_state: false
+                custom_fields:
+                  icon: >-
+                    [[[
+                      return '<div class="door-lock-all-icon"><ha-icon icon="mdi:lock-alert-outline"></ha-icon></div>';
+                    ]]]
+                  name: Lock both
+                tap_action:
+                  action: call-service
+                  service: script.away_security_lock_unlocked_entry_doors
+                styles:
+                  card:
+                    - height: 56px
+                    - padding: 0 13px
+                    - border-radius: 24px
+                    - border: 1px solid rgba(94, 234, 212, 0.26)
+                    - background: linear-gradient(180deg, rgba(20, 184, 166, 0.30), rgba(15, 23, 42, 0.90))
+                    - box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.08), 0 12px 24px rgba(2, 8, 23, 0.14)
+                  grid:
+                    - grid-template-areas: '"icon name"'
+                    - grid-template-columns: 38px minmax(0, 1fr)
+                    - column-gap: 10px
+                    - align-items: center
+                  custom_fields:
+                    icon:
+                      - grid-area: icon
+                    name:
+                      - grid-area: name
+                      - justify-self: start
+                      - color: "#f8fafc"
+                      - font-size: 15px
+                      - font-weight: 760
+                      - line-height: 1
+                extra_styles: |
+                  .door-lock-all-icon {
+                    width: 38px;
+                    height: 38px;
+                    border-radius: 16px;
+                    display: grid;
+                    place-items: center;
+                    background: rgba(20, 184, 166, 0.18);
+                    color: #5eead4;
+                    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.08);
+                  }
+                  .door-lock-all-icon ha-icon {
+                    --mdc-icon-size: 21px;
+                  }
+              card_mod:
+                style: |
+                  :host {
+                    display: block;
+                    width: min(310px, calc(100vw - 32px));
+                    max-width: 310px;
+                    margin: 12px auto 0;
+                  }
+            - type: conditional
+              conditions:
+                - entity: sensor.away_security_unlocked_entry_locks
+                  state_not: "2"
+              card:
+                type: custom:button-card
+                show_icon: false
+                show_name: false
+                show_state: false
+                tap_action:
+                  action: none
+                styles:
+                  card:
+                    - height: 56px
+                    - padding: 0
+                    - border: 0
+                    - background: transparent
+                    - box-shadow: none
+                    - visibility: hidden
+              card_mod:
+                style: |
+                  :host {
+                    display: block;
+                    width: min(310px, calc(100vw - 32px));
+                    max-width: 310px;
+                    margin: 12px auto 0;
+                    pointer-events: none;
+                  }
 
       - type: custom:popup-card
         target:
