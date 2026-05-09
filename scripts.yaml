@@ -1019,6 +1019,7 @@ espresso_send_maintenance_notification:
   sequence:
     - variables:
         cafiza_due: "{{ is_state('binary_sensor.espresso_cafiza_clean_due', 'on') }}"
+        notified_now: "{{ now().strftime('%Y-%m-%d %H:%M:%S') }}"
     - choose:
         - conditions:
             - condition: template
@@ -1057,15 +1058,37 @@ espresso_send_maintenance_notification:
                   title: Water done
                 - action: ESPRESSO_SNOOZE_TOMORROW
                   title: Snooze
+    - action: input_datetime.set_datetime
+      target:
+        entity_id: input_datetime.espresso_maintenance_last_notified_at
+      data:
+        datetime: "{{ notified_now }}"
 
 espresso_mark_water_backflush_done:
   alias: Espresso Mark Water Backflush Done
   description: Stamp the last Profitec GO water backflush.
   icon: mdi:water-check-outline
   mode: restart
+  fields:
+    source:
+      description: Source that confirmed the action.
+      example: codex_chat
+    note:
+      description: Optional ledger note.
+      example: Confirmed from chat.
   sequence:
     - variables:
         espresso_now: "{{ now().strftime('%Y-%m-%d %H:%M:%S') }}"
+        action_source: "{{ source | default('home_assistant_dashboard_action', true) | regex_replace('[^A-Za-z0-9_.:-]', '') }}"
+        action_note: "{{ note | default('', true) | regex_replace('[^A-Za-z0-9 .,_:/@+-]', '') | truncate(500, true, '') }}"
+    - action: shell_command.log_house_action_stamp
+      data:
+        notice_id: profitec-go-water-backflush
+        cycle_id: "{{ 'water-backflush-' ~ espresso_now[:10] }}"
+        action: water_backflush_done
+        completed_at: "{{ espresso_now }}"
+        source: "{{ action_source }}"
+        note: "{{ action_note }}"
     - action: input_datetime.set_datetime
       target:
         entity_id:
@@ -1080,9 +1103,26 @@ espresso_mark_cafiza_clean_done:
   description: Stamp the last Profitec GO Cafiza clean and water backflush.
   icon: mdi:coffee-maker-check-outline
   mode: restart
+  fields:
+    source:
+      description: Source that confirmed the action.
+      example: codex_chat
+    note:
+      description: Optional ledger note.
+      example: Confirmed from chat.
   sequence:
     - variables:
         espresso_now: "{{ now().strftime('%Y-%m-%d %H:%M:%S') }}"
+        action_source: "{{ source | default('home_assistant_dashboard_action', true) | regex_replace('[^A-Za-z0-9_.:-]', '') }}"
+        action_note: "{{ note | default('', true) | regex_replace('[^A-Za-z0-9 .,_:/@+-]', '') | truncate(500, true, '') }}"
+    - action: shell_command.log_house_action_stamp
+      data:
+        notice_id: profitec-go-cafiza-clean
+        cycle_id: "{{ 'cafiza-clean-' ~ espresso_now[:10] }}"
+        action: cafiza_clean_done
+        completed_at: "{{ espresso_now }}"
+        source: "{{ action_source }}"
+        note: "{{ action_note }}"
     - action: input_datetime.set_datetime
       target:
         entity_id:
@@ -1569,14 +1609,37 @@ bonticou_llc_de_franchise_tax_mark_paid:
   description: Stamps the annual Delaware franchise tax as paid and clears the reminder.
   icon: mdi:cash-check
   mode: restart
+  fields:
+    source:
+      description: Source that confirmed the payment.
+      example: codex_chat
+    note:
+      description: Optional ledger note.
+      example: Payment submitted from Delaware portal.
   sequence:
     - variables:
         paid_now: "{{ now().strftime('%Y-%m-%d %H:%M:%S') }}"
+        paid_cycle: "{{ now().year ~ '' }}"
+        action_source: "{{ source | default('home_assistant_dashboard_action', true) | regex_replace('[^A-Za-z0-9_.:-]', '') }}"
+        action_note: "{{ note | default('', true) | regex_replace('[^A-Za-z0-9 .,_:/@+-]', '') | truncate(500, true, '') }}"
+    - action: shell_command.log_house_action_stamp
+      data:
+        notice_id: bonticou-de-franchise-tax
+        cycle_id: "{{ paid_cycle }}"
+        action: paid
+        completed_at: "{{ paid_now }}"
+        source: "{{ action_source }}"
+        note: "{{ action_note }}"
     - action: input_datetime.set_datetime
       target:
         entity_id: input_datetime.bonticou_llc_de_franchise_tax_last_paid_at
       data:
         datetime: "{{ paid_now }}"
+    - action: input_text.set_value
+      target:
+        entity_id: input_text.bonticou_llc_de_franchise_tax_paid_cycle
+      data:
+        value: "{{ paid_cycle }}"
     - action: script.bonticou_llc_de_franchise_tax_clear_notification
 
 bonticou_llc_de_franchise_tax_clear_notification:

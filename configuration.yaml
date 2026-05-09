@@ -30,6 +30,24 @@ scene: !include scenes.yaml
 
 command_line:
   - sensor:
+      name: House Action Stamp Ledger
+      unique_id: house_action_stamp_ledger
+      command: python3 /config/tools/log_house_action_stamp.py --status
+      command_timeout: 15
+      scan_interval: 300
+      value_template: >
+        {{ value_json.pending_count if value_json.pending_count is defined else 0 }}
+      json_attributes:
+        - ledger_path
+        - event_count
+        - pending_count
+        - latest_event_id
+        - latest_notice_id
+        - latest_cycle_id
+        - latest_action
+        - latest_completed_at
+        - updated_at
+  - sensor:
       name: Wine Collection Snapshot
       unique_id: wine_collection_snapshot
       command: python3 /config/tools/refresh_wine_collection_snapshot.py
@@ -142,6 +160,14 @@ shell_command:
     --due-date "{{ due_date }}"
     --paid-date "{{ paid_date }}"
     --source "{{ source }}"
+  log_house_action_stamp: >-
+    python3 /config/tools/log_house_action_stamp.py
+    --notice-id "{{ notice_id }}"
+    --cycle-id "{{ cycle_id }}"
+    --action "{{ action }}"
+    --completed-at "{{ completed_at }}"
+    --source "{{ source }}"
+    --note "{{ note }}"
 
 input_datetime:
   away_security_snooze_until:
@@ -164,14 +190,16 @@ input_datetime:
     name: Espresso Last Water Backflush
     has_date: true
     has_time: true
-    initial: "2026-04-25 07:00:00"
   espresso_last_cafiza_clean:
     name: Espresso Last Cafiza Clean
     has_date: true
     has_time: true
-    initial: "2026-04-25 07:00:00"
   espresso_maintenance_snooze_until:
     name: Espresso Maintenance Snooze Until
+    has_date: true
+    has_time: true
+  espresso_maintenance_last_notified_at:
+    name: Espresso Maintenance Last Notified At
     has_date: true
     has_time: true
   garden_spinach_planted_in_ground:
@@ -268,7 +296,6 @@ input_datetime:
     name: Bonticou LLC DE Franchise Tax Last Paid At
     has_date: true
     has_time: true
-    initial: "1970-01-01 00:00:00"
   garbage_recycling_last_taken_out_at:
     name: Garbage Recycling Last Taken Out At
     has_date: true
@@ -411,6 +438,9 @@ input_text:
   garbage_recycling_last_taken_out_pickup:
     name: Garbage Recycling Last Taken Out Pickup
     max: 10
+  bonticou_llc_de_franchise_tax_paid_cycle:
+    name: Bonticou LLC DE Franchise Tax Paid Cycle
+    max: 16
 
 input_boolean:
   interior_lights_guest_override:
@@ -976,8 +1006,11 @@ template:
         icon: mdi:briefcase-check-outline
         state: >
           {% set paid = states('input_datetime.bonticou_llc_de_franchise_tax_last_paid_at') %}
-          {% set year_start = now().year ~ '-01-01' %}
-          {% set paid_this_year = paid not in ['unknown', 'unavailable', 'none', '']
+          {% set paid_cycle = states('input_text.bonticou_llc_de_franchise_tax_paid_cycle') %}
+          {% set this_year = now().year ~ '' %}
+          {% set year_start = this_year ~ '-01-01' %}
+          {% set paid_this_year = paid_cycle == this_year
+             or paid not in ['unknown', 'unavailable', 'none', '']
              and paid[:10] >= year_start %}
           {% if paid_this_year %}
             {{ (now().year + 1) ~ '-06-01' }}
@@ -987,10 +1020,14 @@ template:
         attributes:
           notice_start: >
             {% set paid = states('input_datetime.bonticou_llc_de_franchise_tax_last_paid_at') %}
-            {% set year_start = now().year ~ '-01-01' %}
-            {% set paid_this_year = paid not in ['unknown', 'unavailable', 'none', '']
+            {% set paid_cycle = states('input_text.bonticou_llc_de_franchise_tax_paid_cycle') %}
+            {% set this_year = now().year ~ '' %}
+            {% set year_start = this_year ~ '-01-01' %}
+            {% set paid_this_year = paid_cycle == this_year
+               or paid not in ['unknown', 'unavailable', 'none', '']
                and paid[:10] >= year_start %}
             {{ ((now().year + 1) if paid_this_year else now().year) ~ '-05-01' }}
+          paid_cycle: "{{ states('input_text.bonticou_llc_de_franchise_tax_paid_cycle') }}"
           rule: "Delaware LLC annual tax due on or before June 1"
 
       - name: "Bonticou LLC DE Franchise Tax Status"
@@ -1004,16 +1041,25 @@ template:
         state: >
           {% set due = states('sensor.bonticou_llc_de_franchise_tax_due_date') %}
           {% set paid = states('input_datetime.bonticou_llc_de_franchise_tax_last_paid_at') %}
+          {% set paid_cycle = states('input_text.bonticou_llc_de_franchise_tax_paid_cycle') %}
           {% if not is_state('input_boolean.business_admin_reminders_enabled', 'on') %}
             Off
           {% elif due in ['unknown', 'unavailable', 'none', ''] %}
             Missing due date
           {% else %}
-            {% set year_start = due[:4] ~ '-01-01' %}
+            {% set this_year = now().year ~ '' %}
+            {% set due_year = due[:4] %}
+            {% set year_start = due_year ~ '-01-01' %}
             {% set notice_start = due[:4] ~ '-05-01' %}
-            {% set paid_for_due_year = paid not in ['unknown', 'unavailable', 'none', '']
+            {% set paid_current_year = paid_cycle == this_year
+               or paid not in ['unknown', 'unavailable', 'none', '']
+               and paid[:10] >= this_year ~ '-01-01' %}
+            {% set paid_for_due_year = paid_cycle == due_year
+               or paid not in ['unknown', 'unavailable', 'none', '']
                and paid[:10] >= year_start %}
-            {% if paid_for_due_year %}
+            {% if paid_current_year and due_year != this_year %}
+              Paid for {{ this_year }}
+            {% elif paid_for_due_year %}
               Paid
             {% elif now().strftime('%Y-%m-%d') > due %}
               Overdue
@@ -1982,13 +2028,21 @@ template:
             {% set horizon = (now() + timedelta(days=365)).strftime('%Y-%m-%d') %}
             {% set water_last = as_timestamp(states('input_datetime.espresso_last_water_backflush'), 0) %}
             {% set cafiza_last = as_timestamp(states('input_datetime.espresso_last_cafiza_clean'), 0) %}
+            {% if water_last > 0 %}
+              {% set water_ready_date = (water_last + 604800) | timestamp_custom('%Y-%m-%d', true) %}
+              {% set water_ready = strptime(water_ready_date, '%Y-%m-%d') %}
+              {% set water_offset = 0 if water_ready.weekday() >= 5 else 5 - water_ready.weekday() %}
+              {% set water_next = (water_ready + timedelta(days=water_offset)).strftime('%Y-%m-%d') %}
+            {% else %}
+              {% set water_next = '' %}
+            {% endif %}
             {% set wine_filter = states('sensor.wine_cave_next_charcoal_filter_due') %}
             {% set wine_clean = states('sensor.wine_cave_next_cleaning_due') %}
             {% set robison_tune = now().year ~ '-03-25' %}
             {% set robison_price = now().year ~ '-08-20' %}
             {% set ns = namespace(dates=[]) %}
             {% for date_value in [
-              (water_last + 604800) | timestamp_custom('%Y-%m-%d', true) if water_last > 0 else '',
+              water_next,
               (cafiza_last + 5184000) | timestamp_custom('%Y-%m-%d', true) if cafiza_last > 0 else '',
               states('sensor.piano_next_tuning_due'),
               states('sensor.dryer_vent_next_cleaning_due'),
@@ -2031,11 +2085,19 @@ template:
             {% set horizon = (now() + timedelta(days=365)).strftime('%Y-%m-%d') %}
             {% set water_last = as_timestamp(states('input_datetime.espresso_last_water_backflush'), 0) %}
             {% set cafiza_last = as_timestamp(states('input_datetime.espresso_last_cafiza_clean'), 0) %}
+            {% if water_last > 0 %}
+              {% set water_ready_date = (water_last + 604800) | timestamp_custom('%Y-%m-%d', true) %}
+              {% set water_ready = strptime(water_ready_date, '%Y-%m-%d') %}
+              {% set water_offset = 0 if water_ready.weekday() >= 5 else 5 - water_ready.weekday() %}
+              {% set water_next = (water_ready + timedelta(days=water_offset)).strftime('%Y-%m-%d') %}
+            {% else %}
+              {% set water_next = '' %}
+            {% endif %}
             {% set robison_tune = now().year ~ '-03-25' %}
             {% set robison_price = now().year ~ '-08-20' %}
             {% set ns = namespace(dates=[]) %}
             {% for date_value in [
-              (water_last + 604800) | timestamp_custom('%Y-%m-%d', true) if water_last > 0 else '',
+              water_next,
               (cafiza_last + 5184000) | timestamp_custom('%Y-%m-%d', true) if cafiza_last > 0 else '',
               states('sensor.piano_next_tuning_due'),
               states('sensor.dryer_vent_next_cleaning_due'),
@@ -2309,7 +2371,14 @@ template:
             {% endif %}
             {% set water_last = as_timestamp(states('input_datetime.espresso_last_water_backflush'), 0) %}
             {% set cafiza_last = as_timestamp(states('input_datetime.espresso_last_cafiza_clean'), 0) %}
-            {% set water_due = (water_last + 604800) | timestamp_custom('%Y-%m-%d', true) if water_last > 0 else '' %}
+            {% if water_last > 0 %}
+              {% set water_ready_date = (water_last + 604800) | timestamp_custom('%Y-%m-%d', true) %}
+              {% set water_ready = strptime(water_ready_date, '%Y-%m-%d') %}
+              {% set water_offset = 0 if water_ready.weekday() >= 5 else 5 - water_ready.weekday() %}
+              {% set water_due = (water_ready + timedelta(days=water_offset)).strftime('%Y-%m-%d') %}
+            {% else %}
+              {% set water_due = '' %}
+            {% endif %}
             {% set cafiza_due = (cafiza_last + 5184000) | timestamp_custom('%Y-%m-%d', true) if cafiza_last > 0 else '' %}
             {% set espresso_dates = ([water_due, cafiza_due] | reject('eq', '') | list | sort) %}
             {% if is_state('input_boolean.espresso_maintenance_enabled', 'on') and espresso_dates | count > 0 %}
@@ -2505,19 +2574,23 @@ template:
             {% if is_state('input_boolean.business_admin_reminders_enabled', 'on')
                and llc_due not in ['unknown', 'unavailable', 'none', ''] %}
               {% set llc_paid = states('input_datetime.bonticou_llc_de_franchise_tax_last_paid_at') %}
-              {% set llc_year_start = llc_due[:4] ~ '-01-01' %}
-              {% set llc_notice_start = llc_due[:4] ~ '-05-01' %}
-              {% set llc_paid_for_due_year = llc_paid not in ['unknown', 'unavailable', 'none', '']
+              {% set llc_paid_cycle = states('input_text.bonticou_llc_de_franchise_tax_paid_cycle') %}
+              {% set llc_due_year = llc_due[:4] %}
+              {% set llc_year_start = llc_due_year ~ '-01-01' %}
+              {% set llc_notice_start = llc_due_year ~ '-05-01' %}
+              {% set llc_active = today >= llc_notice_start %}
+              {% set llc_paid_for_due_year = llc_paid_cycle == llc_due_year
+                 or llc_paid not in ['unknown', 'unavailable', 'none', '']
                  and llc_paid[:10] >= llc_year_start %}
-              {% if not llc_paid_for_due_year %}
+              {% if not llc_paid_for_due_year and (llc_active or (llc_due >= today and llc_due <= horizon)) %}
                 {% set ns.items = ns.items + [{
-                  'id': 'bonticou-de-franchise-tax-' ~ llc_due[:4],
+                  'id': 'bonticou-de-franchise-tax-' ~ llc_due_year,
                   'title': 'Bonticou - DE franchise tax',
                   'emoji': '🏛️',
                   'icon': 'mdi:briefcase-check-outline',
                   'group': 'Business admin',
-                  'state': 'due' if is_state('binary_sensor.bonticou_llc_de_franchise_tax_due', 'on') else 'upcoming',
-                  'severity': 'watch' if is_state('binary_sensor.bonticou_llc_de_franchise_tax_due', 'on') else 'info',
+                  'state': 'due' if llc_active else 'upcoming',
+                  'severity': 'watch' if llc_active else 'info',
                   'date': llc_due,
                   'due_prefix': 'Due',
                   'badge': 'due',
@@ -2776,7 +2849,15 @@ template:
         state: >
           {% set last = states('input_datetime.espresso_last_water_backflush') %}
           {% set last_ts = as_timestamp(last, 0) %}
-          {{ last_ts > 0 and (as_timestamp(now()) - last_ts) >= 604800 }}
+          {% if last_ts <= 0 %}
+            false
+          {% else %}
+            {% set ready_date = (last_ts + 604800) | timestamp_custom('%Y-%m-%d', true) %}
+            {% set ready = strptime(ready_date, '%Y-%m-%d') %}
+            {% set offset = 0 if ready.weekday() >= 5 else 5 - ready.weekday() %}
+            {% set ritual_date = (ready + timedelta(days=offset)).strftime('%Y-%m-%d') %}
+            {{ now().strftime('%Y-%m-%d') >= ritual_date }}
+          {% endif %}
         icon: >
           {{ 'mdi:water-sync' if is_state('binary_sensor.espresso_water_backflush_due', 'on') else 'mdi:water-check-outline' }}
 
@@ -2962,13 +3043,16 @@ template:
         state: >
           {% set due = states('sensor.bonticou_llc_de_franchise_tax_due_date') %}
           {% set paid = states('input_datetime.bonticou_llc_de_franchise_tax_last_paid_at') %}
+          {% set paid_cycle = states('input_text.bonticou_llc_de_franchise_tax_paid_cycle') %}
           {% if not is_state('input_boolean.business_admin_reminders_enabled', 'on')
              or due in ['unknown', 'unavailable', 'none', ''] %}
             false
           {% else %}
-            {% set year_start = due[:4] ~ '-01-01' %}
+            {% set due_year = due[:4] %}
+            {% set year_start = due_year ~ '-01-01' %}
             {% set notice_start = due[:4] ~ '-05-01' %}
-            {% set paid_for_due_year = paid not in ['unknown', 'unavailable', 'none', '']
+            {% set paid_for_due_year = paid_cycle == due_year
+               or paid not in ['unknown', 'unavailable', 'none', '']
                and paid[:10] >= year_start %}
             {{ not paid_for_due_year
                and now().strftime('%Y-%m-%d') >= notice_start }}
