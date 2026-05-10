@@ -2469,48 +2469,58 @@ away_security_close_garage_door:
   sequence:
     - variables:
         garage_cover: cover.ratgdo32disco_c26634_door
-    - if:
-        - condition: template
-          value_template: "{{ states(garage_cover) in ['open', 'opening'] }}"
-      then:
-        - action: cover.close_cover
-          target:
-            entity_id: cover.ratgdo32disco_c26634_door
-        - wait_template: "{{ is_state(garage_cover, 'closed') }}"
-          timeout: "00:01:00"
-          continue_on_timeout: true
-        - variables:
-            trevor_away: "{{ states('device_tracker.tk_iphone_16_pro') not in ['home', 'unknown', 'unavailable', ''] }}"
-            casey_away: "{{ states('device_tracker.unifi_default_42_15_78_4a_d9_f8') not in ['home', 'unknown', 'unavailable', ''] }}"
-        - if:
+    - choose:
+        - conditions:
             - condition: template
-              value_template: "{{ is_state(garage_cover, 'closed') }}"
-          then:
+              value_template: "{{ states(garage_cover) == 'closed' }}"
+          sequence:
             - action: script.garage_security_clear_alerts
-          else:
-            - action: script.notify_trevor_phone
-              data:
-                title: "🚗 Garage did not close"
-                message: >-
-                  Home Assistant sent the close command, but the garage door still reports
-                  {{ states(garage_cover) }}.
-                  {% if trevor_away | bool and casey_away | bool %}
-                    Casey and Trevor are away, and Home Assistant still sees {{ states('sensor.away_security_issue_summary') }}.
-                  {% else %}
-                    Home Assistant will keep watching ratgdo until the door reports closed.
-                  {% endif %}
-                data:
-                  tag: garage-did-not-close
-                  group: garage-security
-                  sticky: true
-                  ttl: 0
-                  priority: high
-                  url: /calm-mobile/home
-                  actions:
-                    - action: CLOSE_GARAGE_SECURITY
-                      title: Try closing again
-                    - action: SNOOZE_GARAGE_SECURITY_30
-                      title: Sleep 30 min
+        - conditions:
+            - condition: template
+              value_template: "{{ states(garage_cover) not in ['closed', 'unknown', 'unavailable', ''] }}"
+          sequence:
+            - if:
+                - condition: template
+                  value_template: "{{ states(garage_cover) != 'closing' }}"
+              then:
+                - action: cover.close_cover
+                  target:
+                    entity_id: cover.ratgdo32disco_c26634_door
+            - wait_template: "{{ is_state(garage_cover, 'closed') }}"
+              timeout: "00:01:00"
+              continue_on_timeout: true
+            - variables:
+                trevor_away: "{{ states('device_tracker.tk_iphone_16_pro') not in ['home', 'unknown', 'unavailable', ''] }}"
+                casey_away: "{{ states('device_tracker.unifi_default_42_15_78_4a_d9_f8') not in ['home', 'unknown', 'unavailable', ''] }}"
+            - if:
+                - condition: template
+                  value_template: "{{ is_state(garage_cover, 'closed') }}"
+              then:
+                - action: script.garage_security_clear_alerts
+              else:
+                - action: script.notify_trevor_phone
+                  data:
+                    title: "🚗 Garage did not close"
+                    message: >-
+                      Home Assistant sent the close command, but the garage door reports
+                      {{ states(garage_cover) }}.
+                      {% if trevor_away | bool and casey_away | bool %}
+                        Casey and Trevor are away, and Home Assistant still sees {{ states('sensor.away_security_issue_summary') }}.
+                      {% else %}
+                        Home Assistant will keep watching ratgdo until the door reports closed.
+                      {% endif %}
+                    data:
+                      tag: garage-did-not-close
+                      group: garage-security
+                      sticky: true
+                      ttl: 0
+                      priority: high
+                      url: /calm-mobile/home
+                      actions:
+                        - action: CLOSE_GARAGE_SECURITY
+                          title: Try closing again
+                        - action: SNOOZE_GARAGE_SECURITY_30
+                          title: Sleep 30 min
 
 garage_security_clear_alerts:
   alias: Garage Security Clear Alerts
@@ -2523,6 +2533,8 @@ garage_security_clear_alerts:
           - garage-open-too-long
           - garage-open-at-night
           - garage-opened-overnight
+          - garage-open-trevor-away
+          - garage-open-casey-away
           - garage-did-not-close
           - garage-obstruction
         sequence:
@@ -2577,6 +2589,23 @@ garage_security_snooze_until_morning:
         data:
           tag: garage-security-snooze
 
+garage_security_clear_person_away_alerts:
+  alias: Garage Security Clear Person-Away Alerts
+  description: Clears garage-open alerts that are only relevant while one person is away.
+  icon: mdi:garage-check-variant
+  mode: parallel
+  sequence:
+    - repeat:
+        for_each:
+          - garage-open-trevor-away
+          - garage-open-casey-away
+        sequence:
+          - action: script.notify_trevor_phone
+            data:
+              message: clear_notification
+              data:
+                tag: "{{ repeat.item }}"
+
 garage_security_send_alert:
   alias: Garage Security Send Alert
   description: Sends ratgdo garage reminders that are not part of the away-security system.
@@ -2598,22 +2627,32 @@ garage_security_send_alert:
             🚗 Garage open at night
           {% elif kind == 'opened_overnight' %}
             🚗 Garage opened overnight
+          {% elif kind == 'trevor_away' %}
+            🚗 Garage door open while you're away
+          {% elif kind == 'casey_away' %}
+            🚗 Casey left the garage open
           {% elif kind == 'obstruction' %}
             🚗 Garage obstruction detected
           {% else %}
-            🚗 Garage still open
+            🚗 Garage open
           {% endif %}
         tag: >-
           {% if kind == 'open_at_night' %}garage-open-at-night
           {% elif kind == 'opened_overnight' %}garage-opened-overnight
+          {% elif kind == 'trevor_away' %}garage-open-trevor-away
+          {% elif kind == 'casey_away' %}garage-open-casey-away
           {% elif kind == 'obstruction' %}garage-obstruction
           {% else %}garage-open-too-long{% endif %}
-        priority: "{{ 'high' if kind in ['open_at_night', 'opened_overnight', 'obstruction'] else 'normal' }}"
+        priority: "{{ 'high' if kind in ['open_at_night', 'opened_overnight', 'obstruction', 'trevor_away', 'casey_away'] else 'normal' }}"
         message: >-
           {% if kind == 'open_at_night' %}
             The garage door is open during the overnight window. It currently reports {{ garage_state }}.
           {% elif kind == 'opened_overnight' %}
             The garage door changed from closed to {{ garage_state }} overnight, and I did not see a recent arrival home.
+          {% elif kind == 'trevor_away' %}
+            You're away, Casey is home, and the garage door is open. Home Assistant will keep watching until it closes.
+          {% elif kind == 'casey_away' %}
+            Casey is away, you're home, and the garage door is open. Home Assistant will keep watching until it closes.
           {% elif kind == 'obstruction' %}
             ratgdo reports an obstruction while the garage door is {{ garage_state }}. Check the door path before closing again.
           {% else %}

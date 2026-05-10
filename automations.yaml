@@ -1058,6 +1058,14 @@
       entity_id: binary_sensor.house_unsecured_while_away
       to: "on"
       id: became_unsecured
+    - trigger: state
+      entity_id: cover.ratgdo32disco_c26634_door
+      to: "opening"
+      id: garage_opening_away
+    - trigger: state
+      entity_id: cover.ratgdo32disco_c26634_door
+      to: "open"
+      id: garage_opened_away
     - trigger: homeassistant
       event: start
       id: startup
@@ -1382,6 +1390,87 @@
   mode: parallel
   max: 10
 
+- id: garage_security_open_while_person_away
+  alias: "Garage — Open While Person Away"
+  description: >
+    Notifies Trevor when the garage door is open while exactly one household
+    person is away. Everyone-away cases stay in the away-security guardrail.
+  triggers:
+    - trigger: state
+      entity_id: binary_sensor.away_security_garage_door_open
+      to: "on"
+      id: garage_opened
+    - trigger: state
+      entity_id: device_tracker.tk_iphone_16_pro
+      not_from:
+        - "unknown"
+        - "unavailable"
+      not_to:
+        - "unknown"
+        - "unavailable"
+      id: trevor_presence
+    - trigger: state
+      entity_id: device_tracker.unifi_default_42_15_78_4a_d9_f8
+      not_from:
+        - "unknown"
+        - "unavailable"
+      not_to:
+        - "unknown"
+        - "unavailable"
+      id: casey_presence
+    - trigger: time_pattern
+      minutes: "/15"
+      id: repeat
+  conditions:
+    - condition: state
+      entity_id: binary_sensor.away_security_garage_door_open
+      state: "on"
+    - condition: template
+      value_template: >
+        {% set snooze = states('input_datetime.garage_security_snooze_until') %}
+        {{ snooze in ['unknown', 'unavailable', '']
+           or as_timestamp(snooze, 0) <= as_timestamp(now()) }}
+  actions:
+    - variables:
+        trevor_state: "{{ states('device_tracker.tk_iphone_16_pro') }}"
+        casey_state: "{{ states('device_tracker.unifi_default_42_15_78_4a_d9_f8') }}"
+        trevor_away: "{{ trevor_state not in ['home', 'unknown', 'unavailable', ''] }}"
+        casey_away: "{{ casey_state not in ['home', 'unknown', 'unavailable', ''] }}"
+        trevor_home: "{{ trevor_state == 'home' }}"
+        casey_home: "{{ casey_state == 'home' }}"
+        trigger_is_departure: >
+          {{ trigger.id in ['trevor_presence', 'casey_presence']
+             and trigger.from_state is not none
+             and trigger.to_state is not none
+             and trigger.from_state.state == 'home'
+             and trigger.to_state.state not in ['home', 'unknown', 'unavailable', ''] }}
+        trigger_is_garage_or_repeat: "{{ trigger.id in ['garage_opened', 'repeat'] }}"
+        repeat_is_due: >
+          {{ trigger.id != 'repeat'
+             or (as_timestamp(now()) - as_timestamp(states.cover.ratgdo32disco_c26634_door.last_changed, 0)) >= 900 }}
+    - condition: template
+      value_template: >
+        {{ repeat_is_due | bool
+           and (trigger_is_departure | bool or trigger_is_garage_or_repeat | bool)
+           and ((trevor_away | bool and casey_home | bool)
+                or (casey_away | bool and trevor_home | bool)) }}
+    - choose:
+        - conditions:
+            - condition: template
+              value_template: "{{ trevor_away | bool and casey_home | bool }}"
+          sequence:
+            - action: script.garage_security_send_alert
+              data:
+                alert_kind: trevor_away
+        - conditions:
+            - condition: template
+              value_template: "{{ casey_away | bool and trevor_home | bool }}"
+          sequence:
+            - action: script.garage_security_send_alert
+              data:
+                alert_kind: casey_away
+  mode: restart
+
 - id: garage_security_open_too_long
   alias: "Garage — Open Too Long"
   description: Low-noise reminder when the ratgdo garage door stays open while someone is home.
@@ -1402,7 +1491,7 @@
     - condition: template
       value_template: >
         {{ is_state('device_tracker.tk_iphone_16_pro', 'home')
-           or is_state('device_tracker.unifi_default_42_15_78_4a_d9_f8', 'home') }}
+           and is_state('device_tracker.unifi_default_42_15_78_4a_d9_f8', 'home') }}
     - condition: template
       value_template: >
         {% set snooze = states('input_datetime.garage_security_snooze_until') %}
@@ -1447,9 +1536,8 @@
         {{ minutes_now >= 1350 or minutes_now < 360 }}
     - condition: template
       value_template: >
-        {% set trevor_away = states('device_tracker.tk_iphone_16_pro') not in ['home', 'unknown', 'unavailable', ''] %}
-        {% set casey_away = states('device_tracker.unifi_default_42_15_78_4a_d9_f8') not in ['home', 'unknown', 'unavailable', ''] %}
-        {{ not (trevor_away and casey_away) }}
+        {{ is_state('device_tracker.tk_iphone_16_pro', 'home')
+           and is_state('device_tracker.unifi_default_42_15_78_4a_d9_f8', 'home') }}
   actions:
     - action: script.garage_security_send_alert
       data:
@@ -1527,6 +1615,12 @@
       entity_id: binary_sensor.ratgdo32disco_c26634_obstruction
       to: "off"
       id: obstruction_clear
+    - trigger: state
+      entity_id:
+        - device_tracker.tk_iphone_16_pro
+        - device_tracker.unifi_default_42_15_78_4a_d9_f8
+      to: home
+      id: person_home
   conditions: []
   actions:
     - choose:
@@ -1544,6 +1638,11 @@
                 message: clear_notification
                 data:
                   tag: garage-obstruction
+        - conditions:
+            - condition: template
+              value_template: "{{ trigger.id == 'person_home' }}"
+          sequence:
+            - action: script.garage_security_clear_person_away_alerts
   mode: single
 - id: away_security_clear_when_resolved
   alias: "Security — Clear Away Reminder When Resolved"

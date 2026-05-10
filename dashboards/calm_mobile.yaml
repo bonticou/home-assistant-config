@@ -363,7 +363,11 @@ views:
                   return `<div class="tile-copy"><div class="tile-label">Entry points</div><div class="tile-meta">${meta}</div></div>`;
                 ]]]
             tap_action:
-              action: more-info
+              action: fire-dom-event
+              browser_mod:
+                service: browser_mod.popup
+                data:
+                  popup_card_id: entry-points-popup
             hold_action:
               action: more-info
             styles:
@@ -1577,6 +1581,7 @@ views:
                 style: *calm_popup_panel_style
 
       - type: custom:popup-card
+        popup_card_id: entry-points-popup
         target:
           entity_id: sensor.away_security_entry_point_issues
         title: Entry points
@@ -1599,11 +1604,13 @@ views:
           - style: wide
             styles: |
               .content {
-                width: min(360px, calc(100vw - 32px)) !important;
+                width: min(352px, calc(100vw - 28px)) !important;
                 margin-inline: auto;
               }
               .content .container {
-                padding: 0 0 20px !important;
+                max-height: calc(100vh - 128px);
+                overflow-y: auto;
+                padding: 8px 0 18px !important;
               }
         card:
           type: vertical-stack
@@ -1631,16 +1638,30 @@ views:
                       unavailable: 'Unavailable',
                       unknown: 'Unknown',
                     };
-                    const active = ['open', 'opening'].includes(entity.state);
-                    return `<span class="garage-status-state ${active ? 'open' : 'closed'}">${labels[entity.state] || entity.state}</span>`;
+                    const statusClass = ['open', 'opening'].includes(entity.state)
+                      ? 'open'
+                      : entity.state === 'closed'
+                        ? 'closed'
+                        : entity.state === 'closing'
+                          ? 'moving'
+                          : 'unknown';
+                    return `<span class="garage-status-state ${statusClass}">${labels[entity.state] || entity.state}</span>`;
                   ]]]
                 meta: >-
                   [[[
                     const vehicle = hass.states['binary_sensor.ratgdo32disco_c26634_vehicle_detected']?.state || 'unknown';
                     const distance = hass.states['sensor.ratgdo32disco_c26634_vehicle_distance_actual_filtered']?.state || 'unknown';
                     const target = hass.states['number.ratgdo32disco_c26634_vehicle_distance_target']?.state || 'unknown';
-                    const vehicleLabel = vehicle === 'on' ? 'vehicle detected' : vehicle === 'off' ? 'no vehicle detected' : 'vehicle unknown';
-                    return `${vehicleLabel} · ${distance} actual · ${target} target`;
+                    const cleanNumber = (value) => {
+                      const text = String(value || '').trim();
+                      if (!text || ['unknown', 'unavailable', 'none'].includes(text.toLowerCase())) return '';
+                      const numeric = Number(text);
+                      return Number.isFinite(numeric) ? String(Math.round(numeric)) : text;
+                    };
+                    const vehicleLabel = vehicle === 'on' ? 'Vehicle detected' : vehicle === 'off' ? 'No vehicle' : 'Vehicle unknown';
+                    const actualLabel = cleanNumber(distance) ? `${cleanNumber(distance)} actual` : '';
+                    const targetLabel = cleanNumber(target) ? `${cleanNumber(target)} target` : '';
+                    return [vehicleLabel, actualLabel, targetLabel].filter(Boolean).join(' · ');
                   ]]]
               tap_action:
                 action: none
@@ -1648,12 +1669,12 @@ views:
                 action: more-info
               styles:
                 card:
-                  - width: min(330px, calc(100vw - 32px))
-                  - max-width: 330px
-                  - margin: clamp(120px, 24vh, 190px) auto 0
-                  - min-height: 106px
-                  - padding: 16px 16px
-                  - border-radius: 28px
+                  - width: min(326px, calc(100vw - 28px))
+                  - max-width: 326px
+                  - margin: 10px auto 0
+                  - min-height: 88px
+                  - padding: 14px 14px
+                  - border-radius: 24px
                   - border: 1px solid rgba(148, 163, 184, 0.26)
                   - background: linear-gradient(180deg, rgba(51, 65, 85, 0.88), rgba(15, 23, 42, 0.92))
                   - box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.06), 0 12px 24px rgba(2, 8, 23, 0.16)
@@ -1671,7 +1692,7 @@ views:
                     - grid-area: name
                     - justify-self: start
                     - color: "#f8fafc"
-                    - font-size: 16px
+                    - font-size: 15px
                     - font-weight: 760
                     - line-height: 1.1
                   state:
@@ -1683,15 +1704,20 @@ views:
                     - justify-self: start
                     - min-width: 0
                     - color: "#cbd5e1"
-                    - font-size: 12px
+                    - font-size: 11.5px
                     - font-weight: 650
                     - line-height: 1.35
                     - text-align: left
+                    - white-space: normal
+                    - overflow: hidden
+                    - display: "-webkit-box"
+                    - "-webkit-line-clamp": 2
+                    - "-webkit-box-orient": vertical
               extra_styles: |
                 .garage-status-icon {
-                  width: 54px;
-                  height: 54px;
-                  border-radius: 22px;
+                  width: 50px;
+                  height: 50px;
+                  border-radius: 19px;
                   display: grid;
                   place-items: center;
                   background: rgba(34, 197, 94, 0.14);
@@ -1703,7 +1729,7 @@ views:
                   color: #f87171;
                 }
                 .garage-status-icon ha-icon {
-                  --mdc-icon-size: 30px;
+                  --mdc-icon-size: 28px;
                 }
                 .garage-status-state {
                   display: inline-flex;
@@ -1726,115 +1752,123 @@ views:
                   color: #fecaca;
                   background: rgba(239, 68, 68, 0.16);
                 }
-            - type: horizontal-stack
-              cards:
-                - type: custom:button-card
-                  entity: cover.ratgdo32disco_c26634_door
-                  show_icon: false
-                  show_name: false
-                  show_state: false
-                  custom_fields:
-                    icon: >-
+                .garage-status-state.moving {
+                  color: #bae6fd;
+                  background: rgba(14, 165, 233, 0.14);
+                }
+                .garage-status-state.unknown {
+                  color: #cbd5e1;
+                  background: rgba(148, 163, 184, 0.14);
+                }
+            - type: custom:button-card
+              entity: cover.ratgdo32disco_c26634_door
+              show_icon: false
+              show_name: false
+              show_state: false
+              custom_fields:
+                icon: >-
+                  [[[
+                    return '<div class="garage-action-icon"><ha-icon icon="mdi:garage-arrow-down"></ha-icon></div>';
+                  ]]]
+                name: Close garage
+              tap_action:
+                action: call-service
+                service: script.away_security_close_garage_door
+                confirmation:
+                  text: Close the garage door?
+              styles:
+                card:
+                  - display: >-
                       [[[
-                        return '<div class="garage-action-icon"><ha-icon icon="mdi:garage-arrow-down"></ha-icon></div>';
+                        return ['open', 'opening', 'stopped'].includes(entity.state) ? 'grid' : 'none';
                       ]]]
-                    name: Close garage
-                  tap_action:
-                    action: call-service
-                    service: script.away_security_close_garage_door
-                    confirmation:
-                      text: Close the garage door?
-                  styles:
-                    card:
-                      - height: 54px
-                      - padding: 0 12px
-                      - border-radius: 23px
-                      - border: 1px solid rgba(94, 234, 212, 0.26)
-                      - background: linear-gradient(180deg, rgba(20, 184, 166, 0.30), rgba(15, 23, 42, 0.90))
-                      - box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.08), 0 12px 24px rgba(2, 8, 23, 0.14)
-                    grid:
-                      - grid-template-areas: '"icon name"'
-                      - grid-template-columns: 34px minmax(0, 1fr)
-                      - column-gap: 9px
-                      - align-items: center
-                    custom_fields:
-                      icon:
-                        - grid-area: icon
-                      name:
-                        - grid-area: name
-                        - justify-self: start
-                        - color: "#f8fafc"
-                        - font-size: 14px
-                        - font-weight: 760
-                        - line-height: 1
-                  extra_styles: &garage_action_extra |
-                    .garage-action-icon {
-                      width: 34px;
-                      height: 34px;
-                      border-radius: 14px;
-                      display: grid;
-                      place-items: center;
-                      background: rgba(20, 184, 166, 0.18);
-                      color: #5eead4;
-                      box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.08);
-                    }
-                    .garage-action-icon ha-icon {
-                      --mdc-icon-size: 20px;
-                    }
-                - type: custom:button-card
-                  entity: cover.ratgdo32disco_c26634_door
-                  show_icon: false
-                  show_name: false
-                  show_state: false
-                  custom_fields:
-                    icon: >-
+                  - width: min(326px, calc(100vw - 28px))
+                  - max-width: 326px
+                  - margin: 10px auto 0
+                  - height: 48px
+                  - padding: 0 13px
+                  - border-radius: 20px
+                  - border: 1px solid rgba(94, 234, 212, 0.24)
+                  - background: linear-gradient(180deg, rgba(20, 184, 166, 0.28), rgba(15, 23, 42, 0.88))
+                  - box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.08), 0 10px 20px rgba(2, 8, 23, 0.12)
+                grid:
+                  - grid-template-areas: '"icon name"'
+                  - grid-template-columns: 34px minmax(0, 1fr)
+                  - column-gap: 9px
+                  - align-items: center
+                custom_fields:
+                  icon:
+                    - grid-area: icon
+                  name:
+                    - grid-area: name
+                    - justify-self: start
+                    - color: "#f8fafc"
+                    - font-size: 14px
+                    - font-weight: 760
+                    - line-height: 1
+              extra_styles: &garage_action_extra |
+                .garage-action-icon {
+                  width: 34px;
+                  height: 34px;
+                  border-radius: 14px;
+                  display: grid;
+                  place-items: center;
+                  background: rgba(20, 184, 166, 0.18);
+                  color: #5eead4;
+                  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.08);
+                }
+                .garage-action-icon ha-icon {
+                  --mdc-icon-size: 20px;
+                }
+            - type: custom:button-card
+              entity: cover.ratgdo32disco_c26634_door
+              show_icon: false
+              show_name: false
+              show_state: false
+              custom_fields:
+                icon: >-
+                  [[[
+                    return '<div class="garage-action-icon"><ha-icon icon="mdi:garage-arrow-up"></ha-icon></div>';
+                  ]]]
+                name: Open garage
+              tap_action:
+                action: call-service
+                service: cover.open_cover
+                target:
+                  entity_id: cover.ratgdo32disco_c26634_door
+                confirmation:
+                  text: Open the garage door?
+              styles:
+                card:
+                  - display: >-
                       [[[
-                        return '<div class="garage-action-icon"><ha-icon icon="mdi:garage-arrow-up"></ha-icon></div>';
+                        return entity.state === 'closed' ? 'grid' : 'none';
                       ]]]
-                    name: Open garage
-                  tap_action:
-                    action: call-service
-                    service: cover.open_cover
-                    target:
-                      entity_id: cover.ratgdo32disco_c26634_door
-                    confirmation:
-                      text: Open the garage door?
-                  styles:
-                    card:
-                      - height: 54px
-                      - padding: 0 12px
-                      - border-radius: 23px
-                      - border: 1px solid rgba(148, 163, 184, 0.26)
-                      - background: linear-gradient(180deg, rgba(51, 65, 85, 0.78), rgba(15, 23, 42, 0.90))
-                      - box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.06), 0 12px 24px rgba(2, 8, 23, 0.12)
-                    grid:
-                      - grid-template-areas: '"icon name"'
-                      - grid-template-columns: 34px minmax(0, 1fr)
-                      - column-gap: 9px
-                      - align-items: center
-                    custom_fields:
-                      icon:
-                        - grid-area: icon
-                      name:
-                        - grid-area: name
-                        - justify-self: start
-                        - color: "#f8fafc"
-                        - font-size: 14px
-                        - font-weight: 760
-                        - line-height: 1
-                  extra_styles: *garage_action_extra
-              card_mod:
-                style: |
-                  :host {
-                    display: block;
-                    width: min(330px, calc(100vw - 32px));
-                    max-width: 330px;
-                    margin: 10px auto 0;
-                  }
-                  #root {
-                    justify-content: center !important;
-                    gap: 10px !important;
-                  }
+                  - width: min(326px, calc(100vw - 28px))
+                  - max-width: 326px
+                  - margin: 10px auto 0
+                  - height: 48px
+                  - padding: 0 13px
+                  - border-radius: 20px
+                  - border: 1px solid rgba(148, 163, 184, 0.24)
+                  - background: linear-gradient(180deg, rgba(51, 65, 85, 0.70), rgba(15, 23, 42, 0.88))
+                  - box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.06), 0 10px 20px rgba(2, 8, 23, 0.10)
+                grid:
+                  - grid-template-areas: '"icon name"'
+                  - grid-template-columns: 34px minmax(0, 1fr)
+                  - column-gap: 9px
+                  - align-items: center
+                custom_fields:
+                  icon:
+                    - grid-area: icon
+                  name:
+                    - grid-area: name
+                    - justify-self: start
+                    - color: "#f8fafc"
+                    - font-size: 14px
+                    - font-weight: 760
+                    - line-height: 1
+              extra_styles: *garage_action_extra
             - type: horizontal-stack
               cards:
                 - type: custom:button-card
@@ -1873,15 +1907,15 @@ views:
                       - max-width: 150px
                       - margin: 0 auto
                       - box-sizing: border-box
-                      - min-height: 138px
-                      - padding: 17px 12px 15px
-                      - border-radius: 28px
+                      - min-height: 112px
+                      - padding: 12px 12px 11px
+                      - border-radius: 22px
                       - border: 1px solid rgba(148, 163, 184, 0.26)
                       - background: linear-gradient(180deg, rgba(51, 65, 85, 0.88), rgba(15, 23, 42, 0.92))
                       - box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.06), 0 12px 24px rgba(2, 8, 23, 0.16)
                     grid:
                       - grid-template-areas: '"icon" "name" "state"'
-                      - grid-template-rows: 68px min-content min-content
+                      - grid-template-rows: 50px min-content min-content
                       - justify-items: center
                       - align-items: center
                       - row-gap: 7px
@@ -1906,9 +1940,9 @@ views:
                           - background: linear-gradient(180deg, rgba(69, 26, 26, 0.78), rgba(15, 23, 42, 0.92))
                   extra_styles: &door_lock_tile_extra |
                     .door-lock-icon {
-                      width: 66px;
-                      height: 66px;
-                      border-radius: 25px;
+                      width: 48px;
+                      height: 48px;
+                      border-radius: 18px;
                       display: grid;
                       place-items: center;
                       background: rgba(34, 197, 94, 0.14);
@@ -1920,7 +1954,7 @@ views:
                       color: #f87171;
                     }
                     .door-lock-icon ha-icon {
-                      --mdc-icon-size: 32px;
+                      --mdc-icon-size: 25px;
                     }
                     .door-lock-state {
                       display: inline-flex;
