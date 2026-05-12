@@ -360,7 +360,7 @@ views:
                     : count === 1
                       ? issue
                       : `${count} issues`;
-                  return `<div class="tile-copy"><div class="tile-label">Entry points</div><div class="tile-meta">${meta}</div></div>`;
+                  return `<div class="tile-copy"><div class="tile-label">Doors</div><div class="tile-meta">${meta}</div></div>`;
                 ]]]
             tap_action:
               action: fire-dom-event
@@ -1584,7 +1584,7 @@ views:
         popup_card_id: entry-points-popup
         target:
           entity_id: sensor.away_security_entry_point_issues
-        title: Entry points
+        title: Doors
         dismiss_icon: mdi:close
         initial_style: wide
         popup_styles:
@@ -1597,20 +1597,40 @@ views:
                 --popup-padding-y: 0px;
               }
               ha-dialog {
-                --mdc-dialog-scrim-color: rgba(15, 23, 42, 0.44);
-                --dialog-backdrop-filter: blur(28px) saturate(180%);
+                --mdc-dialog-scrim-color: rgba(2, 6, 23, 0.72);
+                --dialog-backdrop-filter: blur(34px) saturate(170%);
                 --ha-dialog-border-radius: 30px;
+                --mdc-dialog-container-color: transparent;
+                --mdc-theme-surface: transparent;
+                --ha-dialog-surface-background: transparent;
+              }
+              dialog {
+                background: transparent !important;
+                box-shadow: none !important;
               }
           - style: wide
             styles: |
               .content {
-                width: min(352px, calc(100vw - 28px)) !important;
+                width: min(344px, calc(100vw - 30px)) !important;
                 margin-inline: auto;
               }
               .content .container {
-                max-height: calc(100vh - 128px);
+                max-height: min(430px, calc(100vh - 164px));
                 overflow-y: auto;
-                padding: 8px 0 18px !important;
+                box-sizing: border-box;
+                margin-top: clamp(168px, 30vh, 340px);
+                padding: 14px !important;
+                border-radius: 30px;
+                border: 1px solid rgba(148, 163, 184, 0.22);
+                background:
+                  radial-gradient(circle at 16% -8%, rgba(45, 212, 191, 0.14), transparent 36%),
+                  radial-gradient(circle at 92% 8%, rgba(59, 130, 246, 0.13), transparent 34%),
+                  linear-gradient(180deg, rgba(15, 23, 42, 0.88), rgba(8, 13, 27, 0.82));
+                box-shadow:
+                  inset 0 1px 0 rgba(255, 255, 255, 0.07),
+                  0 26px 54px rgba(2, 6, 23, 0.42);
+                -webkit-backdrop-filter: blur(22px) saturate(150%);
+                backdrop-filter: blur(22px) saturate(150%);
               }
         card:
           type: vertical-stack
@@ -1623,7 +1643,7 @@ views:
               custom_fields:
                 icon: >-
                   [[[
-                    const active = ['open', 'opening'].includes(entity.state);
+                    const active = ['open', 'opening', 'stopped'].includes(entity.state);
                     const icon = active ? 'mdi:garage-open-variant' : 'mdi:garage-variant';
                     return `<div class="garage-status-icon ${active ? 'open' : 'closed'}"><ha-icon icon="${icon}"></ha-icon></div>`;
                   ]]]
@@ -1633,12 +1653,13 @@ views:
                     const labels = {
                       open: 'Open',
                       opening: 'Opening',
+                      stopped: 'Stopped',
                       closed: 'Closed',
                       closing: 'Closing',
-                      unavailable: 'Unavailable',
+                      unavailable: 'Offline',
                       unknown: 'Unknown',
                     };
-                    const statusClass = ['open', 'opening'].includes(entity.state)
+                    const statusClass = ['open', 'opening', 'stopped'].includes(entity.state)
                       ? 'open'
                       : entity.state === 'closed'
                         ? 'closed'
@@ -1650,18 +1671,8 @@ views:
                 meta: >-
                   [[[
                     const vehicle = hass.states['binary_sensor.ratgdo32disco_c26634_vehicle_detected']?.state || 'unknown';
-                    const distance = hass.states['sensor.ratgdo32disco_c26634_vehicle_distance_actual_filtered']?.state || 'unknown';
-                    const target = hass.states['number.ratgdo32disco_c26634_vehicle_distance_target']?.state || 'unknown';
-                    const cleanNumber = (value) => {
-                      const text = String(value || '').trim();
-                      if (!text || ['unknown', 'unavailable', 'none'].includes(text.toLowerCase())) return '';
-                      const numeric = Number(text);
-                      return Number.isFinite(numeric) ? String(Math.round(numeric)) : text;
-                    };
                     const vehicleLabel = vehicle === 'on' ? 'Vehicle detected' : vehicle === 'off' ? 'No vehicle' : 'Vehicle unknown';
-                    const actualLabel = cleanNumber(distance) ? `${cleanNumber(distance)} actual` : '';
-                    const targetLabel = cleanNumber(target) ? `${cleanNumber(target)} target` : '';
-                    return [vehicleLabel, actualLabel, targetLabel].filter(Boolean).join(' · ');
+                    return vehicleLabel;
                   ]]]
               tap_action:
                 action: none
@@ -1669,21 +1680,20 @@ views:
                 action: more-info
               styles:
                 card:
-                  - width: min(326px, calc(100vw - 28px))
-                  - max-width: 326px
-                  - margin: 10px auto 0
-                  - min-height: 88px
-                  - padding: 14px 14px
-                  - border-radius: 24px
-                  - border: 1px solid rgba(148, 163, 184, 0.26)
-                  - background: linear-gradient(180deg, rgba(51, 65, 85, 0.88), rgba(15, 23, 42, 0.92))
-                  - box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.06), 0 12px 24px rgba(2, 8, 23, 0.16)
+                  - width: 100%
+                  - min-height: 62px
+                  - padding: 0 0 13px
+                  - border-radius: 0
+                  - border: 0
+                  - border-bottom: 1px solid rgba(148, 163, 184, 0.14)
+                  - background: transparent
+                  - box-shadow: none
                 grid:
                   - grid-template-areas: '"icon name state" "icon meta meta"'
-                  - grid-template-columns: 58px minmax(0, 1fr) min-content
+                  - grid-template-columns: 44px minmax(0, 1fr) min-content
                   - grid-template-rows: min-content min-content
-                  - column-gap: 12px
-                  - row-gap: 8px
+                  - column-gap: 10px
+                  - row-gap: 5px
                   - align-items: center
                 custom_fields:
                   icon:
@@ -1692,7 +1702,7 @@ views:
                     - grid-area: name
                     - justify-self: start
                     - color: "#f8fafc"
-                    - font-size: 15px
+                    - font-size: 14px
                     - font-weight: 760
                     - line-height: 1.1
                   state:
@@ -1704,7 +1714,7 @@ views:
                     - justify-self: start
                     - min-width: 0
                     - color: "#cbd5e1"
-                    - font-size: 11.5px
+                    - font-size: 12px
                     - font-weight: 650
                     - line-height: 1.35
                     - text-align: left
@@ -1715,9 +1725,9 @@ views:
                     - "-webkit-box-orient": vertical
               extra_styles: |
                 .garage-status-icon {
-                  width: 50px;
-                  height: 50px;
-                  border-radius: 19px;
+                  width: 38px;
+                  height: 38px;
+                  border-radius: 15px;
                   display: grid;
                   place-items: center;
                   background: rgba(34, 197, 94, 0.14);
@@ -1729,14 +1739,14 @@ views:
                   color: #f87171;
                 }
                 .garage-status-icon ha-icon {
-                  --mdc-icon-size: 28px;
+                  --mdc-icon-size: 22px;
                 }
                 .garage-status-state {
                   display: inline-flex;
                   align-items: center;
                   justify-content: center;
-                  min-height: 25px;
-                  padding: 0 10px;
+                  min-height: 24px;
+                  padding: 0 11px;
                   border-radius: 999px;
                   font-size: 12px;
                   font-weight: 780;
@@ -1782,12 +1792,11 @@ views:
                       [[[
                         return ['open', 'opening', 'stopped'].includes(entity.state) ? 'grid' : 'none';
                       ]]]
-                  - width: min(326px, calc(100vw - 28px))
-                  - max-width: 326px
+                  - width: 100%
                   - margin: 10px auto 0
-                  - height: 48px
-                  - padding: 0 13px
-                  - border-radius: 20px
+                  - height: 44px
+                  - padding: 0 12px
+                  - border-radius: 18px
                   - border: 1px solid rgba(94, 234, 212, 0.24)
                   - background: linear-gradient(180deg, rgba(20, 184, 166, 0.28), rgba(15, 23, 42, 0.88))
                   - box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.08), 0 10px 20px rgba(2, 8, 23, 0.12)
@@ -1808,9 +1817,9 @@ views:
                     - line-height: 1
               extra_styles: &garage_action_extra |
                 .garage-action-icon {
-                  width: 34px;
-                  height: 34px;
-                  border-radius: 14px;
+                  width: 30px;
+                  height: 30px;
+                  border-radius: 13px;
                   display: grid;
                   place-items: center;
                   background: rgba(20, 184, 166, 0.18);
@@ -1818,7 +1827,7 @@ views:
                   box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.08);
                 }
                 .garage-action-icon ha-icon {
-                  --mdc-icon-size: 20px;
+                  --mdc-icon-size: 18px;
                 }
             - type: custom:button-card
               entity: cover.ratgdo32disco_c26634_door
@@ -1830,7 +1839,7 @@ views:
                   [[[
                     return '<div class="garage-action-icon"><ha-icon icon="mdi:garage-arrow-up"></ha-icon></div>';
                   ]]]
-                name: Open garage
+                name: Open
               tap_action:
                 action: call-service
                 service: cover.open_cover
@@ -1844,19 +1853,18 @@ views:
                       [[[
                         return entity.state === 'closed' ? 'grid' : 'none';
                       ]]]
-                  - width: min(326px, calc(100vw - 28px))
-                  - max-width: 326px
-                  - margin: 10px auto 0
-                  - height: 48px
-                  - padding: 0 13px
-                  - border-radius: 20px
-                  - border: 1px solid rgba(148, 163, 184, 0.24)
-                  - background: linear-gradient(180deg, rgba(51, 65, 85, 0.70), rgba(15, 23, 42, 0.88))
-                  - box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.06), 0 10px 20px rgba(2, 8, 23, 0.10)
+                  - width: 92px
+                  - margin: 0
+                  - height: 38px
+                  - padding: 0 10px
+                  - border-radius: 17px
+                  - border: 1px solid rgba(148, 163, 184, 0.22)
+                  - background: rgba(148, 163, 184, 0.10)
+                  - box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.06)
                 grid:
                   - grid-template-areas: '"icon name"'
-                  - grid-template-columns: 34px minmax(0, 1fr)
-                  - column-gap: 9px
+                  - grid-template-columns: 28px minmax(0, 1fr)
+                  - column-gap: 7px
                   - align-items: center
                 custom_fields:
                   icon:
@@ -1865,10 +1873,17 @@ views:
                     - grid-area: name
                     - justify-self: start
                     - color: "#f8fafc"
-                    - font-size: 14px
+                    - font-size: 13px
                     - font-weight: 760
                     - line-height: 1
               extra_styles: *garage_action_extra
+              card_mod:
+                style: |
+                  :host {
+                    display: block;
+                    width: 92px;
+                    margin: 10px 0 0 auto;
+                  }
             - type: horizontal-stack
               cards:
                 - type: custom:button-card
@@ -1879,22 +1894,47 @@ views:
                   custom_fields:
                     icon: >-
                       [[[
-                        const unlocked = entity.state === 'unlocked';
-                        const icon = unlocked ? 'mdi:lock-open-variant-outline' : 'mdi:lock-outline';
-                        return `<div class="door-lock-icon ${unlocked ? 'open' : 'closed'}"><ha-icon icon="${icon}"></ha-icon></div>`;
+                        const state = entity.state;
+                        const unlocked = state === 'unlocked';
+                        const moving = ['locking', 'unlocking'].includes(state);
+                        const unknown = ['unavailable', 'unknown'].includes(state);
+                        const icon = unlocked
+                          ? 'mdi:lock-open-variant-outline'
+                          : moving
+                            ? 'mdi:lock-clock-outline'
+                            : unknown
+                              ? 'mdi:lock-question'
+                              : 'mdi:lock-outline';
+                        const klass = unlocked ? 'open' : moving ? 'moving' : unknown ? 'unknown' : 'closed';
+                        return `<div class="door-lock-icon ${klass}"><ha-icon icon="${icon}"></ha-icon></div>`;
                       ]]]
-                    name: Garage
+                    name: Garage lock
                     state: >-
                       [[[
-                        const unlocked = entity.state === 'unlocked';
-                        return `<span class="door-lock-state ${unlocked ? 'open' : 'closed'}">${unlocked ? 'Unlocked' : 'Locked'}</span>`;
+                        const labels = {
+                          unlocked: 'Unlocked',
+                          locked: 'Locked',
+                          locking: 'Locking',
+                          unlocking: 'Unlocking',
+                          unavailable: 'Offline',
+                          unknown: 'Unknown',
+                        };
+                        const state = entity.state;
+                        const klass = state === 'unlocked'
+                          ? 'open'
+                          : ['locking', 'unlocking'].includes(state)
+                            ? 'moving'
+                            : ['unavailable', 'unknown'].includes(state)
+                              ? 'unknown'
+                              : 'closed';
+                        return `<span class="door-lock-state ${klass}">${labels[state] || state}</span>`;
                       ]]]
                   tap_action:
-                    action: call-service
-                    service: >-
+                    action: >-
                       [[[
-                        return entity.state === 'locked' ? 'lock.unlock' : 'lock.lock';
+                        return entity.state === 'unlocked' ? 'call-service' : 'none';
                       ]]]
+                    service: lock.lock
                     target:
                       entity_id: lock.garage_entry_lock
                   hold_action:
@@ -1902,30 +1942,30 @@ views:
                   styles:
                     &door_lock_tile_styles
                     card:
-                      - width: 150px
-                      - min-width: 150px
-                      - max-width: 150px
+                      - width: 148px
+                      - min-width: 148px
+                      - max-width: 148px
                       - margin: 0 auto
                       - box-sizing: border-box
-                      - min-height: 112px
-                      - padding: 12px 12px 11px
-                      - border-radius: 22px
+                      - min-height: 96px
+                      - padding: 11px 10px 10px
+                      - border-radius: 24px
                       - border: 1px solid rgba(148, 163, 184, 0.26)
-                      - background: linear-gradient(180deg, rgba(51, 65, 85, 0.88), rgba(15, 23, 42, 0.92))
-                      - box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.06), 0 12px 24px rgba(2, 8, 23, 0.16)
+                      - background: linear-gradient(180deg, rgba(30, 41, 59, 0.42), rgba(15, 23, 42, 0.22))
+                      - box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.07)
                     grid:
                       - grid-template-areas: '"icon" "name" "state"'
-                      - grid-template-rows: 50px min-content min-content
+                      - grid-template-rows: 43px min-content min-content
                       - justify-items: center
                       - align-items: center
-                      - row-gap: 7px
+                      - row-gap: 6px
                     custom_fields:
                       icon:
                         - grid-area: icon
                       name:
                         - grid-area: name
                         - color: "#f8fafc"
-                        - font-size: 15px
+                        - font-size: 13.5px
                         - font-weight: 740
                         - line-height: 1.1
                       state:
@@ -1936,13 +1976,13 @@ views:
                     - value: unlocked
                       styles:
                         card:
-                          - border-color: rgba(248, 113, 113, 0.30)
-                          - background: linear-gradient(180deg, rgba(69, 26, 26, 0.78), rgba(15, 23, 42, 0.92))
+                          - border-color: rgba(248, 113, 113, 0.40)
+                          - background: linear-gradient(180deg, rgba(127, 29, 29, 0.34), rgba(15, 23, 42, 0.26))
                   extra_styles: &door_lock_tile_extra |
                     .door-lock-icon {
-                      width: 48px;
-                      height: 48px;
-                      border-radius: 18px;
+                      width: 42px;
+                      height: 42px;
+                      border-radius: 17px;
                       display: grid;
                       place-items: center;
                       background: rgba(34, 197, 94, 0.14);
@@ -1953,8 +1993,16 @@ views:
                       background: rgba(239, 68, 68, 0.14);
                       color: #f87171;
                     }
+                    .door-lock-icon.moving {
+                      background: rgba(14, 165, 233, 0.14);
+                      color: #7dd3fc;
+                    }
+                    .door-lock-icon.unknown {
+                      background: rgba(148, 163, 184, 0.12);
+                      color: #94a3b8;
+                    }
                     .door-lock-icon ha-icon {
-                      --mdc-icon-size: 25px;
+                      --mdc-icon-size: 23px;
                     }
                     .door-lock-state {
                       display: inline-flex;
@@ -1977,6 +2025,14 @@ views:
                       color: #fecaca;
                       background: rgba(239, 68, 68, 0.16);
                     }
+                    .door-lock-state.moving {
+                      color: #bae6fd;
+                      background: rgba(14, 165, 233, 0.14);
+                    }
+                    .door-lock-state.unknown {
+                      color: #cbd5e1;
+                      background: rgba(148, 163, 184, 0.13);
+                    }
                 - type: custom:button-card
                   entity: lock.mudroom_door_lock
                   show_icon: false
@@ -1985,22 +2041,47 @@ views:
                   custom_fields:
                     icon: >-
                       [[[
-                        const unlocked = entity.state === 'unlocked';
-                        const icon = unlocked ? 'mdi:lock-open-variant-outline' : 'mdi:lock-outline';
-                        return `<div class="door-lock-icon ${unlocked ? 'open' : 'closed'}"><ha-icon icon="${icon}"></ha-icon></div>`;
+                        const state = entity.state;
+                        const unlocked = state === 'unlocked';
+                        const moving = ['locking', 'unlocking'].includes(state);
+                        const unknown = ['unavailable', 'unknown'].includes(state);
+                        const icon = unlocked
+                          ? 'mdi:lock-open-variant-outline'
+                          : moving
+                            ? 'mdi:lock-clock-outline'
+                            : unknown
+                              ? 'mdi:lock-question'
+                              : 'mdi:lock-outline';
+                        const klass = unlocked ? 'open' : moving ? 'moving' : unknown ? 'unknown' : 'closed';
+                        return `<div class="door-lock-icon ${klass}"><ha-icon icon="${icon}"></ha-icon></div>`;
                       ]]]
                     name: Mudroom
                     state: >-
                       [[[
-                        const unlocked = entity.state === 'unlocked';
-                        return `<span class="door-lock-state ${unlocked ? 'open' : 'closed'}">${unlocked ? 'Unlocked' : 'Locked'}</span>`;
+                        const labels = {
+                          unlocked: 'Unlocked',
+                          locked: 'Locked',
+                          locking: 'Locking',
+                          unlocking: 'Unlocking',
+                          unavailable: 'Offline',
+                          unknown: 'Unknown',
+                        };
+                        const state = entity.state;
+                        const klass = state === 'unlocked'
+                          ? 'open'
+                          : ['locking', 'unlocking'].includes(state)
+                            ? 'moving'
+                            : ['unavailable', 'unknown'].includes(state)
+                              ? 'unknown'
+                              : 'closed';
+                        return `<span class="door-lock-state ${klass}">${labels[state] || state}</span>`;
                       ]]]
                   tap_action:
-                    action: call-service
-                    service: >-
+                    action: >-
                       [[[
-                        return entity.state === 'locked' ? 'lock.unlock' : 'lock.lock';
+                        return entity.state === 'unlocked' ? 'call-service' : 'none';
                       ]]]
+                    service: lock.lock
                     target:
                       entity_id: lock.mudroom_door_lock
                   hold_action:
@@ -2013,13 +2094,13 @@ views:
                 style: |
                   :host {
                     display: block;
-                    width: min(330px, calc(100vw - 32px));
-                    max-width: 330px;
-                    margin: 12px auto 0;
+                    width: 100%;
+                    max-width: 316px;
+                    margin: 13px auto 0;
                   }
                   #root {
                     justify-content: center !important;
-                    gap: 10px !important;
+                    gap: 8px !important;
                   }
             - type: conditional
               conditions:
@@ -2042,32 +2123,32 @@ views:
                   service: script.away_security_lock_unlocked_entry_doors
                 styles:
                   card:
-                    - height: 56px
-                    - padding: 0 13px
-                    - border-radius: 24px
+                    - height: 44px
+                    - padding: 0 12px
+                    - border-radius: 19px
                     - border: 1px solid rgba(94, 234, 212, 0.26)
                     - background: linear-gradient(180deg, rgba(20, 184, 166, 0.30), rgba(15, 23, 42, 0.90))
-                    - box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.08), 0 12px 24px rgba(2, 8, 23, 0.14)
+                    - box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.08)
                   grid:
                     - grid-template-areas: '"icon name"'
-                    - grid-template-columns: 38px minmax(0, 1fr)
-                    - column-gap: 10px
+                    - grid-template-columns: 32px minmax(0, 1fr)
+                    - column-gap: 9px
                     - align-items: center
                   custom_fields:
                     icon:
                       - grid-area: icon
                     name:
                       - grid-area: name
-                      - justify-self: start
+                      - justify-self: center
                       - color: "#f8fafc"
                       - font-size: 15px
                       - font-weight: 760
                       - line-height: 1
                 extra_styles: |
                   .door-lock-all-icon {
-                    width: 38px;
-                    height: 38px;
-                    border-radius: 16px;
+                    width: 32px;
+                    height: 32px;
+                    border-radius: 14px;
                     display: grid;
                     place-items: center;
                     background: rgba(20, 184, 166, 0.18);
@@ -2075,43 +2156,15 @@ views:
                     box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.08);
                   }
                   .door-lock-all-icon ha-icon {
-                    --mdc-icon-size: 21px;
+                    --mdc-icon-size: 19px;
                   }
               card_mod:
                 style: |
                   :host {
                     display: block;
-                    width: min(310px, calc(100vw - 32px));
-                    max-width: 310px;
-                    margin: 12px auto 0;
-                  }
-            - type: conditional
-              conditions:
-                - entity: sensor.away_security_unlocked_entry_locks
-                  state_not: "2"
-              card:
-                type: custom:button-card
-                show_icon: false
-                show_name: false
-                show_state: false
-                tap_action:
-                  action: none
-                styles:
-                  card:
-                    - height: 56px
-                    - padding: 0
-                    - border: 0
-                    - background: transparent
-                    - box-shadow: none
-                    - visibility: hidden
-              card_mod:
-                style: |
-                  :host {
-                    display: block;
-                    width: min(310px, calc(100vw - 32px));
-                    max-width: 310px;
-                    margin: 12px auto 0;
-                    pointer-events: none;
+                    width: 100%;
+                    max-width: 316px;
+                    margin: 10px auto 0;
                   }
 
       - type: custom:popup-card
