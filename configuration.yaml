@@ -178,6 +178,10 @@ input_datetime:
     name: Garage Security Snooze Until
     has_date: true
     has_time: true
+  entry_security_snooze_until:
+    name: Entry Security Snooze Until
+    has_date: true
+    has_time: true
   water_pressure_snooze_until:
     name: Water Pressure Snooze Until
     has_date: true
@@ -443,9 +447,18 @@ input_text:
     max: 16
 
 input_boolean:
+  vacation_mode:
+    name: Vacation Mode
+    icon: mdi:island
+  vacation_mode_start_confirm:
+    name: Vacation Mode Start Confirm
+    icon: mdi:shield-check-outline
   interior_lights_guest_override:
     name: Guest Lighting Override
     icon: mdi:account-group-outline
+  interior_lights_guest_override_confirm:
+    name: Guest Lighting Override Confirm
+    icon: mdi:cancel
   foyer_chandelier_sleep_hold:
     name: Foyer Chandelier Sleep Hold
     icon: mdi:weather-night
@@ -1525,6 +1538,81 @@ template:
             7
           {% endif %}
 
+      - name: "Vacation Activity Window"
+        unique_id: vacation_activity_window
+        icon: mdi:island
+        state: >
+          {% set elevation = state_attr('sun.sun', 'elevation') %}
+          {% set now_ts = as_timestamp(now()) %}
+          {% set lived_in_end = as_timestamp(today_at('21:30')) %}
+          {% set evening_tail_end = as_timestamp(today_at('23:45')) %}
+          {% if elevation is none %}
+            off
+          {% elif is_state_attr('sun.sun', 'rising', true)
+             and elevation | float(90) >= -14
+             and elevation | float(90) <= 4 %}
+            pre_sunrise
+          {% elif not is_state_attr('sun.sun', 'rising', true)
+             and now().hour >= 12
+             and elevation | float(90) <= 10
+             and now_ts < evening_tail_end %}
+            evening
+          {% else %}
+            off
+          {% endif %}
+        attributes:
+          label: >
+            {% set elevation = state_attr('sun.sun', 'elevation') %}
+            {% set now_ts = as_timestamp(now()) %}
+            {% set evening_tail_end = as_timestamp(today_at('23:45')) %}
+            {% if elevation is not none
+               and is_state_attr('sun.sun', 'rising', true)
+               and elevation | float(90) >= -14
+               and elevation | float(90) <= 4 %}
+              Pre-sunrise activity
+            {% elif elevation is not none
+               and not is_state_attr('sun.sun', 'rising', true)
+               and now().hour >= 12
+               and elevation | float(90) <= 10
+               and now_ts < evening_tail_end %}
+              Evening activity
+            {% else %}
+              Quiet watch
+            {% endif %}
+          detail_phase: >
+            {% set elevation = state_attr('sun.sun', 'elevation') %}
+            {% set now_ts = as_timestamp(now()) %}
+            {% set lived_in_end = as_timestamp(today_at('21:30')) %}
+            {% set evening_tail_end = as_timestamp(today_at('23:45')) %}
+            {% if elevation is none %}
+              unknown
+            {% elif is_state_attr('sun.sun', 'rising', true)
+               and elevation | float(90) >= -14
+               and elevation | float(90) <= 4 %}
+              morning_glow
+            {% elif not is_state_attr('sun.sun', 'rising', true)
+               and now().hour >= 12
+               and elevation | float(90) <= 10
+               and now_ts < lived_in_end %}
+              evening_lived_in
+            {% elif not is_state_attr('sun.sun', 'rising', true)
+               and now().hour >= 12
+               and elevation | float(90) <= 10
+               and now_ts < evening_tail_end %}
+              late_glow
+            {% elif is_state_attr('sun.sun', 'rising', true) %}
+              daylight
+            {% else %}
+              night_quiet
+            {% endif %}
+          sun_elevation: "{{ state_attr('sun.sun', 'elevation') | float(0) | round(1) }}"
+          next_setting: "{{ state_attr('sun.sun', 'next_setting') }}"
+          next_rising: "{{ state_attr('sun.sun', 'next_rising') }}"
+          evening_lived_in_until: "21:30"
+          evening_tail_until: "23:45"
+          pre_sunrise_elevation_start: -14
+          pre_sunrise_elevation_end: 4
+
       - name: "away_security_active_lights"
         unique_id: away_security_active_lights
         icon: mdi:lightbulb-alert-outline
@@ -1537,6 +1625,20 @@ template:
              and is_state('input_boolean.foyer_chandelier_sleep_hold', 'off') %}
             {% set exempt.entity_ids = exempt.entity_ids + ['light.front_foyer_chandelier'] %}
           {% endif %}
+          {% if is_state('input_boolean.vacation_mode', 'on')
+             and states('sensor.vacation_activity_window') in ['evening', 'pre_sunrise'] %}
+            {% set exempt.entity_ids = exempt.entity_ids + [
+              'light.front_foyer_chandelier',
+              'light.family_room_main_lights_1',
+              'light.family_room_main_lights_2',
+              'light.family_room_main_lights_3',
+              'light.wynn_s_room_chandelier',
+              'light.wynn_s_room_ceiling_lights',
+              'light.deck_deck_lights',
+              'light.exterior_yard_lights',
+              'light.back_patio_light'
+            ] %}
+          {% endif %}
           {% set ns = namespace(lights=[]) %}
           {% for light in states.light
             | selectattr('state', 'eq', 'on')
@@ -1546,7 +1648,12 @@ template:
               {% set ns.lights = ns.lights + [light] %}
             {% endif %}
           {% endfor %}
-          {{ ns.lights | count }}
+          {% set vacation_window_active = is_state('input_boolean.vacation_mode', 'on')
+             and states('sensor.vacation_activity_window') in ['evening', 'pre_sunrise'] %}
+          {% set lighting_switch_count =
+            (1 if is_state('switch.garage_garage_lights', 'on') else 0)
+            + (1 if is_state('switch.uplight', 'on') and not vacation_window_active else 0) %}
+          {{ (ns.lights | count) + lighting_switch_count }}
         attributes:
           names: >
             {% set exempt = namespace(entity_ids=[]) %}
@@ -1557,6 +1664,20 @@ template:
                and is_state('input_boolean.foyer_chandelier_sleep_hold', 'off') %}
               {% set exempt.entity_ids = exempt.entity_ids + ['light.front_foyer_chandelier'] %}
             {% endif %}
+            {% if is_state('input_boolean.vacation_mode', 'on')
+               and states('sensor.vacation_activity_window') in ['evening', 'pre_sunrise'] %}
+              {% set exempt.entity_ids = exempt.entity_ids + [
+                'light.front_foyer_chandelier',
+                'light.family_room_main_lights_1',
+                'light.family_room_main_lights_2',
+                'light.family_room_main_lights_3',
+                'light.wynn_s_room_chandelier',
+                'light.wynn_s_room_ceiling_lights',
+                'light.deck_deck_lights',
+                'light.exterior_yard_lights',
+                'light.back_patio_light'
+              ] %}
+            {% endif %}
             {% set ns = namespace(names=[]) %}
             {% for light in states.light
               | selectattr('state', 'eq', 'on')
@@ -1566,6 +1687,14 @@ template:
                 {% set ns.names = ns.names + [light.name] %}
               {% endif %}
             {% endfor %}
+            {% set vacation_window_active = is_state('input_boolean.vacation_mode', 'on')
+               and states('sensor.vacation_activity_window') in ['evening', 'pre_sunrise'] %}
+            {% if is_state('switch.uplight', 'on') and not vacation_window_active %}
+              {% set ns.names = ns.names + ['Uplight'] %}
+            {% endif %}
+            {% if is_state('switch.garage_garage_lights', 'on') %}
+              {% set ns.names = ns.names + ['Garage Light'] %}
+            {% endif %}
             {{ ns.names | join('||') }}
           entity_ids: >
             {% set exempt = namespace(entity_ids=[]) %}
@@ -1576,6 +1705,20 @@ template:
                and is_state('input_boolean.foyer_chandelier_sleep_hold', 'off') %}
               {% set exempt.entity_ids = exempt.entity_ids + ['light.front_foyer_chandelier'] %}
             {% endif %}
+            {% if is_state('input_boolean.vacation_mode', 'on')
+               and states('sensor.vacation_activity_window') in ['evening', 'pre_sunrise'] %}
+              {% set exempt.entity_ids = exempt.entity_ids + [
+                'light.front_foyer_chandelier',
+                'light.family_room_main_lights_1',
+                'light.family_room_main_lights_2',
+                'light.family_room_main_lights_3',
+                'light.wynn_s_room_chandelier',
+                'light.wynn_s_room_ceiling_lights',
+                'light.deck_deck_lights',
+                'light.exterior_yard_lights',
+                'light.back_patio_light'
+              ] %}
+            {% endif %}
             {% set ns = namespace(ids=[]) %}
             {% for light in states.light
               | selectattr('state', 'eq', 'on')
@@ -1585,6 +1728,14 @@ template:
                 {% set ns.ids = ns.ids + [light.entity_id] %}
               {% endif %}
             {% endfor %}
+            {% set vacation_window_active = is_state('input_boolean.vacation_mode', 'on')
+               and states('sensor.vacation_activity_window') in ['evening', 'pre_sunrise'] %}
+            {% if is_state('switch.uplight', 'on') and not vacation_window_active %}
+              {% set ns.ids = ns.ids + ['switch.uplight'] %}
+            {% endif %}
+            {% if is_state('switch.garage_garage_lights', 'on') %}
+              {% set ns.ids = ns.ids + ['switch.garage_garage_lights'] %}
+            {% endif %}
             {{ ns.ids | join('||') }}
 
       - name: "away_security_entry_point_issues"
@@ -2185,10 +2336,10 @@ template:
                 'details': {
                   'summary': states('sensor.away_security_issue_summary') ~ '. Trevor and Casey are both away, so this stays active until the garage, locks, and lights are secure or the reminder is snoozed.',
                   'facts': facts,
-                  'after_action': 'Close garage sends one explicit command and waits for the door to report closed. Lock doors locks only the currently unlocked entry locks. Sleep 30 min pauses away-security repeats without changing the home.',
+                  'after_action': 'Close garage sends one explicit command only when garage motion and obstruction sensors are clear, then waits for the door to report closed. Lock doors locks only the currently unlocked entry locks. Sleep 30 min pauses away-security repeats without changing the home.',
                   'tracking': 'Home Assistant watches ratgdo garage state, entry locks, lights, and presence. Vehicle detection is shown for calibration only and does not trigger this alert.'
                 },
-                'actions': ([{'label': 'Close garage', 'service': 'script.away_security_close_garage_door', 'confirm': true, 'inline': false, 'recent': true}] if garage_open else [])
+                'actions': ([{'label': 'Close garage', 'service': 'script.away_security_close_garage_door', 'inline': false, 'recent': true}] if garage_open else [])
                   + ([{'label': 'Lock doors' if lock_count > 1 else 'Lock door', 'service': 'script.away_security_lock_unlocked_entry_doors', 'confirm': true, 'inline': false}] if lock_count > 0 else [])
                   + [{'label': 'Sleep 30 min', 'service': 'script.away_security_snooze_30', 'inline': false}]
               }] %}
@@ -3340,6 +3491,86 @@ template:
           {% endif %}
 
   - binary_sensor:
+      - name: "Garage Close Hazard Active"
+        unique_id: garage_close_hazard_active
+        state: >
+          {% set hazard_entities = [
+            'binary_sensor.g6_instant_motion_3',
+            'binary_sensor.garage_person_detected',
+            'binary_sensor.garage_vehicle_detected',
+            'binary_sensor.ratgdo32disco_c26634_motion',
+            'binary_sensor.ratgdo32disco_c26634_obstruction',
+            'binary_sensor.ratgdo32disco_c26634_vehicle_arriving',
+            'binary_sensor.ratgdo32disco_c26634_vehicle_leaving'
+          ] %}
+          {% set ns = namespace(active=false) %}
+          {% for entity_id in hazard_entities %}
+            {% if is_state(entity_id, 'on') %}
+              {% set ns.active = true %}
+            {% endif %}
+          {% endfor %}
+          {{ ns.active }}
+        icon: >
+          {% set hazard_entities = [
+            'binary_sensor.g6_instant_motion_3',
+            'binary_sensor.garage_person_detected',
+            'binary_sensor.garage_vehicle_detected',
+            'binary_sensor.ratgdo32disco_c26634_motion',
+            'binary_sensor.ratgdo32disco_c26634_obstruction',
+            'binary_sensor.ratgdo32disco_c26634_vehicle_arriving',
+            'binary_sensor.ratgdo32disco_c26634_vehicle_leaving'
+          ] %}
+          {% set ns = namespace(active=false) %}
+          {% for entity_id in hazard_entities %}
+            {% if is_state(entity_id, 'on') %}
+              {% set ns.active = true %}
+            {% endif %}
+          {% endfor %}
+          {{ 'mdi:alert-outline' if ns.active else 'mdi:garage-variant' }}
+        attributes:
+          summary: >
+            {% set sources = {
+              'binary_sensor.g6_instant_motion_3': 'Garage camera motion',
+              'binary_sensor.garage_person_detected': 'Garage person detected',
+              'binary_sensor.garage_vehicle_detected': 'Garage vehicle movement',
+              'binary_sensor.ratgdo32disco_c26634_motion': 'ratgdo motion',
+              'binary_sensor.ratgdo32disco_c26634_obstruction': 'ratgdo obstruction',
+              'binary_sensor.ratgdo32disco_c26634_vehicle_arriving': 'Vehicle arriving',
+              'binary_sensor.ratgdo32disco_c26634_vehicle_leaving': 'Vehicle leaving'
+            } %}
+            {% set ns = namespace(names=[]) %}
+            {% for entity_id, label in sources.items() %}
+              {% if is_state(entity_id, 'on') %}
+                {% set ns.names = ns.names + [label] %}
+              {% endif %}
+            {% endfor %}
+            {{ ns.names | join(', ') if ns.names else 'No garage motion hazard detected' }}
+          active_sources: >
+            {% set sources = [
+              'binary_sensor.g6_instant_motion_3',
+              'binary_sensor.garage_person_detected',
+              'binary_sensor.garage_vehicle_detected',
+              'binary_sensor.ratgdo32disco_c26634_motion',
+              'binary_sensor.ratgdo32disco_c26634_obstruction',
+              'binary_sensor.ratgdo32disco_c26634_vehicle_arriving',
+              'binary_sensor.ratgdo32disco_c26634_vehicle_leaving'
+            ] %}
+            {% set ns = namespace(entity_ids=[]) %}
+            {% for entity_id in sources %}
+              {% if is_state(entity_id, 'on') %}
+                {% set ns.entity_ids = ns.entity_ids + [entity_id] %}
+              {% endif %}
+            {% endfor %}
+            {{ ns.entity_ids | join('||') }}
+          camera_motion: "{{ states('binary_sensor.g6_instant_motion_3') }}"
+          camera_person_detected: "{{ states('binary_sensor.garage_person_detected') }}"
+          camera_vehicle_detected: "{{ states('binary_sensor.garage_vehicle_detected') }}"
+          ratgdo_motion: "{{ states('binary_sensor.ratgdo32disco_c26634_motion') }}"
+          ratgdo_obstruction: "{{ states('binary_sensor.ratgdo32disco_c26634_obstruction') }}"
+          ratgdo_vehicle_arriving: "{{ states('binary_sensor.ratgdo32disco_c26634_vehicle_arriving') }}"
+          ratgdo_vehicle_leaving: "{{ states('binary_sensor.ratgdo32disco_c26634_vehicle_leaving') }}"
+          parked_vehicle_detected: "{{ states('binary_sensor.ratgdo32disco_c26634_vehicle_detected') }}"
+
       - name: "Wine Cave Sensor Unavailable"
         unique_id: wine_cave_sensor_unavailable
         state: >

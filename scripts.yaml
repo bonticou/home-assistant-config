@@ -251,7 +251,7 @@ common_areas_transition_toggle:
 
 lights_evening_scene:
   alias: Lights Evening Scene
-  description: Set the non-automated house lights to a calm 10 percent evening level, excluding Wynn's room, turn on the living room uplight, and softly bring the chandelier up to 7 percent only if it happens to be off.
+  description: Set the non-automated house lights to a calm 10 percent evening level, excluding Wynn's room, turn on the family room uplight, and softly bring the chandelier up to 7 percent only if it happens to be off.
   icon: mdi:weather-sunset
   mode: single
   sequence:
@@ -406,7 +406,7 @@ lights_tv_scene:
             - alias: Wake the family room TV and route it to Apple TV
               action: script.family_room_tv_mode_on
         - sequence:
-            - alias: Turn on the living room uplight
+            - alias: Turn on the family room uplight
               action: switch.turn_on
               data:
                 entity_id: switch.uplight
@@ -453,6 +453,9 @@ lights_all_off_scene:
       data:
         entity_id:
           - light.front_foyer_ceiling_lights
+          - light.family_room_main_lights_1
+          - light.family_room_main_lights_2
+          - light.family_room_main_lights_3
           - light.back_stairs_back_stairs
           - light.upstairs_hallway_main_lights
           - light.vestibule_main_lights
@@ -460,6 +463,11 @@ lights_all_off_scene:
           - light.wynn_s_room_chandelier
           - light.wynn_s_room_ceiling_lights
         transition: 3
+    - action: switch.turn_off
+      data:
+        entity_id:
+          - switch.uplight
+          - switch.garage_garage_lights
     - action: script.turn_on
       target:
         entity_id: script.foyer_chandelier_curved_transition
@@ -515,7 +523,9 @@ lights_bedtime_scene:
         transition: 8
     - action: switch.turn_off
       data:
-        entity_id: switch.uplight
+        entity_id:
+          - switch.uplight
+          - switch.garage_garage_lights
     - choose:
         - conditions:
             - condition: state
@@ -649,6 +659,310 @@ foyer_chandelier_schedule_off:
       data:
         entity_id: light.front_foyer_chandelier
         transition: 3
+
+interior_lights_guest_override_start:
+  alias: Interior Lights Guest Override Start
+  description: Pause the adaptive front stairs and foyer chandelier schedule sync after confirmation.
+  icon: mdi:cancel
+  mode: restart
+  sequence:
+    - action: input_boolean.turn_on
+      target:
+        entity_id: input_boolean.interior_lights_guest_override
+    - action: input_boolean.turn_off
+      target:
+        entity_id: input_boolean.interior_lights_guest_override_confirm
+
+interior_lights_guest_override_end:
+  alias: Interior Lights Guest Override End
+  description: Resume normal adaptive front stairs and foyer chandelier schedule sync.
+  icon: mdi:calendar-check-outline
+  mode: restart
+  sequence:
+    - action: input_boolean.turn_off
+      target:
+        entity_id:
+          - input_boolean.interior_lights_guest_override
+          - input_boolean.interior_lights_guest_override_confirm
+
+vacation_mode_start:
+  alias: Vacation Mode Start
+  description: Enable vacation mode, settle temporary overrides, and start the current lived-in lighting window if one is active.
+  icon: mdi:island
+  mode: restart
+  sequence:
+    - variables:
+        was_vacation_active: "{{ is_state('input_boolean.vacation_mode', 'on') }}"
+        window: "{{ states('sensor.vacation_activity_window') }}"
+    - action: input_boolean.turn_on
+      target:
+        entity_id: input_boolean.vacation_mode
+    - action: input_boolean.turn_off
+      target:
+        entity_id:
+          - input_boolean.vacation_mode_start_confirm
+          - input_boolean.interior_lights_guest_override
+          - input_boolean.interior_lights_guest_override_confirm
+          - input_boolean.foyer_chandelier_sleep_hold
+          - input_boolean.front_stairs_sleep_override
+    - action: light.turn_off
+      data:
+        entity_id:
+          - light.front_foyer_ceiling_lights
+          - light.back_stairs_back_stairs
+          - light.upstairs_hallway_main_lights
+          - light.vestibule_main_lights
+          - light.wynn_s_room_chandelier
+          - light.wynn_s_room_ceiling_lights
+        transition: 3
+    - action: switch.turn_off
+      data:
+        entity_id: switch.garage_garage_lights
+    - action: script.vacation_activity_apply
+    - choose:
+        - conditions:
+            - condition: template
+              value_template: "{{ not was_vacation_active and window == 'evening' }}"
+          sequence:
+            - action: script.notify_trevor_phone
+              data:
+                title: "🌴✨ Vacation glow is on"
+                message: Home lighting is simulating activity for the evening. The house is doing its lived-in routine.
+                data:
+                  tag: vacation-activity-evening
+                  group: lighting
+                  url: /calm-mobile
+        - conditions:
+            - condition: template
+              value_template: "{{ not was_vacation_active and window == 'pre_sunrise' }}"
+          sequence:
+            - action: script.notify_trevor_phone
+              data:
+                title: "🌅🌴 Vacation morning glow"
+                message: Home lighting is simulating early-morning activity as sunrise approaches.
+                data:
+                  tag: vacation-activity-morning
+                  group: lighting
+                  url: /calm-mobile
+
+vacation_mode_end:
+  alias: Vacation Mode End
+  description: Disable vacation mode, clear simulated activity lights, and hand the foyer chandelier back to its normal schedule.
+  icon: mdi:island
+  mode: restart
+  sequence:
+    - action: input_boolean.turn_off
+      target:
+        entity_id:
+          - input_boolean.vacation_mode
+          - input_boolean.vacation_mode_start_confirm
+          - input_boolean.interior_lights_guest_override_confirm
+    - action: light.turn_off
+      data:
+        entity_id:
+          - light.family_room_main_lights_1
+          - light.family_room_main_lights_2
+          - light.family_room_main_lights_3
+          - light.wynn_s_room_chandelier
+          - light.wynn_s_room_ceiling_lights
+          - light.deck_deck_lights
+          - light.exterior_yard_lights
+          - light.back_patio_light
+        transition: 8
+    - action: switch.turn_off
+      data:
+        entity_id: switch.uplight
+    - choose:
+        - conditions:
+            - condition: state
+              entity_id: binary_sensor.front_stairs_schedule_active
+              state: "on"
+            - condition: state
+              entity_id: input_boolean.foyer_chandelier_sleep_hold
+              state: "off"
+          sequence:
+            - action: script.foyer_chandelier_schedule_on
+      default:
+        - action: script.foyer_chandelier_schedule_off
+
+vacation_activity_apply:
+  alias: Vacation Activity Apply
+  description: Apply the current vacation activity lighting target for the evening or pre-sunrise sun curve.
+  icon: mdi:island
+  mode: restart
+  sequence:
+    - condition: state
+      entity_id: input_boolean.vacation_mode
+      state: "on"
+    - variables:
+        window: "{{ states('sensor.vacation_activity_window') }}"
+        detail_phase: "{{ state_attr('sensor.vacation_activity_window', 'detail_phase') | default('unknown', true) }}"
+        elevation: "{{ state_attr('sun.sun', 'elevation') | float(0) }}"
+        darkness: >-
+          {% set raw = (10 - (elevation | float(0))) / 18 %}
+          {{ [0, [1, raw] | min] | max }}
+        morning_progress: >-
+          {% set raw = ((elevation | float(0)) + 14) / 18 %}
+          {{ [0, [1, raw] | min] | max }}
+        evening_family_pct: "{{ (12 + (6 * (darkness | float(0)))) | round(0) | int }}"
+        evening_wynn_chandelier_pct: "{{ (18 + (16 * (darkness | float(0)))) | round(0) | int }}"
+        evening_wynn_ceiling_pct: "{{ (7 + (8 * (darkness | float(0)))) | round(0) | int }}"
+        evening_foyer_pct: "{{ (5 + (3 * (darkness | float(0)))) | round(0) | int }}"
+        evening_yard_pct: "{{ (22 + (18 * (darkness | float(0)))) | round(0) | int }}"
+        evening_deck_pct: "{{ (15 + (18 * (darkness | float(0)))) | round(0) | int }}"
+        morning_family_pct: "{{ (5 + (4 * (morning_progress | float(0)))) | round(0) | int }}"
+        morning_foyer_pct: "{{ (4 + (2 * (morning_progress | float(0)))) | round(0) | int }}"
+        morning_yard_pct: "{{ (12 + (8 * (morning_progress | float(0)))) | round(0) | int }}"
+        morning_deck_pct: "{{ (10 + (8 * (morning_progress | float(0)))) | round(0) | int }}"
+    - choose:
+        - conditions:
+            - condition: template
+              value_template: "{{ window == 'evening' and detail_phase == 'evening_lived_in' }}"
+          sequence:
+            - parallel:
+                - sequence:
+                    - action: light.turn_on
+                      data:
+                        entity_id:
+                          - light.family_room_main_lights_1
+                          - light.family_room_main_lights_2
+                          - light.family_room_main_lights_3
+                        brightness_pct: "{{ evening_family_pct }}"
+                        transition: 8
+                    - action: switch.turn_on
+                      data:
+                        entity_id: switch.uplight
+                - sequence:
+                    - action: light.turn_on
+                      data:
+                        entity_id: light.front_foyer_chandelier
+                        brightness_pct: "{{ evening_foyer_pct }}"
+                        transition: 10
+                - sequence:
+                    - action: light.turn_on
+                      data:
+                        entity_id: light.wynn_s_room_chandelier
+                        brightness_pct: "{{ evening_wynn_chandelier_pct }}"
+                        transition: 10
+                    - action: light.turn_on
+                      data:
+                        entity_id: light.wynn_s_room_ceiling_lights
+                        brightness_pct: "{{ evening_wynn_ceiling_pct }}"
+                        transition: 10
+                - sequence:
+                    - action: light.turn_on
+                      data:
+                        entity_id: light.exterior_yard_lights
+                        brightness_pct: "{{ evening_yard_pct }}"
+                        transition: 8
+                    - action: light.turn_on
+                      data:
+                        entity_id: light.deck_deck_lights
+                        brightness_pct: "{{ evening_deck_pct }}"
+                        transition: 8
+                    - action: light.turn_on
+                      data:
+                        entity_id: light.back_patio_light
+                        transition: 3
+        - conditions:
+            - condition: template
+              value_template: "{{ window == 'evening' and detail_phase == 'late_glow' }}"
+          sequence:
+            - parallel:
+                - sequence:
+                    - action: light.turn_off
+                      data:
+                        entity_id:
+                          - light.family_room_main_lights_1
+                          - light.family_room_main_lights_2
+                          - light.family_room_main_lights_3
+                          - light.wynn_s_room_chandelier
+                          - light.wynn_s_room_ceiling_lights
+                          - light.exterior_yard_lights
+                          - light.deck_deck_lights
+                          - light.back_patio_light
+                        transition: 10
+                    - action: switch.turn_off
+                      data:
+                        entity_id: switch.uplight
+                - sequence:
+                    - action: light.turn_on
+                      data:
+                        entity_id: light.front_foyer_chandelier
+                        brightness_pct: 3
+                        transition: 12
+        - conditions:
+            - condition: template
+              value_template: "{{ window == 'pre_sunrise' }}"
+          sequence:
+            - parallel:
+                - sequence:
+                    - action: light.turn_on
+                      data:
+                        entity_id:
+                          - light.family_room_main_lights_1
+                          - light.family_room_main_lights_2
+                          - light.family_room_main_lights_3
+                        brightness_pct: "{{ morning_family_pct }}"
+                        transition: 10
+                    - action: switch.turn_on
+                      data:
+                        entity_id: switch.uplight
+                - sequence:
+                    - action: light.turn_off
+                      data:
+                        entity_id:
+                          - light.wynn_s_room_chandelier
+                          - light.wynn_s_room_ceiling_lights
+                        transition: 8
+                    - action: light.turn_on
+                      data:
+                        entity_id: light.front_foyer_chandelier
+                        brightness_pct: "{{ morning_foyer_pct }}"
+                        transition: 10
+                - sequence:
+                    - action: light.turn_on
+                      data:
+                        entity_id: light.exterior_yard_lights
+                        brightness_pct: "{{ morning_yard_pct }}"
+                        transition: 10
+                    - action: light.turn_on
+                      data:
+                        entity_id: light.deck_deck_lights
+                        brightness_pct: "{{ morning_deck_pct }}"
+                        transition: 10
+                    - action: light.turn_on
+                      data:
+                        entity_id: light.back_patio_light
+                        transition: 3
+      default:
+        - action: light.turn_off
+          data:
+            entity_id:
+              - light.family_room_main_lights_1
+              - light.family_room_main_lights_2
+              - light.family_room_main_lights_3
+              - light.wynn_s_room_chandelier
+              - light.wynn_s_room_ceiling_lights
+              - light.exterior_yard_lights
+              - light.deck_deck_lights
+              - light.back_patio_light
+            transition: 8
+        - action: switch.turn_off
+          data:
+            entity_id: switch.uplight
+        - choose:
+            - conditions:
+                - condition: state
+                  entity_id: binary_sensor.front_stairs_schedule_active
+                  state: "on"
+                - condition: state
+                  entity_id: input_boolean.foyer_chandelier_sleep_hold
+                  state: "off"
+              sequence:
+                - action: script.foyer_chandelier_schedule_on
+          default:
+            - action: script.foyer_chandelier_schedule_off
 
 notify_trevor_phone:
   alias: Notify Trevor Phone
@@ -2463,18 +2777,24 @@ away_security_lock_unlocked_entry_doors:
 
 away_security_close_garage_door:
   alias: Away Security Close Garage Door
-  description: Closes the ratgdo garage door only from an explicit user action.
+  description: Closes the ratgdo garage door only from an explicit user action when the garage path is clear.
   icon: mdi:garage-arrow-down
   mode: restart
   sequence:
     - variables:
         garage_cover: cover.ratgdo32disco_c26634_door
+        close_hazard_active: "{{ is_state('binary_sensor.garage_close_hazard_active', 'on') }}"
     - choose:
         - conditions:
             - condition: template
               value_template: "{{ states(garage_cover) == 'closed' }}"
           sequence:
             - action: script.garage_security_clear_alerts
+        - conditions:
+            - condition: template
+              value_template: "{{ close_hazard_active }}"
+          sequence:
+            - stop: Garage close blocked because garage motion or obstruction is active.
         - conditions:
             - condition: template
               value_template: "{{ states(garage_cover) not in ['closed', 'unknown', 'unavailable', ''] }}"
@@ -2714,6 +3034,164 @@ garage_security_send_alert:
                   title: Close garage
                 - action: SNOOZE_GARAGE_SECURITY_30
                   title: Sleep 30 min
+
+entry_security_clear_alerts:
+  alias: Entry Security Clear Alerts
+  description: Clears active entry-security notification tags.
+  icon: mdi:lock-check-outline
+  mode: parallel
+  sequence:
+    - repeat:
+        for_each:
+          - mudroom-unlocked-at-night
+        sequence:
+          - action: script.notify_trevor_phone
+            data:
+              message: clear_notification
+              data:
+                tag: "{{ repeat.item }}"
+
+entry_security_snooze_30:
+  alias: Entry Security Snooze 30 Minutes
+  description: Pauses entry-security reminders for 30 minutes.
+  icon: mdi:lock-clock
+  mode: restart
+  sequence:
+    - action: input_datetime.set_datetime
+      target:
+        entity_id: input_datetime.entry_security_snooze_until
+      data:
+        datetime: "{{ (now() + timedelta(minutes=30)).strftime('%Y-%m-%d %H:%M:%S') }}"
+    - action: script.entry_security_clear_alerts
+    - action: script.notify_trevor_phone
+      data:
+        title: "🔐 Entry reminder sleeping"
+        message: Entry security reminders paused for 30 minutes.
+        data:
+          tag: entry-security-snooze
+
+entry_security_snooze_until_morning:
+  alias: Entry Security Snooze Until Morning
+  description: Pauses entry-security reminders until 7 AM.
+  icon: mdi:weather-sunset-up
+  mode: restart
+  sequence:
+    - variables:
+        morning: >-
+          {% set target = today_at('07:00') %}
+          {% if as_timestamp(target) <= as_timestamp(now()) %}
+            {% set target = target + timedelta(days=1) %}
+          {% endif %}
+          {{ target.strftime('%Y-%m-%d %H:%M:%S') }}
+    - action: input_datetime.set_datetime
+      target:
+        entity_id: input_datetime.entry_security_snooze_until
+      data:
+        datetime: "{{ morning }}"
+    - action: script.entry_security_clear_alerts
+    - action: script.notify_trevor_phone
+      data:
+        title: "🔐 Entry reminder sleeping"
+        message: Entry security reminders paused until 7 AM.
+        data:
+          tag: entry-security-snooze
+
+entry_security_lock_mudroom_door:
+  alias: Entry Security Lock Mudroom Door
+  description: Locks the mudroom door from an explicit notification action.
+  icon: mdi:door-closed-lock
+  mode: restart
+  sequence:
+    - choose:
+        - conditions:
+            - condition: state
+              entity_id: lock.mudroom_door_lock
+              state: "locked"
+          sequence:
+            - action: script.entry_security_clear_alerts
+        - conditions:
+            - condition: state
+              entity_id: lock.mudroom_door_lock
+              state: "unlocked"
+          sequence:
+            - action: lock.lock
+              target:
+                entity_id: lock.mudroom_door_lock
+            - wait_template: "{{ is_state('lock.mudroom_door_lock', 'locked') }}"
+              timeout: "00:00:25"
+              continue_on_timeout: true
+            - if:
+                - condition: state
+                  entity_id: lock.mudroom_door_lock
+                  state: "locked"
+              then:
+                - action: script.entry_security_clear_alerts
+              else:
+                - action: script.notify_trevor_phone
+                  data:
+                    title: "🔐 Mudroom did not lock"
+                    message: >-
+                      Home Assistant sent the lock command, but the mudroom door
+                      still reports {{ states('lock.mudroom_door_lock') }}.
+                      I’ll keep checking until it locks.
+                    data:
+                      tag: mudroom-unlocked-at-night
+                      group: entry-security
+                      sticky: true
+                      ttl: 0
+                      priority: high
+                      url: /calm-mobile/home
+                      actions:
+                        - action: LOCK_MUDROOM_NIGHT_SECURITY
+                          title: Try locking again
+                        - action: SNOOZE_ENTRY_SECURITY_30
+                          title: Sleep 30 min
+
+entry_security_send_alert:
+  alias: Entry Security Send Alert
+  description: Sends overnight entry-security reminders that are not part of the away-security system.
+  icon: mdi:lock-alert-outline
+  mode: restart
+  fields:
+    alert_kind:
+      description: Entry alert type
+      example: mudroom_unlocked_at_night
+  sequence:
+    - variables:
+        kind: "{{ alert_kind | default('mudroom_unlocked_at_night', true) }}"
+        title: >-
+          {% if kind == 'mudroom_unlocked_at_night' %}
+            🔐 Mudroom unlocked tonight
+          {% else %}
+            🔐 Entry door unlocked
+          {% endif %}
+        tag: >-
+          {% if kind == 'mudroom_unlocked_at_night' %}mudroom-unlocked-at-night
+          {% else %}entry-unlocked-at-night{% endif %}
+        message: >-
+          {% if kind == 'mudroom_unlocked_at_night' %}
+            The mudroom door is unlocked in the overnight window. I’ll keep watching until it locks.
+          {% else %}
+            An entry door is unlocked in the overnight window. I’ll keep watching until it locks.
+          {% endif %}
+    - action: script.notify_trevor_phone
+      data:
+        title: "{{ title }}"
+        message: "{{ message }}"
+        data:
+          tag: "{{ tag }}"
+          group: entry-security
+          sticky: true
+          ttl: 0
+          priority: high
+          url: /calm-mobile/home
+          actions:
+            - action: LOCK_MUDROOM_NIGHT_SECURITY
+              title: Lock mudroom
+            - action: SNOOZE_ENTRY_SECURITY_30
+              title: Sleep 30 min
+            - action: SNOOZE_ENTRY_SECURITY_MORNING
+              title: Sleep until morning
 
 away_security_snooze_30:
   alias: Away Security Snooze 30 Minutes

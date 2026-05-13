@@ -1048,6 +1048,96 @@
                     - action: script.foyer_chandelier_schedule_on
   mode: single
 
+- id: vacation_activity_schedule_sync
+  alias: "Vacation — Activity Lighting Sync"
+  description: Keeps the vacation activity simulation aligned with the evening and pre-sunrise sun-curve windows.
+  triggers:
+    - trigger: homeassistant
+      event: start
+    - trigger: time_pattern
+      minutes: "/5"
+    - trigger: state
+      entity_id: input_boolean.vacation_mode
+      to: "on"
+    - trigger: state
+      entity_id: sensor.vacation_activity_window
+  conditions:
+    - condition: state
+      entity_id: input_boolean.vacation_mode
+      state: "on"
+  actions:
+    - action: script.vacation_activity_apply
+  mode: restart
+
+- id: vacation_activity_window_notifications
+  alias: "Vacation — Activity Window Notifications"
+  description: Sends one calm push when each vacation activity window starts and ends.
+  triggers:
+    - trigger: state
+      entity_id: sensor.vacation_activity_window
+  conditions:
+    - condition: state
+      entity_id: input_boolean.vacation_mode
+      state: "on"
+    - condition: template
+      value_template: >-
+        {{ trigger.from_state is not none
+           and trigger.to_state is not none
+           and trigger.from_state.state not in ['unknown', 'unavailable', '']
+           and trigger.to_state.state not in ['unknown', 'unavailable', ''] }}
+  actions:
+    - choose:
+        - conditions:
+            - condition: template
+              value_template: "{{ trigger.to_state.state == 'evening' and trigger.from_state.state != 'evening' }}"
+          sequence:
+            - action: script.notify_trevor_phone
+              data:
+                title: "🌴✨ Vacation glow is on"
+                message: Home lighting is simulating activity for the evening. The house is doing its lived-in routine.
+                data:
+                  tag: vacation-activity-evening
+                  group: lighting
+                  url: /calm-mobile
+        - conditions:
+            - condition: template
+              value_template: "{{ trigger.from_state.state == 'evening' and trigger.to_state.state != 'evening' }}"
+          sequence:
+            - action: script.notify_trevor_phone
+              data:
+                title: "🌙🏡 Vacation glow tucked in"
+                message: The evening activity simulation finished. The house is quiet again and still watching.
+                data:
+                  tag: vacation-activity-evening
+                  group: lighting
+                  url: /calm-mobile
+        - conditions:
+            - condition: template
+              value_template: "{{ trigger.to_state.state == 'pre_sunrise' and trigger.from_state.state != 'pre_sunrise' }}"
+          sequence:
+            - action: script.notify_trevor_phone
+              data:
+                title: "🌅🌴 Vacation morning glow"
+                message: Home lighting is simulating early-morning activity as sunrise approaches.
+                data:
+                  tag: vacation-activity-morning
+                  group: lighting
+                  url: /calm-mobile
+        - conditions:
+            - condition: template
+              value_template: "{{ trigger.from_state.state == 'pre_sunrise' and trigger.to_state.state != 'pre_sunrise' }}"
+          sequence:
+            - action: script.notify_trevor_phone
+              data:
+                title: "☀️🏡 Vacation glow faded out"
+                message: The pre-sunrise activity simulation finished. Daylight has the house now.
+                data:
+                  tag: vacation-activity-morning
+                  group: lighting
+                  url: /calm-mobile
+  mode: queued
+  max: 4
+
 - id: away_security_unsecured_reminder
   alias: "Security — House Unsecured While Away"
   description: >
@@ -1195,7 +1285,7 @@
             - repeat:
                 for_each: "{{ active_lights }}"
                 sequence:
-                  - action: light.turn_off
+                  - action: homeassistant.turn_off
                     target:
                       entity_id: "{{ repeat.item }}"
             - action: script.away_security_close_garage_door
@@ -1301,7 +1391,7 @@
             - repeat:
                 for_each: "{{ active_lights }}"
                 sequence:
-                  - action: light.turn_off
+                  - action: homeassistant.turn_off
                     target:
                       entity_id: "{{ repeat.item }}"
             - delay:
@@ -1387,6 +1477,40 @@
               value_template: "{{ trigger.event.data.action == 'SNOOZE_GARAGE_SECURITY_MORNING' }}"
           sequence:
             - action: script.garage_security_snooze_until_morning
+  mode: parallel
+  max: 10
+
+- id: entry_security_notification_actions
+  alias: "Security — Entry Night Notification Actions"
+  description: Handles quick actions from overnight entry-security reminders.
+  triggers:
+    - trigger: event
+      event_type: mobile_app_notification_action
+  conditions:
+    - condition: template
+      value_template: >
+        {{ trigger.event.data.action in [
+          'LOCK_MUDROOM_NIGHT_SECURITY',
+          'SNOOZE_ENTRY_SECURITY_30',
+          'SNOOZE_ENTRY_SECURITY_MORNING'
+        ] }}
+  actions:
+    - choose:
+        - conditions:
+            - condition: template
+              value_template: "{{ trigger.event.data.action == 'LOCK_MUDROOM_NIGHT_SECURITY' }}"
+          sequence:
+            - action: script.entry_security_lock_mudroom_door
+        - conditions:
+            - condition: template
+              value_template: "{{ trigger.event.data.action == 'SNOOZE_ENTRY_SECURITY_30' }}"
+          sequence:
+            - action: script.entry_security_snooze_30
+        - conditions:
+            - condition: template
+              value_template: "{{ trigger.event.data.action == 'SNOOZE_ENTRY_SECURITY_MORNING' }}"
+          sequence:
+            - action: script.entry_security_snooze_until_morning
   mode: parallel
   max: 10
 
@@ -1544,6 +1668,56 @@
         alert_kind: open_at_night
   mode: single
 
+- id: entry_security_mudroom_unlocked_at_night
+  alias: "Security — Mudroom Unlocked At Night"
+  description: Reminds Trevor when the mudroom door is unlocked during the overnight window.
+  triggers:
+    - trigger: time
+      at: "22:30:00"
+      id: bedtime_check
+    - trigger: state
+      entity_id: lock.mudroom_door_lock
+      to: "unlocked"
+      id: unlocked
+    - trigger: homeassistant
+      event: start
+      id: startup
+    - trigger: event
+      event_type: automation_reloaded
+      id: automation_reloaded
+    - trigger: time_pattern
+      minutes: "/15"
+      id: repeat
+  conditions:
+    - condition: state
+      entity_id: lock.mudroom_door_lock
+      state: "unlocked"
+    - condition: template
+      value_template: >
+        {% set snooze = states('input_datetime.entry_security_snooze_until') %}
+        {{ snooze in ['unknown', 'unavailable', '']
+           or as_timestamp(snooze, 0) <= as_timestamp(now()) }}
+    - condition: template
+      value_template: >
+        {% set minutes_now = now().hour * 60 + now().minute %}
+        {{ minutes_now >= 1350 or minutes_now < 360 }}
+    - condition: template
+      value_template: >
+        {% set trevor_away = states('device_tracker.tk_iphone_16_pro') not in ['home', 'unknown', 'unavailable', ''] %}
+        {% set casey_away = states('device_tracker.unifi_default_42_15_78_4a_d9_f8') not in ['home', 'unknown', 'unavailable', ''] %}
+        {{ not (trevor_away and casey_away) }}
+  actions:
+    - if:
+        - condition: template
+          value_template: "{{ trigger.id == 'startup' }}"
+      then:
+        - delay:
+            seconds: 15
+    - action: script.entry_security_send_alert
+      data:
+        alert_kind: mudroom_unlocked_at_night
+  mode: single
+
 - id: garage_security_opened_overnight
   alias: "Garage — Opened Overnight"
   description: Immediate alert when the ratgdo garage door opens overnight without a recent arrival home.
@@ -1644,6 +1818,49 @@
           sequence:
             - action: script.garage_security_clear_person_away_alerts
   mode: single
+
+- id: entry_security_clear_when_resolved
+  alias: "Security — Clear Entry Night Reminder When Resolved"
+  description: Clears overnight entry-security pushes when the mudroom lock is secured or away-security takes over.
+  triggers:
+    - trigger: state
+      entity_id: lock.mudroom_door_lock
+      to: "locked"
+      id: mudroom_locked
+    - trigger: state
+      entity_id:
+        - device_tracker.tk_iphone_16_pro
+        - device_tracker.unifi_default_42_15_78_4a_d9_f8
+      not_from:
+        - "unknown"
+        - "unavailable"
+      not_to:
+        - "unknown"
+        - "unavailable"
+      id: presence
+    - trigger: state
+      entity_id: binary_sensor.house_unsecured_while_away
+      to: "on"
+      id: away_security
+    - trigger: homeassistant
+      event: start
+      id: startup
+    - trigger: event
+      event_type: automation_reloaded
+      id: automation_reloaded
+  conditions: []
+  actions:
+    - if:
+        - condition: template
+          value_template: >
+            {% set trevor_away = states('device_tracker.tk_iphone_16_pro') not in ['home', 'unknown', 'unavailable', ''] %}
+            {% set casey_away = states('device_tracker.unifi_default_42_15_78_4a_d9_f8') not in ['home', 'unknown', 'unavailable', ''] %}
+            {{ trigger.id in ['mudroom_locked', 'away_security']
+               or is_state('lock.mudroom_door_lock', 'locked')
+               or (trevor_away and casey_away) }}
+      then:
+        - action: script.entry_security_clear_alerts
+
 - id: away_security_clear_when_resolved
   alias: "Security — Clear Away Reminder When Resolved"
   description: Clears the active away-security push once the issue is resolved.

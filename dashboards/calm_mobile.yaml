@@ -235,7 +235,11 @@ views:
                 states('switch.master_lantern'),
                 states('switch.front_foyer_sconces')
               ] | select('eq', 'on') | list | count %}
-              {% set switch_count = 0 if ignore_door_lights else door_switch_count %}
+              {% set lighting_switch_count = [
+                states('switch.uplight'),
+                states('switch.garage_garage_lights')
+              ] | select('eq', 'on') | list | count %}
+              {% set switch_count = lighting_switch_count + (0 if ignore_door_lights else door_switch_count) %}
               {{ 'mdi:lightbulb-on-outline' if (light_count + switch_count) > 0 else 'mdi:lightbulb-off-outline' }}
             icon_color: >-
               {% set ignore_door_lights = is_state('binary_sensor.door_lights_schedule_active', 'on') %}
@@ -248,7 +252,11 @@ views:
                 states('switch.master_lantern'),
                 states('switch.front_foyer_sconces')
               ] | select('eq', 'on') | list | count %}
-              {% set switch_count = 0 if ignore_door_lights else door_switch_count %}
+              {% set lighting_switch_count = [
+                states('switch.uplight'),
+                states('switch.garage_garage_lights')
+              ] | select('eq', 'on') | list | count %}
+              {% set switch_count = lighting_switch_count + (0 if ignore_door_lights else door_switch_count) %}
               {{ 'amber' if (light_count + switch_count) > 0 else 'grey' }}
             content: >-
               {% set ignore_door_lights = is_state('binary_sensor.door_lights_schedule_active', 'on') %}
@@ -261,7 +269,11 @@ views:
                 states('switch.master_lantern'),
                 states('switch.front_foyer_sconces')
               ] | select('eq', 'on') | list | count %}
-              {% set switch_count = 0 if ignore_door_lights else door_switch_count %}
+              {% set lighting_switch_count = [
+                states('switch.uplight'),
+                states('switch.garage_garage_lights')
+              ] | select('eq', 'on') | list | count %}
+              {% set switch_count = lighting_switch_count + (0 if ignore_door_lights else door_switch_count) %}
               {{ 'Lights on' if (light_count + switch_count) > 0 else 'Lights off' }}
             tap_action:
               action: navigate
@@ -1770,65 +1782,124 @@ views:
                   color: #cbd5e1;
                   background: rgba(148, 163, 184, 0.14);
                 }
-            - type: custom:button-card
-              entity: cover.ratgdo32disco_c26634_door
-              show_icon: false
-              show_name: false
-              show_state: false
-              custom_fields:
-                icon: >-
-                  [[[
-                    return '<div class="garage-action-icon"><ha-icon icon="mdi:garage-arrow-down"></ha-icon></div>';
-                  ]]]
-                name: Close garage
-              tap_action:
-                action: call-service
-                service: script.away_security_close_garage_door
-                confirmation:
-                  text: Close the garage door?
-              styles:
-                card:
-                  - display: >-
-                      [[[
-                        return ['open', 'opening', 'stopped'].includes(entity.state) ? 'grid' : 'none';
-                      ]]]
-                  - width: 100%
-                  - margin: 10px auto 0
-                  - height: 44px
-                  - padding: 0 12px
-                  - border-radius: 18px
-                  - border: 1px solid rgba(94, 234, 212, 0.24)
-                  - background: linear-gradient(180deg, rgba(20, 184, 166, 0.28), rgba(15, 23, 42, 0.88))
-                  - box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.08), 0 10px 20px rgba(2, 8, 23, 0.12)
-                grid:
-                  - grid-template-areas: '"icon name"'
-                  - grid-template-columns: 34px minmax(0, 1fr)
-                  - column-gap: 9px
-                  - align-items: center
+            - type: conditional
+              conditions:
+                - entity: binary_sensor.garage_close_hazard_active
+                  state_not: "on"
+              card:
+                type: custom:button-card
+                entity: cover.ratgdo32disco_c26634_door
+                show_icon: false
+                show_name: false
+                show_state: false
                 custom_fields:
-                  icon:
-                    - grid-area: icon
-                  name:
-                    - grid-area: name
-                    - justify-self: start
-                    - color: "#f8fafc"
-                    - font-size: 14px
-                    - font-weight: 760
-                    - line-height: 1
-              extra_styles: &garage_action_extra |
-                .garage-action-icon {
-                  width: 30px;
-                  height: 30px;
-                  border-radius: 13px;
-                  display: grid;
-                  place-items: center;
-                  background: rgba(20, 184, 166, 0.18);
-                  color: #5eead4;
-                  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.08);
-                }
-                .garage-action-icon ha-icon {
-                  --mdc-icon-size: 18px;
-                }
+                  icon: >-
+                    [[[
+                      return '<div class="garage-action-icon"><ha-icon icon="mdi:garage-arrow-down"></ha-icon></div>';
+                    ]]]
+                  name: Close garage
+                tap_action:
+                  action: call-service
+                  service: script.away_security_close_garage_door
+                styles:
+                  card:
+                    - display: >-
+                        [[[
+                          return ['open', 'opening', 'stopped'].includes(entity.state) ? 'grid' : 'none';
+                        ]]]
+                    - width: 100%
+                    - margin: 10px auto 0
+                    - height: 44px
+                    - padding: 0 12px
+                    - border-radius: 18px
+                    - border: 1px solid rgba(94, 234, 212, 0.24)
+                    - background: linear-gradient(180deg, rgba(20, 184, 166, 0.28), rgba(15, 23, 42, 0.88))
+                    - box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.08), 0 10px 20px rgba(2, 8, 23, 0.12)
+                  grid:
+                    - grid-template-areas: '"icon name"'
+                    - grid-template-columns: 34px minmax(0, 1fr)
+                    - column-gap: 9px
+                    - align-items: center
+                  custom_fields:
+                    icon:
+                      - grid-area: icon
+                    name:
+                      - grid-area: name
+                      - justify-self: start
+                      - color: "#f8fafc"
+                      - font-size: 14px
+                      - font-weight: 760
+                      - line-height: 1
+                extra_styles: &garage_action_extra |
+                  .garage-action-icon {
+                    width: 30px;
+                    height: 30px;
+                    border-radius: 13px;
+                    display: grid;
+                    place-items: center;
+                    background: rgba(20, 184, 166, 0.18);
+                    color: #5eead4;
+                    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.08);
+                  }
+                  .garage-action-icon.hazard {
+                    background: rgba(248, 113, 113, 0.18);
+                    color: #fecaca;
+                  }
+                  .garage-action-icon ha-icon {
+                    --mdc-icon-size: 18px;
+                  }
+            - type: conditional
+              conditions:
+                - entity: binary_sensor.garage_close_hazard_active
+                  state: "on"
+              card:
+                type: custom:button-card
+                entity: cover.ratgdo32disco_c26634_door
+                show_icon: false
+                show_name: false
+                show_state: false
+                custom_fields:
+                  icon: >-
+                    [[[
+                      return '<div class="garage-action-icon hazard"><ha-icon icon="mdi:alert-outline"></ha-icon></div>';
+                    ]]]
+                  name: Motion detected
+                tap_action:
+                  action: fire-dom-event
+                  browser_mod:
+                    service: browser_mod.popup
+                    data:
+                      popup_card_id: garage-close-hazard-popup
+                styles:
+                  card:
+                    - display: >-
+                        [[[
+                          return ['open', 'opening', 'stopped'].includes(entity.state) ? 'grid' : 'none';
+                        ]]]
+                    - width: 100%
+                    - margin: 10px auto 0
+                    - height: 44px
+                    - padding: 0 12px
+                    - border-radius: 18px
+                    - border: 1px solid rgba(248, 113, 113, 0.26)
+                    - background: linear-gradient(180deg, rgba(239, 68, 68, 0.22), rgba(15, 23, 42, 0.88))
+                    - box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.08), 0 10px 20px rgba(2, 8, 23, 0.12)
+                  grid:
+                    - grid-template-areas: '"icon name"'
+                    - grid-template-columns: 34px minmax(0, 1fr)
+                    - column-gap: 9px
+                    - align-items: center
+                  custom_fields:
+                    icon:
+                      - grid-area: icon
+                    name:
+                      - grid-area: name
+                      - justify-self: start
+                      - color: "#f8fafc"
+                      - font-size: 14px
+                      - font-weight: 760
+                      - line-height: 1
+                extra_styles: *garage_action_extra
             - type: custom:button-card
               entity: cover.ratgdo32disco_c26634_door
               show_icon: false
@@ -2166,6 +2237,46 @@ views:
                     max-width: 316px;
                     margin: 10px auto 0;
                   }
+
+      - type: custom:popup-card
+        popup_card_id: garage-close-hazard-popup
+        target:
+          entity_id: binary_sensor.garage_close_hazard_active
+        title: Garage hazard
+        dismiss_icon: mdi:close
+        initial_style: wide
+        popup_styles: *calm_popup_styles
+        card:
+          type: vertical-stack
+          cards:
+            - type: custom:mushroom-template-card
+              entity: binary_sensor.garage_close_hazard_active
+              primary: Garage close paused
+              secondary: >-
+                {% set summary = state_attr('binary_sensor.garage_close_hazard_active', 'summary') | default('', true) %}
+                {{ summary if summary else 'Garage motion is active' }}.
+                The close command is blocked until the garage camera and ratgdo path clear.
+              icon: mdi:alert-outline
+              icon_color: red
+              multiline_secondary: true
+              tap_action:
+                action: none
+              card_mod:
+                style: *calm_popup_hero_style
+            - type: custom:mushroom-template-card
+              entity: binary_sensor.garage_close_hazard_active
+              primary: Watched signals
+              secondary: >-
+                Camera motion, person, and vehicle movement; ratgdo motion,
+                obstruction, and arriving/leaving vehicle signals. A parked
+                vehicle alone does not block closing.
+              icon: mdi:cctv
+              icon_color: amber
+              multiline_secondary: true
+              tap_action:
+                action: more-info
+              card_mod:
+                style: *calm_popup_panel_style
 
       - type: custom:popup-card
         target:
@@ -3292,8 +3403,10 @@ views:
         cards:
           - type: custom:button-card
             name: All off
+            label: House lights down
             icon: mdi:lightbulb-off-outline
             show_state: false
+            show_label: true
             tap_action:
               action: call-service
               service: script.turn_on
@@ -3303,32 +3416,42 @@ views:
               &lights_scene_button_styles
               card:
                 - height: 58px
-                - padding: 0 14px
-                - border-radius: 18px
+                - padding: 0 13px
+                - border-radius: 17px
                 - border: 1px solid rgba(226, 232, 240, 0.1)
                 - background: linear-gradient(180deg, rgba(15, 23, 42, 0.34), rgba(30, 41, 59, 0.24))
                 - backdrop-filter: blur(12px)
                 - -webkit-backdrop-filter: blur(12px)
-                - box-shadow: 0 10px 22px rgba(2, 6, 23, 0.16)
+                - box-shadow: 0 8px 18px rgba(2, 6, 23, 0.14)
                 - text-align: left
               grid:
-                - grid-template-areas: '"i n"'
-                - grid-template-columns: 20px minmax(0, 1fr)
-                - column-gap: 10px
+                - grid-template-areas: '"i n" "i l"'
+                - grid-template-columns: 19px minmax(0, 1fr)
+                - grid-template-rows: min-content min-content
+                - column-gap: 9px
+                - align-content: center
                 - align-items: center
               icon:
-                - width: 18px
+                - width: 17px
                 - color: '#94a3b8'
               name:
                 - justify-self: start
-                - font-size: 15px
+                - font-size: 14px
                 - font-weight: 560
                 - letter-spacing: -0.01em
                 - color: rgba(248, 250, 252, 0.96)
+              label:
+                - justify-self: start
+                - margin-top: 1px
+                - font-size: 11px
+                - font-weight: 500
+                - color: rgba(203, 213, 225, 0.72)
           - type: custom:button-card
             name: Evening
+            label: Calm 10% glow
             icon: mdi:weather-sunset
             show_state: false
+            show_label: true
             tap_action:
               action: call-service
               service: script.turn_on
@@ -3341,8 +3464,10 @@ views:
                 - color: '#fbbf24'
           - type: custom:button-card
             name: TV
+            label: TV + uplight
             icon: mdi:television
             show_state: false
+            show_label: true
             tap_action:
               action: call-service
               service: script.turn_on
@@ -3355,8 +3480,10 @@ views:
                 - color: '#67e8f9'
           - type: custom:button-card
             name: Bedtime
+            label: Sleep hold
             icon: mdi:weather-night
             show_state: false
+            show_label: true
             tap_action:
               action: call-service
               service: script.turn_on
@@ -3367,59 +3494,854 @@ views:
               icon:
                 - width: 18px
                 - color: '#818cf8'
-          - type: custom:button-card
-            entity: input_boolean.interior_lights_guest_override
-            name: Guest override
-            label: "[[[ return entity.state === 'on' ? 'Schedules paused' : 'Schedules normal'; ]]]"
-            icon: mdi:account-group-outline
-            show_state: false
-            show_label: true
+
+      - type: custom:mushroom-chips-card
+        alignment: left
+        chips:
+          - type: template
+            icon: mdi:calendar-clock
+            icon_color: >-
+              {% if is_state('binary_sensor.door_lights_schedule_active', 'on')
+                or is_state('binary_sensor.front_stairs_schedule_active', 'on')
+                or is_state('binary_sensor.foyer_chandelier_schedule_active', 'on') %}
+                amber
+              {% else %}
+                grey
+              {% endif %}
+            content: Schedules
             tap_action:
-              action: toggle
-            styles:
-              <<: *lights_scene_button_styles
+              action: fire-dom-event
+              browser_mod:
+                service: browser_mod.popup
+                data:
+                  popup_card_id: lights-schedules-popup
+          - type: template
+            icon: mdi:cancel
+            icon_color: >-
+              {% if is_state('input_boolean.interior_lights_guest_override', 'on')
+                or is_state('input_boolean.front_stairs_sleep_override', 'on')
+                or is_state('input_boolean.foyer_chandelier_sleep_hold', 'on') %}
+                amber
+              {% else %}
+                grey
+              {% endif %}
+            content: Overrides
+            tap_action:
+              action: fire-dom-event
+              browser_mod:
+                service: browser_mod.popup
+                data:
+                  popup_card_id: lights-overrides-popup
+          - type: template
+            entity: input_boolean.vacation_mode
+            icon: mdi:island
+            icon_color: >-
+              {% if is_state('input_boolean.vacation_mode', 'on')
+                 and states('sensor.vacation_activity_window') in ['evening', 'pre_sunrise'] %}amber
+              {% elif is_state('input_boolean.vacation_mode', 'on') %}blue
+              {% else %}grey{% endif %}
+            content: Vacation
+            tap_action:
+              action: fire-dom-event
+              browser_mod:
+                service: browser_mod.popup
+                data:
+                  popup_card_id: vacation-mode-popup
+        card_mod:
+          style: |
+            ha-card {
+              --chip-background: rgba(15, 23, 42, 0.34);
+              --chip-border-radius: 999px;
+              --chip-height: 38px;
+              --chip-box-shadow: none;
+              --chip-spacing: 8px;
+              --chip-font-size: 13px;
+              --chip-icon-size: 18px;
+              padding: 0 2px 8px;
+              background: transparent;
+              border: 0;
+              box-shadow: none;
+            }
+
+      - type: custom:popup-card
+        popup_card_id: vacation-mode-popup
+        target:
+          entity_id: input_boolean.vacation_mode
+        title: Vacation
+        dismiss_icon: mdi:close
+        initial_style: wide
+        popup_styles:
+          - style: all
+            styles: |
+              :host {
+                --primary-text-color: #f8fafc;
+                --secondary-text-color: #cbd5e1;
+                --popup-padding-x: 0px;
+                --popup-padding-y: 0px;
+              }
+              ha-dialog {
+                --mdc-dialog-scrim-color: rgba(2, 6, 23, 0.72);
+                --dialog-backdrop-filter: blur(34px) saturate(170%);
+                --ha-dialog-border-radius: 30px;
+                --mdc-dialog-container-color: transparent;
+                --mdc-theme-surface: transparent;
+                --ha-dialog-surface-background: transparent;
+              }
+              dialog {
+                background: transparent !important;
+                box-shadow: none !important;
+              }
+          - style: wide
+            styles: |
+              .content {
+                width: min(390px, calc(100vw - 28px)) !important;
+                margin-inline: auto;
+              }
+              .content .container {
+                max-height: min(650px, calc(100vh - 118px));
+                overflow-y: auto;
+                box-sizing: border-box;
+                margin-top: clamp(96px, 18vh, 210px);
+                padding: 16px !important;
+                border-radius: 30px;
+                border: 1px solid rgba(148, 163, 184, 0.22);
+                background:
+                  radial-gradient(circle at 18% -10%, rgba(245, 158, 11, 0.13), transparent 38%),
+                  radial-gradient(circle at 96% 8%, rgba(129, 140, 248, 0.11), transparent 34%),
+                  linear-gradient(180deg, rgba(15, 23, 42, 0.94), rgba(8, 13, 27, 0.90));
+                box-shadow:
+                  inset 0 1px 0 rgba(255, 255, 255, 0.07),
+                  0 26px 54px rgba(2, 6, 23, 0.46);
+                -webkit-backdrop-filter: blur(24px) saturate(155%);
+                backdrop-filter: blur(24px) saturate(155%);
+              }
+        card:
+          type: vertical-stack
+          cards:
+            - type: custom:button-card
+              entity: input_boolean.vacation_mode
+              show_icon: false
+              show_name: false
+              show_state: false
+              tap_action:
+                action: none
+              custom_fields:
+                body: >-
+                  [[[
+                    const active = states['input_boolean.vacation_mode']?.state === 'on';
+                    const windowState = states['sensor.vacation_activity_window']?.state || 'off';
+                    const phase = states['sensor.vacation_activity_window']?.attributes?.detail_phase || 'unknown';
+                    const elevation = Number(states['sun.sun']?.attributes?.elevation ?? 0).toFixed(1);
+                    const phaseText = active && windowState === 'evening' && phase === 'evening_lived_in'
+                      ? 'Evening activity until about 9:30 PM'
+                      : active && windowState === 'evening'
+                        ? 'Late glow until about 11:45 PM'
+                      : active && windowState === 'pre_sunrise'
+                          ? 'Pre-sunrise activity until daylight'
+                          : active
+                            ? `Waiting for the next sun window · Sun ${elevation}°`
+                            : 'Ready when you are';
+                    const title = active ? 'Vacation glow is on' : 'Vacation glow';
+                    const copy = active
+                      ? 'The house is following the sun curve and adjusting only during the evening and pre-sunrise windows.'
+                      : 'Low-drama house theater: believable light after sunset, a tiny wakeup before sunrise, then daylight takes over.';
+                    return `
+                      <div class="vacation-hero-layout">
+                        <div class="vacation-hero-icon"><ha-icon icon="mdi:island"></ha-icon></div>
+                        <div class="vacation-hero-copy">
+                          <div class="vacation-hero-status">${phaseText}</div>
+                          <div class="vacation-hero-title">${title}</div>
+                          <div class="vacation-hero-body">${copy}</div>
+                        </div>
+                      </div>
+                    `;
+                  ]]]
+              styles:
+                card:
+                  - padding: 6px 4px 4px
+                  - border: 0
+                  - background: transparent
+                  - box-shadow: none
+                  - cursor: default
+                grid:
+                  - grid-template-areas: '"body"'
+                custom_fields:
+                  body:
+                    - grid-area: body
+                    - text-align: left
+                    - white-space: normal
+                    - overflow: visible
+              extra_styles: |
+                .vacation-hero-layout {
+                  display: grid;
+                  grid-template-columns: 32px minmax(0, 1fr);
+                  column-gap: 10px;
+                  align-items: start;
+                }
+                .vacation-hero-icon {
+                  width: 28px;
+                  height: 28px;
+                  display: grid;
+                  place-items: center;
+                  color: #fbbf24;
+                }
+                .vacation-hero-icon ha-icon {
+                  --mdc-icon-size: 23px;
+                }
+                .vacation-hero-copy {
+                  min-width: 0;
+                  padding-top: 0;
+                }
+                .vacation-hero-status {
+                  color: #fcd34d;
+                  font-size: 11px;
+                  font-weight: 760;
+                  line-height: 1.15;
+                }
+                .vacation-hero-title {
+                  margin-top: 6px;
+                  color: #f8fafc;
+                  font-size: 25px;
+                  font-weight: 700;
+                  line-height: 1.12;
+                }
+                .vacation-hero-body {
+                  margin-top: 7px;
+                  color: #cbd5e1;
+                  font-size: 13px;
+                  font-weight: 560;
+                  line-height: 1.45;
+                }
+            - type: conditional
+              conditions:
+                - entity: input_boolean.vacation_mode
+                  state: "off"
+                - entity: input_boolean.vacation_mode_start_confirm
+                  state: "off"
               card:
-                - height: 64px
-                - padding: 0 14px
-                - border-radius: 18px
-                - border: 1px solid rgba(226, 232, 240, 0.1)
-                - background: linear-gradient(180deg, rgba(15, 23, 42, 0.34), rgba(30, 41, 59, 0.24))
-                - backdrop-filter: blur(12px)
-                - -webkit-backdrop-filter: blur(12px)
-                - box-shadow: 0 10px 22px rgba(2, 6, 23, 0.16)
-                - text-align: left
-              grid:
-                - grid-template-areas: '"i n" "i l"'
-                - grid-template-columns: 20px minmax(0, 1fr)
-                - grid-template-rows: min-content min-content
-                - column-gap: 10px
-                - align-content: center
-                - align-items: center
-              icon:
-                - width: 18px
-                - color: '#94a3b8'
-              label:
-                - justify-self: start
-                - margin-top: 2px
-                - font-size: 11px
-                - font-weight: 500
-                - color: rgba(203, 213, 225, 0.72)
-              name:
-                - justify-self: start
-                - font-size: 15px
-                - font-weight: 560
-                - letter-spacing: -0.01em
-                - color: rgba(248, 250, 252, 0.96)
-            state:
-              - value: "on"
-                styles:
+                type: custom:button-card
+                name: Start vacation
+                label: Review before starting.
+                icon: mdi:island
+                show_label: true
+                tap_action:
+                  action: call-service
+                  service: input_boolean.turn_on
+                  target:
+                    entity_id: input_boolean.vacation_mode_start_confirm
+                styles: &vacation_mode_action_styles
                   card:
-                    - border: 1px solid rgba(251, 191, 36, 0.42)
-                    - background: linear-gradient(180deg, rgba(146, 64, 14, 0.42), rgba(15, 23, 42, 0.28))
+                    - height: 58px
+                    - padding: 0 10px
+                    - border-radius: 22px
+                    - border: 0
+                    - background: linear-gradient(180deg, rgba(245, 158, 11, 0.24), rgba(15, 23, 42, 0.84))
+                    - box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.10), 0 16px 30px rgba(2, 8, 23, 0.24)
+                  grid:
+                    - grid-template-areas: '"i n" "i l"'
+                    - grid-template-columns: 26px minmax(0, 1fr)
+                    - grid-template-rows: min-content min-content
+                    - column-gap: 10px
+                    - row-gap: 2px
+                    - height: 100%
+                    - align-content: center
+                    - align-items: center
                   icon:
+                    - width: 22px
                     - color: '#fbbf24'
+                  img_cell:
+                    - width: 24px
+                    - height: 24px
+                    - background: transparent
+                    - align-self: center
+                    - justify-self: center
+                  name:
+                    - justify-self: start
+                    - align-self: end
+                    - color: '#f8fafc'
+                    - font-size: 15px
+                    - font-weight: 780
+                    - line-height: 1.15
                   label:
-                    - color: rgba(254, 243, 199, 0.86)
+                    - justify-self: start
+                    - align-self: start
+                    - color: '#cbd5e1'
+                    - font-size: 12px
+                    - font-weight: 650
+                    - line-height: 1.2
+                    - white-space: normal
+                    - text-align: left
+            - type: conditional
+              conditions:
+                - entity: input_boolean.vacation_mode
+                  state: "off"
+                - entity: input_boolean.vacation_mode_start_confirm
+                  state: "on"
+              card:
+                type: vertical-stack
+                cards:
+                  - type: custom:button-card
+                    show_icon: false
+                    show_name: false
+                    show_state: false
+                    tap_action:
+                      action: none
+                    custom_fields:
+                      body: |
+                        [[[
+                          return `
+                            <div class="vacation-confirm-layout">
+                              <div class="vacation-confirm-icon"><ha-icon icon="mdi:island"></ha-icon></div>
+                              <div class="vacation-confirm-copy">
+                                <div class="vacation-confirm-title">Start vacation glow?</div>
+                                <div class="vacation-confirm-text">This clears temporary lighting holds, settles stray normal lights, and lets the house do the away routine. A little theater, very practical.</div>
+                              </div>
+                            </div>
+                          `;
+                        ]]]
+                    styles:
+                      card:
+                        - min-height: 98px
+                        - padding: 6px 4px 2px
+                        - border: 0
+                        - background: transparent
+                        - box-shadow: none
+                        - cursor: default
+                      grid:
+                        - grid-template-areas: '"body"'
+                      custom_fields:
+                        body:
+                          - grid-area: body
+                          - display: block
+                          - text-align: left
+                          - white-space: normal
+                          - overflow: visible
+                    extra_styles: |
+                      .vacation-confirm-layout {
+                        display: grid;
+                        grid-template-columns: 32px minmax(0, 1fr);
+                        column-gap: 10px;
+                        align-items: start;
+                      }
+                      .vacation-confirm-icon {
+                        width: 28px;
+                        height: 28px;
+                        display: grid;
+                        place-items: center;
+                        color: #fbbf24;
+                      }
+                      .vacation-confirm-icon ha-icon {
+                        --mdc-icon-size: 22px;
+                      }
+                      .vacation-confirm-title {
+                        color: #f8fafc;
+                        font-size: 16px;
+                        font-weight: 780;
+                        line-height: 1.18;
+                      }
+                      .vacation-confirm-text {
+                        margin-top: 4px;
+                        color: #cbd5e1;
+                        font-size: 12px;
+                        font-weight: 560;
+                        line-height: 1.42;
+                      }
+                  - type: horizontal-stack
+                    cards:
+                      - type: custom:button-card
+                        name: Not yet
+                        icon: mdi:close
+                        tap_action:
+                          action: call-service
+                          service: input_boolean.turn_off
+                          target:
+                            entity_id: input_boolean.vacation_mode_start_confirm
+                        styles: &vacation_confirm_button_styles
+                          card:
+                            - height: 50px
+                            - padding: 0 12px
+                            - border-radius: 20px
+                            - border: 1px solid rgba(148, 163, 184, 0.18)
+                            - background: rgba(148, 163, 184, 0.08)
+                            - box-shadow: none
+                          grid:
+                            - grid-template-areas: '"i n"'
+                            - grid-template-columns: 24px minmax(0, 1fr)
+                            - column-gap: 7px
+                            - align-items: center
+                          icon:
+                            - width: 19px
+                            - color: '#cbd5e1'
+                          img_cell:
+                            - width: 22px
+                            - height: 22px
+                            - background: transparent
+                          name:
+                            - justify-self: start
+                            - color: '#e2e8f0'
+                            - font-size: 14px
+                            - font-weight: 740
+                      - type: custom:button-card
+                        name: Start glow
+                        icon: mdi:island
+                        tap_action:
+                          action: call-service
+                          service: script.turn_on
+                          target:
+                            entity_id: script.vacation_mode_start
+                        styles:
+                          <<: *vacation_confirm_button_styles
+                          card:
+                            - height: 50px
+                            - padding: 0 12px
+                            - border-radius: 20px
+                            - border: 0
+                            - background: linear-gradient(180deg, rgba(245, 158, 11, 0.28), rgba(15, 23, 42, 0.84))
+                            - box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.10), 0 14px 26px rgba(2, 8, 23, 0.22)
+                          icon:
+                            - width: 20px
+                            - color: '#fbbf24'
+                          name:
+                            - justify-self: start
+                            - color: '#f8fafc'
+                            - font-size: 14px
+                            - font-weight: 780
+            - type: conditional
+              conditions:
+                - entity: input_boolean.vacation_mode
+                  state: "on"
+              card:
+                type: custom:button-card
+                name: End vacation
+                label: Stop simulated activity and return lighting to normal schedules.
+                icon: mdi:home-import-outline
+                show_label: true
+                tap_action:
+                  action: call-service
+                  service: script.turn_on
+                  target:
+                    entity_id: script.vacation_mode_end
+                styles:
+                  <<: *vacation_mode_action_styles
+                  card:
+                    - height: 58px
+                    - padding: 0 10px
+                    - border-radius: 22px
+                    - border: 0
+                    - background: linear-gradient(180deg, rgba(59, 130, 246, 0.32), rgba(15, 23, 42, 0.82))
+                    - box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.10), 0 16px 30px rgba(2, 8, 23, 0.24)
+                  icon:
+                    - width: 23px
+                    - color: '#93c5fd'
+                  img_cell:
+                    - width: 24px
+                    - height: 24px
+                    - background: transparent
+            - type: custom:button-card
+              show_icon: false
+              show_name: false
+              show_state: false
+              tap_action:
+                action: none
+              custom_fields:
+                body: |
+                  [[[
+                    return `
+                      <div class="vacation-examples">
+                        <div class="vacation-examples-title">Plan preview</div>
+                        <div class="vacation-example-row">
+                          <div class="vacation-example-icon amber"><ha-icon icon="mdi:weather-sunset"></ha-icon></div>
+                          <div class="vacation-example-copy">
+                            <div class="vacation-example-title">After sunset</div>
+                            <div class="vacation-example-text">Family room and Wynn's room come alive while yard and deck lights follow the darkening sky.</div>
+                          </div>
+                        </div>
+                        <div class="vacation-example-row">
+                          <div class="vacation-example-icon blue"><ha-icon icon="mdi:weather-night"></ha-icon></div>
+                          <div class="vacation-example-copy">
+                            <div class="vacation-example-title">Late night</div>
+                            <div class="vacation-example-text">Most rooms tuck in; the foyer chandelier keeps a low signal before the house quiets down.</div>
+                          </div>
+                        </div>
+                        <div class="vacation-example-row">
+                          <div class="vacation-example-icon dawn"><ha-icon icon="mdi:weather-sunset-up"></ha-icon></div>
+                          <div class="vacation-example-copy">
+                            <div class="vacation-example-title">Before sunrise</div>
+                            <div class="vacation-example-text">Common and exterior lights wake gently, then fade as daylight takes over.</div>
+                          </div>
+                        </div>
+                      </div>
+                    `;
+                  ]]]
+              styles:
+                card:
+                  - padding: 3px 4px 0
+                  - border: 0
+                  - background: transparent
+                  - box-shadow: none
+                  - cursor: default
+                grid:
+                  - grid-template-areas: '"body"'
+                custom_fields:
+                  body:
+                    - grid-area: body
+                    - text-align: left
+              extra_styles: |
+                .vacation-examples-title {
+                  margin: 10px 0 8px 42px;
+                  color: #94a3b8;
+                  font-size: 12px;
+                  font-weight: 760;
+                  line-height: 1;
+                }
+                .vacation-example-row {
+                  display: grid;
+                  grid-template-columns: 32px minmax(0, 1fr);
+                  column-gap: 10px;
+                  align-items: start;
+                  padding: 11px 0;
+                  border-top: 1px solid rgba(148, 163, 184, 0.12);
+                }
+                .vacation-example-icon {
+                  width: 26px;
+                  height: 26px;
+                  display: grid;
+                  place-items: center;
+                  color: #cbd5e1;
+                }
+                .vacation-example-icon.amber {
+                  color: #fbbf24;
+                }
+                .vacation-example-icon.blue {
+                  color: #93c5fd;
+                }
+                .vacation-example-icon.dawn {
+                  color: #c4b5fd;
+                }
+                .vacation-example-icon ha-icon {
+                  --mdc-icon-size: 20px;
+                }
+                .vacation-example-copy {
+                  min-width: 0;
+                }
+                .vacation-example-title {
+                  color: #f8fafc;
+                  font-size: 13px;
+                  font-weight: 760;
+                  line-height: 1.15;
+                  white-space: normal;
+                }
+                .vacation-example-text {
+                  margin-top: 3px;
+                  color: #cbd5e1;
+                  font-size: 12px;
+                  font-weight: 560;
+                  line-height: 1.38;
+                  white-space: normal;
+                  overflow: visible;
+                }
+
+      - type: custom:popup-card
+        popup_card_id: lights-overrides-popup
+        title: Overrides
+        dismiss_icon: mdi:close
+        initial_style: wide
+        popup_styles: *calm_popup_styles
+        card:
+          type: vertical-stack
+          cards:
+            - type: conditional
+              conditions:
+                - entity: input_boolean.interior_lights_guest_override
+                  state: "off"
+                - entity: input_boolean.interior_lights_guest_override_confirm
+                  state: "off"
+              card:
+                type: custom:button-card
+                name: Interior schedule override
+                label: Review before pausing schedule behavior.
+                icon: mdi:cancel
+                show_label: true
+                tap_action:
+                  action: call-service
+                  service: input_boolean.turn_on
+                  target:
+                    entity_id: input_boolean.interior_lights_guest_override_confirm
+                styles: &override_mode_action_styles
+                  card:
+                    - min-height: 62px
+                    - padding: 0 12px
+                    - border-radius: 20px
+                    - border: 1px solid rgba(245, 158, 11, 0.18)
+                    - background: linear-gradient(180deg, rgba(245, 158, 11, 0.16), rgba(15, 23, 42, 0.78))
+                    - box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.08)
+                  grid:
+                    - grid-template-areas: '"i n" "i l"'
+                    - grid-template-columns: 26px minmax(0, 1fr)
+                    - grid-template-rows: min-content min-content
+                    - column-gap: 10px
+                    - row-gap: 2px
+                    - height: 100%
+                    - align-content: center
+                    - align-items: center
+                  icon:
+                    - width: 21px
+                    - color: '#fbbf24'
+                  img_cell:
+                    - width: 24px
+                    - height: 24px
+                    - background: transparent
+                    - align-self: center
+                  name:
+                    - justify-self: start
+                    - align-self: end
+                    - color: '#f8fafc'
+                    - font-size: 15px
+                    - font-weight: 780
+                    - line-height: 1.15
+                  label:
+                    - justify-self: start
+                    - align-self: start
+                    - color: '#cbd5e1'
+                    - font-size: 12px
+                    - font-weight: 610
+                    - line-height: 1.22
+                    - white-space: normal
+                    - text-align: left
+            - type: conditional
+              conditions:
+                - entity: input_boolean.interior_lights_guest_override
+                  state: "off"
+                - entity: input_boolean.interior_lights_guest_override_confirm
+                  state: "on"
+              card:
+                type: vertical-stack
+                cards:
+                  - type: custom:mushroom-template-card
+                    primary: Pause interior schedules?
+                    secondary: >-
+                      Pauses the stairs and chandelier routines so manual lighting stays put.
+                    icon: mdi:cancel
+                    icon_color: amber
+                    multiline_secondary: true
+                    tap_action:
+                      action: none
+                    card_mod:
+                      style: |
+                        ha-card {
+                          padding: 6px 4px 8px !important;
+                          background: transparent !important;
+                          border: 0 !important;
+                          box-shadow: none !important;
+                        }
+                        mushroom-shape-icon {
+                          --shape-color: transparent !important;
+                          --shape-color-disabled: transparent !important;
+                        }
+                        mushroom-state-info {
+                          --card-primary-font-size: 16px;
+                          --card-primary-font-weight: 780;
+                          --card-secondary-font-size: 12px;
+                          --card-secondary-line-height: 1.42;
+                        }
+                  - type: horizontal-stack
+                    cards:
+                      - type: custom:button-card
+                        name: Not yet
+                        icon: mdi:close
+                        tap_action:
+                          action: call-service
+                          service: input_boolean.turn_off
+                          target:
+                            entity_id: input_boolean.interior_lights_guest_override_confirm
+                        styles: *vacation_confirm_button_styles
+                      - type: custom:button-card
+                        name: Pause schedules
+                        icon: mdi:cancel
+                        tap_action:
+                          action: call-service
+                          service: script.turn_on
+                          target:
+                            entity_id: script.interior_lights_guest_override_start
+                        styles:
+                          <<: *vacation_confirm_button_styles
+                          card:
+                            - height: 50px
+                            - padding: 0 12px
+                            - border-radius: 20px
+                            - border: 0
+                            - background: linear-gradient(180deg, rgba(245, 158, 11, 0.28), rgba(15, 23, 42, 0.84))
+                            - box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.10), 0 14px 26px rgba(2, 8, 23, 0.22)
+                          icon:
+                            - width: 20px
+                            - color: '#fbbf24'
+                          name:
+                            - justify-self: start
+                            - color: '#f8fafc'
+                            - font-size: 14px
+                            - font-weight: 780
+            - type: conditional
+              conditions:
+                - entity: input_boolean.interior_lights_guest_override
+                  state: "on"
+              card:
+                type: vertical-stack
+                cards:
+                  - type: custom:button-card
+                    name: Override active
+                    label: Suppressing stairs + chandelier schedules.
+                    icon: mdi:cancel
+                    show_label: true
+                    tap_action:
+                      action: none
+                    styles:
+                      <<: *override_mode_action_styles
+                      card:
+                        - min-height: 78px
+                        - padding: 0 12px
+                        - border-radius: 20px
+                        - border: 1px solid rgba(245, 158, 11, 0.24)
+                        - background: linear-gradient(180deg, rgba(245, 158, 11, 0.20), rgba(15, 23, 42, 0.78))
+                        - box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.08)
+                  - type: custom:button-card
+                    name: Resume schedules
+                    label: Return to normal sun-curve behavior.
+                    icon: mdi:calendar-check-outline
+                    show_label: true
+                    tap_action:
+                      action: call-service
+                      service: script.turn_on
+                      target:
+                        entity_id: script.interior_lights_guest_override_end
+                    styles:
+                      <<: *override_mode_action_styles
+                      card:
+                        - min-height: 58px
+                        - padding: 0 12px
+                        - border-radius: 20px
+                        - border: 1px solid rgba(148, 163, 184, 0.18)
+                        - background: rgba(148, 163, 184, 0.08)
+                        - box-shadow: none
+                      icon:
+                        - width: 20px
+                        - color: '#cbd5e1'
+            - type: custom:mushroom-template-card
+              entity: input_boolean.front_stairs_sleep_override
+              primary: Front stairs sleep glow
+              secondary: >-
+                {{ 'Bedtime glow is being held' if is_state('input_boolean.front_stairs_sleep_override', 'on') else 'Normal schedule behavior' }}
+              multiline_secondary: true
+              icon: mdi:stairs
+              icon_color: >-
+                {{ 'indigo' if is_state('input_boolean.front_stairs_sleep_override', 'on') else 'grey' }}
+              tap_action:
+                action: toggle
+              card_mod:
+                style: &lights_compact_card_style |
+                  ha-card {
+                    padding: 8px 14px;
+                  }
+                  mushroom-light-brightness-control {
+                    --control-height: 28px;
+                  }
+                  mushroom-light-brightness-control mushroom-slider,
+                  mushroom-light-brightness-control ha-slider {
+                    --main-height: 8px;
+                    --md-slider-active-track-height: 8px;
+                    --md-slider-inactive-track-height: 8px;
+                  }
+            - type: custom:mushroom-template-card
+              entity: input_boolean.foyer_chandelier_sleep_hold
+              primary: Chandelier sleep hold
+              secondary: >-
+                {{ 'Chandelier is held off for bedtime' if is_state('input_boolean.foyer_chandelier_sleep_hold', 'on') else 'Normal schedule behavior' }}
+              multiline_secondary: true
+              icon: mdi:chandelier
+              icon_color: >-
+                {{ 'indigo' if is_state('input_boolean.foyer_chandelier_sleep_hold', 'on') else 'grey' }}
+              tap_action:
+                action: toggle
+              card_mod:
+                style: *lights_compact_card_style
+
+      - type: custom:popup-card
+        popup_card_id: lights-schedules-popup
+        title: Schedules
+        dismiss_icon: mdi:close
+        initial_style: wide
+        popup_styles: *calm_popup_styles
+        card:
+          type: vertical-stack
+          cards:
+            - type: custom:mushroom-template-card
+              entity: binary_sensor.door_lights_schedule_active
+              primary: Front door lights
+              secondary: >-
+                {% set active = is_state('binary_sensor.door_lights_schedule_active', 'on') %}
+                {% set elevation = state_attr('sun.sun', 'elevation') | float(0) | round(1) %}
+                {{ 'On for evening routine' if active else 'Off until dusk' }}
+                • Sun {{ elevation }}°
+                • Below 10°
+              multiline_secondary: true
+              icon: mdi:coach-lamp
+              icon_color: >-
+                {{ 'amber' if is_state('binary_sensor.door_lights_schedule_active', 'on') else 'grey' }}
+              tap_action:
+                action: more-info
+              card_mod:
+                style: *lights_compact_card_style
+            - type: custom:mushroom-template-card
+              entity: binary_sensor.front_stairs_schedule_active
+              primary: Front stairs light
+              secondary: >-
+                {% set guest_override = is_state('input_boolean.interior_lights_guest_override', 'on') %}
+                {% set sleep_override = is_state('input_boolean.front_stairs_sleep_override', 'on') %}
+                {% set active = is_state('binary_sensor.front_stairs_schedule_active', 'on') %}
+                {% set target = 4 if sleep_override else (states('sensor.front_stairs_schedule_brightness') | int(0)) %}
+                {% set elevation = state_attr('sun.sun', 'elevation') | float(0) | round(1) %}
+                {% if guest_override %}Paused by guest override
+                {% elif sleep_override %}Sleep glow • {{ target }}% target
+                {% elif active %}Active now • {{ target }}% target
+                {% else %}Off until dusk{% endif %}
+                • Sun {{ elevation }}°
+                • Below 10°
+              multiline_secondary: true
+              icon: mdi:stairs
+              icon_color: >-
+                {% if is_state('input_boolean.interior_lights_guest_override', 'on') %}amber
+                {% elif is_state('input_boolean.front_stairs_sleep_override', 'on') %}indigo
+                {% elif is_state('binary_sensor.front_stairs_schedule_active', 'on') %}amber
+                {% else %}grey{% endif %}
+              tap_action:
+                action: more-info
+              card_mod:
+                style: *lights_compact_card_style
+            - type: custom:mushroom-template-card
+              entity: binary_sensor.foyer_chandelier_schedule_active
+              primary: Foyer chandelier
+              secondary: >-
+                {% set guest_override = is_state('input_boolean.interior_lights_guest_override', 'on') %}
+                {% set sleep_hold = is_state('input_boolean.foyer_chandelier_sleep_hold', 'on') %}
+                {% set active = is_state('binary_sensor.foyer_chandelier_schedule_active', 'on') %}
+                {% set target = states('sensor.foyer_chandelier_schedule_brightness') | int(0) %}
+                {% set elevation = state_attr('sun.sun', 'elevation') | float(0) | round(1) %}
+                {% if guest_override %}Paused by guest override
+                {% elif sleep_hold %}Held off for bedtime
+                {% elif active %}Active now • {{ target }}% target
+                {% else %}Off until dusk{% endif %}
+                • Sun {{ elevation }}°
+                • Below 10°
+              multiline_secondary: true
+              icon: mdi:chandelier
+              icon_color: >-
+                {% if is_state('input_boolean.interior_lights_guest_override', 'on') %}amber
+                {% elif is_state('input_boolean.foyer_chandelier_sleep_hold', 'on') %}indigo
+                {% elif is_state('binary_sensor.foyer_chandelier_schedule_active', 'on') %}amber
+                {% else %}grey{% endif %}
+              tap_action:
+                action: more-info
+              card_mod:
+                style: *lights_compact_card_style
 
       - type: custom:mushroom-title-card
         title: Common areas
@@ -3436,12 +4358,13 @@ views:
         use_light_color: true
         fill_container: true
         card_mod:
-          style: &lights_compact_card_style |
+          style: &common_area_master_light_style |
             ha-card {
-              padding: 8px 14px;
+              padding: 12px 14px 14px;
             }
             mushroom-light-brightness-control {
               --control-height: 28px;
+              margin-top: 8px;
             }
             mushroom-light-brightness-control mushroom-slider,
             mushroom-light-brightness-control ha-slider {
@@ -3465,20 +4388,42 @@ views:
                 light_entity: light.front_foyer_ceiling_lights
                 transition_seconds: 3
             show_brightness_control: true
+            collapsible_controls: true
             use_light_color: true
             card_mod:
-              style: *lights_compact_card_style
+              style: &common_area_light_tile_style |
+                ha-card {
+                  min-height: 110px;
+                  padding: 10px 12px 12px;
+                  display: flex;
+                  flex-direction: column;
+                  justify-content: center;
+                }
+                mushroom-state-item {
+                  flex: 0 0 auto;
+                }
+                mushroom-light-brightness-control {
+                  --control-height: 26px;
+                  margin-top: 10px;
+                }
+                mushroom-light-brightness-control mushroom-slider,
+                mushroom-light-brightness-control ha-slider {
+                  --main-height: 8px;
+                  --md-slider-active-track-height: 8px;
+                  --md-slider-inactive-track-height: 8px;
+                }
           - type: custom:mushroom-light-card
             entity: light.front_foyer_chandelier
-            name: Foyer Chandelier
+            name: Chandelier
             icon: mdi:ceiling-light
             tap_action:
               action: perform-action
               perform_action: script.foyer_chandelier_toggle
             show_brightness_control: true
+            collapsible_controls: true
             use_light_color: true
             card_mod:
-              style: *lights_compact_card_style
+              style: *common_area_light_tile_style
           - type: custom:mushroom-light-card
             entity: light.stairs_front_stairs
             name: Front Stairs
@@ -3489,9 +4434,10 @@ views:
                 light_entity: light.stairs_front_stairs
                 transition_seconds: 3
             show_brightness_control: true
+            collapsible_controls: true
             use_light_color: true
             card_mod:
-              style: *lights_compact_card_style
+              style: *common_area_light_tile_style
           - type: custom:mushroom-light-card
             entity: light.back_stairs_back_stairs
             name: Back Stairs
@@ -3502,12 +4448,13 @@ views:
                 light_entity: light.back_stairs_back_stairs
                 transition_seconds: 3
             show_brightness_control: true
+            collapsible_controls: true
             use_light_color: true
             card_mod:
-              style: *lights_compact_card_style
+              style: *common_area_light_tile_style
           - type: custom:mushroom-light-card
             entity: light.upstairs_hallway_main_lights
-            name: Upstairs Hallway
+            name: Upstairs Hall
             icon: mdi:ceiling-light
             tap_action:
               <<: *lights_transition_tap_action
@@ -3515,9 +4462,10 @@ views:
                 light_entity: light.upstairs_hallway_main_lights
                 transition_seconds: 3
             show_brightness_control: true
+            collapsible_controls: true
             use_light_color: true
             card_mod:
-              style: *lights_compact_card_style
+              style: *common_area_light_tile_style
           - type: custom:mushroom-light-card
             entity: light.vestibule_main_lights
             name: Vestibule
@@ -3528,9 +4476,42 @@ views:
                 light_entity: light.vestibule_main_lights
                 transition_seconds: 3
             show_brightness_control: true
+            collapsible_controls: true
             use_light_color: true
             card_mod:
-              style: *lights_compact_card_style
+              style: *common_area_light_tile_style
+          - type: custom:mushroom-light-card
+            entity: light.back_patio_light
+            name: Back Patio
+            icon: mdi:string-lights
+            tap_action:
+              <<: *lights_transition_tap_action
+              data:
+                light_entity: light.back_patio_light
+                transition_seconds: 3
+            show_brightness_control: true
+            collapsible_controls: true
+            use_light_color: true
+            card_mod:
+              style: *common_area_light_tile_style
+
+      - type: custom:mushroom-title-card
+        title: Mudroom & Garage
+
+      - type: custom:mushroom-template-card
+        entity: switch.garage_garage_lights
+        primary: Garage Light
+        secondary: >-
+          {{ 'On' if is_state('switch.garage_garage_lights', 'on') else 'Off' }}
+        icon: mdi:garage-variant
+        icon_color: >-
+          {{ 'amber' if is_state('switch.garage_garage_lights', 'on') else 'grey' }}
+        tap_action:
+          action: toggle
+        hold_action:
+          action: more-info
+        card_mod:
+          style: *lights_compact_card_style
 
       - type: custom:mushroom-title-card
         title: Family Room
@@ -3565,6 +4546,7 @@ views:
                 light_entity: light.family_room_main_lights_1
                 transition_seconds: 3
             show_brightness_control: true
+            collapsible_controls: true
             use_light_color: true
             card_mod:
               style: *lights_compact_card_style
@@ -3578,6 +4560,7 @@ views:
                 light_entity: light.family_room_main_lights_2
                 transition_seconds: 3
             show_brightness_control: true
+            collapsible_controls: true
             use_light_color: true
             card_mod:
               style: *lights_compact_card_style
@@ -3591,7 +4574,22 @@ views:
                 light_entity: light.family_room_main_lights_3
                 transition_seconds: 3
             show_brightness_control: true
+            collapsible_controls: true
             use_light_color: true
+            card_mod:
+              style: *lights_compact_card_style
+          - type: custom:mushroom-template-card
+            entity: switch.uplight
+            primary: Uplight
+            secondary: >-
+              {{ 'On' if is_state('switch.uplight', 'on') else 'Off' }}
+            icon: mdi:floor-lamp
+            icon_color: >-
+              {{ 'amber' if is_state('switch.uplight', 'on') else 'grey' }}
+            tap_action:
+              action: toggle
+            hold_action:
+              action: more-info
             card_mod:
               style: *lights_compact_card_style
 
@@ -3628,6 +4626,7 @@ views:
                 light_entity: light.wynn_s_room_chandelier
                 transition_seconds: 3
             show_brightness_control: true
+            collapsible_controls: true
             use_light_color: true
             card_mod:
               style: *lights_compact_card_style
@@ -3641,79 +4640,10 @@ views:
                 light_entity: light.wynn_s_room_ceiling_lights
                 transition_seconds: 3
             show_brightness_control: true
+            collapsible_controls: true
             use_light_color: true
             card_mod:
               style: *lights_compact_card_style
-
-      - type: custom:mushroom-title-card
-        title: Automation today
-
-      - type: custom:mushroom-template-card
-        entity: binary_sensor.door_lights_schedule_active
-        primary: Front door lights
-        secondary: >-
-          {% set active = is_state('binary_sensor.door_lights_schedule_active', 'on') %}
-          {% set threshold = 10 %}
-          {% set elevation = state_attr('sun.sun', 'elevation') | float(0) | round(1) %}
-          {{ 'Active now' if active else 'Inactive now' }}
-          • Sun {{ elevation }}°
-          • Adaptive below {{ threshold }}°
-        multiline_secondary: true
-        icon: mdi:coach-lamp
-        icon_color: >-
-          {{ 'amber' if is_state('binary_sensor.door_lights_schedule_active', 'on') else 'grey' }}
-        tap_action:
-          action: more-info
-        card_mod:
-          style: *lights_compact_card_style
-
-      - type: custom:mushroom-template-card
-        entity: binary_sensor.front_stairs_schedule_active
-        primary: Front stairs light
-        secondary: >-
-          {% set guest_override = is_state('input_boolean.interior_lights_guest_override', 'on') %}
-          {% set active = is_state('binary_sensor.front_stairs_schedule_active', 'on') %}
-          {% set target = states('sensor.front_stairs_schedule_brightness') | int(0) %}
-          {% set threshold = 10 %}
-          {% set elevation = state_attr('sun.sun', 'elevation') | float(0) | round(1) %}
-          {{ 'Paused by guest override' if guest_override else ('Active now' if active else 'Inactive now') }}
-          {% if active %} • {{ target }}% target{% endif %}
-          • Sun {{ elevation }}°
-          • Adaptive below {{ threshold }}°
-        multiline_secondary: true
-        icon: mdi:stairs
-        icon_color: >-
-          {% if is_state('input_boolean.interior_lights_guest_override', 'on') %}amber
-          {% elif is_state('binary_sensor.front_stairs_schedule_active', 'on') %}amber
-          {% else %}grey{% endif %}
-        tap_action:
-          action: more-info
-        card_mod:
-          style: *lights_compact_card_style
-
-      - type: custom:mushroom-template-card
-        entity: binary_sensor.front_stairs_schedule_active
-        primary: Foyer chandelier
-        secondary: >-
-          {% set guest_override = is_state('input_boolean.interior_lights_guest_override', 'on') %}
-          {% set active = is_state('binary_sensor.front_stairs_schedule_active', 'on') %}
-          {% set target = 7 %}
-          {% set threshold = 10 %}
-          {% set elevation = state_attr('sun.sun', 'elevation') | float(0) | round(1) %}
-          {{ 'Paused by guest override' if guest_override else ('Active now' if active else 'Inactive now') }}
-          {% if active %} • {{ target }}% target{% endif %}
-          • Sun {{ elevation }}°
-          • Adaptive below {{ threshold }}°
-        multiline_secondary: true
-        icon: mdi:chandelier
-        icon_color: >-
-          {% if is_state('input_boolean.interior_lights_guest_override', 'on') %}amber
-          {% elif is_state('binary_sensor.front_stairs_schedule_active', 'on') %}amber
-          {% else %}grey{% endif %}
-        tap_action:
-          action: more-info
-        card_mod:
-          style: *lights_compact_card_style
 
   - title: Water
     path: water
