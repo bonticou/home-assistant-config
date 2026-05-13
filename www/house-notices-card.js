@@ -82,6 +82,25 @@ class HouseNoticesCard extends HTMLElement {
     }).format(date);
   }
 
+  formatPillDate(value) {
+    const date = this.parseDate(value);
+    if (!date) return "";
+    const today = new Date();
+    return new Intl.DateTimeFormat(undefined, {
+      month: "short",
+      day: "numeric",
+      year: date.getFullYear() === today.getFullYear() ? undefined : "numeric",
+    }).format(date);
+  }
+
+  dayDelta(value) {
+    const date = this.parseDate(value);
+    if (!date) return null;
+    const today = this.dayStart(new Date());
+    const target = this.dayStart(date);
+    return Math.round((target - today) / 86400000);
+  }
+
   formatRecentTime(value) {
     const date = this.parseDate(value);
     if (!date) return "";
@@ -401,6 +420,11 @@ class HouseNoticesCard extends HTMLElement {
           background: rgba(248, 113, 113, 0.16);
           border-color: rgba(248, 113, 113, 0.24);
           color: #fecaca;
+        }
+        .pill.upcoming {
+          background: rgba(148, 163, 184, 0.13);
+          border-color: rgba(148, 163, 184, 0.16);
+          color: rgba(226, 232, 240, 0.78);
         }
         .meta {
           margin-top: 5px;
@@ -837,7 +861,7 @@ class HouseNoticesCard extends HTMLElement {
         ` : ""}
         ${attention.length ? this.renderSection("Needs Attention", attention, { attention: true }) : ""}
         ${this.renderHistory(history)}
-        ${this.renderSection("Upcoming", upcoming, { collapsible: true, sectionId: "upcoming" })}
+        ${this.renderSection("Upcoming", upcoming, { collapsible: true, sectionId: "upcoming", upcoming: true })}
       </div>
       ${detailItem ? this.renderDetailSheet(detailItem) : ""}
     `;
@@ -866,6 +890,28 @@ class HouseNoticesCard extends HTMLElement {
     });
   }
 
+  itemPill(item, opts = {}) {
+    if (opts.attention) {
+      if (item.state === "active") return { label: "active", className: "active" };
+      if (item.state === "due") {
+        const days = this.dayDelta(item.date);
+        if (days === 1) return { label: "tomorrow", className: "due" };
+        if (days !== null && days > 1) {
+          return { label: `due ${this.formatPillDate(item.date)}`, className: "due" };
+        }
+        return { label: "due", className: "due" };
+      }
+    }
+    if (opts.upcoming) {
+      const rel = this.relativeDate(item.date);
+      return { label: rel ? `upcoming ${rel}` : "upcoming", className: "upcoming" };
+    }
+    return {
+      label: item.badge || (item.state === "quiet" ? "current" : item.state),
+      className: item.badge_class || item.state,
+    };
+  }
+
   renderSection(title, items, opts = {}) {
     const sectionId = opts.sectionId || title.toLowerCase().replace(/\s+/g, "-");
     const collapsed = opts.collapsible && this._collapsedSections.has(sectionId);
@@ -873,7 +919,7 @@ class HouseNoticesCard extends HTMLElement {
       ? `<div class="section-toggle" aria-hidden="true"><ha-icon icon="${collapsed ? "mdi:chevron-right" : "mdi:chevron-down"}"></ha-icon></div>`
       : "";
     const rows = items.length
-      ? items.map((item) => this.renderItem(item)).join("")
+      ? items.map((item) => this.renderItem(item, opts)).join("")
       : `<div class="empty">${opts.attention ? "No active notices." : "Nothing upcoming."}</div>`;
     return `
       <section class="section ${collapsed ? "collapsed" : ""}">
@@ -929,10 +975,9 @@ class HouseNoticesCard extends HTMLElement {
     };
   }
 
-  renderItem(item) {
+  renderItem(item, opts = {}) {
     const expanded = this._expanded === item.id;
-    const stateLabel = item.badge || (item.state === "quiet" ? "current" : item.state);
-    const stateClass = item.badge_class || item.state;
+    const pill = this.itemPill(item, opts);
     const actions = Array.isArray(item.actions) ? item.actions : [];
     const inlineActionIndex = actions.findIndex((action) => action.inline !== false && !action.confirm);
     const inlineAction = ["active", "due"].includes(item.state) && inlineActionIndex >= 0
@@ -944,7 +989,7 @@ class HouseNoticesCard extends HTMLElement {
         <div class="copy">
           <div class="title-line">
             <div class="title">${this.escape(item.title)}</div>
-            <div class="pill ${this.escapeAttr(stateClass)}">${this.escape(stateLabel)}</div>
+            <div class="pill ${this.escapeAttr(pill.className)}">${this.escape(pill.label)}</div>
           </div>
           <div class="meta">${this.escape(this.metaLine(item))}</div>
           ${item.narrative ? `<div class="narrative">${this.escape(item.narrative)}</div>` : ""}

@@ -9,7 +9,7 @@ lovelace:
   resources:
     - url: /local/calm-mobile-scrollbars.js?v=6
       type: module
-    - url: /local/house-notices-card.js?v=42
+    - url: /local/house-notices-card.js?v=43
       type: module
     - url: /local/radon-air-quality-card.js?v=6
       type: module
