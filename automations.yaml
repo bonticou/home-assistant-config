@@ -1514,6 +1514,98 @@
   mode: parallel
   max: 10
 
+- id: away_motion_security_notification_actions
+  alias: "Security — Away Motion Notification Actions"
+  description: Handles quick actions from away motion security notifications.
+  triggers:
+    - trigger: event
+      event_type: mobile_app_notification_action
+  conditions:
+    - condition: template
+      value_template: >
+        {{ trigger.event.data.action in [
+          'SNOOZE_AWAY_MOTION_SECURITY_30'
+        ] }}
+  actions:
+    - choose:
+        - conditions:
+            - condition: template
+              value_template: "{{ trigger.event.data.action == 'SNOOZE_AWAY_MOTION_SECURITY_30' }}"
+          sequence:
+            - action: script.away_motion_security_snooze_30
+  mode: parallel
+  max: 10
+
+- id: away_motion_security_activity_detected
+  alias: "Security — Motion While Everyone Away"
+  description: High-sensitivity alert for interior or garage motion after both household phones are away.
+  triggers:
+    - trigger: state
+      entity_id:
+        - binary_sensor.g6_instant_motion
+        - binary_sensor.wynn_s_room_motion
+        - binary_sensor.wynn_s_room_person_detected
+        - binary_sensor.mud_room_motion
+        - binary_sensor.mud_room_person_detected
+        - binary_sensor.mechanical_room_motion
+        - binary_sensor.mechanical_room_person_detected
+        - binary_sensor.dining_room_motion
+        - binary_sensor.dining_room_occupancy
+        - binary_sensor.office_motion
+        - binary_sensor.office_occupancy
+        - binary_sensor.master_motion_2
+        - binary_sensor.master_occupancy_2
+        - binary_sensor.master_sensor_new_motion_2
+        - binary_sensor.master_sensor_new_occupancy_2
+        - binary_sensor.wynn_room_motion
+        - binary_sensor.wynn_room_occupancy
+        - binary_sensor.g6_instant_motion_3
+        - binary_sensor.garage_person_detected
+        - binary_sensor.garage_vehicle_detected
+        - binary_sensor.ratgdo32disco_c26634_motion
+        - binary_sensor.ratgdo32disco_c26634_vehicle_arriving
+        - binary_sensor.ratgdo32disco_c26634_vehicle_leaving
+      to: "on"
+  conditions:
+    - condition: template
+      value_template: >
+        {{ trigger.from_state is not none
+           and trigger.from_state.state not in ['on', 'unknown', 'unavailable', ''] }}
+    - condition: template
+      value_template: >
+        {% set trevor_away = states('device_tracker.tk_iphone_16_pro') not in ['home', 'unknown', 'unavailable', ''] %}
+        {% set casey_away = states('device_tracker.unifi_default_42_15_78_4a_d9_f8') not in ['home', 'unknown', 'unavailable', ''] %}
+        {{ trevor_away and casey_away }}
+    - condition: template
+      value_template: >
+        {{ is_state('binary_sensor.downstairs_everyone_away', 'on')
+           and (as_timestamp(now()) - as_timestamp(states.binary_sensor.downstairs_everyone_away.last_changed, 0)) >= 300 }}
+    - condition: template
+      value_template: >
+        {% set snooze = states('input_datetime.away_motion_security_snooze_until') %}
+        {{ snooze in ['unknown', 'unavailable', '']
+           or as_timestamp(snooze, 0) <= as_timestamp(now()) }}
+  actions:
+    - action: script.away_motion_security_send_alert
+      data:
+        motion_entity: "{{ trigger.entity_id }}"
+  mode: queued
+  max: 10
+
+- id: away_motion_security_clear_when_home
+  alias: "Security — Clear Away Motion Alert When Home"
+  description: Clears away motion security notifications when a household phone returns home.
+  triggers:
+    - trigger: state
+      entity_id:
+        - device_tracker.tk_iphone_16_pro
+        - device_tracker.unifi_default_42_15_78_4a_d9_f8
+      to: home
+  conditions: []
+  actions:
+    - action: script.away_motion_security_clear_alert
+  mode: single
+
 - id: garage_security_open_while_person_away
   alias: "Garage — Open While Person Away"
   description: >

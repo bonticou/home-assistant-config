@@ -3193,6 +3193,106 @@ entry_security_send_alert:
             - action: SNOOZE_ENTRY_SECURITY_MORNING
               title: Sleep until morning
 
+away_motion_security_clear_alert:
+  alias: Away Motion Security Clear Alert
+  description: Clears the away motion security notification tag.
+  icon: mdi:motion-sensor-off
+  mode: restart
+  sequence:
+    - action: script.notify_trevor_phone
+      data:
+        message: clear_notification
+        data:
+          tag: away-motion-security
+
+away_motion_security_snooze_30:
+  alias: Away Motion Security Snooze 30 Minutes
+  description: Pauses away motion security reminders for 30 minutes.
+  icon: mdi:motion-sensor-off
+  mode: restart
+  sequence:
+    - action: input_datetime.set_datetime
+      target:
+        entity_id: input_datetime.away_motion_security_snooze_until
+      data:
+        datetime: "{{ (now() + timedelta(minutes=30)).strftime('%Y-%m-%d %H:%M:%S') }}"
+    - action: script.away_motion_security_clear_alert
+    - action: script.notify_trevor_phone
+      data:
+        title: "🚨 Motion watch sleeping"
+        message: Away motion alerts paused for 30 minutes.
+        data:
+          tag: away-motion-security-snooze
+
+away_motion_security_send_alert:
+  alias: Away Motion Security Send Alert
+  description: Sends a high-sensitivity motion alert when both phones are away.
+  icon: mdi:motion-sensor
+  mode: restart
+  fields:
+    motion_entity:
+      description: Motion entity that triggered the alert
+      example: binary_sensor.mud_room_motion
+  sequence:
+    - variables:
+        source_entity: "{{ motion_entity | default('', true) }}"
+        source_label: >-
+          {% set labels = {
+            'binary_sensor.g6_instant_motion': 'Play Room camera motion',
+            'binary_sensor.wynn_s_room_motion': "Wynn's Room camera motion",
+            'binary_sensor.wynn_s_room_person_detected': "Wynn's Room person detected",
+            'binary_sensor.mud_room_motion': 'Mud Room camera motion',
+            'binary_sensor.mud_room_person_detected': 'Mud Room person detected',
+            'binary_sensor.mechanical_room_motion': 'Mechanical room camera motion',
+            'binary_sensor.mechanical_room_person_detected': 'Mechanical room person detected',
+            'binary_sensor.dining_room_motion': 'Dining Room motion',
+            'binary_sensor.dining_room_occupancy': 'Dining Room occupancy',
+            'binary_sensor.office_motion': 'Office motion',
+            'binary_sensor.office_occupancy': 'Office occupancy',
+            'binary_sensor.master_motion_2': 'Primary Bedroom motion',
+            'binary_sensor.master_occupancy_2': 'Primary Bedroom occupancy',
+            'binary_sensor.master_sensor_new_motion_2': 'Primary Bedroom sensor motion',
+            'binary_sensor.master_sensor_new_occupancy_2': 'Primary Bedroom sensor occupancy',
+            'binary_sensor.wynn_room_motion': "Wynn's Room motion",
+            'binary_sensor.wynn_room_occupancy': "Wynn's Room occupancy",
+            'binary_sensor.g6_instant_motion_3': 'Garage camera motion',
+            'binary_sensor.garage_person_detected': 'Garage person detected',
+            'binary_sensor.garage_vehicle_detected': 'Garage vehicle detected',
+            'binary_sensor.ratgdo32disco_c26634_motion': 'Garage ratgdo motion',
+            'binary_sensor.ratgdo32disco_c26634_vehicle_arriving': 'Vehicle arriving in garage',
+            'binary_sensor.ratgdo32disco_c26634_vehicle_leaving': 'Vehicle leaving garage'
+          } %}
+          {{ labels.get(source_entity, state_attr(source_entity, 'friendly_name') or source_entity) }}
+        source_area: >-
+          {% if 'garage' in source_label | lower or 'ratgdo' in source_label | lower or 'vehicle' in source_label | lower %}
+            Garage
+          {% else %}
+            Inside
+          {% endif %}
+        title: >-
+          {% if source_area | trim == 'Garage' %}
+            🚨 Garage motion while away
+          {% else %}
+            🚨 Motion inside while away
+          {% endif %}
+        message: >-
+          {{ source_label }} triggered while Casey and Trevor are away.
+          I’ll keep this visible so it does not get buried.
+    - action: script.notify_trevor_phone
+      data:
+        title: "{{ title }}"
+        message: "{{ message }}"
+        data:
+          tag: away-motion-security
+          group: away-security
+          sticky: true
+          ttl: 0
+          priority: high
+          url: /calm-mobile/home
+          actions:
+            - action: SNOOZE_AWAY_MOTION_SECURITY_30
+              title: Sleep 30 min
+
 away_security_snooze_30:
   alias: Away Security Snooze 30 Minutes
   description: Pauses away-security reminders for 30 minutes.

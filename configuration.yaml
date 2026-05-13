@@ -182,6 +182,10 @@ input_datetime:
     name: Entry Security Snooze Until
     has_date: true
     has_time: true
+  away_motion_security_snooze_until:
+    name: Away Motion Security Snooze Until
+    has_date: true
+    has_time: true
   water_pressure_snooze_until:
     name: Water Pressure Snooze Until
     has_date: true
