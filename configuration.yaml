@@ -2482,8 +2482,8 @@ template:
               {% set garbage_exception = state_attr('sensor.garbage_recycling_next_pickup', 'exception') | default('', true) %}
               {% set garbage_scheduled = state_attr('sensor.garbage_recycling_next_pickup', 'scheduled_thursday') | default('', true) %}
               {% set garbage_title = 'Garbage + paper recycling' if garbage_stream == 'paper recycling' else 'Garbage + non-paper recycling' %}
-              {% set garbage_emoji = '♻️📦' if garbage_stream == 'paper recycling' else '♻️🥫' %}
-              {% set garbage_icon = 'mdi:package-variant-closed' if garbage_stream == 'paper recycling' else 'mdi:bottle-soda-classic-outline' %}
+              {% set garbage_emoji = '♻️' %}
+              {% set garbage_icon = 'mdi:recycle' %}
               {% set ns.items = ns.items + [{
                 'id': 'garbage-recycling-' ~ garbage_pickup,
                 'title': garbage_title,

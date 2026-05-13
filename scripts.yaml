@@ -1551,7 +1551,7 @@ garbage_recycling_send_reminder:
         recycling_stream: "{{ state_attr('sensor.garbage_recycling_next_pickup', 'recycling') | default('', true) }}"
         recycling_label: "{{ state_attr('sensor.garbage_recycling_next_pickup', 'recycling_label') | default(recycling_stream, true) }}"
         title_stream: "{{ 'paper recycling' if recycling_stream == 'paper recycling' else 'non-paper recycling' }}"
-        notification_emoji: "{{ '♻️📦' if recycling_stream == 'paper recycling' else '♻️🥫' }}"
+        notification_emoji: "♻️"
         exception: "{{ state_attr('sensor.garbage_recycling_next_pickup', 'exception') | default('', true) }}"
         notification_tag: "{{ 'garbage-recycling-' ~ (pickup | trim) }}"
         notification_title: >-
