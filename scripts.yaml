@@ -2837,6 +2837,9 @@ away_security_close_garage_door:
                       priority: high
                       url: /calm-mobile/home
                       actions:
+                        - action: URI
+                          title: Open Protect
+                          uri: unifi-protect://
                         - action: CLOSE_GARAGE_SECURITY
                           title: Try closing again
                         - action: SNOOZE_GARAGE_SECURITY_30
@@ -2995,6 +2998,9 @@ garage_security_send_alert:
                   priority: "{{ priority }}"
                   url: /calm-mobile/home
                   actions:
+                    - action: URI
+                      title: Open Protect
+                      uri: unifi-protect://
                     - action: SNOOZE_GARAGE_SECURITY_30
                       title: Sleep 30 min
         - conditions:
@@ -3013,6 +3019,9 @@ garage_security_send_alert:
                   priority: "{{ priority }}"
                   url: /calm-mobile/home
                   actions:
+                    - action: URI
+                      title: Open Protect
+                      uri: unifi-protect://
                     - action: CLOSE_GARAGE_SECURITY
                       title: Close garage
                     - action: SNOOZE_GARAGE_SECURITY_MORNING
@@ -3030,6 +3039,9 @@ garage_security_send_alert:
               priority: "{{ priority }}"
               url: /calm-mobile/home
               actions:
+                - action: URI
+                  title: Open Protect
+                  uri: unifi-protect://
                 - action: CLOSE_GARAGE_SECURITY
                   title: Close garage
                 - action: SNOOZE_GARAGE_SECURITY_30
@@ -3142,6 +3154,9 @@ entry_security_lock_mudroom_door:
                       priority: high
                       url: /calm-mobile/home
                       actions:
+                        - action: URI
+                          title: Open Protect
+                          uri: unifi-protect://
                         - action: LOCK_MUDROOM_NIGHT_SECURITY
                           title: Try locking again
                         - action: SNOOZE_ENTRY_SECURITY_30
@@ -3186,6 +3201,9 @@ entry_security_send_alert:
           priority: high
           url: /calm-mobile/home
           actions:
+            - action: URI
+              title: Open Protect
+              uri: unifi-protect://
             - action: LOCK_MUDROOM_NIGHT_SECURITY
               title: Lock mudroom
             - action: SNOOZE_ENTRY_SECURITY_30
@@ -3290,6 +3308,9 @@ away_motion_security_send_alert:
           priority: high
           url: /calm-mobile/home
           actions:
+            - action: URI
+              title: Open Protect
+              uri: unifi-protect://
             - action: SNOOZE_AWAY_MOTION_SECURITY_30
               title: Sleep 30 min
 
@@ -3369,6 +3390,9 @@ away_security_send_alert:
                   priority: high
                   url: /calm-mobile/home
                   actions:
+                    - action: URI
+                      title: Open Protect
+                      uri: unifi-protect://
                     - action: SECURE_AWAY_HOME
                       title: "{{ secure_action_title }}"
                     - action: CLOSE_AWAY_GARAGE
@@ -3398,6 +3422,9 @@ away_security_send_alert:
                   priority: high
                   url: /calm-mobile/home
                   actions:
+                    - action: URI
+                      title: Open Protect
+                      uri: unifi-protect://
                     - action: SECURE_AWAY_HOME
                       title: "{{ secure_action_title }}"
                     - action: CLOSE_AWAY_GARAGE
@@ -3425,6 +3452,9 @@ away_security_send_alert:
                   priority: high
                   url: /calm-mobile/home
                   actions:
+                    - action: URI
+                      title: Open Protect
+                      uri: unifi-protect://
                     - action: SECURE_AWAY_HOME
                       title: "{{ secure_action_title }}"
                     - action: CLOSE_AWAY_GARAGE
@@ -3451,6 +3481,9 @@ away_security_send_alert:
                   priority: high
                   url: /calm-mobile/home
                   actions:
+                    - action: URI
+                      title: Open Protect
+                      uri: unifi-protect://
                     - action: SECURE_AWAY_HOME
                       title: "{{ secure_action_title }}"
                     - action: LOCK_AWAY_ENTRY_DOORS
@@ -3478,6 +3511,9 @@ away_security_send_alert:
                   priority: high
                   url: /calm-mobile/home
                   actions:
+                    - action: URI
+                      title: Open Protect
+                      uri: unifi-protect://
                     - action: CLOSE_AWAY_GARAGE
                       title: Close garage
                     - action: SNOOZE_AWAY_SECURITY_30
@@ -3500,6 +3536,9 @@ away_security_send_alert:
                   priority: high
                   url: /calm-mobile/home
                   actions:
+                    - action: URI
+                      title: Open Protect
+                      uri: unifi-protect://
                     - action: LOCK_AWAY_ENTRY_DOORS
                       title: >-
                         {{ 'Lock doors' if unlocked_entry_count | int(0) > 1 else 'Lock door' }}
@@ -3523,6 +3562,9 @@ away_security_send_alert:
                   priority: high
                   url: /calm-mobile/home
                   actions:
+                    - action: URI
+                      title: Open Protect
+                      uri: unifi-protect://
                     - action: TURN_OFF_AWAY_LIGHTS
                       title: Turn off lights
                     - action: SNOOZE_AWAY_SECURITY_30
@@ -3542,6 +3584,9 @@ away_security_send_alert:
               priority: high
               url: /calm-mobile/home
               actions:
+                - action: URI
+                  title: Open Protect
+                  uri: unifi-protect://
                 - action: SNOOZE_AWAY_SECURITY_30
                   title: Sleep 30 min
                 - action: SNOOZE_AWAY_SECURITY_120
@@ -3600,6 +3645,9 @@ casey_left_garage_send_alert:
                   ttl: 0
                   priority: high
                   actions:
+                    - action: URI
+                      title: Open Protect
+                      uri: unifi-protect://
                     - action: SECURE_CASEY_LEFT_HOME
                       title: Close + lock
                     - action: CLOSE_AWAY_GARAGE
@@ -3622,6 +3670,9 @@ casey_left_garage_send_alert:
                   ttl: 0
                   priority: high
                   actions:
+                    - action: URI
+                      title: Open Protect
+                      uri: unifi-protect://
                     - action: CLOSE_AWAY_GARAGE
                       title: Close garage
       default:
@@ -3636,6 +3687,9 @@ casey_left_garage_send_alert:
               ttl: 0
               priority: high
               actions:
+                - action: URI
+                  title: Open Protect
+                  uri: unifi-protect://
                 - action: LOCK_CASEY_LEFT_ENTRY_DOORS
                   title: >-
                     {{ 'Lock doors' if unlocked_entry_count | int(0) > 1 else 'Lock door' }}
@@ -3691,6 +3745,9 @@ casey_left_combo_send_alert:
           ttl: 0
           priority: high
           actions:
+            - action: URI
+              title: Open Protect
+              uri: unifi-protect://
             - action: SECURE_CASEY_LEFT_HOME
               title: "{{ secure_action_title }}"
 
@@ -3738,6 +3795,9 @@ casey_left_lights_send_alert:
           ttl: 0
           priority: high
           actions:
+            - action: URI
+              title: Open Protect
+              uri: unifi-protect://
             - action: TURN_OFF_CASEY_LEFT_LIGHTS
               title: Turn off lights
 
@@ -3791,6 +3851,10 @@ entry_camera_send_alert:
             {% set kind = event_kind | default('motion') %}
             entry-{{ zone }}-{{ kind }}
           url: /calm-mobile/home
+          actions:
+            - action: URI
+              title: Open Protect
+              uri: unifi-protect://
 
 wine_cave_send_charcoal_filter_reminder:
   alias: Wine Cave Send Charcoal Filter Reminder
