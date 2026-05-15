@@ -1638,6 +1638,7 @@ template:
               'light.family_room_main_lights_3',
               'light.wynn_s_room_chandelier',
               'light.wynn_s_room_ceiling_lights',
+              'light.mudroom_main_lights',
               'light.deck_deck_lights',
               'light.exterior_yard_lights',
               'light.back_patio_light'
@@ -1654,9 +1655,13 @@ template:
           {% endfor %}
           {% set vacation_window_active = is_state('input_boolean.vacation_mode', 'on')
              and states('sensor.vacation_activity_window') in ['evening', 'pre_sunrise'] %}
+          {% set exterior_schedule_active = is_state('binary_sensor.door_lights_schedule_active', 'on') %}
           {% set lighting_switch_count =
             (1 if is_state('switch.garage_garage_lights', 'on') else 0)
-            + (1 if is_state('switch.uplight', 'on') and not vacation_window_active else 0) %}
+            + (1 if is_state('switch.uplight', 'on') and not vacation_window_active else 0)
+            + (1 if is_state('switch.exterior_mud_room_stairs', 'on')
+                   and not vacation_window_active
+                   and not exterior_schedule_active else 0) %}
           {{ (ns.lights | count) + lighting_switch_count }}
         attributes:
           names: >
@@ -1677,6 +1682,7 @@ template:
                 'light.family_room_main_lights_3',
                 'light.wynn_s_room_chandelier',
                 'light.wynn_s_room_ceiling_lights',
+                'light.mudroom_main_lights',
                 'light.deck_deck_lights',
                 'light.exterior_yard_lights',
                 'light.back_patio_light'
@@ -1693,11 +1699,17 @@ template:
             {% endfor %}
             {% set vacation_window_active = is_state('input_boolean.vacation_mode', 'on')
                and states('sensor.vacation_activity_window') in ['evening', 'pre_sunrise'] %}
+            {% set exterior_schedule_active = is_state('binary_sensor.door_lights_schedule_active', 'on') %}
             {% if is_state('switch.uplight', 'on') and not vacation_window_active %}
               {% set ns.names = ns.names + ['Uplight'] %}
             {% endif %}
             {% if is_state('switch.garage_garage_lights', 'on') %}
               {% set ns.names = ns.names + ['Garage Light'] %}
+            {% endif %}
+            {% if is_state('switch.exterior_mud_room_stairs', 'on')
+               and not vacation_window_active
+               and not exterior_schedule_active %}
+              {% set ns.names = ns.names + ['Exterior Mudroom Stairs'] %}
             {% endif %}
             {{ ns.names | join('||') }}
           entity_ids: >
@@ -1718,6 +1730,7 @@ template:
                 'light.family_room_main_lights_3',
                 'light.wynn_s_room_chandelier',
                 'light.wynn_s_room_ceiling_lights',
+                'light.mudroom_main_lights',
                 'light.deck_deck_lights',
                 'light.exterior_yard_lights',
                 'light.back_patio_light'
@@ -1734,11 +1747,17 @@ template:
             {% endfor %}
             {% set vacation_window_active = is_state('input_boolean.vacation_mode', 'on')
                and states('sensor.vacation_activity_window') in ['evening', 'pre_sunrise'] %}
+            {% set exterior_schedule_active = is_state('binary_sensor.door_lights_schedule_active', 'on') %}
             {% if is_state('switch.uplight', 'on') and not vacation_window_active %}
               {% set ns.ids = ns.ids + ['switch.uplight'] %}
             {% endif %}
             {% if is_state('switch.garage_garage_lights', 'on') %}
               {% set ns.ids = ns.ids + ['switch.garage_garage_lights'] %}
+            {% endif %}
+            {% if is_state('switch.exterior_mud_room_stairs', 'on')
+               and not vacation_window_active
+               and not exterior_schedule_active %}
+              {% set ns.ids = ns.ids + ['switch.exterior_mud_room_stairs'] %}
             {% endif %}
             {{ ns.ids | join('||') }}
 
@@ -5521,7 +5540,15 @@ light:
       - light.back_stairs_back_stairs
       - light.upstairs_hallway_main_lights
       - light.vestibule_main_lights
+      - light.mudroom_main_lights
+      - light.mudroom_nook_lights
       - light.back_patio_light
+  - platform: group
+    name: Mudroom
+    unique_id: mudroom_group
+    entities:
+      - light.mudroom_main_lights
+      - light.mudroom_nook_lights
   - platform: group
     name: Family Room
     unique_id: family_room_group

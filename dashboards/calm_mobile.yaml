@@ -233,7 +233,8 @@ views:
                 | count %}
               {% set door_switch_count = [
                 states('switch.master_lantern'),
-                states('switch.front_foyer_sconces')
+                states('switch.front_foyer_sconces'),
+                states('switch.exterior_mud_room_stairs')
               ] | select('eq', 'on') | list | count %}
               {% set lighting_switch_count = [
                 states('switch.uplight'),
@@ -250,7 +251,8 @@ views:
                 | count %}
               {% set door_switch_count = [
                 states('switch.master_lantern'),
-                states('switch.front_foyer_sconces')
+                states('switch.front_foyer_sconces'),
+                states('switch.exterior_mud_room_stairs')
               ] | select('eq', 'on') | list | count %}
               {% set lighting_switch_count = [
                 states('switch.uplight'),
@@ -267,7 +269,8 @@ views:
                 | count %}
               {% set door_switch_count = [
                 states('switch.master_lantern'),
-                states('switch.front_foyer_sconces')
+                states('switch.front_foyer_sconces'),
+                states('switch.exterior_mud_room_stairs')
               ] | select('eq', 'on') | list | count %}
               {% set lighting_switch_count = [
                 states('switch.uplight'),
@@ -4495,23 +4498,87 @@ views:
             card_mod:
               style: *common_area_light_tile_style
 
-      - type: custom:mushroom-title-card
-        title: Mudroom & Garage
+      - type: vertical-stack
+        cards:
+          - type: custom:mushroom-title-card
+            title: Mudroom & Garage
 
-      - type: custom:mushroom-template-card
-        entity: switch.garage_garage_lights
-        primary: Garage Light
-        secondary: >-
-          {{ 'On' if is_state('switch.garage_garage_lights', 'on') else 'Off' }}
-        icon: mdi:garage-variant
-        icon_color: >-
-          {{ 'amber' if is_state('switch.garage_garage_lights', 'on') else 'grey' }}
-        tap_action:
-          action: toggle
-        hold_action:
-          action: more-info
-        card_mod:
-          style: *lights_compact_card_style
+          - type: custom:mushroom-light-card
+            entity: light.mudroom
+            name: Mudroom
+            icon: mdi:door-sliding
+            tap_action:
+              <<: *lights_transition_tap_action
+              data:
+                light_entity: light.mudroom
+                transition_seconds: 3
+            show_brightness_control: true
+            show_color_temp_control: false
+            use_light_color: true
+            fill_container: true
+            card_mod:
+              style: *lights_compact_card_style
+
+          - type: grid
+            columns: 2
+            square: false
+            cards:
+              - type: custom:mushroom-light-card
+                entity: light.mudroom_main_lights
+                name: Main
+                icon: mdi:ceiling-light
+                tap_action:
+                  <<: *lights_transition_tap_action
+                  data:
+                    light_entity: light.mudroom_main_lights
+                    transition_seconds: 3
+                show_brightness_control: true
+                collapsible_controls: true
+                use_light_color: true
+                card_mod:
+                  style: *lights_compact_card_style
+              - type: custom:mushroom-light-card
+                entity: light.mudroom_nook_lights
+                name: Nooks
+                icon: mdi:wall-sconce-flat
+                tap_action:
+                  <<: *lights_transition_tap_action
+                  data:
+                    light_entity: light.mudroom_nook_lights
+                    transition_seconds: 3
+                show_brightness_control: true
+                collapsible_controls: true
+                use_light_color: true
+                card_mod:
+                  style: *lights_compact_card_style
+              - type: custom:mushroom-template-card
+                entity: switch.exterior_mud_room_stairs
+                primary: Exterior Stairs
+                secondary: >-
+                  {{ 'On' if is_state('switch.exterior_mud_room_stairs', 'on') else 'Off' }}
+                icon: mdi:stairs
+                icon_color: >-
+                  {{ 'amber' if is_state('switch.exterior_mud_room_stairs', 'on') else 'grey' }}
+                tap_action:
+                  action: toggle
+                hold_action:
+                  action: more-info
+                card_mod:
+                  style: *lights_compact_card_style
+              - type: custom:mushroom-template-card
+                entity: switch.garage_garage_lights
+                primary: Garage Light
+                secondary: >-
+                  {{ 'On' if is_state('switch.garage_garage_lights', 'on') else 'Off' }}
+                icon: mdi:garage-variant
+                icon_color: >-
+                  {{ 'amber' if is_state('switch.garage_garage_lights', 'on') else 'grey' }}
+                tap_action:
+                  action: toggle
+                hold_action:
+                  action: more-info
+                card_mod:
+                  style: *lights_compact_card_style
 
       - type: custom:mushroom-title-card
         title: Family Room

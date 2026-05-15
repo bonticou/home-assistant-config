@@ -2722,6 +2722,26 @@
     {
       "area": "Exterior",
       "control_count": 1,
+      "device_id": "device_b7316557a8bc",
+      "disabled_by": "",
+      "entities": [
+        "switch.exterior_mud_room_stairs"
+      ],
+      "entity_count": 1,
+      "entry_type": "",
+      "integrations": [
+        "lutron_caseta"
+      ],
+      "manufacturer": "Lutron Electronics Co., Inc",
+      "model": "DVRF-5NS (DivaSmartSwitch)",
+      "name": "Exterior Mud Room Stairs",
+      "network_count": 0,
+      "other_count": 0,
+      "telemetry_count": 0
+    },
+    {
+      "area": "Exterior",
+      "control_count": 1,
       "device_id": "device_8aefb3b9d963",
       "disabled_by": "",
       "entities": [
@@ -3196,6 +3216,26 @@
       "network_count": 0,
       "other_count": 0,
       "telemetry_count": 4
+    },
+    {
+      "area": "Garage",
+      "control_count": 1,
+      "device_id": "device_0a6ca11b3430",
+      "disabled_by": "",
+      "entities": [
+        "switch.garage_garage_lights"
+      ],
+      "entity_count": 1,
+      "entry_type": "",
+      "integrations": [
+        "lutron_caseta"
+      ],
+      "manufacturer": "Lutron Electronics Co., Inc",
+      "model": "DVRF-5NS (DivaSmartSwitch)",
+      "name": "Garage Garage Lights",
+      "network_count": 0,
+      "other_count": 0,
+      "telemetry_count": 0
     },
     {
       "area": "Great Room Speakers",
@@ -3873,6 +3913,46 @@
       "network_count": 0,
       "other_count": 0,
       "telemetry_count": 4
+    },
+    {
+      "area": "Mudroom",
+      "control_count": 1,
+      "device_id": "device_0eead1f3af05",
+      "disabled_by": "",
+      "entities": [
+        "light.mudroom_main_lights"
+      ],
+      "entity_count": 1,
+      "entry_type": "",
+      "integrations": [
+        "lutron_caseta"
+      ],
+      "manufacturer": "Lutron Electronics Co., Inc",
+      "model": "DVRF-6L (DivaSmartDimmer)",
+      "name": "Mudroom Main Lights",
+      "network_count": 0,
+      "other_count": 0,
+      "telemetry_count": 0
+    },
+    {
+      "area": "Mudroom",
+      "control_count": 1,
+      "device_id": "device_5e5c5eb81cbc",
+      "disabled_by": "",
+      "entities": [
+        "light.mudroom_nook_lights"
+      ],
+      "entity_count": 1,
+      "entry_type": "",
+      "integrations": [
+        "lutron_caseta"
+      ],
+      "manufacturer": "Lutron Electronics Co., Inc",
+      "model": "DVRF-6L (DivaSmartDimmer)",
+      "name": "Mudroom Nook Lights",
+      "network_count": 0,
+      "other_count": 0,
+      "telemetry_count": 0
     },
     {
       "area": "Mudroom",
@@ -15496,6 +15576,54 @@
       "entity_id": "light.master_bedroom_sconce_r",
       "hidden_by": "",
       "name": "Master Bedroom Sconce R",
+      "platform": "lutron_caseta",
+      "role": "control",
+      "unit": ""
+    },
+    {
+      "area": "",
+      "availability": "available",
+      "capability_keys": [],
+      "device_class": "",
+      "device_id": "",
+      "disabled_by": "",
+      "domain": "light",
+      "entity_category": "",
+      "entity_id": "light.mudroom",
+      "hidden_by": "",
+      "name": "Mudroom",
+      "platform": "group",
+      "role": "control",
+      "unit": ""
+    },
+    {
+      "area": "Mudroom",
+      "availability": "available",
+      "capability_keys": [],
+      "device_class": "",
+      "device_id": "device_0eead1f3af05",
+      "disabled_by": "",
+      "domain": "light",
+      "entity_category": "",
+      "entity_id": "light.mudroom_main_lights",
+      "hidden_by": "",
+      "name": "Mudroom Main Lights",
+      "platform": "lutron_caseta",
+      "role": "control",
+      "unit": ""
+    },
+    {
+      "area": "Mudroom",
+      "availability": "available",
+      "capability_keys": [],
+      "device_class": "",
+      "device_id": "device_5e5c5eb81cbc",
+      "disabled_by": "",
+      "domain": "light",
+      "entity_category": "",
+      "entity_id": "light.mudroom_nook_lights",
+      "hidden_by": "",
+      "name": "Mudroom Nook Lights",
       "platform": "lutron_caseta",
       "role": "control",
       "unit": ""
@@ -28909,6 +29037,22 @@
       "unit": ""
     },
     {
+      "area": "Exterior",
+      "availability": "available",
+      "capability_keys": [],
+      "device_class": "",
+      "device_id": "device_b7316557a8bc",
+      "disabled_by": "",
+      "domain": "switch",
+      "entity_category": "",
+      "entity_id": "switch.exterior_mud_room_stairs",
+      "hidden_by": "",
+      "name": "Exterior Mud Room Stairs",
+      "platform": "lutron_caseta",
+      "role": "control",
+      "unit": ""
+    },
+    {
       "area": "Family Room",
       "availability": "available",
       "capability_keys": [],
@@ -29529,6 +29673,22 @@
       "hidden_by": "",
       "name": "CO alarm detection",
       "platform": "unifiprotect",
+      "role": "control",
+      "unit": ""
+    },
+    {
+      "area": "Garage",
+      "availability": "available",
+      "capability_keys": [],
+      "device_class": "",
+      "device_id": "device_0a6ca11b3430",
+      "disabled_by": "",
+      "domain": "switch",
+      "entity_category": "",
+      "entity_id": "switch.garage_garage_lights",
+      "hidden_by": "",
+      "name": "Garage Garage Lights",
+      "platform": "lutron_caseta",
       "role": "control",
       "unit": ""
     },
@@ -32909,6 +33069,7 @@
       "unit": ""
     }
   ],
+  "generated_at": "2026-05-15T09:55:08-04:00",
   "network_clients": [
     {
       "client_id": "network_01a7ffa721b6",
@@ -40877,6 +41038,22 @@
       "disabled_by": "",
       "domain": "light",
       "entity_category": "",
+      "entity_id": "light.mudroom",
+      "hidden_by": "",
+      "name": "Mudroom",
+      "platform": "group",
+      "role": "control",
+      "unit": ""
+    },
+    {
+      "area": "",
+      "availability": "available",
+      "capability_keys": [],
+      "device_class": "",
+      "device_id": "",
+      "disabled_by": "",
+      "domain": "light",
+      "entity_category": "",
       "entity_id": "light.wynn_s_room",
       "hidden_by": "",
       "name": "Wynn's Room",
@@ -45000,7 +45177,7 @@
   "schema_version": 2,
   "summary": {
     "area_count": 32,
-    "device_count": 166,
+    "device_count": 170,
     "domain_counts": {
       "ai_task": 2,
       "automation": 112,
@@ -45018,7 +45195,7 @@
       "input_number": 12,
       "input_select": 14,
       "input_text": 8,
-      "light": 23,
+      "light": 26,
       "lock": 4,
       "media_player": 22,
       "number": 87,
@@ -45029,13 +45206,13 @@
       "sensor": 516,
       "siren": 2,
       "stt": 2,
-      "switch": 259,
+      "switch": 261,
       "todo": 1,
       "tts": 3,
       "update": 22,
       "weather": 1
     },
-    "entity_count": 1788,
+    "entity_count": 1793,
     "integration_count": 40,
     "integration_counts": {
       "airthings": 4,
@@ -45049,7 +45226,7 @@
       "esphome": 34,
       "flo": 43,
       "google_translate": 1,
-      "group": 3,
+      "group": 4,
       "hacs": 20,
       "hassio": 35,
       "homekit_controller": 39,
@@ -45058,7 +45235,7 @@
       "input_number": 12,
       "input_select": 14,
       "input_text": 8,
-      "lutron_caseta": 22,
+      "lutron_caseta": 26,
       "matter": 22,
       "met": 1,
       "mobile_app": 26,
@@ -45080,9 +45257,9 @@
       "upnp": 12
     },
     "network_client_count": 114,
-    "orphan_entity_count": 638,
+    "orphan_entity_count": 639,
     "role_counts": {
-      "control": 626,
+      "control": 631,
       "network": 114,
       "other": 248,
       "telemetry": 800

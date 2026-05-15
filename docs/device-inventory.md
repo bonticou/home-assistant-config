@@ -2,13 +2,18 @@
 
 Generated from Home Assistant registries and UniFi-tracked network clients. Sensitive network identifiers are redacted.
 
+## Last Updated
+
+- Snapshot: `2026-05-15T09:55:08-04:00`
+- Summary: 170 devices, 1793 entities, 114 network clients, 26 Lutron Caséta entities
+
 ## Summary
 
 | Metric | Count |
 | --- | --- |
-| Devices | 166 |
-| Entities | 1788 |
-| Orphan entities | 638 |
+| Devices | 170 |
+| Entities | 1793 |
+| Orphan entities | 639 |
 | Network clients | 114 |
 | Areas | 32 |
 | Integrations | 40 |
@@ -17,7 +22,7 @@ Generated from Home Assistant registries and UniFi-tracked network clients. Sens
 
 | Role | Entities |
 | --- | --- |
-| control | 626 |
+| control | 631 |
 | network | 114 |
 | other | 248 |
 | telemetry | 800 |
@@ -40,8 +45,8 @@ Generated from Home Assistant registries and UniFi-tracked network clients. Sens
 | ring | 39 |
 | hassio | 35 |
 | esphome | 34 |
+| lutron_caseta | 26 |
 | mobile_app | 26 |
-| lutron_caseta | 22 |
 | matter | 22 |
 | tplink | 21 |
 | hacs | 20 |
@@ -304,6 +309,17 @@ Generated from Home Assistant registries and UniFi-tracked network clients. Sens
 | `sensor.fios_router_wan_status` | telemetry | upnp | diagnostic | disabled |
 
 ### Exterior
+
+#### Exterior Mud Room Stairs
+
+- Device ID: `device_b7316557a8bc`
+- Integration: lutron_caseta
+- Model: Lutron Electronics Co., Inc DVRF-5NS (DivaSmartSwitch)
+- Capability mix: 0 telemetry, 1 control, 0 network, 0 other
+
+| Entity | Role | Integration | Detail | Availability |
+| --- | --- | --- | --- | --- |
+| `switch.exterior_mud_room_stairs` | control | lutron_caseta |  | available |
 
 #### Exterior Yard Lights
 
@@ -637,6 +653,17 @@ Generated from Home Assistant registries and UniFi-tracked network clients. Sens
 | `sensor.garage_entry_lock_battery` | telemetry | matter | diagnostic | available |
 | `sensor.garage_entry_lock_battery_type` | telemetry | matter | diagnostic | available |
 | `sensor.garage_entry_lock_battery_voltage` | telemetry | matter | diagnostic | available |
+
+#### Garage Garage Lights
+
+- Device ID: `device_0a6ca11b3430`
+- Integration: lutron_caseta
+- Model: Lutron Electronics Co., Inc DVRF-5NS (DivaSmartSwitch)
+- Capability mix: 0 telemetry, 1 control, 0 network, 0 other
+
+| Entity | Role | Integration | Detail | Availability |
+| --- | --- | --- | --- | --- |
+| `switch.garage_garage_lights` | control | lutron_caseta |  | available |
 
 ### Great Room Speakers
 
@@ -1121,6 +1148,28 @@ Generated from Home Assistant registries and UniFi-tracked network clients. Sens
 | `sensor.mudroom_door_lock_battery` | telemetry | matter | diagnostic | available |
 | `sensor.mudroom_door_lock_battery_type` | telemetry | matter | diagnostic | available |
 | `sensor.mudroom_door_lock_battery_voltage` | telemetry | matter | diagnostic | available |
+
+#### Mudroom Main Lights
+
+- Device ID: `device_0eead1f3af05`
+- Integration: lutron_caseta
+- Model: Lutron Electronics Co., Inc DVRF-6L (DivaSmartDimmer)
+- Capability mix: 0 telemetry, 1 control, 0 network, 0 other
+
+| Entity | Role | Integration | Detail | Availability |
+| --- | --- | --- | --- | --- |
+| `light.mudroom_main_lights` | control | lutron_caseta |  | available |
+
+#### Mudroom Nook Lights
+
+- Device ID: `device_5e5c5eb81cbc`
+- Integration: lutron_caseta
+- Model: Lutron Electronics Co., Inc DVRF-6L (DivaSmartDimmer)
+- Capability mix: 0 telemetry, 1 control, 0 network, 0 other
+
+| Entity | Role | Integration | Detail | Availability |
+| --- | --- | --- | --- | --- |
+| `light.mudroom_nook_lights` | control | lutron_caseta |  | available |
 
 #### Washing Machine - Leak Detection
 
@@ -3288,6 +3337,7 @@ _No registered entities._
 | `input_text.water_latest_alert_label` | Water Latest Alert Label | control | input_text | available |
 | `light.family_room` | Family Room | control | group | available |
 | `light.interior_test` | Interior (Test) | control | group | available |
+| `light.mudroom` | Mudroom | control | group | available |
 | `light.wynn_s_room` | Wynn's Room | control | group | available |
 | `person.bonticou` | Trevor | other | person | available |
 | `person.casey` | Casey | other | person | available |

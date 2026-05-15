@@ -209,6 +209,10 @@ When editing configuration:
 
 - avoid clever but fragile solutions
 - avoid large structural refactors unless requested.
+- when adding or renaming real Home Assistant devices/entities, update
+  `docs/device-inventory.json` and `docs/device-inventory.md`, then run
+  `python3 tools/check_device_inventory_coverage.py` so active config
+  references cannot drift away from the inventory.
 
 ---
 

@@ -553,39 +553,64 @@ def markdown_table(headers: list[str], rows: list[list[Any]]) -> str:
 
 def render_markdown(inventory: dict[str, Any]) -> str:
     summary = inventory["summary"]
+    generated_at = inventory.get("generated_at")
     lines = [
         "# Device Inventory",
         "",
         "Generated from Home Assistant registries and UniFi-tracked network clients. Sensitive network identifiers are redacted.",
         "",
-        "## Summary",
-        "",
-        markdown_table(
-            ["Metric", "Count"],
-            [
-                ["Devices", summary["device_count"]],
-                ["Entities", summary["entity_count"]],
-                ["Orphan entities", summary["orphan_entity_count"]],
-                ["Network clients", summary["network_client_count"]],
-                ["Areas", summary["area_count"]],
-                ["Integrations", summary["integration_count"]],
-            ],
-        ),
-        "",
-        "### Roles",
-        "",
-        markdown_table(["Role", "Entities"], sorted(summary["role_counts"].items())),
-        "",
-        "### Top Integrations",
-        "",
-        markdown_table(
-            ["Integration", "Entities"],
-            sorted(summary["integration_counts"].items(), key=lambda item: (-item[1], item[0]))[:20],
-        ),
-        "",
-        "## Devices By Area",
+        "## Last Updated",
         "",
     ]
+    if generated_at:
+        lines.extend(
+            [
+                f"- Snapshot: `{generated_at}`",
+                f"- Summary: {summary['device_count']} devices, {summary['entity_count']} entities, "
+                f"{summary['network_client_count']} network clients, "
+                f"{summary['integration_counts'].get('lutron_caseta', 0)} Lutron Caséta entities",
+                "",
+            ]
+        )
+    else:
+        lines.extend(
+            [
+                f"- Summary: {summary['device_count']} devices, {summary['entity_count']} entities, "
+                f"{summary['network_client_count']} network clients",
+                "",
+            ]
+        )
+    lines.extend(
+        [
+            "## Summary",
+            "",
+            markdown_table(
+                ["Metric", "Count"],
+                [
+                    ["Devices", summary["device_count"]],
+                    ["Entities", summary["entity_count"]],
+                    ["Orphan entities", summary["orphan_entity_count"]],
+                    ["Network clients", summary["network_client_count"]],
+                    ["Areas", summary["area_count"]],
+                    ["Integrations", summary["integration_count"]],
+                ],
+            ),
+            "",
+            "### Roles",
+            "",
+            markdown_table(["Role", "Entities"], sorted(summary["role_counts"].items())),
+            "",
+            "### Top Integrations",
+            "",
+            markdown_table(
+                ["Integration", "Entities"],
+                sorted(summary["integration_counts"].items(), key=lambda item: (-item[1], item[0]))[:20],
+            ),
+            "",
+            "## Devices By Area",
+            "",
+        ]
+    )
 
     entities_by_id = {entity["entity_id"]: entity for entity in inventory["entities"]}
     devices_by_area: dict[str, list[dict[str, Any]]] = defaultdict(list)
@@ -1212,6 +1237,7 @@ def main(argv: list[str] | None = None) -> int:
     registries = load_registries(config_dir, args.backup.resolve() if args.backup else None)
     inventory = build_inventory(registries, states, services, salt)
     generated_at = dt.datetime.now(dt.timezone.utc).isoformat()
+    inventory["generated_at"] = generated_at
     previous_inventory, baseline_warning = load_previous_inventory(output_dir / "device-inventory.json")
     change_report = build_change_report(previous_inventory, inventory, generated_at, baseline_warning)
 

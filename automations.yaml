@@ -2024,7 +2024,7 @@
       value_template: >
         {% if trigger.id == 'lights_state_changed' %}
           {% set entity = trigger.event.data.entity_id | default('') %}
-          {{ entity.startswith('light.') }}
+          {{ entity.startswith('light.') or entity == 'switch.exterior_mud_room_stairs' }}
         {% else %}
           true
         {% endif %}
@@ -2064,7 +2064,7 @@
       value_template: >
         {% if trigger.id == 'lights_state_changed' %}
           {% set entity = trigger.event.data.entity_id | default('') %}
-          {{ entity.startswith('light.') }}
+          {{ entity.startswith('light.') or entity == 'switch.exterior_mud_room_stairs' }}
         {% else %}
           true
         {% endif %}

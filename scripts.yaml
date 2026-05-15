@@ -221,6 +221,8 @@ common_areas_transition_toggle:
                   - light.back_stairs_back_stairs
                   - light.upstairs_hallway_main_lights
                   - light.vestibule_main_lights
+                  - light.mudroom_main_lights
+                  - light.mudroom_nook_lights
                   - light.back_patio_light
                 transition: 3
             - action: script.turn_on
@@ -239,6 +241,8 @@ common_areas_transition_toggle:
               - light.back_stairs_back_stairs
               - light.upstairs_hallway_main_lights
               - light.vestibule_main_lights
+              - light.mudroom_main_lights
+              - light.mudroom_nook_lights
               - light.back_patio_light
             transition: 3
         - action: script.turn_on
@@ -293,6 +297,8 @@ lights_evening_scene:
           - light.back_stairs_back_stairs
           - light.upstairs_hallway_main_lights
           - light.vestibule_main_lights
+          - light.mudroom_main_lights
+          - light.mudroom_nook_lights
           - light.back_patio_light
         brightness_pct: 10
         transition: 3
@@ -459,6 +465,8 @@ lights_all_off_scene:
           - light.back_stairs_back_stairs
           - light.upstairs_hallway_main_lights
           - light.vestibule_main_lights
+          - light.mudroom_main_lights
+          - light.mudroom_nook_lights
           - light.back_patio_light
           - light.wynn_s_room_chandelier
           - light.wynn_s_room_ceiling_lights
@@ -490,6 +498,7 @@ lights_all_off_scene:
                 entity_id:
                   - switch.master_lantern
                   - switch.front_foyer_sconces
+                  - switch.exterior_mud_room_stairs
 
 lights_bedtime_scene:
   alias: Lights Bedtime Scene
@@ -519,6 +528,8 @@ lights_bedtime_scene:
           - light.back_stairs_back_stairs
           - light.upstairs_hallway_main_lights
           - light.vestibule_main_lights
+          - light.mudroom_main_lights
+          - light.mudroom_nook_lights
           - light.back_patio_light
         transition: 8
     - action: switch.turn_off
@@ -599,6 +610,7 @@ door_lights_schedule_on:
         entity_id:
           - switch.master_lantern
           - switch.front_foyer_sconces
+          - switch.exterior_mud_room_stairs
 
 door_lights_schedule_off:
   alias: Door Lights Schedule Off
@@ -611,6 +623,7 @@ door_lights_schedule_off:
         entity_id:
           - switch.master_lantern
           - switch.front_foyer_sconces
+          - switch.exterior_mud_room_stairs
 
 front_stairs_schedule_on:
   alias: Front Stairs Schedule On
@@ -712,6 +725,8 @@ vacation_mode_start:
           - light.back_stairs_back_stairs
           - light.upstairs_hallway_main_lights
           - light.vestibule_main_lights
+          - light.mudroom_main_lights
+          - light.mudroom_nook_lights
           - light.wynn_s_room_chandelier
           - light.wynn_s_room_ceiling_lights
         transition: 3
@@ -763,6 +778,8 @@ vacation_mode_end:
           - light.family_room_main_lights_1
           - light.family_room_main_lights_2
           - light.family_room_main_lights_3
+          - light.mudroom_main_lights
+          - light.mudroom_nook_lights
           - light.wynn_s_room_chandelier
           - light.wynn_s_room_ceiling_lights
           - light.deck_deck_lights
@@ -808,10 +825,12 @@ vacation_activity_apply:
         evening_wynn_chandelier_pct: "{{ (18 + (16 * (darkness | float(0)))) | round(0) | int }}"
         evening_wynn_ceiling_pct: "{{ (7 + (8 * (darkness | float(0)))) | round(0) | int }}"
         evening_foyer_pct: "{{ (5 + (3 * (darkness | float(0)))) | round(0) | int }}"
+        evening_mudroom_main_pct: "{{ (8 + (4 * (darkness | float(0)))) | round(0) | int }}"
         evening_yard_pct: "{{ (22 + (18 * (darkness | float(0)))) | round(0) | int }}"
         evening_deck_pct: "{{ (15 + (18 * (darkness | float(0)))) | round(0) | int }}"
         morning_family_pct: "{{ (5 + (4 * (morning_progress | float(0)))) | round(0) | int }}"
         morning_foyer_pct: "{{ (4 + (2 * (morning_progress | float(0)))) | round(0) | int }}"
+        morning_mudroom_main_pct: "{{ (4 + (3 * (morning_progress | float(0)))) | round(0) | int }}"
         morning_yard_pct: "{{ (12 + (8 * (morning_progress | float(0)))) | round(0) | int }}"
         morning_deck_pct: "{{ (10 + (8 * (morning_progress | float(0)))) | round(0) | int }}"
     - choose:
@@ -841,6 +860,12 @@ vacation_activity_apply:
                 - sequence:
                     - action: light.turn_on
                       data:
+                        entity_id: light.mudroom_main_lights
+                        brightness_pct: "{{ evening_mudroom_main_pct }}"
+                        transition: 10
+                - sequence:
+                    - action: light.turn_on
+                      data:
                         entity_id: light.wynn_s_room_chandelier
                         brightness_pct: "{{ evening_wynn_chandelier_pct }}"
                         transition: 10
@@ -864,6 +889,9 @@ vacation_activity_apply:
                       data:
                         entity_id: light.back_patio_light
                         transition: 3
+                    - action: switch.turn_on
+                      data:
+                        entity_id: switch.exterior_mud_room_stairs
         - conditions:
             - condition: template
               value_template: "{{ window == 'evening' and detail_phase == 'late_glow' }}"
@@ -878,6 +906,7 @@ vacation_activity_apply:
                           - light.family_room_main_lights_3
                           - light.wynn_s_room_chandelier
                           - light.wynn_s_room_ceiling_lights
+                          - light.mudroom_main_lights
                           - light.exterior_yard_lights
                           - light.deck_deck_lights
                           - light.back_patio_light
@@ -885,6 +914,14 @@ vacation_activity_apply:
                     - action: switch.turn_off
                       data:
                         entity_id: switch.uplight
+                    - if:
+                        - condition: state
+                          entity_id: binary_sensor.door_lights_schedule_active
+                          state: "off"
+                      then:
+                        - action: switch.turn_off
+                          data:
+                            entity_id: switch.exterior_mud_room_stairs
                 - sequence:
                     - action: light.turn_on
                       data:
@@ -923,6 +960,12 @@ vacation_activity_apply:
                 - sequence:
                     - action: light.turn_on
                       data:
+                        entity_id: light.mudroom_main_lights
+                        brightness_pct: "{{ morning_mudroom_main_pct }}"
+                        transition: 10
+                - sequence:
+                    - action: light.turn_on
+                      data:
                         entity_id: light.exterior_yard_lights
                         brightness_pct: "{{ morning_yard_pct }}"
                         transition: 10
@@ -935,6 +978,9 @@ vacation_activity_apply:
                       data:
                         entity_id: light.back_patio_light
                         transition: 3
+                    - action: switch.turn_on
+                      data:
+                        entity_id: switch.exterior_mud_room_stairs
       default:
         - action: light.turn_off
           data:
@@ -944,6 +990,7 @@ vacation_activity_apply:
               - light.family_room_main_lights_3
               - light.wynn_s_room_chandelier
               - light.wynn_s_room_ceiling_lights
+              - light.mudroom_main_lights
               - light.exterior_yard_lights
               - light.deck_deck_lights
               - light.back_patio_light
@@ -951,6 +998,14 @@ vacation_activity_apply:
         - action: switch.turn_off
           data:
             entity_id: switch.uplight
+        - if:
+            - condition: state
+              entity_id: binary_sensor.door_lights_schedule_active
+              state: "off"
+          then:
+            - action: switch.turn_off
+              data:
+                entity_id: switch.exterior_mud_room_stairs
         - choose:
             - conditions:
                 - condition: state
