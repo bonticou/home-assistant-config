@@ -133,12 +133,12 @@ class HouseNoticesCard extends HTMLElement {
     return `in ${Math.max(1, Math.round(days / 365.25))} years`;
   }
 
-  metaLine(item) {
+  metaLine(item, opts = {}) {
     const parts = [];
     const date = this.formatDate(item.date);
     const rel = this.relativeDate(item.date);
     if (date) parts.push(`${item.due_prefix || "Due"} ${date}`);
-    if (rel) parts.push(rel);
+    if (rel && !opts.upcoming) parts.push(rel);
     const basis = this.basisLine(item);
     if (basis) parts.push(basis);
     return parts.join(" · ");
@@ -904,7 +904,7 @@ class HouseNoticesCard extends HTMLElement {
     }
     if (opts.upcoming) {
       const rel = this.relativeDate(item.date);
-      return { label: rel ? `upcoming ${rel}` : "upcoming", className: "upcoming" };
+      return { label: rel || "scheduled", className: "upcoming" };
     }
     return {
       label: item.badge || (item.state === "quiet" ? "current" : item.state),
@@ -991,7 +991,7 @@ class HouseNoticesCard extends HTMLElement {
             <div class="title">${this.escape(item.title)}</div>
             <div class="pill ${this.escapeAttr(pill.className)}">${this.escape(pill.label)}</div>
           </div>
-          <div class="meta">${this.escape(this.metaLine(item))}</div>
+          <div class="meta">${this.escape(this.metaLine(item, opts))}</div>
           ${item.narrative ? `<div class="narrative">${this.escape(item.narrative)}</div>` : ""}
         </div>
         ${inlineAction}
