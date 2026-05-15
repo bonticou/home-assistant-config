@@ -503,7 +503,7 @@ lights_all_off_scene:
 
 lights_bedtime_scene:
   alias: Lights Bedtime Scene
-  description: Turn off the house lights for bedtime, turn off the family room TV, leave Wynn's room and the front door lights alone, settle the master bedroom sconces off gently if they are bright, fade the chandelier down first, then settle the front stairs to a 4 percent overnight glow, and keep the chandelier off for the rest of the night.
+  description: Turn off the house lights for bedtime, turn off the family room TV, leave Wynn's room and the front entry lights alone, settle the master bedroom sconces off gently if they are bright, fade the chandelier down first, turn off the mudroom exterior stairs, then settle the front stairs to a 4 percent overnight glow, and keep the chandelier off for the rest of the night.
   icon: mdi:weather-night
   mode: single
   sequence:
@@ -557,6 +557,7 @@ lights_bedtime_scene:
         entity_id:
           - switch.uplight
           - switch.garage_garage_lights
+          - switch.exterior_mud_room_stairs
     - choose:
         - conditions:
             - condition: state
