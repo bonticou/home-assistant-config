@@ -1599,9 +1599,14 @@ views:
         popup_card_id: entry-points-popup
         target:
           entity_id: sensor.away_security_entry_point_issues
-        title: Doors
-        dismiss_icon: mdi:close
+        title: " "
         initial_style: wide
+        card_mod:
+          style:
+            ha-dialog$: |
+              ha-icon-button {
+                display: none !important;
+              }
         popup_styles:
           - style: all
             styles: |
@@ -1631,9 +1636,10 @@ views:
               }
               .content .container {
                 max-height: min(430px, calc(100vh - 164px));
-                overflow-y: auto;
+                overflow: visible;
                 box-sizing: border-box;
                 margin-top: clamp(168px, 30vh, 340px);
+                position: relative;
                 padding: 14px !important;
                 border-radius: 30px;
                 border: 1px solid rgba(148, 163, 184, 0.22);
@@ -1650,6 +1656,41 @@ views:
         card:
           type: vertical-stack
           cards:
+            - type: custom:button-card
+              icon: mdi:close
+              show_name: false
+              show_state: false
+              tap_action:
+                action: fire-dom-event
+                browser_mod:
+                  service: browser_mod.close_popup
+                  data: {}
+              styles:
+                card:
+                  - width: 44px
+                  - height: 44px
+                  - padding: 0
+                  - border-radius: 999px
+                  - border: 1px solid rgba(148, 163, 184, 0.22)
+                  - background: rgba(15, 23, 42, 0.58)
+                  - color: "#f8fafc"
+                  - box-shadow: 0 12px 26px rgba(2, 6, 23, 0.30)
+                  - -webkit-backdrop-filter: blur(14px) saturate(150%)
+                  - backdrop-filter: blur(14px) saturate(150%)
+                icon:
+                  - width: 22px
+                  - color: "#f8fafc"
+              card_mod:
+                style: |
+                  :host {
+                    position: absolute !important;
+                    top: -58px;
+                    left: 0;
+                    z-index: 5;
+                    width: 44px;
+                    height: 44px;
+                    display: block;
+                  }
             - type: custom:button-card
               entity: cover.ratgdo32disco_c26634_door
               show_icon: false
