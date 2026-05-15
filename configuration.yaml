@@ -5550,6 +5550,12 @@ light:
       - light.mudroom_main_lights
       - light.mudroom_nook_lights
   - platform: group
+    name: Master Bedroom Sconces
+    unique_id: master_bedroom_sconces_group
+    entities:
+      - light.master_bedroom_sconce_l
+      - light.master_bedroom_sconce_r
+  - platform: group
     name: Family Room
     unique_id: family_room_group
     entities:

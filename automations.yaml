@@ -2125,6 +2125,59 @@
         mode: dark
   mode: single
 
+- id: master_bedroom_sconces_sync
+  alias: "Lights — Sync Master Bedroom Sconces"
+  description: Keeps the left and right master bedroom sconces paired when either side changes.
+  triggers:
+    - trigger: state
+      entity_id:
+        - light.master_bedroom_sconce_l
+        - light.master_bedroom_sconce_r
+  conditions:
+    - condition: template
+      value_template: >
+        {% set source = trigger.to_state %}
+        {% set target_id = 'light.master_bedroom_sconce_r'
+           if trigger.entity_id == 'light.master_bedroom_sconce_l'
+           else 'light.master_bedroom_sconce_l' %}
+        {% set target_state = states(target_id) %}
+        {{ source is not none
+           and source.state in ['on', 'off']
+           and target_state not in ['unknown', 'unavailable']
+           and (
+             source.state != target_state
+             or (
+               source.state == 'on'
+               and (source.attributes.brightness | int(255))
+                  != (state_attr(target_id, 'brightness') | int(255))
+             )
+           ) }}
+  actions:
+    - variables:
+        target_entity: >-
+          {{ 'light.master_bedroom_sconce_r'
+             if trigger.entity_id == 'light.master_bedroom_sconce_l'
+             else 'light.master_bedroom_sconce_l' }}
+        source_state: "{{ trigger.to_state.state }}"
+        source_brightness: "{{ trigger.to_state.attributes.brightness | int(255) }}"
+    - choose:
+        - conditions:
+            - condition: template
+              value_template: "{{ source_state == 'on' }}"
+          sequence:
+            - action: light.turn_on
+              data:
+                entity_id: "{{ target_entity }}"
+                brightness: "{{ source_brightness }}"
+        - conditions:
+            - condition: template
+              value_template: "{{ source_state == 'off' }}"
+          sequence:
+            - action: light.turn_off
+              data:
+                entity_id: "{{ target_entity }}"
+  mode: restart
+
 - id: downstairs_climate_pilot_startup_sync
   alias: "Environment — Startup Sync"
   description: Refreshes environment observability entities and clears stale advisory notifications on startup.

@@ -4,16 +4,16 @@ Generated from Home Assistant registries and UniFi-tracked network clients. Sens
 
 ## Last Updated
 
-- Snapshot: `2026-05-15T09:55:08-04:00`
-- Summary: 170 devices, 1793 entities, 114 network clients, 26 Lutron Caséta entities
+- Snapshot: `2026-05-15T11:18:49-04:00`
+- Summary: 170 devices, 1794 entities, 114 network clients, 26 Lutron Caséta entities
 
 ## Summary
 
 | Metric | Count |
 | --- | --- |
 | Devices | 170 |
-| Entities | 1793 |
-| Orphan entities | 639 |
+| Entities | 1794 |
+| Orphan entities | 640 |
 | Network clients | 114 |
 | Areas | 32 |
 | Integrations | 40 |
@@ -22,7 +22,7 @@ Generated from Home Assistant registries and UniFi-tracked network clients. Sens
 
 | Role | Entities |
 | --- | --- |
-| control | 631 |
+| control | 632 |
 | network | 114 |
 | other | 248 |
 | telemetry | 800 |
@@ -3337,6 +3337,7 @@ _No registered entities._
 | `input_text.water_latest_alert_label` | Water Latest Alert Label | control | input_text | available |
 | `light.family_room` | Family Room | control | group | available |
 | `light.interior_test` | Interior (Test) | control | group | available |
+| `light.master_bedroom_sconces` | Master Bedroom Sconces | control | group | available |
 | `light.mudroom` | Mudroom | control | group | available |
 | `light.wynn_s_room` | Wynn's Room | control | group | available |
 | `person.bonticou` | Trevor | other | person | available |

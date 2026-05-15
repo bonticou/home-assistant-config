@@ -15589,6 +15589,22 @@
       "disabled_by": "",
       "domain": "light",
       "entity_category": "",
+      "entity_id": "light.master_bedroom_sconces",
+      "hidden_by": "",
+      "name": "Master Bedroom Sconces",
+      "platform": "group",
+      "role": "control",
+      "unit": ""
+    },
+    {
+      "area": "",
+      "availability": "available",
+      "capability_keys": [],
+      "device_class": "",
+      "device_id": "",
+      "disabled_by": "",
+      "domain": "light",
+      "entity_category": "",
       "entity_id": "light.mudroom",
       "hidden_by": "",
       "name": "Mudroom",
@@ -33069,7 +33085,7 @@
       "unit": ""
     }
   ],
-  "generated_at": "2026-05-15T09:55:08-04:00",
+  "generated_at": "2026-05-15T11:18:49-04:00",
   "network_clients": [
     {
       "client_id": "network_01a7ffa721b6",
@@ -41038,6 +41054,22 @@
       "disabled_by": "",
       "domain": "light",
       "entity_category": "",
+      "entity_id": "light.master_bedroom_sconces",
+      "hidden_by": "",
+      "name": "Master Bedroom Sconces",
+      "platform": "group",
+      "role": "control",
+      "unit": ""
+    },
+    {
+      "area": "",
+      "availability": "available",
+      "capability_keys": [],
+      "device_class": "",
+      "device_id": "",
+      "disabled_by": "",
+      "domain": "light",
+      "entity_category": "",
       "entity_id": "light.mudroom",
       "hidden_by": "",
       "name": "Mudroom",
@@ -45195,7 +45227,7 @@
       "input_number": 12,
       "input_select": 14,
       "input_text": 8,
-      "light": 26,
+      "light": 27,
       "lock": 4,
       "media_player": 22,
       "number": 87,
@@ -45212,7 +45244,7 @@
       "update": 22,
       "weather": 1
     },
-    "entity_count": 1793,
+    "entity_count": 1794,
     "integration_count": 40,
     "integration_counts": {
       "airthings": 4,
@@ -45226,7 +45258,7 @@
       "esphome": 34,
       "flo": 43,
       "google_translate": 1,
-      "group": 4,
+      "group": 5,
       "hacs": 20,
       "hassio": 35,
       "homekit_controller": 39,
@@ -45257,9 +45289,9 @@
       "upnp": 12
     },
     "network_client_count": 114,
-    "orphan_entity_count": 639,
+    "orphan_entity_count": 640,
     "role_counts": {
-      "control": 631,
+      "control": 632,
       "network": 114,
       "other": 248,
       "telemetry": 800

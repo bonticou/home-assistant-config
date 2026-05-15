@@ -467,6 +467,7 @@ lights_all_off_scene:
           - light.vestibule_main_lights
           - light.mudroom_main_lights
           - light.mudroom_nook_lights
+          - light.master_bedroom_sconces
           - light.back_patio_light
           - light.wynn_s_room_chandelier
           - light.wynn_s_room_ceiling_lights
@@ -532,6 +533,15 @@ lights_bedtime_scene:
           - light.mudroom_nook_lights
           - light.back_patio_light
         transition: 8
+    - action: light.turn_on
+      data:
+        entity_id: light.master_bedroom_sconces
+        brightness_pct: 30
+    - action: light.turn_on
+      data:
+        entity_id: light.master_bedroom_sconces
+        brightness_pct: 40
+        transition: 5
     - action: switch.turn_off
       data:
         entity_id:
