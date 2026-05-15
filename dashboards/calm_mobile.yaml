@@ -6281,7 +6281,12 @@ views:
                     const when = (date) => date
                       ? date.toLocaleString(undefined, { weekday: 'short', hour: 'numeric', minute: '2-digit' })
                       : 'Unknown time';
-                    const rows = events.slice(0, 5).map((event, index) => {
+                    const cutoff = Date.now() - (7 * 24 * 60 * 60 * 1000);
+                    const weekEvents = events.filter((event) => {
+                      const date = parseDate(event.at);
+                      return date && date.getTime() >= cutoff;
+                    });
+                    const rows = weekEvents.map((event, index) => {
                       const date = parseDate(event.at);
                       const severity = event.severity === 'critical'
                         ? 'critical'
@@ -6305,8 +6310,8 @@ views:
                     }).join('');
                     return `
                       <div class="event-log">
-                        <div class="event-title">Alert history</div>
-                        ${events.length ? rows : `<div class="event-empty">${escapeHtml(variables.empty_text || 'No alerts logged yet.')}</div>`}
+                        <div class="event-title">Alert history <span>7 days</span></div>
+                        ${weekEvents.length ? rows : `<div class="event-empty">${escapeHtml(variables.empty_text || 'No alerts logged yet.')}</div>`}
                       </div>`;
                   ]]]
               styles: &water_guard_event_log_styles
@@ -6329,11 +6334,21 @@ views:
                   text-align: left;
                 }
                 .event-title {
+                  align-items: baseline;
                   color: rgba(248, 250, 252, 0.94);
+                  display: flex;
                   font-size: 14px;
                   font-weight: 650;
+                  gap: 8px;
+                  justify-content: space-between;
                   line-height: 1.2;
                   margin-bottom: 10px;
+                }
+                .event-title span {
+                  color: rgba(203, 213, 225, 0.62);
+                  font-size: 11px;
+                  font-weight: 600;
+                  text-transform: uppercase;
                 }
                 .event-empty {
                   color: rgba(203, 213, 225, 0.74);

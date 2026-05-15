@@ -5298,15 +5298,26 @@ template:
         attributes:
           events_json: >
             {% set existing = this.attributes.events_json | default('[]', true) | from_json %}
-            {% set event = {
-              'at': trigger.event.data.at | default('', true),
-              'domain': trigger.event.data.domain | default('water', true),
-              'label': trigger.event.data.label | default('Water alert', true),
-              'kind': trigger.event.data.kind | default('', true),
-              'severity': trigger.event.data.severity | default('warning', true),
-              'note': trigger.event.data.note | default('', true)
-            } %}
-            {{ ([event] + existing)[:8] | to_json }}
+            {% set cutoff = as_timestamp(now()) - 604800 %}
+            {% set recent = namespace(items=[]) %}
+            {% for item in existing %}
+              {% if as_timestamp(item.at | default('', true), 0) >= cutoff %}
+                {% set recent.items = recent.items + [item] %}
+              {% endif %}
+            {% endfor %}
+            {% if trigger is defined and trigger.event is defined %}
+              {% set event = {
+                'at': trigger.event.data.at | default('', true),
+                'domain': trigger.event.data.domain | default('water', true),
+                'label': trigger.event.data.label | default('Water alert', true),
+                'kind': trigger.event.data.kind | default('', true),
+                'severity': trigger.event.data.severity | default('warning', true),
+                'note': trigger.event.data.note | default('', true)
+              } %}
+              {{ ([event] + recent.items)[:60] | to_json }}
+            {% else %}
+              {{ recent.items | to_json }}
+            {% endif %}
 
       - name: "Water Guard Flow Events"
         unique_id: water_guard_flow_events
@@ -5320,7 +5331,14 @@ template:
         attributes:
           events_json: >
             {% set existing = this.attributes.events_json | default('[]', true) | from_json %}
-            {% if trigger.event.data.domain == 'flow' %}
+            {% set cutoff = as_timestamp(now()) - 604800 %}
+            {% set recent = namespace(items=[]) %}
+            {% for item in existing %}
+              {% if as_timestamp(item.at | default('', true), 0) >= cutoff %}
+                {% set recent.items = recent.items + [item] %}
+              {% endif %}
+            {% endfor %}
+            {% if trigger is defined and trigger.event is defined and trigger.event.data.domain == 'flow' %}
               {% set event = {
                 'at': trigger.event.data.at | default('', true),
                 'label': trigger.event.data.label | default('Flow alert', true),
@@ -5328,9 +5346,9 @@ template:
                 'severity': trigger.event.data.severity | default('warning', true),
                 'note': trigger.event.data.note | default('', true)
               } %}
-              {{ ([event] + existing)[:5] | to_json }}
+              {{ ([event] + recent.items)[:60] | to_json }}
             {% else %}
-              {{ existing | to_json }}
+              {{ recent.items | to_json }}
             {% endif %}
 
       - name: "Water Guard Pressure Events"
@@ -5345,7 +5363,14 @@ template:
         attributes:
           events_json: >
             {% set existing = this.attributes.events_json | default('[]', true) | from_json %}
-            {% if trigger.event.data.domain == 'pressure' %}
+            {% set cutoff = as_timestamp(now()) - 604800 %}
+            {% set recent = namespace(items=[]) %}
+            {% for item in existing %}
+              {% if as_timestamp(item.at | default('', true), 0) >= cutoff %}
+                {% set recent.items = recent.items + [item] %}
+              {% endif %}
+            {% endfor %}
+            {% if trigger is defined and trigger.event is defined and trigger.event.data.domain == 'pressure' %}
               {% set event = {
                 'at': trigger.event.data.at | default('', true),
                 'label': trigger.event.data.label | default('Pressure alert', true),
@@ -5353,9 +5378,9 @@ template:
                 'severity': trigger.event.data.severity | default('warning', true),
                 'note': trigger.event.data.note | default('', true)
               } %}
-              {{ ([event] + existing)[:5] | to_json }}
+              {{ ([event] + recent.items)[:60] | to_json }}
             {% else %}
-              {{ existing | to_json }}
+              {{ recent.items | to_json }}
             {% endif %}
 
       - name: "Water Guard Leak Events"
@@ -5370,7 +5395,14 @@ template:
         attributes:
           events_json: >
             {% set existing = this.attributes.events_json | default('[]', true) | from_json %}
-            {% if trigger.event.data.domain == 'leak' %}
+            {% set cutoff = as_timestamp(now()) - 604800 %}
+            {% set recent = namespace(items=[]) %}
+            {% for item in existing %}
+              {% if as_timestamp(item.at | default('', true), 0) >= cutoff %}
+                {% set recent.items = recent.items + [item] %}
+              {% endif %}
+            {% endfor %}
+            {% if trigger is defined and trigger.event is defined and trigger.event.data.domain == 'leak' %}
               {% set event = {
                 'at': trigger.event.data.at | default('', true),
                 'label': trigger.event.data.label | default('Leak alert', true),
@@ -5378,9 +5410,9 @@ template:
                 'severity': trigger.event.data.severity | default('critical', true),
                 'note': trigger.event.data.note | default('', true)
               } %}
-              {{ ([event] + existing)[:5] | to_json }}
+              {{ ([event] + recent.items)[:60] | to_json }}
             {% else %}
-              {{ existing | to_json }}
+              {{ recent.items | to_json }}
             {% endif %}
 
       - name: "Water Guard Valve Events"
@@ -5395,7 +5427,14 @@ template:
         attributes:
           events_json: >
             {% set existing = this.attributes.events_json | default('[]', true) | from_json %}
-            {% if trigger.event.data.domain == 'valve' %}
+            {% set cutoff = as_timestamp(now()) - 604800 %}
+            {% set recent = namespace(items=[]) %}
+            {% for item in existing %}
+              {% if as_timestamp(item.at | default('', true), 0) >= cutoff %}
+                {% set recent.items = recent.items + [item] %}
+              {% endif %}
+            {% endfor %}
+            {% if trigger is defined and trigger.event is defined and trigger.event.data.domain == 'valve' %}
               {% set event = {
                 'at': trigger.event.data.at | default('', true),
                 'label': trigger.event.data.label | default('Valve/Flo alert', true),
@@ -5403,9 +5442,9 @@ template:
                 'severity': trigger.event.data.severity | default('warning', true),
                 'note': trigger.event.data.note | default('', true)
               } %}
-              {{ ([event] + existing)[:5] | to_json }}
+              {{ ([event] + recent.items)[:60] | to_json }}
             {% else %}
-              {{ existing | to_json }}
+              {{ recent.items | to_json }}
             {% endif %}
 
       - name: "Water Guard Usage Events"
@@ -5420,7 +5459,14 @@ template:
         attributes:
           events_json: >
             {% set existing = this.attributes.events_json | default('[]', true) | from_json %}
-            {% if trigger.event.data.domain == 'usage' %}
+            {% set cutoff = as_timestamp(now()) - 604800 %}
+            {% set recent = namespace(items=[]) %}
+            {% for item in existing %}
+              {% if as_timestamp(item.at | default('', true), 0) >= cutoff %}
+                {% set recent.items = recent.items + [item] %}
+              {% endif %}
+            {% endfor %}
+            {% if trigger is defined and trigger.event is defined and trigger.event.data.domain == 'usage' %}
               {% set event = {
                 'at': trigger.event.data.at | default('', true),
                 'label': trigger.event.data.label | default('Usage alert', true),
@@ -5428,9 +5474,9 @@ template:
                 'severity': trigger.event.data.severity | default('warning', true),
                 'note': trigger.event.data.note | default('', true)
               } %}
-              {{ ([event] + existing)[:5] | to_json }}
+              {{ ([event] + recent.items)[:60] | to_json }}
             {% else %}
-              {{ existing | to_json }}
+              {{ recent.items | to_json }}
             {% endif %}
 
 # ── 24h Rolling Average Sensors ──────────────────────────
