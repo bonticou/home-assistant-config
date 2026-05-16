@@ -919,6 +919,7 @@
       to: "off"
     - trigger: state
       entity_id: input_boolean.front_stairs_sleep_override
+      to: "on"
   actions:
     - choose:
         - conditions:

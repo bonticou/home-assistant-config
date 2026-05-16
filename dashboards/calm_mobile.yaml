@@ -21,19 +21,17 @@ views:
             state: "on"
         card:
           type: custom:mushroom-template-card
-          entity: input_boolean.foyer_chandelier_sleep_hold
+          entity: input_select.lighting_active_scene
           primary: Sleep
           secondary: >-
-            {% if is_state('input_boolean.foyer_chandelier_sleep_hold', 'on')
-              or is_state('input_boolean.front_stairs_sleep_override', 'on') %}
+            {% if is_state('input_select.lighting_active_scene', 'Bedtime') %}
               Bedtime scene is on.
             {% else %}
               Wind the house down with the bedtime scene.
             {% endif %}
           icon: mdi:weather-night
           icon_color: >-
-            {% if is_state('input_boolean.foyer_chandelier_sleep_hold', 'on')
-              or is_state('input_boolean.front_stairs_sleep_override', 'on') %}
+            {% if is_state('input_select.lighting_active_scene', 'Bedtime') %}
               indigo
             {% else %}
               amber
@@ -55,16 +53,14 @@ views:
                 border-radius: 28px;
                 padding: 12px 10px;
                 box-shadow:
-                  {% if is_state('input_boolean.foyer_chandelier_sleep_hold', 'on')
-                    or is_state('input_boolean.front_stairs_sleep_override', 'on') %}
+                  {% if is_state('input_select.lighting_active_scene', 'Bedtime') %}
                     inset 0 1px 0 rgba(255, 255, 255, 0.08),
                     0 18px 40px rgba(49, 46, 129, 0.28);
                   {% else %}
                     0 18px 38px rgba(15, 23, 42, 0.16);
                   {% endif %}
                 background:
-                  {% if is_state('input_boolean.foyer_chandelier_sleep_hold', 'on')
-                    or is_state('input_boolean.front_stairs_sleep_override', 'on') %}
+                  {% if is_state('input_select.lighting_active_scene', 'Bedtime') %}
                   radial-gradient(circle at top right, rgba(129, 140, 248, 0.28), transparent 36%),
                   linear-gradient(145deg, rgba(30, 41, 59, 0.98), rgba(49, 46, 129, 0.82));
                   {% else %}
@@ -88,15 +84,13 @@ views:
               }
               mushroom-shape-icon {
                 --shape-color:
-                  {% if is_state('input_boolean.foyer_chandelier_sleep_hold', 'on')
-                    or is_state('input_boolean.front_stairs_sleep_override', 'on') %}
+                  {% if is_state('input_select.lighting_active_scene', 'Bedtime') %}
                     rgba(129, 140, 248, 0.22)
                   {% else %}
                     rgba(251, 191, 36, 0.16)
                   {% endif %} !important;
                 --shape-color-disabled:
-                  {% if is_state('input_boolean.foyer_chandelier_sleep_hold', 'on')
-                    or is_state('input_boolean.front_stairs_sleep_override', 'on') %}
+                  {% if is_state('input_select.lighting_active_scene', 'Bedtime') %}
                     rgba(129, 140, 248, 0.22)
                   {% else %}
                     rgba(251, 191, 36, 0.16)
@@ -106,8 +100,7 @@ views:
               }
               ha-state-icon {
                 color:
-                  {% if is_state('input_boolean.foyer_chandelier_sleep_hold', 'on')
-                    or is_state('input_boolean.front_stairs_sleep_override', 'on') %}
+                  {% if is_state('input_select.lighting_active_scene', 'Bedtime') %}
                     #c4b5fd
                   {% else %}
                     #fbbf24
@@ -3492,6 +3485,7 @@ views:
             name: All off
             label: House lights down
             icon: mdi:lightbulb-off-outline
+            entity: input_select.lighting_active_scene
             show_state: false
             show_label: true
             tap_action:
@@ -3533,10 +3527,22 @@ views:
                 - font-size: 11px
                 - font-weight: 500
                 - color: rgba(203, 213, 225, 0.72)
+            state:
+              - value: "All off"
+                styles:
+                  card:
+                    - border: 1px solid rgba(148, 163, 184, 0.34)
+                    - background: linear-gradient(180deg, rgba(71, 85, 105, 0.30), rgba(30, 41, 59, 0.24))
+                    - box-shadow: 0 12px 26px rgba(15, 23, 42, 0.24)
+                  icon:
+                    - color: '#e2e8f0'
+                  label:
+                    - color: rgba(226, 232, 240, 0.88)
           - type: custom:button-card
             name: Evening
             label: Calm 10% glow
             icon: mdi:weather-sunset
+            entity: input_select.lighting_active_scene
             show_state: false
             show_label: true
             tap_action:
@@ -3549,10 +3555,20 @@ views:
               icon:
                 - width: 18px
                 - color: '#fbbf24'
+            state:
+              - value: "Evening"
+                styles:
+                  card:
+                    - border: 1px solid rgba(251, 191, 36, 0.42)
+                    - background: linear-gradient(180deg, rgba(146, 64, 14, 0.30), rgba(120, 53, 15, 0.22))
+                    - box-shadow: 0 12px 26px rgba(146, 64, 14, 0.22)
+                  label:
+                    - color: rgba(254, 243, 199, 0.9)
           - type: custom:button-card
             name: TV
             label: TV + uplight
             icon: mdi:television
+            entity: input_select.lighting_active_scene
             show_state: false
             show_label: true
             tap_action:
@@ -3565,14 +3581,20 @@ views:
               icon:
                 - width: 18px
                 - color: '#67e8f9'
+            state:
+              - value: "TV"
+                styles:
+                  card:
+                    - border: 1px solid rgba(103, 232, 249, 0.38)
+                    - background: linear-gradient(180deg, rgba(8, 145, 178, 0.26), rgba(22, 78, 99, 0.20))
+                    - box-shadow: 0 12px 26px rgba(8, 145, 178, 0.20)
+                  label:
+                    - color: rgba(207, 250, 254, 0.9)
           - type: custom:button-card
             name: Bedtime
             label: Sleep hold
             icon: mdi:weather-night
-            entity: input_boolean.foyer_chandelier_sleep_hold
-            triggers_update:
-              - input_boolean.foyer_chandelier_sleep_hold
-              - input_boolean.front_stairs_sleep_override
+            entity: input_select.lighting_active_scene
             show_state: false
             show_label: true
             tap_action:
@@ -3586,7 +3608,7 @@ views:
                 - width: 18px
                 - color: '#818cf8'
             state:
-              - value: "on"
+              - value: "Bedtime"
                 styles:
                   card:
                     - border: 1px solid rgba(129, 140, 248, 0.44)

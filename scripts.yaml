@@ -259,6 +259,11 @@ lights_evening_scene:
   icon: mdi:weather-sunset
   mode: single
   sequence:
+    - action: input_select.select_option
+      target:
+        entity_id: input_select.lighting_active_scene
+      data:
+        option: Evening
     - action: input_boolean.turn_off
       target:
         entity_id:
@@ -382,6 +387,11 @@ lights_tv_scene:
   icon: mdi:television
   mode: single
   sequence:
+    - action: input_select.select_option
+      target:
+        entity_id: input_select.lighting_active_scene
+      data:
+        option: TV
     - action: input_boolean.turn_off
       target:
         entity_id:
@@ -447,14 +457,32 @@ lights_tv_scene:
 
 lights_all_off_scene:
   alias: Lights All Off Scene
-  description: Turn off the normal house lights, while leaving scheduled ambient exterior lights alone if someone is home.
+  description: Turn off house lights and stray exterior lights, while preserving Wynn's room, the main stair light, and the front door lights.
   icon: mdi:lightbulb-off-outline
   mode: single
   sequence:
-    - variables:
-        everyone_away: >
-          {{ is_state('person.bonticou', 'not_home')
-             and is_state('device_tracker.unifi_default_42_15_78_4a_d9_f8', 'not_home') }}
+    - action: input_select.select_option
+      target:
+        entity_id: input_select.lighting_active_scene
+      data:
+        option: All off
+    - choose:
+        - conditions:
+            - condition: state
+              entity_id: binary_sensor.front_stairs_schedule_active
+              state: "on"
+          sequence:
+            - action: input_boolean.turn_on
+              target:
+                entity_id:
+                  - input_boolean.foyer_chandelier_sleep_hold
+                  - input_boolean.front_stairs_sleep_override
+      default:
+        - action: input_boolean.turn_off
+          target:
+            entity_id:
+              - input_boolean.foyer_chandelier_sleep_hold
+              - input_boolean.front_stairs_sleep_override
     - action: light.turn_off
       data:
         entity_id:
@@ -467,16 +495,22 @@ lights_all_off_scene:
           - light.vestibule_main_lights
           - light.mudroom_main_lights
           - light.mudroom_nook_lights
-          - light.master_bedroom_sconces
           - light.back_patio_light
-          - light.wynn_s_room_chandelier
-          - light.wynn_s_room_ceiling_lights
+          - light.deck_deck_lights
+          - light.exterior_yard_lights
+        transition: 3
+    - action: light.turn_off
+      data:
+        entity_id:
+          - light.master_bedroom_sconce_l
+          - light.master_bedroom_sconce_r
         transition: 3
     - action: switch.turn_off
       data:
         entity_id:
           - switch.uplight
           - switch.garage_garage_lights
+          - switch.exterior_mud_room_stairs
     - action: script.turn_on
       target:
         entity_id: script.foyer_chandelier_curved_transition
@@ -484,22 +518,18 @@ lights_all_off_scene:
         variables:
           target_state: off
           duration_seconds: 12
-    - choose:
-        - conditions:
-            - condition: template
-              value_template: "{{ everyone_away }}"
-          sequence:
-            - action: light.turn_off
-              data:
-                entity_id:
-                  - light.stairs_front_stairs
-                transition: 3
-            - action: switch.turn_off
-              data:
-                entity_id:
-                  - switch.master_lantern
-                  - switch.front_foyer_sconces
-                  - switch.exterior_mud_room_stairs
+    - if:
+        - condition: state
+          entity_id: binary_sensor.front_stairs_schedule_active
+          state: "on"
+      then:
+        - action: script.front_stairs_schedule_on
+    - if:
+        - condition: state
+          entity_id: binary_sensor.door_lights_schedule_active
+          state: "on"
+      then:
+        - action: script.door_lights_schedule_on
 
 lights_bedtime_scene:
   alias: Lights Bedtime Scene
@@ -507,6 +537,11 @@ lights_bedtime_scene:
   icon: mdi:weather-night
   mode: single
   sequence:
+    - action: input_select.select_option
+      target:
+        entity_id: input_select.lighting_active_scene
+      data:
+        option: Bedtime
     - action: input_boolean.turn_on
       target:
         entity_id: input_boolean.foyer_chandelier_sleep_hold
@@ -535,13 +570,17 @@ lights_bedtime_scene:
         transition: 8
     - action: light.turn_on
       data:
-        entity_id: light.master_bedroom_sconces
+        entity_id:
+          - light.master_bedroom_sconce_l
+          - light.master_bedroom_sconce_r
         brightness_pct: 30
     - delay:
         seconds: 1
     - action: light.turn_on
       data:
-        entity_id: light.master_bedroom_sconces
+        entity_id:
+          - light.master_bedroom_sconce_l
+          - light.master_bedroom_sconce_r
         brightness_pct: 40
         transition: 5
     - action: switch.turn_off

@@ -597,6 +597,16 @@ input_boolean:
     initial: false
 
 input_select:
+  lighting_active_scene:
+    name: Lighting Active Scene
+    options:
+      - None
+      - All off
+      - Evening
+      - TV
+      - Bedtime
+    initial: None
+    icon: mdi:palette-outline
   downstairs_season_mode:
     name: Main Floor Season Mode
     options:
