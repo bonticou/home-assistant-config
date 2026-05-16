@@ -21,11 +21,23 @@ views:
             state: "on"
         card:
           type: custom:mushroom-template-card
-          entity: script.lights_bedtime_scene
+          entity: input_boolean.foyer_chandelier_sleep_hold
           primary: Sleep
-          secondary: Wind the house down with the bedtime scene.
+          secondary: >-
+            {% if is_state('input_boolean.foyer_chandelier_sleep_hold', 'on')
+              or is_state('input_boolean.front_stairs_sleep_override', 'on') %}
+              Bedtime scene is on.
+            {% else %}
+              Wind the house down with the bedtime scene.
+            {% endif %}
           icon: mdi:weather-night
-          icon_color: amber
+          icon_color: >-
+            {% if is_state('input_boolean.foyer_chandelier_sleep_hold', 'on')
+              or is_state('input_boolean.front_stairs_sleep_override', 'on') %}
+              indigo
+            {% else %}
+              amber
+            {% endif %}
           multiline_secondary: true
           fill_container: true
           tap_action:
@@ -42,10 +54,23 @@ views:
                 border: none;
                 border-radius: 28px;
                 padding: 12px 10px;
-                box-shadow: 0 18px 38px rgba(15, 23, 42, 0.16);
+                box-shadow:
+                  {% if is_state('input_boolean.foyer_chandelier_sleep_hold', 'on')
+                    or is_state('input_boolean.front_stairs_sleep_override', 'on') %}
+                    inset 0 1px 0 rgba(255, 255, 255, 0.08),
+                    0 18px 40px rgba(49, 46, 129, 0.28);
+                  {% else %}
+                    0 18px 38px rgba(15, 23, 42, 0.16);
+                  {% endif %}
                 background:
+                  {% if is_state('input_boolean.foyer_chandelier_sleep_hold', 'on')
+                    or is_state('input_boolean.front_stairs_sleep_override', 'on') %}
+                  radial-gradient(circle at top right, rgba(129, 140, 248, 0.28), transparent 36%),
+                  linear-gradient(145deg, rgba(30, 41, 59, 0.98), rgba(49, 46, 129, 0.82));
+                  {% else %}
                   radial-gradient(circle at top right, rgba(245, 158, 11, 0.18), transparent 34%),
                   linear-gradient(145deg, rgba(15, 23, 42, 0.98), rgba(30, 41, 59, 0.94));
+                  {% endif %}
                 color: #f8fafc;
               }
               mushroom-state-info .primary {
@@ -62,13 +87,31 @@ views:
                 max-width: 230px;
               }
               mushroom-shape-icon {
-                --shape-color: rgba(251, 191, 36, 0.16) !important;
-                --shape-color-disabled: rgba(251, 191, 36, 0.16) !important;
+                --shape-color:
+                  {% if is_state('input_boolean.foyer_chandelier_sleep_hold', 'on')
+                    or is_state('input_boolean.front_stairs_sleep_override', 'on') %}
+                    rgba(129, 140, 248, 0.22)
+                  {% else %}
+                    rgba(251, 191, 36, 0.16)
+                  {% endif %} !important;
+                --shape-color-disabled:
+                  {% if is_state('input_boolean.foyer_chandelier_sleep_hold', 'on')
+                    or is_state('input_boolean.front_stairs_sleep_override', 'on') %}
+                    rgba(129, 140, 248, 0.22)
+                  {% else %}
+                    rgba(251, 191, 36, 0.16)
+                  {% endif %} !important;
                 width: 68px;
                 height: 68px;
               }
               ha-state-icon {
-                color: #fbbf24 !important;
+                color:
+                  {% if is_state('input_boolean.foyer_chandelier_sleep_hold', 'on')
+                    or is_state('input_boolean.front_stairs_sleep_override', 'on') %}
+                    #c4b5fd
+                  {% else %}
+                    #fbbf24
+                  {% endif %} !important;
               }
 
       - type: custom:mushroom-template-card
@@ -3526,6 +3569,10 @@ views:
             name: Bedtime
             label: Sleep hold
             icon: mdi:weather-night
+            entity: input_boolean.foyer_chandelier_sleep_hold
+            triggers_update:
+              - input_boolean.foyer_chandelier_sleep_hold
+              - input_boolean.front_stairs_sleep_override
             show_state: false
             show_label: true
             tap_action:
@@ -3538,6 +3585,19 @@ views:
               icon:
                 - width: 18px
                 - color: '#818cf8'
+            state:
+              - value: "on"
+                styles:
+                  card:
+                    - border: 1px solid rgba(129, 140, 248, 0.44)
+                    - background: linear-gradient(180deg, rgba(79, 70, 229, 0.34), rgba(49, 46, 129, 0.22))
+                    - box-shadow: 0 12px 26px rgba(49, 46, 129, 0.24)
+                  icon:
+                    - color: '#c4b5fd'
+                  name:
+                    - color: '#f8fafc'
+                  label:
+                    - color: rgba(224, 231, 255, 0.9)
 
       - type: custom:mushroom-chips-card
         alignment: left

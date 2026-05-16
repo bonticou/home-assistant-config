@@ -1018,7 +1018,11 @@ class HouseNoticesCard extends HTMLElement {
 
   renderDetailSheet(item) {
     const detail = this.noticeDetail(item);
-    const stateLabel = item.badge || (item.state === "quiet" ? "current" : item.state);
+    const stateLabel = item.badge || (
+      item.state === "upcoming"
+        ? this.relativeDate(item.date) || "scheduled"
+        : item.state === "quiet" ? "current" : item.state
+    );
     const stateClass = item.badge_class || item.state;
     const facts = detail.facts.length
       ? `<div class="sheet-section">

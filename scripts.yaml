@@ -503,7 +503,7 @@ lights_all_off_scene:
 
 lights_bedtime_scene:
   alias: Lights Bedtime Scene
-  description: Turn off the house lights for bedtime, turn off the family room TV, leave Wynn's room and the front entry lights alone, settle the master bedroom sconces off gently if they are bright, fade the chandelier down first, turn off the mudroom exterior stairs, then settle the front stairs to a 4 percent overnight glow, and keep the chandelier off for the rest of the night.
+  description: Turn off the house lights for bedtime, turn off the family room TV, leave Wynn's room and the front entry lights alone, bring the master bedroom sconces on softly, fade the chandelier down first, turn off the mudroom exterior stairs, then settle the front stairs to a 4 percent overnight glow, and keep the chandelier off for the rest of the night.
   icon: mdi:weather-night
   mode: single
   sequence:
@@ -533,25 +533,17 @@ lights_bedtime_scene:
           - light.mudroom_nook_lights
           - light.back_patio_light
         transition: 8
-    - if:
-        - condition: state
-          entity_id: light.master_bedroom_sconces
-          state: "on"
-      then:
-        - if:
-            - condition: template
-              value_template: "{{ (state_attr('light.master_bedroom_sconces', 'brightness') | int(0) / 255 * 100) > 30 }}"
-          then:
-            - action: light.turn_on
-              data:
-                entity_id: light.master_bedroom_sconces
-                brightness_pct: 30
-                transition: 5
-            - delay:
-                seconds: 5
-        - action: light.turn_off
-          data:
-            entity_id: light.master_bedroom_sconces
+    - action: light.turn_on
+      data:
+        entity_id: light.master_bedroom_sconces
+        brightness_pct: 30
+    - delay:
+        seconds: 1
+    - action: light.turn_on
+      data:
+        entity_id: light.master_bedroom_sconces
+        brightness_pct: 40
+        transition: 5
     - action: switch.turn_off
       data:
         entity_id:
@@ -622,7 +614,7 @@ lights_bedtime_scene:
 
 door_lights_schedule_on:
   alias: Door Lights Schedule On
-  description: Turn on the front door lights for the normal overnight routine.
+  description: Turn on the front door lights for the normal overnight routine, while letting bedtime keep the mudroom stairs dark until morning.
   icon: mdi:coach-lamp
   mode: single
   sequence:
@@ -631,7 +623,18 @@ door_lights_schedule_on:
         entity_id:
           - switch.master_lantern
           - switch.front_foyer_sconces
-          - switch.exterior_mud_room_stairs
+    - if:
+        - condition: state
+          entity_id: input_boolean.front_stairs_sleep_override
+          state: "off"
+      then:
+        - action: switch.turn_on
+          data:
+            entity_id: switch.exterior_mud_room_stairs
+      else:
+        - action: switch.turn_off
+          data:
+            entity_id: switch.exterior_mud_room_stairs
 
 door_lights_schedule_off:
   alias: Door Lights Schedule Off

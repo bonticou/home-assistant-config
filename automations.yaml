@@ -917,6 +917,8 @@
     - trigger: state
       entity_id: binary_sensor.door_lights_schedule_active
       to: "off"
+    - trigger: state
+      entity_id: input_boolean.front_stairs_sleep_override
   actions:
     - choose:
         - conditions:

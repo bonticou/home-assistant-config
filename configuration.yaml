@@ -9,7 +9,7 @@ lovelace:
   resources:
     - url: /local/calm-mobile-scrollbars.js?v=6
       type: module
-    - url: /local/house-notices-card.js?v=44
+    - url: /local/house-notices-card.js?v=45
       type: module
     - url: /local/radon-air-quality-card.js?v=6
       type: module
@@ -3008,9 +3008,7 @@ template:
           {% set hour = now().hour %}
           {{ is_state('person.bonticou', 'home')
              and (hour >= 22 or hour < 5)
-             and is_state('input_boolean.interior_lights_guest_override', 'off')
-             and is_state('input_boolean.foyer_chandelier_sleep_hold', 'off')
-             and is_state('input_boolean.front_stairs_sleep_override', 'off') }}
+             and is_state('input_boolean.interior_lights_guest_override', 'off') }}
 
       - name: "foyer_chandelier_schedule_active"
         unique_id: foyer_chandelier_schedule_active
