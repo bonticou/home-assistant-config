@@ -499,12 +499,39 @@ lights_all_off_scene:
           - light.deck_deck_lights
           - light.exterior_yard_lights
         transition: 3
-    - action: light.turn_off
-      data:
-        entity_id:
-          - light.master_bedroom_sconce_l
-          - light.master_bedroom_sconce_r
-        transition: 3
+    - variables:
+        master_sconces_sleep_fade_down: >-
+          {% set left_on = is_state('light.master_bedroom_sconce_l', 'on') %}
+          {% set right_on = is_state('light.master_bedroom_sconce_r', 'on') %}
+          {% set left_pct = ((state_attr('light.master_bedroom_sconce_l', 'brightness') | int(0) / 255) * 100) | round(0) | int %}
+          {% set right_pct = ((state_attr('light.master_bedroom_sconce_r', 'brightness') | int(0) / 255) * 100) | round(0) | int %}
+          {{ left_on and right_on and (([left_pct, right_pct] | max) > 30) }}
+    - choose:
+        - conditions:
+            - condition: template
+              value_template: "{{ master_sconces_sleep_fade_down }}"
+          sequence:
+            - action: light.turn_on
+              target:
+                entity_id:
+                  - light.master_bedroom_sconce_l
+                  - light.master_bedroom_sconce_r
+              data:
+                brightness_pct: 30
+                transition: 3
+            - delay:
+                seconds: 4
+            - action: light.turn_off
+              target:
+                entity_id:
+                  - light.master_bedroom_sconce_l
+                  - light.master_bedroom_sconce_r
+      default:
+        - action: light.turn_off
+          target:
+            entity_id:
+              - light.master_bedroom_sconce_l
+              - light.master_bedroom_sconce_r
     - action: switch.turn_off
       data:
         entity_id:
@@ -569,18 +596,20 @@ lights_bedtime_scene:
           - light.back_patio_light
         transition: 8
     - action: light.turn_on
-      data:
+      target:
         entity_id:
           - light.master_bedroom_sconce_l
           - light.master_bedroom_sconce_r
+      data:
         brightness_pct: 30
     - delay:
         seconds: 1
     - action: light.turn_on
-      data:
+      target:
         entity_id:
           - light.master_bedroom_sconce_l
           - light.master_bedroom_sconce_r
+      data:
         brightness_pct: 40
         transition: 5
     - action: switch.turn_off
