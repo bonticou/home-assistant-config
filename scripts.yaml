@@ -255,7 +255,7 @@ common_areas_transition_toggle:
 
 lights_evening_scene:
   alias: Lights Evening Scene
-  description: Set the non-automated house lights to a calm 10 percent evening level, excluding Wynn's room, turn on the family room uplight, and softly bring the chandelier up to 7 percent only if it happens to be off.
+  description: Set the non-automated house lights to a calm 10 percent evening level, excluding Wynn's room, turn on the family room uplight, and softly bring the chandelier up to 10 percent only if it happens to be off.
   icon: mdi:weather-sunset
   mode: single
   sequence:
@@ -285,7 +285,7 @@ lights_evening_scene:
         - action: light.turn_on
           data:
             entity_id: light.front_foyer_chandelier
-            brightness_pct: 7
+            brightness_pct: 10
             transition: 8
     - action: light.turn_on
       data:
@@ -751,7 +751,7 @@ foyer_chandelier_schedule_on:
     - action: light.turn_on
       data:
         entity_id: light.front_foyer_chandelier
-        brightness_pct: 7
+        brightness_pct: 10
         transition: 3
 
 foyer_chandelier_schedule_off:

@@ -1549,7 +1549,7 @@ template:
           {% if is_state('binary_sensor.front_stairs_schedule_active', 'off') %}
             0
           {% else %}
-            7
+            10
           {% endif %}
 
       - name: "Vacation Activity Window"
