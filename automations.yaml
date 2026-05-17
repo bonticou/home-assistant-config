@@ -1597,7 +1597,7 @@
 
 - id: away_motion_security_clear_when_home
   alias: "Security — Clear Away Motion Alert When Home"
-  description: Clears away motion security notifications when a household phone returns home.
+  description: Clears away motion security notifications and re-arms temporary guest pauses when a household phone returns home.
   triggers:
     - trigger: state
       entity_id:
@@ -1606,7 +1606,7 @@
       to: home
   conditions: []
   actions:
-    - action: script.away_motion_security_clear_alert
+    - action: script.away_motion_security_resume
   mode: single
 
 - id: garage_security_open_while_person_away

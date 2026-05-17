@@ -3370,6 +3370,42 @@ away_motion_security_clear_alert:
         data:
           tag: away-motion-security
 
+away_motion_security_resume:
+  alias: Away Motion Security Resume
+  description: Re-arms away motion security immediately and clears any visible away-motion alert.
+  icon: mdi:motion-sensor
+  mode: restart
+  sequence:
+    - action: input_datetime.set_datetime
+      target:
+        entity_id: input_datetime.away_motion_security_snooze_until
+      data:
+        datetime: "{{ (now() - timedelta(minutes=1)).strftime('%Y-%m-%d %H:%M:%S') }}"
+    - action: script.away_motion_security_clear_alert
+
+away_motion_security_guest_toggle:
+  alias: Away Motion Security Guest Toggle
+  description: Temporarily pauses or resumes away motion security for a sitter, cleaner, or other expected person inside while everyone is away.
+  icon: mdi:motion-sensor-off
+  mode: restart
+  sequence:
+    - choose:
+        - conditions:
+            - condition: template
+              value_template: >
+                {% set until = states('input_datetime.away_motion_security_snooze_until') %}
+                {{ until not in ['unknown', 'unavailable', '']
+                   and as_timestamp(until, 0) > as_timestamp(now()) }}
+          sequence:
+            - action: script.away_motion_security_resume
+      default:
+        - action: input_datetime.set_datetime
+          target:
+            entity_id: input_datetime.away_motion_security_snooze_until
+          data:
+            datetime: "{{ (now() + timedelta(hours=4)).strftime('%Y-%m-%d %H:%M:%S') }}"
+        - action: script.away_motion_security_clear_alert
+
 away_motion_security_snooze_30:
   alias: Away Motion Security Snooze 30 Minutes
   description: Pauses away motion security reminders for 30 minutes.
