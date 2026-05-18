@@ -260,60 +260,13 @@ views:
             tap_action:
               action: more-info
           - type: template
+            entity: sensor.away_security_active_lights
             icon: >-
-              {% set ignore_door_lights = is_state('binary_sensor.door_lights_schedule_active', 'on') %}
-              {% set light_count = states.light
-                | selectattr('state', 'eq', 'on')
-                | rejectattr('attributes.entity_id', 'defined')
-                | list
-                | count %}
-              {% set door_switch_count = [
-                states('switch.master_lantern'),
-                states('switch.front_foyer_sconces'),
-                states('switch.exterior_mud_room_stairs')
-              ] | select('eq', 'on') | list | count %}
-              {% set lighting_switch_count = [
-                states('switch.uplight'),
-                states('switch.garage_garage_lights')
-              ] | select('eq', 'on') | list | count %}
-              {% set switch_count = lighting_switch_count + (0 if ignore_door_lights else door_switch_count) %}
-              {{ 'mdi:lightbulb-on-outline' if (light_count + switch_count) > 0 else 'mdi:lightbulb-off-outline' }}
+              {{ 'mdi:lightbulb-on-outline' if states('sensor.away_security_active_lights') | int(0) > 0 else 'mdi:lightbulb-off-outline' }}
             icon_color: >-
-              {% set ignore_door_lights = is_state('binary_sensor.door_lights_schedule_active', 'on') %}
-              {% set light_count = states.light
-                | selectattr('state', 'eq', 'on')
-                | rejectattr('attributes.entity_id', 'defined')
-                | list
-                | count %}
-              {% set door_switch_count = [
-                states('switch.master_lantern'),
-                states('switch.front_foyer_sconces'),
-                states('switch.exterior_mud_room_stairs')
-              ] | select('eq', 'on') | list | count %}
-              {% set lighting_switch_count = [
-                states('switch.uplight'),
-                states('switch.garage_garage_lights')
-              ] | select('eq', 'on') | list | count %}
-              {% set switch_count = lighting_switch_count + (0 if ignore_door_lights else door_switch_count) %}
-              {{ 'amber' if (light_count + switch_count) > 0 else 'grey' }}
+              {{ 'amber' if states('sensor.away_security_active_lights') | int(0) > 0 else 'grey' }}
             content: >-
-              {% set ignore_door_lights = is_state('binary_sensor.door_lights_schedule_active', 'on') %}
-              {% set light_count = states.light
-                | selectattr('state', 'eq', 'on')
-                | rejectattr('attributes.entity_id', 'defined')
-                | list
-                | count %}
-              {% set door_switch_count = [
-                states('switch.master_lantern'),
-                states('switch.front_foyer_sconces'),
-                states('switch.exterior_mud_room_stairs')
-              ] | select('eq', 'on') | list | count %}
-              {% set lighting_switch_count = [
-                states('switch.uplight'),
-                states('switch.garage_garage_lights')
-              ] | select('eq', 'on') | list | count %}
-              {% set switch_count = lighting_switch_count + (0 if ignore_door_lights else door_switch_count) %}
-              {{ 'Lights on' if (light_count + switch_count) > 0 else 'Lights off' }}
+              {{ 'Lights on' if states('sensor.away_security_active_lights') | int(0) > 0 else 'Lights off' }}
             tap_action:
               action: navigate
               navigation_path: /calm-mobile/lights
