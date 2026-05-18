@@ -268,8 +268,11 @@ views:
             content: >-
               {{ 'Lights on' if states('sensor.away_security_active_lights') | int(0) > 0 else 'Lights off' }}
             tap_action:
-              action: navigate
-              navigation_path: /calm-mobile/lights
+              action: fire-dom-event
+              browser_mod:
+                service: browser_mod.popup
+                data:
+                  popup_card_id: lights-quick-popup
           - type: template
             entity: climate.dining_room
             icon: >-
@@ -333,6 +336,283 @@ views:
               flex: 0 0 auto;
               max-width: none;
             }
+      - type: custom:popup-card
+        popup_card_id: lights-quick-popup
+        target:
+          entity_id: sensor.away_security_active_lights
+        title: " "
+        initial_style: wide
+        card_mod:
+          style:
+            ha-dialog$: |
+              ha-icon-button {
+                display: none !important;
+              }
+        popup_styles:
+          - style: all
+            styles: |
+              :host {
+                --primary-text-color: #f8fafc;
+                --secondary-text-color: #cbd5e1;
+                --popup-padding-x: 0px;
+                --popup-padding-y: 0px;
+              }
+              ha-dialog {
+                --mdc-dialog-scrim-color: rgba(2, 6, 23, 0.70);
+                --dialog-backdrop-filter: blur(30px) saturate(160%);
+                --ha-dialog-border-radius: 28px;
+                --mdc-dialog-container-color: transparent;
+                --mdc-theme-surface: transparent;
+                --ha-dialog-surface-background: transparent;
+              }
+              dialog {
+                background: transparent !important;
+                box-shadow: none !important;
+              }
+          - style: wide
+            styles: |
+              .content {
+                width: min(344px, calc(100vw - 30px)) !important;
+                margin-inline: auto;
+              }
+              .content .container {
+                overflow: visible;
+                box-sizing: border-box;
+                margin-top: clamp(128px, 24vh, 260px);
+                position: relative;
+                padding: 14px !important;
+                border-radius: 28px;
+                border: 1px solid rgba(148, 163, 184, 0.22);
+                background:
+                  radial-gradient(circle at 14% -12%, rgba(251, 191, 36, 0.14), transparent 38%),
+                  radial-gradient(circle at 96% 4%, rgba(129, 140, 248, 0.15), transparent 36%),
+                  linear-gradient(180deg, rgba(15, 23, 42, 0.90), rgba(8, 13, 27, 0.84));
+                box-shadow:
+                  inset 0 1px 0 rgba(255, 255, 255, 0.07),
+                  0 26px 54px rgba(2, 6, 23, 0.42);
+                -webkit-backdrop-filter: blur(22px) saturate(150%);
+                backdrop-filter: blur(22px) saturate(150%);
+              }
+        card:
+          type: vertical-stack
+          cards:
+            - type: custom:button-card
+              icon: mdi:close
+              show_name: false
+              show_state: false
+              tap_action:
+                action: fire-dom-event
+                browser_mod:
+                  service: browser_mod.close_popup
+                  data: {}
+              styles:
+                card:
+                  - width: 44px
+                  - height: 44px
+                  - padding: 0
+                  - border-radius: 999px
+                  - border: 1px solid rgba(148, 163, 184, 0.22)
+                  - background: rgba(15, 23, 42, 0.58)
+                  - color: "#f8fafc"
+                  - box-shadow: 0 12px 26px rgba(2, 6, 23, 0.30)
+                  - -webkit-backdrop-filter: blur(14px) saturate(150%)
+                  - backdrop-filter: blur(14px) saturate(150%)
+                icon:
+                  - width: 22px
+                  - color: "#f8fafc"
+              card_mod:
+                style: |
+                  :host {
+                    position: absolute !important;
+                    top: -58px;
+                    left: 0;
+                    z-index: 5;
+                    width: 44px;
+                    height: 44px;
+                    display: block;
+                  }
+            - type: custom:button-card
+              name: Lights
+              label: Frequent scenes
+              icon: mdi:lightbulb-group-outline
+              show_state: false
+              show_label: true
+              tap_action:
+                action: none
+              styles:
+                card:
+                  - height: 48px
+                  - padding: 0 4px 8px
+                  - border-radius: 0
+                  - border: 0
+                  - border-bottom: 1px solid rgba(148, 163, 184, 0.14)
+                  - background: transparent
+                  - box-shadow: none
+                  - text-align: left
+                grid:
+                  - grid-template-areas: '"i n" "i l"'
+                  - grid-template-columns: 30px minmax(0, 1fr)
+                  - grid-template-rows: min-content min-content
+                  - column-gap: 10px
+                  - align-content: center
+                  - align-items: center
+                icon:
+                  - width: 21px
+                  - color: '#fbbf24'
+                name:
+                  - justify-self: start
+                  - font-size: 15px
+                  - font-weight: 760
+                  - color: rgba(248, 250, 252, 0.96)
+                label:
+                  - justify-self: start
+                  - margin-top: 2px
+                  - font-size: 12px
+                  - font-weight: 550
+                  - color: rgba(203, 213, 225, 0.72)
+            - type: grid
+              columns: 2
+              square: false
+              cards:
+                - type: custom:button-card
+                  name: All off
+                  label: House lights down
+                  icon: mdi:lightbulb-off-outline
+                  entity: input_select.lighting_active_scene
+                  show_state: false
+                  show_label: true
+                  tap_action:
+                    action: call-service
+                    service: script.turn_on
+                    service_data:
+                      entity_id: script.lights_all_off_scene
+                  styles:
+                    &home_lights_scene_button_styles
+                    card:
+                      - height: 58px
+                      - padding: 0 13px
+                      - border-radius: 17px
+                      - border: 1px solid rgba(226, 232, 240, 0.1)
+                      - background: linear-gradient(180deg, rgba(15, 23, 42, 0.34), rgba(30, 41, 59, 0.24))
+                      - backdrop-filter: blur(12px)
+                      - -webkit-backdrop-filter: blur(12px)
+                      - box-shadow: 0 8px 18px rgba(2, 6, 23, 0.14)
+                      - text-align: left
+                    grid:
+                      - grid-template-areas: '"i n" "i l"'
+                      - grid-template-columns: 19px minmax(0, 1fr)
+                      - grid-template-rows: min-content min-content
+                      - column-gap: 9px
+                      - align-content: center
+                      - align-items: center
+                    icon:
+                      - width: 17px
+                      - color: '#94a3b8'
+                    name:
+                      - justify-self: start
+                      - font-size: 14px
+                      - font-weight: 560
+                      - letter-spacing: -0.01em
+                      - color: rgba(248, 250, 252, 0.96)
+                    label:
+                      - justify-self: start
+                      - margin-top: 1px
+                      - font-size: 11px
+                      - font-weight: 500
+                      - color: rgba(203, 213, 225, 0.72)
+                  state:
+                    - value: "All off"
+                      styles:
+                        card:
+                          - border: 1px solid rgba(148, 163, 184, 0.34)
+                          - background: linear-gradient(180deg, rgba(71, 85, 105, 0.30), rgba(30, 41, 59, 0.24))
+                          - box-shadow: 0 12px 26px rgba(15, 23, 42, 0.24)
+                        icon:
+                          - color: '#e2e8f0'
+                        label:
+                          - color: rgba(226, 232, 240, 0.88)
+                - type: custom:button-card
+                  name: Evening
+                  label: Calm 10% glow
+                  icon: mdi:weather-sunset
+                  entity: input_select.lighting_active_scene
+                  show_state: false
+                  show_label: true
+                  tap_action:
+                    action: call-service
+                    service: script.turn_on
+                    service_data:
+                      entity_id: script.lights_evening_scene
+                  styles:
+                    <<: *home_lights_scene_button_styles
+                    icon:
+                      - width: 18px
+                      - color: '#fbbf24'
+                  state:
+                    - value: "Evening"
+                      styles:
+                        card:
+                          - border: 1px solid rgba(251, 191, 36, 0.42)
+                          - background: linear-gradient(180deg, rgba(146, 64, 14, 0.30), rgba(120, 53, 15, 0.22))
+                          - box-shadow: 0 12px 26px rgba(146, 64, 14, 0.22)
+                        label:
+                          - color: rgba(254, 243, 199, 0.9)
+                - type: custom:button-card
+                  name: TV
+                  label: TV + uplight
+                  icon: mdi:television
+                  entity: input_select.lighting_active_scene
+                  show_state: false
+                  show_label: true
+                  tap_action:
+                    action: call-service
+                    service: script.turn_on
+                    service_data:
+                      entity_id: script.lights_tv_scene
+                  styles:
+                    <<: *home_lights_scene_button_styles
+                    icon:
+                      - width: 18px
+                      - color: '#67e8f9'
+                  state:
+                    - value: "TV"
+                      styles:
+                        card:
+                          - border: 1px solid rgba(103, 232, 249, 0.38)
+                          - background: linear-gradient(180deg, rgba(8, 145, 178, 0.26), rgba(22, 78, 99, 0.20))
+                          - box-shadow: 0 12px 26px rgba(8, 145, 178, 0.20)
+                        label:
+                          - color: rgba(207, 250, 254, 0.9)
+                - type: custom:button-card
+                  name: Bedtime
+                  label: Sleep hold
+                  icon: mdi:weather-night
+                  entity: input_select.lighting_active_scene
+                  show_state: false
+                  show_label: true
+                  tap_action:
+                    action: call-service
+                    service: script.turn_on
+                    service_data:
+                      entity_id: script.lights_bedtime_scene
+                  styles:
+                    <<: *home_lights_scene_button_styles
+                    icon:
+                      - width: 18px
+                      - color: '#818cf8'
+                  state:
+                    - value: "Bedtime"
+                      styles:
+                        card:
+                          - border: 1px solid rgba(129, 140, 248, 0.44)
+                          - background: linear-gradient(180deg, rgba(79, 70, 229, 0.34), rgba(49, 46, 129, 0.22))
+                          - box-shadow: 0 12px 26px rgba(49, 46, 129, 0.24)
+                        icon:
+                          - color: '#c4b5fd'
+                        name:
+                          - color: '#f8fafc'
+                        label:
+                          - color: rgba(224, 231, 255, 0.9)
       - type: grid
         columns: 2
         square: false
