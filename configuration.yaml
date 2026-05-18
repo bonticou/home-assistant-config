@@ -28,6 +28,26 @@ automation: !include automations.yaml
 script: !include scripts.yaml
 scene: !include scenes.yaml
 
+homekit:
+  - name: House Modes
+    mode: bridge
+    port: 21076
+    filter:
+      include_entities:
+        - script.lights_evening_scene
+        - script.lights_tv_scene
+        - script.lights_bedtime_scene
+        - script.lights_all_off_scene
+    entity_config:
+      script.lights_evening_scene:
+        name: Evening Lights
+      script.lights_tv_scene:
+        name: TV Lights
+      script.lights_bedtime_scene:
+        name: Bedtime Lights
+      script.lights_all_off_scene:
+        name: House Lights Off
+
 command_line:
   - sensor:
       name: House Action Stamp Ledger
