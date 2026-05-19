@@ -322,13 +322,14 @@ lights_evening_scene:
 
 family_room_tv_mode_on:
   alias: Family Room TV Mode On
-  description: Wake the family room Frame TV and Apple TV, then route the Frame TV to the Apple TV HDMI input, retrying once so TV mode can break out of Art Mode or a stale app state.
+  description: Wake the family room Frame TV and Apple TV, then force the Frame TV to the Apple TV HDMI input, retrying once so TV mode can break out of Art Mode or a stale app state.
   icon: mdi:television-play
   mode: restart
   sequence:
     - alias: Define the family room TV entities and Apple TV input
       variables:
         frame_tv_entity: media_player.family_room_frame_tv
+        frame_tv_remote_entity: remote.family_room_frame_tv
         app_tv_entity: media_player.family_room_tv_2
         app_tv_remote_entity: remote.family_room_tv
         target_input: HDMI
@@ -380,6 +381,13 @@ family_room_tv_mode_on:
       data:
         entity_id: "{{ frame_tv_entity }}"
         source: "{{ target_input }}"
+    - alias: Nudge the Samsung remote directly to HDMI
+      continue_on_error: true
+      action: remote.send_command
+      target:
+        entity_id: "{{ frame_tv_remote_entity }}"
+      data:
+        command: KEY_HDMI
     - alias: Let the TV settle before retrying HDMI
       delay:
         seconds: 2
@@ -388,6 +396,13 @@ family_room_tv_mode_on:
       data:
         entity_id: "{{ frame_tv_entity }}"
         source: "{{ target_input }}"
+    - alias: Reassert HDMI with the Samsung remote after wakeup
+      continue_on_error: true
+      action: remote.send_command
+      target:
+        entity_id: "{{ frame_tv_remote_entity }}"
+      data:
+        command: KEY_HDMI
 
 lights_tv_scene:
   alias: Lights TV Scene
