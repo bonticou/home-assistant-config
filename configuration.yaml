@@ -90,6 +90,7 @@ command_line:
         - ready_styles
         - ready_regions
         - ready_countries
+        - drink_now_rows
         - stabilizing_rows
         - mature_rows
         - early_rows

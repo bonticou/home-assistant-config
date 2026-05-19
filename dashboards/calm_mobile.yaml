@@ -7990,6 +7990,187 @@ views:
             tap_action:
               action: more-info
 
+      - type: custom:button-card
+        show_icon: true
+        show_name: false
+        show_state: false
+        icon: mdi:glass-wine
+        custom_fields:
+          header: >-
+            [[[
+              const snapshot = hass.states['sensor.wine_collection_snapshot']?.attributes || {};
+              const fallbackRows = [
+                { qty: '2x', name: 'Enrico VI (Villero) 2004', kind: 'ends soon' },
+                { qty: '3x', name: 'Pessac-Leognan Rouge 2016', kind: 'mature' },
+                { qty: '4x', name: 'Abstract Red', kind: 'mature' },
+              ];
+              const drinkRows = Array.isArray(snapshot.drink_now_rows) ? snapshot.drink_now_rows : null;
+              const matureRows = Array.isArray(snapshot.mature_rows) ? snapshot.mature_rows : null;
+              const rows = (drinkRows || matureRows || fallbackRows).slice(0, 3);
+              const meta = rows.length ? `${rows.length} picks` : 'No mature bottles';
+              return `<div class="wine-screener-header"><div class="wine-screener-title">Drink now</div><div class="wine-screener-meta">${meta}</div></div>`;
+            ]]]
+          rows: >-
+            [[[
+              const snapshot = hass.states['sensor.wine_collection_snapshot']?.attributes || {};
+              const fallbackRows = [
+                { qty: '2x', name: 'Enrico VI (Villero) 2004', kind: 'ends soon' },
+                { qty: '3x', name: 'Pessac-Leognan Rouge 2016', kind: 'mature' },
+                { qty: '4x', name: 'Abstract Red', kind: 'mature' },
+              ];
+              const drinkRows = Array.isArray(snapshot.drink_now_rows) ? snapshot.drink_now_rows : null;
+              const matureRows = Array.isArray(snapshot.mature_rows) ? snapshot.mature_rows : null;
+              const rows = (drinkRows || matureRows || fallbackRows).slice(0, 3);
+              if (!rows.length) {
+                return `<div class="wine-bottle-row"><span class="wine-bottle-qty">--</span><span class="wine-bottle-name">No mature bottles ready</span><span class="wine-bottle-kind">later</span></div>`;
+              }
+              return rows.map((row) => `<div class="wine-bottle-row"><span class="wine-bottle-qty">${row.qty}</span><span class="wine-bottle-name">${row.name}</span><span class="wine-bottle-kind">${row.kind}</span></div>`).join('');
+            ]]]
+        tap_action:
+          action: url
+          url_path: https://docs.google.com/spreadsheets/d/1XBYnqfFw7ggvTGqqeNdX6AaFtzQNf_lKnQHAzyPPA58/edit?usp=sharing
+        styles:
+          <<: &wine_screener_card_styles
+            card:
+              - border-radius: 24px
+              - padding: 18px 18px 16px
+              - border: 1px solid rgba(148, 163, 184, 0.18)
+              - box-shadow: 0 10px 20px rgba(2, 8, 23, 0.18)
+              - background: linear-gradient(180deg, rgba(15, 23, 42, 0.78), rgba(30, 41, 59, 0.72))
+              - backdrop-filter: blur(16px) saturate(160%)
+              - -webkit-backdrop-filter: blur(16px) saturate(160%)
+            grid:
+              - grid-template-areas: '"header" "rows"'
+              - grid-template-columns: minmax(0, 1fr)
+              - row-gap: 10px
+            custom_fields:
+              header:
+                - justify-self: stretch
+                - align-self: start
+              rows:
+                - justify-self: stretch
+                - align-self: start
+          grid:
+            - grid-template-areas: '"i header" "rows rows"'
+            - grid-template-columns: auto minmax(0, 1fr)
+            - column-gap: 10px
+            - row-gap: 10px
+          icon:
+            - color: '#fbbf24'
+            - width: 18px
+            - height: 18px
+            - justify-self: start
+            - align-self: center
+            - margin-top: 2px
+        extra_styles: &wine_screener_card_extra |
+          .wine-screener-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: baseline;
+            gap: 12px;
+          }
+          .wine-screener-title {
+            color: #f8fafc;
+            font-size: 21px;
+            font-weight: 560;
+            letter-spacing: 0;
+          }
+          .wine-screener-meta {
+            color: rgba(226, 232, 240, 0.62);
+            font-size: 11px;
+            font-weight: 600;
+            letter-spacing: 0.08em;
+            text-transform: uppercase;
+            white-space: nowrap;
+          }
+          .wine-stat-row {
+            display: grid;
+            grid-template-columns: minmax(0, 1fr) auto;
+            gap: 10px;
+            align-items: center;
+            padding: 5px 0;
+            border-top: 1px solid rgba(148, 163, 184, 0.12);
+          }
+          .wine-stat-row:first-child {
+            border-top: none;
+            padding-top: 0;
+          }
+          .wine-stat-label {
+            display: block;
+            min-width: 0;
+            color: rgba(248, 250, 252, 0.92);
+            font-size: 13px;
+            line-height: 1.25;
+            text-align: left;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+          }
+          .wine-stat-label--with-flag {
+            display: flex;
+            align-items: center;
+            justify-content: flex-start;
+            min-width: 0;
+          }
+          .wine-stat-label-text {
+            min-width: 0;
+            overflow: hidden;
+            text-overflow: ellipsis;
+          }
+          .wine-stat-flag {
+            display: inline-block;
+            margin-right: 8px;
+            font-size: 15px;
+            flex: none;
+            transform: translateY(1px);
+          }
+          .wine-stat-value {
+            justify-self: end;
+            color: rgba(226, 232, 240, 0.82);
+            font-size: 13px;
+            font-weight: 600;
+            font-variant-numeric: tabular-nums;
+            text-align: right;
+          }
+          .wine-bottle-row {
+            display: grid;
+            grid-template-columns: 28px minmax(0, 1fr) auto;
+            align-items: baseline;
+            gap: 10px;
+            padding: 6px 0;
+            border-top: 1px solid rgba(148, 163, 184, 0.12);
+          }
+          .wine-bottle-row:first-child {
+            border-top: none;
+            padding-top: 0;
+          }
+          .wine-bottle-qty {
+            color: rgba(148, 163, 184, 0.92);
+            font-size: 12px;
+            font-weight: 600;
+            font-variant-numeric: tabular-nums;
+            font-family: ui-monospace, SFMono-Regular, SF Mono, Menlo, monospace;
+          }
+          .wine-bottle-name {
+            min-width: 0;
+            color: #f8fafc;
+            font-size: 13px;
+            line-height: 1.25;
+            text-align: left;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+          }
+          .wine-bottle-kind {
+            justify-self: end;
+            color: rgba(226, 232, 240, 0.7);
+            font-size: 12px;
+            line-height: 1.2;
+            white-space: nowrap;
+            margin-left: 4px;
+            text-align: right;
+          }
+
       - type: custom:mushroom-title-card
         title: Appliance
 
@@ -8484,134 +8665,8 @@ views:
             tap_action:
               action: url
               url_path: https://docs.google.com/spreadsheets/d/1XBYnqfFw7ggvTGqqeNdX6AaFtzQNf_lKnQHAzyPPA58/edit?usp=sharing
-            styles: &wine_screener_card_styles
-              card:
-                - border-radius: 24px
-                - padding: 18px 18px 16px
-                - border: 1px solid rgba(148, 163, 184, 0.18)
-                - box-shadow: 0 10px 20px rgba(2, 8, 23, 0.18)
-                - background: linear-gradient(180deg, rgba(15, 23, 42, 0.78), rgba(30, 41, 59, 0.72))
-                - backdrop-filter: blur(16px) saturate(160%)
-                - -webkit-backdrop-filter: blur(16px) saturate(160%)
-              grid:
-                - grid-template-areas: '"header" "rows"'
-                - grid-template-columns: minmax(0, 1fr)
-                - row-gap: 10px
-              custom_fields:
-                header:
-                  - justify-self: stretch
-                  - align-self: start
-                rows:
-                  - justify-self: stretch
-                  - align-self: start
-            extra_styles: &wine_screener_card_extra |
-              .wine-screener-header {
-                display: flex;
-                justify-content: space-between;
-                align-items: baseline;
-                gap: 12px;
-              }
-              .wine-screener-title {
-                color: #f8fafc;
-                font-size: 21px;
-                font-weight: 560;
-                letter-spacing: -0.02em;
-              }
-              .wine-screener-meta {
-                color: rgba(226, 232, 240, 0.62);
-                font-size: 11px;
-                font-weight: 600;
-                letter-spacing: 0.08em;
-                text-transform: uppercase;
-                white-space: nowrap;
-              }
-              .wine-stat-row {
-                display: grid;
-                grid-template-columns: minmax(0, 1fr) auto;
-                gap: 10px;
-                align-items: center;
-                padding: 5px 0;
-                border-top: 1px solid rgba(148, 163, 184, 0.12);
-              }
-              .wine-stat-row:first-child {
-                border-top: none;
-                padding-top: 0;
-              }
-              .wine-stat-label {
-                display: block;
-                min-width: 0;
-                color: rgba(248, 250, 252, 0.92);
-                font-size: 13px;
-                line-height: 1.25;
-                text-align: left;
-                white-space: nowrap;
-                overflow: hidden;
-                text-overflow: ellipsis;
-              }
-              .wine-stat-label--with-flag {
-                display: flex;
-                align-items: center;
-                justify-content: flex-start;
-                min-width: 0;
-              }
-              .wine-stat-label-text {
-                min-width: 0;
-                overflow: hidden;
-                text-overflow: ellipsis;
-              }
-              .wine-stat-flag {
-                display: inline-block;
-                margin-right: 8px;
-                font-size: 15px;
-                flex: none;
-                transform: translateY(1px);
-              }
-              .wine-stat-value {
-                justify-self: end;
-                color: rgba(226, 232, 240, 0.82);
-                font-size: 13px;
-                font-weight: 600;
-                font-variant-numeric: tabular-nums;
-                text-align: right;
-              }
-              .wine-bottle-row {
-                display: grid;
-                grid-template-columns: 28px minmax(0, 1fr) auto;
-                align-items: baseline;
-                gap: 10px;
-                padding: 6px 0;
-                border-top: 1px solid rgba(148, 163, 184, 0.12);
-              }
-              .wine-bottle-row:first-child {
-                border-top: none;
-                padding-top: 0;
-              }
-              .wine-bottle-qty {
-                color: rgba(148, 163, 184, 0.92);
-                font-size: 12px;
-                font-weight: 600;
-                font-variant-numeric: tabular-nums;
-                font-family: ui-monospace, SFMono-Regular, SF Mono, Menlo, monospace;
-              }
-              .wine-bottle-name {
-                min-width: 0;
-                color: #f8fafc;
-                font-size: 13px;
-                line-height: 1.25;
-                text-align: left;
-                white-space: nowrap;
-                overflow: hidden;
-                text-overflow: ellipsis;
-              }
-              .wine-bottle-kind {
-                justify-self: end;
-                color: rgba(226, 232, 240, 0.7);
-                font-size: 12px;
-                line-height: 1.2;
-                white-space: nowrap;
-                margin-left: 4px;
-                text-align: right;
-              }
+            styles: *wine_screener_card_styles
+            extra_styles: *wine_screener_card_extra
           - type: custom:button-card
             show_icon: false
             show_name: false

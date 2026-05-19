@@ -120,6 +120,26 @@ def sort_bucket(rows, mode):
     return [bucket_row(row, mode) for row in sorted(rows, key=key_fn)]
 
 
+def drink_now_row(row):
+    kind = f"ends {row['to_year']}" if row["to_year"] else bottle_kind(row)
+    return {
+        "qty": f"{row['qty']}x",
+        "name": display_name(row),
+        "kind": kind,
+    }
+
+
+def drink_now_rows(rows, limit=3):
+    mature_rows = [row for row in rows if row["phase"] == "mature"]
+    key_fn = lambda row: (
+        row["to_year"] or 9999,
+        row["from_year"] or 9999,
+        row["vintage_year"] or 9999,
+        display_name(row).lower(),
+    )
+    return [drink_now_row(row) for row in sorted(mature_rows, key=key_fn)[:limit]]
+
+
 def top_rows(counter, limit=5):
     return [
         {"label": label, "value": value}
@@ -162,6 +182,7 @@ def build_snapshot(csv_text, source):
         "ready_styles": top_rows(style_counts, 5),
         "ready_regions": top_rows(region_counts, 5),
         "ready_countries": top_rows(country_counts, 5),
+        "drink_now_rows": drink_now_rows(ready_rows, 3),
         "stabilizing_rows": sort_bucket(
             [row for row in ready_rows if row["phase"] == "stabilizing"],
             "stabilizing",
@@ -238,6 +259,11 @@ def main():
                     {"label": "Italy", "value": 35},
                     {"label": "USA", "value": 19},
                     {"label": "France", "value": 16},
+                ],
+                "drink_now_rows": [
+                    {"qty": "2x", "name": "Enrico VI (Villero) 2004", "kind": "ends soon"},
+                    {"qty": "3x", "name": "Pessac-Leognan Rouge 2016", "kind": "mature"},
+                    {"qty": "4x", "name": "Abstract Red", "kind": "mature"},
                 ],
                 "stabilizing_rows": [
                     {"qty": "3x", "name": "Saint-Julien 2019", "kind": "Bordeaux blend"},
