@@ -1892,8 +1892,14 @@ views:
         card_mod:
           style:
             ha-dialog$: |
+              ha-dialog-header {
+                display: none !important;
+              }
               ha-icon-button {
                 display: none !important;
+              }
+              .content-wrapper {
+                padding: 0 !important;
               }
         popup_styles:
           - style: all
@@ -1911,6 +1917,10 @@ views:
                 --mdc-dialog-container-color: transparent;
                 --mdc-theme-surface: transparent;
                 --ha-dialog-surface-background: transparent;
+                --vertical-align-dialog: center;
+                --dialog-surface-margin-top: 0px;
+                --mdc-dialog-min-height: auto;
+                --mdc-dialog-max-height: calc(100dvh - 32px);
               }
               dialog {
                 background: transparent !important;
@@ -1919,17 +1929,17 @@ views:
           - style: wide
             styles: |
               .content {
-                width: min(344px, calc(100vw - 30px)) !important;
-                margin-inline: auto;
+                width: min(344px, calc(100vw - 32px)) !important;
+                margin: 0 auto !important;
               }
               .content .container {
-                max-height: min(430px, calc(100vh - 164px));
-                overflow: visible;
+                max-height: min(560px, calc(100dvh - 112px));
+                overflow: auto;
                 box-sizing: border-box;
-                margin-top: clamp(168px, 30vh, 340px);
+                margin-top: clamp(128px, 28dvh, 300px);
                 position: relative;
-                padding: 14px !important;
-                border-radius: 30px;
+                padding: 12px !important;
+                border-radius: 28px;
                 border: 1px solid rgba(148, 163, 184, 0.22);
                 background:
                   radial-gradient(circle at 16% -8%, rgba(45, 212, 191, 0.14), transparent 36%),
@@ -1955,29 +1965,27 @@ views:
                   data: {}
               styles:
                 card:
-                  - width: 44px
-                  - height: 44px
+                  - width: 38px
+                  - height: 38px
                   - padding: 0
                   - border-radius: 999px
                   - border: 1px solid rgba(148, 163, 184, 0.22)
-                  - background: rgba(15, 23, 42, 0.58)
+                  - background: rgba(15, 23, 42, 0.50)
                   - color: "#f8fafc"
-                  - box-shadow: 0 12px 26px rgba(2, 6, 23, 0.30)
+                  - box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.07)
                   - -webkit-backdrop-filter: blur(14px) saturate(150%)
                   - backdrop-filter: blur(14px) saturate(150%)
                 icon:
-                  - width: 22px
+                  - width: 20px
                   - color: "#f8fafc"
               card_mod:
                 style: |
                   :host {
-                    position: absolute !important;
-                    top: -58px;
-                    left: 0;
-                    z-index: 5;
-                    width: 44px;
-                    height: 44px;
                     display: block;
+                    width: 38px;
+                    height: 38px;
+                    margin: 0 0 8px auto;
+                    z-index: 5;
                   }
             - type: custom:button-card
               entity: input_datetime.away_motion_security_snooze_until
@@ -2084,6 +2092,12 @@ views:
                   color: #fde68a;
                   background: rgba(245, 158, 11, 0.14);
                 }
+              card_mod:
+                style: |
+                  :host {
+                    display: block !important;
+                    width: 100% !important;
+                  }
             - type: custom:button-card
               entity: cover.ratgdo32disco_c26634_door
               show_icon: false
@@ -2219,10 +2233,20 @@ views:
                   color: #cbd5e1;
                   background: rgba(148, 163, 184, 0.14);
                 }
+              card_mod:
+                style: |
+                  :host {
+                    display: block !important;
+                    width: 100% !important;
+                  }
             - type: conditional
               conditions:
                 - entity: binary_sensor.garage_close_hazard_active
                   state_not: "on"
+                - entity: cover.ratgdo32disco_c26634_door
+                  state_not: "closed"
+                - entity: cover.ratgdo32disco_c26634_door
+                  state_not: "closing"
               card:
                 type: custom:button-card
                 entity: cover.ratgdo32disco_c26634_door
@@ -2285,10 +2309,26 @@ views:
                   .garage-action-icon ha-icon {
                     --mdc-icon-size: 18px;
                   }
+                card_mod:
+                  style: |
+                    :host {
+                      display: block !important;
+                      width: 100% !important;
+                    }
+              card_mod:
+                style: |
+                  :host {
+                    display: block !important;
+                    width: 100% !important;
+                  }
             - type: conditional
               conditions:
                 - entity: binary_sensor.garage_close_hazard_active
                   state: "on"
+                - entity: cover.ratgdo32disco_c26634_door
+                  state_not: "closed"
+                - entity: cover.ratgdo32disco_c26634_door
+                  state_not: "closing"
               card:
                 type: custom:button-card
                 entity: cover.ratgdo32disco_c26634_door
@@ -2337,60 +2377,78 @@ views:
                       - font-weight: 760
                       - line-height: 1
                 extra_styles: *garage_action_extra
-            - type: custom:button-card
-              entity: cover.ratgdo32disco_c26634_door
-              show_icon: false
-              show_name: false
-              show_state: false
-              custom_fields:
-                icon: >-
-                  [[[
-                    return '<div class="garage-action-icon"><ha-icon icon="mdi:garage-arrow-up"></ha-icon></div>';
-                  ]]]
-                name: Open
-              tap_action:
-                action: call-service
-                service: cover.open_cover
-                target:
-                  entity_id: cover.ratgdo32disco_c26634_door
-                confirmation:
-                  text: Open the garage door?
-              styles:
-                card:
-                  - display: >-
-                      [[[
-                        return entity.state === 'closed' ? 'grid' : 'none';
-                      ]]]
-                  - width: 92px
-                  - margin: 0
-                  - height: 38px
-                  - padding: 0 10px
-                  - border-radius: 17px
-                  - border: 1px solid rgba(148, 163, 184, 0.22)
-                  - background: rgba(148, 163, 184, 0.10)
-                  - box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.06)
-                grid:
-                  - grid-template-areas: '"icon name"'
-                  - grid-template-columns: 28px minmax(0, 1fr)
-                  - column-gap: 7px
-                  - align-items: center
-                custom_fields:
-                  icon:
-                    - grid-area: icon
-                  name:
-                    - grid-area: name
-                    - justify-self: start
-                    - color: "#f8fafc"
-                    - font-size: 13px
-                    - font-weight: 760
-                    - line-height: 1
-              extra_styles: *garage_action_extra
+                card_mod:
+                  style: |
+                    :host {
+                      display: block !important;
+                      width: 100% !important;
+                    }
               card_mod:
                 style: |
                   :host {
-                    display: block;
-                    width: 92px;
-                    margin: 10px 0 0 auto;
+                    display: block !important;
+                    width: 100% !important;
+                  }
+            - type: conditional
+              conditions:
+                - entity: cover.ratgdo32disco_c26634_door
+                  state: "closed"
+              card:
+                type: custom:button-card
+                entity: cover.ratgdo32disco_c26634_door
+                show_icon: false
+                show_name: false
+                show_state: false
+                custom_fields:
+                  icon: >-
+                    [[[
+                      return '<div class="garage-action-icon"><ha-icon icon="mdi:garage-arrow-up"></ha-icon></div>';
+                    ]]]
+                  name: Open garage
+                tap_action:
+                  action: call-service
+                  service: cover.open_cover
+                  target:
+                    entity_id: cover.ratgdo32disco_c26634_door
+                  confirmation:
+                    text: Open the garage door?
+                styles:
+                  card:
+                    - width: 100%
+                    - margin: 10px auto 0
+                    - height: 40px
+                    - padding: 0 12px
+                    - border-radius: 18px
+                    - border: 1px solid rgba(148, 163, 184, 0.22)
+                    - background: rgba(148, 163, 184, 0.10)
+                    - box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.06)
+                  grid:
+                    - grid-template-areas: '"icon name"'
+                    - grid-template-columns: 30px minmax(0, 1fr)
+                    - column-gap: 8px
+                    - align-items: center
+                  custom_fields:
+                    icon:
+                      - grid-area: icon
+                    name:
+                      - grid-area: name
+                      - justify-self: start
+                      - color: "#f8fafc"
+                      - font-size: 13.5px
+                      - font-weight: 760
+                      - line-height: 1
+                extra_styles: *garage_action_extra
+                card_mod:
+                  style: |
+                    :host {
+                      display: block !important;
+                      width: 100% !important;
+                    }
+              card_mod:
+                style: |
+                  :host {
+                    display: block !important;
+                    width: 100% !important;
                   }
             - type: horizontal-stack
               cards:
@@ -2450,14 +2508,14 @@ views:
                   styles:
                     &door_lock_tile_styles
                     card:
-                      - width: 148px
-                      - min-width: 148px
-                      - max-width: 148px
+                      - width: 100%
+                      - min-width: 0
+                      - max-width: none
                       - margin: 0 auto
                       - box-sizing: border-box
-                      - min-height: 96px
+                      - min-height: 90px
                       - padding: 11px 10px 10px
-                      - border-radius: 24px
+                      - border-radius: 22px
                       - border: 1px solid rgba(148, 163, 184, 0.26)
                       - background: linear-gradient(180deg, rgba(30, 41, 59, 0.42), rgba(15, 23, 42, 0.22))
                       - box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.07)
@@ -2541,6 +2599,12 @@ views:
                       color: #cbd5e1;
                       background: rgba(148, 163, 184, 0.13);
                     }
+                  card_mod: &door_lock_tile_card_mod
+                    style: |
+                      :host {
+                        display: block !important;
+                        width: 100% !important;
+                      }
                 - type: custom:button-card
                   entity: lock.mudroom_door_lock
                   show_icon: false
@@ -2598,12 +2662,13 @@ views:
                     <<: *door_lock_tile_styles
                   state: *door_lock_tile_state_styles
                   extra_styles: *door_lock_tile_extra
+                  card_mod: *door_lock_tile_card_mod
               card_mod:
                 style: |
                   :host {
-                    display: block;
-                    width: 100%;
-                    max-width: 316px;
+                    display: block !important;
+                    width: 100% !important;
+                    max-width: none;
                     margin: 13px auto 0;
                   }
                   #root {
