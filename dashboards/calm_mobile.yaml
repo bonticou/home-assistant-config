@@ -314,7 +314,6 @@ views:
               {% if radon < 100 %}green
               {% elif radon < 148 %}orange
               {% else %}red{% endif %}
-            content: Radon
             tap_action:
               action: fire-dom-event
               radon_air_quality_popup: true
