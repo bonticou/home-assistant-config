@@ -33,6 +33,7 @@ SERVICE_OR_TEMPLATE_SUFFIXES = {
     "name",
     "open_cover",
     "select_source",
+    "send_command",
     "turn_off",
     "turn_on",
     "volume_set",

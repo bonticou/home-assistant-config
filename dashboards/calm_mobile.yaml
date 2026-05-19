@@ -293,13 +293,14 @@ views:
               {% elif hvac_action == 'cooling' %}blue
               {% elif is_state('binary_sensor.downstairs_open_window_eligible', 'on') %}teal
               {% else %}grey{% endif %}
+            # The Dining Room thermostat is governed by the Kitchen/main-floor sensor.
             content: >-
               {% set profile = states('select.dining_room_current_mode') %}
               {% set temp = states('sensor.downstairs_temp_avg') %}
-              {% if profile == 'away' %}Dining Away
-              {% elif profile == 'sleep' %}Dining Sleep
-              {% elif is_number(temp) %}Dining {{ temp | float(0) | round(0) }}°
-              {% else %}Dining HVAC{% endif %}
+              {% if profile == 'away' %}Kitchen Away
+              {% elif profile == 'sleep' %}Kitchen Sleep
+              {% elif is_number(temp) %}Kitchen {{ temp | float(0) | round(0) }}°
+              {% else %}Kitchen HVAC{% endif %}
             tap_action:
               action: navigate
               navigation_path: /calm-mobile/climate
@@ -1934,9 +1935,9 @@ views:
               }
               .content .container {
                 max-height: min(560px, calc(100dvh - 112px));
-                overflow: auto;
+                overflow: visible;
                 box-sizing: border-box;
-                margin-top: clamp(128px, 28dvh, 300px);
+                margin-top: clamp(82px, 18dvh, 190px);
                 position: relative;
                 padding: 12px !important;
                 border-radius: 28px;
@@ -1953,6 +1954,24 @@ views:
               }
         card:
           type: vertical-stack
+          card_mod:
+            style: |
+              #root {
+                width: 100% !important;
+              }
+              #root > * {
+                display: block !important;
+                width: 100% !important;
+                box-sizing: border-box !important;
+              }
+              #root > hui-card > *,
+              #root hui-conditional-card,
+              #root hui-conditional-card > *,
+              #root hui-conditional-card > hui-card > * {
+                display: block !important;
+                width: 100% !important;
+                box-sizing: border-box !important;
+              }
           cards:
             - type: custom:button-card
               icon: mdi:close
@@ -1965,27 +1984,67 @@ views:
                   data: {}
               styles:
                 card:
-                  - width: 38px
-                  - height: 38px
+                  - width: 44px
+                  - height: 44px
                   - padding: 0
                   - border-radius: 999px
                   - border: 1px solid rgba(148, 163, 184, 0.22)
-                  - background: rgba(15, 23, 42, 0.50)
+                  - background: rgba(15, 23, 42, 0.62)
                   - color: "#f8fafc"
-                  - box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.07)
+                  - box-shadow: 0 12px 26px rgba(2, 6, 23, 0.30)
                   - -webkit-backdrop-filter: blur(14px) saturate(150%)
                   - backdrop-filter: blur(14px) saturate(150%)
                 icon:
-                  - width: 20px
+                  - width: 22px
                   - color: "#f8fafc"
               card_mod:
                 style: |
                   :host {
-                    display: block;
-                    width: 38px;
-                    height: 38px;
-                    margin: 0 0 8px auto;
+                    position: absolute !important;
+                    top: -58px;
+                    left: 0;
                     z-index: 5;
+                    width: 44px !important;
+                    height: 44px;
+                    display: block;
+                  }
+            - type: custom:mushroom-template-card
+              entity: sensor.away_security_entry_point_issues
+              primary: Security
+              secondary: >-
+                {% set issues = states('sensor.away_security_entry_point_issues') | int(0) %}
+                {{ 'All secure' if issues == 0 else issues ~ ' item' ~ ('s' if issues != 1 else '') ~ ' need attention' }}
+              icon: >-
+                {% set issues = states('sensor.away_security_entry_point_issues') | int(0) %}
+                {{ 'mdi:shield-check-outline' if issues == 0 else 'mdi:shield-alert-outline' }}
+              icon_color: >-
+                {% set issues = states('sensor.away_security_entry_point_issues') | int(0) %}
+                {{ 'green' if issues == 0 else 'amber' }}
+              tap_action:
+                action: none
+              card_mod:
+                style: |
+                  ha-card {
+                    width: 100% !important;
+                    padding: 2px 2px 12px;
+                    border: 0;
+                    background: transparent;
+                    box-shadow: none;
+                  }
+                  mushroom-state-info .primary {
+                    font-size: 24px !important;
+                    line-height: 1.08 !important;
+                    font-weight: 760 !important;
+                    letter-spacing: 0;
+                  }
+                  mushroom-state-info .secondary {
+                    font-size: 13px !important;
+                    line-height: 1.3 !important;
+                    font-weight: 650 !important;
+                    color: #cbd5e1 !important;
+                  }
+                  mushroom-shape-icon {
+                    --shape-color: rgba(34, 197, 94, 0.13) !important;
                   }
             - type: custom:button-card
               entity: input_datetime.away_motion_security_snooze_until
@@ -2024,9 +2083,8 @@ views:
                 action: more-info
               styles:
                 card:
-                  - width: 100%
-                  - height: 50px
-                  - margin: 0 0 12px
+                  - height: 54px
+                  - margin: 0 0 10px
                   - padding: 0 12px
                   - border-radius: 20px
                   - border: 1px solid rgba(148, 163, 184, 0.18)
@@ -2098,6 +2156,13 @@ views:
                     display: block !important;
                     width: 100% !important;
                   }
+                  ha-card {
+                    width: 100% !important;
+                    box-sizing: border-box !important;
+                  }
+                  #aspect-ratio {
+                    width: 100% !important;
+                  }
             - type: custom:button-card
               entity: cover.ratgdo32disco_c26634_door
               show_icon: false
@@ -2143,20 +2208,19 @@ views:
                 action: more-info
               styles:
                 card:
-                  - width: 100%
-                  - min-height: 62px
-                  - padding: 0 0 13px
-                  - border-radius: 0
-                  - border: 0
-                  - border-bottom: 1px solid rgba(148, 163, 184, 0.14)
-                  - background: transparent
-                  - box-shadow: none
+                  - min-height: 54px
+                  - margin: 0 0 12px
+                  - padding: 0 12px
+                  - border-radius: 20px
+                  - border: 1px solid rgba(148, 163, 184, 0.18)
+                  - background: linear-gradient(180deg, rgba(15, 23, 42, 0.46), rgba(8, 13, 27, 0.28))
+                  - box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.07)
                 grid:
                   - grid-template-areas: '"icon name state" "icon meta meta"'
-                  - grid-template-columns: 44px minmax(0, 1fr) min-content
+                  - grid-template-columns: 36px minmax(0, 1fr) min-content
                   - grid-template-rows: min-content min-content
                   - column-gap: 10px
-                  - row-gap: 5px
+                  - row-gap: 3px
                   - align-items: center
                 custom_fields:
                   icon:
@@ -2188,8 +2252,8 @@ views:
                     - "-webkit-box-orient": vertical
               extra_styles: |
                 .garage-status-icon {
-                  width: 38px;
-                  height: 38px;
+                  width: 34px;
+                  height: 34px;
                   border-radius: 15px;
                   display: grid;
                   place-items: center;
@@ -2202,7 +2266,7 @@ views:
                   color: #f87171;
                 }
                 .garage-status-icon ha-icon {
-                  --mdc-icon-size: 22px;
+                  --mdc-icon-size: 20px;
                 }
                 .garage-status-state {
                   display: inline-flex;
@@ -2239,219 +2303,186 @@ views:
                     display: block !important;
                     width: 100% !important;
                   }
-            - type: conditional
-              conditions:
-                - entity: binary_sensor.garage_close_hazard_active
-                  state_not: "on"
-                - entity: cover.ratgdo32disco_c26634_door
-                  state_not: "closed"
-                - entity: cover.ratgdo32disco_c26634_door
-                  state_not: "closing"
-              card:
-                type: custom:button-card
-                entity: cover.ratgdo32disco_c26634_door
-                show_icon: false
-                show_name: false
-                show_state: false
-                custom_fields:
-                  icon: >-
-                    [[[
-                      return '<div class="garage-action-icon"><ha-icon icon="mdi:garage-arrow-down"></ha-icon></div>';
-                    ]]]
-                  name: Close garage
-                tap_action:
-                  action: call-service
-                  service: script.away_security_close_garage_door
-                styles:
-                  card:
-                    - display: >-
-                        [[[
-                          return ['open', 'opening', 'stopped'].includes(entity.state) ? 'grid' : 'none';
-                        ]]]
-                    - width: 100%
-                    - margin: 10px auto 0
-                    - height: 44px
-                    - padding: 0 12px
-                    - border-radius: 18px
-                    - border: 1px solid rgba(94, 234, 212, 0.24)
-                    - background: linear-gradient(180deg, rgba(20, 184, 166, 0.28), rgba(15, 23, 42, 0.88))
-                    - box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.08), 0 10px 20px rgba(2, 8, 23, 0.12)
-                  grid:
-                    - grid-template-areas: '"icon name"'
-                    - grid-template-columns: 34px minmax(0, 1fr)
-                    - column-gap: 9px
-                    - align-items: center
-                  custom_fields:
-                    icon:
-                      - grid-area: icon
-                    name:
-                      - grid-area: name
-                      - justify-self: start
-                      - color: "#f8fafc"
-                      - font-size: 14px
-                      - font-weight: 760
-                      - line-height: 1
-                extra_styles: &garage_action_extra |
-                  .garage-action-icon {
-                    width: 30px;
-                    height: 30px;
-                    border-radius: 13px;
-                    display: grid;
-                    place-items: center;
-                    background: rgba(20, 184, 166, 0.18);
-                    color: #5eead4;
-                    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.08);
-                  }
-                  .garage-action-icon.hazard {
-                    background: rgba(248, 113, 113, 0.18);
-                    color: #fecaca;
-                  }
-                  .garage-action-icon ha-icon {
-                    --mdc-icon-size: 18px;
-                  }
-                card_mod:
-                  style: |
-                    :host {
-                      display: block !important;
-                      width: 100% !important;
-                    }
-              card_mod:
-                style: |
-                  :host {
-                    display: block !important;
+                  ha-card {
                     width: 100% !important;
+                    box-sizing: border-box !important;
                   }
-            - type: conditional
-              conditions:
-                - entity: binary_sensor.garage_close_hazard_active
-                  state: "on"
-                - entity: cover.ratgdo32disco_c26634_door
-                  state_not: "closed"
-                - entity: cover.ratgdo32disco_c26634_door
-                  state_not: "closing"
-              card:
-                type: custom:button-card
-                entity: cover.ratgdo32disco_c26634_door
-                show_icon: false
-                show_name: false
-                show_state: false
-                custom_fields:
-                  icon: >-
-                    [[[
-                      return '<div class="garage-action-icon hazard"><ha-icon icon="mdi:alert-outline"></ha-icon></div>';
-                    ]]]
-                  name: Motion detected
-                tap_action:
-                  action: fire-dom-event
-                  browser_mod:
-                    service: browser_mod.popup
-                    data:
-                      popup_card_id: garage-close-hazard-popup
-                styles:
-                  card:
-                    - display: >-
-                        [[[
-                          return ['open', 'opening', 'stopped'].includes(entity.state) ? 'grid' : 'none';
-                        ]]]
-                    - width: 100%
-                    - margin: 10px auto 0
-                    - height: 44px
-                    - padding: 0 12px
-                    - border-radius: 18px
-                    - border: 1px solid rgba(248, 113, 113, 0.26)
-                    - background: linear-gradient(180deg, rgba(239, 68, 68, 0.22), rgba(15, 23, 42, 0.88))
-                    - box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.08), 0 10px 20px rgba(2, 8, 23, 0.12)
-                  grid:
-                    - grid-template-areas: '"icon name"'
-                    - grid-template-columns: 34px minmax(0, 1fr)
-                    - column-gap: 9px
-                    - align-items: center
-                  custom_fields:
-                    icon:
-                      - grid-area: icon
-                    name:
-                      - grid-area: name
-                      - justify-self: start
-                      - color: "#f8fafc"
-                      - font-size: 14px
-                      - font-weight: 760
-                      - line-height: 1
-                extra_styles: *garage_action_extra
-                card_mod:
-                  style: |
-                    :host {
-                      display: block !important;
-                      width: 100% !important;
-                    }
-              card_mod:
-                style: |
-                  :host {
-                    display: block !important;
-                    width: 100% !important;
-                  }
-            - type: conditional
-              conditions:
-                - entity: cover.ratgdo32disco_c26634_door
-                  state: "closed"
-              card:
-                type: custom:button-card
-                entity: cover.ratgdo32disco_c26634_door
-                show_icon: false
-                show_name: false
-                show_state: false
-                custom_fields:
-                  icon: >-
-                    [[[
-                      return '<div class="garage-action-icon"><ha-icon icon="mdi:garage-arrow-up"></ha-icon></div>';
-                    ]]]
-                  name: Open garage
-                tap_action:
-                  action: call-service
-                  service: cover.open_cover
-                  target:
-                    entity_id: cover.ratgdo32disco_c26634_door
-                  confirmation:
-                    text: Open the garage door?
-                styles:
-                  card:
-                    - width: 100%
-                    - margin: 10px auto 0
-                    - height: 40px
-                    - padding: 0 12px
-                    - border-radius: 18px
-                    - border: 1px solid rgba(148, 163, 184, 0.22)
-                    - background: rgba(148, 163, 184, 0.10)
-                    - box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.06)
-                  grid:
-                    - grid-template-areas: '"icon name"'
-                    - grid-template-columns: 30px minmax(0, 1fr)
-                    - column-gap: 8px
-                    - align-items: center
-                  custom_fields:
-                    icon:
-                      - grid-area: icon
-                    name:
-                      - grid-area: name
-                      - justify-self: start
-                      - color: "#f8fafc"
-                      - font-size: 13.5px
-                      - font-weight: 760
-                      - line-height: 1
-                extra_styles: *garage_action_extra
-                card_mod:
-                  style: |
-                    :host {
-                      display: block !important;
-                      width: 100% !important;
-                    }
-              card_mod:
-                style: |
-                  :host {
-                    display: block !important;
+                  #aspect-ratio {
                     width: 100% !important;
                   }
             - type: horizontal-stack
               cards:
+                - type: custom:button-card
+                  entity: cover.ratgdo32disco_c26634_door
+                  triggers_update:
+                    - binary_sensor.garage_close_hazard_active
+                  show_icon: false
+                  show_name: false
+                  show_state: false
+                  custom_fields:
+                    icon: >-
+                      [[[
+                        const active = ['open', 'opening', 'stopped'].includes(entity.state);
+                        const hazard = hass.states['binary_sensor.garage_close_hazard_active']?.state === 'on';
+                        const icon = hazard && active
+                          ? 'mdi:alert-outline'
+                          : entity.state === 'closed'
+                            ? 'mdi:garage-arrow-up'
+                            : active
+                              ? 'mdi:garage-arrow-down'
+                              : 'mdi:garage-variant';
+                        const klass = hazard && active
+                          ? 'hazard'
+                          : entity.state === 'closed'
+                            ? 'closed'
+                            : active
+                              ? 'open'
+                              : 'moving';
+                        return `<div class="garage-move-icon ${klass}"><ha-icon icon="${icon}"></ha-icon></div>`;
+                      ]]]
+                    name: Garage
+                    state: >-
+                      [[[
+                        const active = ['open', 'opening', 'stopped'].includes(entity.state);
+                        const hazard = hass.states['binary_sensor.garage_close_hazard_active']?.state === 'on';
+                        const labels = {
+                          closed: 'Open',
+                          closing: 'Moving',
+                          opening: 'Moving',
+                          open: hazard ? 'Blocked' : 'Close',
+                          stopped: hazard ? 'Blocked' : 'Close',
+                          unavailable: 'Offline',
+                          unknown: 'Unknown',
+                        };
+                        const klass = hazard && active
+                          ? 'hazard'
+                          : entity.state === 'closed'
+                            ? 'closed'
+                            : active
+                              ? 'open'
+                              : ['opening', 'closing'].includes(entity.state)
+                                ? 'moving'
+                                : 'unknown';
+                        return `<span class="garage-move-state ${klass}">${labels[entity.state] || entity.state}</span>`;
+                      ]]]
+                  tap_action:
+                    action: >-
+                      [[[
+                        const active = ['open', 'opening', 'stopped'].includes(entity.state);
+                        const hazard = hass.states['binary_sensor.garage_close_hazard_active']?.state === 'on';
+                        return hazard && active ? 'fire-dom-event' : 'call-service';
+                      ]]]
+                    service: script.away_security_move_garage_door
+                    confirmation:
+                      text: Move the garage door?
+                    browser_mod:
+                      service: browser_mod.popup
+                      data:
+                        popup_card_id: garage-close-hazard-popup
+                  hold_action:
+                    action: more-info
+                  styles:
+                    &security_control_tile_styles
+                    card:
+                      - min-width: 0
+                      - max-width: none
+                      - margin: 0 auto
+                      - box-sizing: border-box
+                      - min-height: 82px
+                      - padding: 8px 6px
+                      - border-radius: 18px
+                      - border: 1px solid rgba(148, 163, 184, 0.24)
+                      - background: linear-gradient(180deg, rgba(30, 41, 59, 0.40), rgba(15, 23, 42, 0.24))
+                      - box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.07)
+                    grid:
+                      - grid-template-areas: '"icon" "name" "state"'
+                      - grid-template-rows: 36px min-content min-content
+                      - justify-items: center
+                      - align-items: center
+                      - row-gap: 4px
+                    custom_fields:
+                      icon:
+                        - grid-area: icon
+                      name:
+                        - grid-area: name
+                        - min-width: 0
+                        - color: "#f8fafc"
+                        - font-size: 12px
+                        - font-weight: 740
+                        - line-height: 1.08
+                        - text-align: center
+                        - white-space: normal
+                      state:
+                        - grid-area: state
+                        - line-height: 1
+                  extra_styles: &garage_move_tile_extra |
+                    .garage-move-icon {
+                      width: 36px;
+                      height: 36px;
+                      border-radius: 15px;
+                      display: grid;
+                      place-items: center;
+                      background: rgba(34, 197, 94, 0.14);
+                      color: #22c55e;
+                      box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.08);
+                    }
+                    .garage-move-icon.open {
+                      background: rgba(20, 184, 166, 0.16);
+                      color: #5eead4;
+                    }
+                    .garage-move-icon.hazard {
+                      background: rgba(248, 113, 113, 0.18);
+                      color: #fecaca;
+                    }
+                    .garage-move-icon.moving {
+                      background: rgba(14, 165, 233, 0.14);
+                      color: #7dd3fc;
+                    }
+                    .garage-move-icon ha-icon {
+                      --mdc-icon-size: 21px;
+                    }
+                    .garage-move-state {
+                      display: inline-flex;
+                      align-items: center;
+                      justify-content: center;
+                      min-height: 22px;
+                      padding: 0 8px;
+                      border-radius: 999px;
+                      font-size: 10.5px;
+                      font-weight: 760;
+                      line-height: 1;
+                      white-space: nowrap;
+                      box-sizing: border-box;
+                    }
+                    .garage-move-state.closed {
+                      color: #bbf7d0;
+                      background: rgba(34, 197, 94, 0.13);
+                    }
+                    .garage-move-state.open {
+                      color: #ccfbf1;
+                      background: rgba(20, 184, 166, 0.16);
+                    }
+                    .garage-move-state.hazard {
+                      color: #fecaca;
+                      background: rgba(239, 68, 68, 0.16);
+                    }
+                    .garage-move-state.moving {
+                      color: #bae6fd;
+                      background: rgba(14, 165, 233, 0.14);
+                    }
+                    .garage-move-state.unknown {
+                      color: #cbd5e1;
+                      background: rgba(148, 163, 184, 0.13);
+                    }
+                  card_mod: &security_control_tile_card_mod
+                    style: |
+                      :host {
+                        display: block !important;
+                        width: 100% !important;
+                      }
+                      #aspect-ratio {
+                        width: 100% !important;
+                      }
                 - type: custom:button-card
                   entity: lock.garage_entry_lock
                   show_icon: false
@@ -2508,32 +2539,34 @@ views:
                   styles:
                     &door_lock_tile_styles
                     card:
-                      - width: 100%
                       - min-width: 0
                       - max-width: none
                       - margin: 0 auto
                       - box-sizing: border-box
-                      - min-height: 90px
-                      - padding: 11px 10px 10px
-                      - border-radius: 22px
-                      - border: 1px solid rgba(148, 163, 184, 0.26)
-                      - background: linear-gradient(180deg, rgba(30, 41, 59, 0.42), rgba(15, 23, 42, 0.22))
+                      - min-height: 82px
+                      - padding: 8px 6px
+                      - border-radius: 18px
+                      - border: 1px solid rgba(148, 163, 184, 0.24)
+                      - background: linear-gradient(180deg, rgba(30, 41, 59, 0.40), rgba(15, 23, 42, 0.24))
                       - box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.07)
                     grid:
                       - grid-template-areas: '"icon" "name" "state"'
-                      - grid-template-rows: 43px min-content min-content
+                      - grid-template-rows: 36px min-content min-content
                       - justify-items: center
                       - align-items: center
-                      - row-gap: 6px
+                      - row-gap: 4px
                     custom_fields:
                       icon:
                         - grid-area: icon
                       name:
                         - grid-area: name
+                        - min-width: 0
                         - color: "#f8fafc"
-                        - font-size: 13.5px
+                        - font-size: 12px
                         - font-weight: 740
-                        - line-height: 1.1
+                        - line-height: 1.08
+                        - text-align: center
+                        - white-space: normal
                       state:
                         - grid-area: state
                         - line-height: 1
@@ -2546,9 +2579,9 @@ views:
                           - background: linear-gradient(180deg, rgba(127, 29, 29, 0.34), rgba(15, 23, 42, 0.26))
                   extra_styles: &door_lock_tile_extra |
                     .door-lock-icon {
-                      width: 42px;
-                      height: 42px;
-                      border-radius: 17px;
+                      width: 36px;
+                      height: 36px;
+                      border-radius: 15px;
                       display: grid;
                       place-items: center;
                       background: rgba(34, 197, 94, 0.14);
@@ -2568,16 +2601,16 @@ views:
                       color: #94a3b8;
                     }
                     .door-lock-icon ha-icon {
-                      --mdc-icon-size: 23px;
+                      --mdc-icon-size: 21px;
                     }
                     .door-lock-state {
                       display: inline-flex;
                       align-items: center;
                       justify-content: center;
-                      min-height: 25px;
-                      padding: 0 10px;
+                      min-height: 22px;
+                      padding: 0 8px;
                       border-radius: 999px;
-                      font-size: 12px;
+                      font-size: 10.5px;
                       font-weight: 760;
                       line-height: 1;
                       white-space: nowrap;
@@ -2603,6 +2636,9 @@ views:
                     style: |
                       :host {
                         display: block !important;
+                        width: 100% !important;
+                      }
+                      #aspect-ratio {
                         width: 100% !important;
                       }
                 - type: custom:button-card
@@ -2672,8 +2708,15 @@ views:
                     margin: 13px auto 0;
                   }
                   #root {
-                    justify-content: center !important;
+                    display: grid !important;
+                    grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
                     gap: 8px !important;
+                    width: 100% !important;
+                  }
+                  #root > * {
+                    min-width: 0 !important;
+                    width: 100% !important;
+                    box-sizing: border-box !important;
                   }
             - type: conditional
               conditions:

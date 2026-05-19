@@ -4602,6 +4602,9 @@
     - trigger: event
       event_type: automation_reloaded
       id: automation_reloaded
+    - trigger: time
+      at: input_datetime.basement_humidity_snooze_until
+      id: snooze_expired
   actions:
     - if:
         - condition: template
@@ -4635,6 +4638,20 @@
           {% set h = states('sensor.mechanical_room_humidity') %}
           {% set t = states('sensor.mechanical_room_temperature') %}
           {{ is_number(h) and is_number(t) and (h | float(0)) >= 60 and (t | float(0)) >= 68 }}
+        snooze_until: "{{ states('input_datetime.basement_humidity_snooze_until') }}"
+        snoozed: >-
+          {{ snooze_until not in ['unknown', 'unavailable', 'none', '']
+             and as_timestamp(snooze_until, 0) > as_timestamp(now()) }}
+    - if:
+        - condition: template
+          value_template: "{{ snoozed and alert_kind != 'clear' }}"
+      then:
+        - action: script.environment_send_alert
+          data:
+            room: Basement
+            alert_kind: humidity_high
+            clear: true
+        - stop: Basement humidity notifications are snoozed.
     - choose:
         - conditions:
             - condition: state
@@ -4684,6 +4701,19 @@
             alert_kind: humidity_high
             clear: true
   mode: restart
+
+- id: basement_humidity_notification_actions
+  alias: "Environment — Basement Humidity Notification Actions"
+  description: Handles basement humidity push actions, including the 24-hour snooze.
+  triggers:
+    - trigger: event
+      event_type: mobile_app_notification_action
+  conditions:
+    - condition: template
+      value_template: "{{ trigger.event.data.action == 'BASEMENT_HUMIDITY_SNOOZE_24H' }}"
+  actions:
+    - action: script.basement_humidity_snooze_24h
+  mode: single
 
 - id: environment_basement_radon_notification
   alias: "Environment — Basement Radon Notification"

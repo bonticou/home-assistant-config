@@ -5,15 +5,15 @@ Generated from Home Assistant registries and UniFi-tracked network clients. Sens
 ## Last Updated
 
 - Snapshot: `2026-05-15T11:18:49-04:00`
-- Summary: 170 devices, 1794 entities, 114 network clients, 26 Lutron Caséta entities
+- Summary: 170 devices, 1796 entities, 114 network clients, 26 Lutron Caséta entities
 
 ## Summary
 
 | Metric | Count |
 | --- | --- |
 | Devices | 170 |
-| Entities | 1794 |
-| Orphan entities | 640 |
+| Entities | 1796 |
+| Orphan entities | 642 |
 | Network clients | 114 |
 | Areas | 32 |
 | Integrations | 40 |
@@ -22,9 +22,9 @@ Generated from Home Assistant registries and UniFi-tracked network clients. Sens
 
 | Role | Entities |
 | --- | --- |
-| control | 632 |
+| control | 633 |
 | network | 114 |
-| other | 248 |
+| other | 249 |
 | telemetry | 800 |
 
 ### Top Integrations
@@ -35,9 +35,9 @@ Generated from Home Assistant registries and UniFi-tracked network clients. Sens
 | unifi | 261 |
 | template | 192 |
 | sonos | 153 |
-| script | 124 |
+| script | 125 |
 | automation | 112 |
-| input_datetime | 65 |
+| input_datetime | 66 |
 | sensorpush_cloud | 56 |
 | input_boolean | 48 |
 | flo | 43 |
@@ -3240,6 +3240,7 @@ _No registered entities._
 | `input_datetime.ai_home_brief_updated` | AI Home Brief Updated | control | input_datetime | unavailable |
 | `input_datetime.ai_wine_brief_updated` | AI Wine Brief Updated | control | input_datetime | unavailable |
 | `input_datetime.away_security_snooze_until` | Away Security Snooze Until | control | input_datetime | available |
+| `input_datetime.basement_humidity_snooze_until` | Basement Humidity Snooze Until | control | input_datetime | available |
 | `input_datetime.bonticou_llc_de_franchise_tax_last_paid_at` | Bonticou LLC DE Franchise Tax Last Paid At | control | input_datetime | available |
 | `input_datetime.casey_driver_license_expiration_date` | Casey Driver License Expiration Date | control | input_datetime | available |
 | `input_datetime.casey_driver_license_renewal_snooze_until` | Casey Driver License Renewal Snooze Until | control | input_datetime | available |
@@ -3350,6 +3351,7 @@ _No registered entities._
 | `script.away_security_send_alert` | Away Security Send Alert | other | script | available |
 | `script.basement_humidity_clear_alert` | Basement Humidity Clear Alert | other | script | available |
 | `script.basement_humidity_send_alert` | Basement Humidity Send Alert | other | script | available |
+| `script.basement_humidity_snooze_24h` | Basement Humidity Snooze 24h | other | script | available |
 | `script.bonticou_llc_de_franchise_tax_clear_notification` | Bonticou - DE Franchise Tax Clear Notification | other | script | available |
 | `script.bonticou_llc_de_franchise_tax_mark_paid` | Bonticou - DE Franchise Tax Mark Paid | other | script | available |
 | `script.bonticou_llc_de_franchise_tax_send_reminder` | Bonticou - DE Franchise Tax Send Reminder | other | script | available |

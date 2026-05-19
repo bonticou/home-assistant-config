@@ -2945,6 +2945,28 @@ away_security_lock_unlocked_entry_doors:
           target:
             entity_id: lock.mudroom_door_lock
 
+away_security_move_garage_door:
+  alias: Away Security Move Garage Door
+  description: Opens the garage when closed, or uses the guarded close routine when it is open.
+  icon: mdi:garage
+  mode: restart
+  sequence:
+    - variables:
+        garage_cover: cover.ratgdo32disco_c26634_door
+    - choose:
+        - conditions:
+            - condition: template
+              value_template: "{{ states(garage_cover) == 'closed' }}"
+          sequence:
+            - action: cover.open_cover
+              target:
+                entity_id: cover.ratgdo32disco_c26634_door
+        - conditions:
+            - condition: template
+              value_template: "{{ states(garage_cover) in ['open', 'opening', 'stopped'] }}"
+          sequence:
+            - action: script.away_security_close_garage_door
+
 away_security_close_garage_door:
   alias: Away Security Close Garage Door
   description: Closes the ratgdo garage door only from an explicit user action when the garage path is clear.
@@ -4390,17 +4412,40 @@ environment_send_alert:
                 data:
                   tag: "{{ tag }}"
       default:
-        - action: script.notify_trevor_phone
-          data:
-            title: "{{ title_icon }} {{ alert_room }} {{ title_issue }}"
-            message: "{{ notification_message }}"
-            data:
-              group: environment
-              tag: "{{ tag }}"
-              sticky: "{{ sticky_alert }}"
-              ttl: 0
-              priority: high
-              url: /calm-mobile/climate
+        - choose:
+            - conditions:
+                - condition: template
+                  value_template: "{{ alert_room == 'Basement' and kind == 'humidity_high' }}"
+              sequence:
+                - action: script.notify_trevor_phone
+                  data:
+                    title: "{{ title_icon }} {{ alert_room }} {{ title_issue }}"
+                    message: "{{ notification_message }}"
+                    data:
+                      group: environment
+                      tag: "{{ tag }}"
+                      sticky: "{{ sticky_alert }}"
+                      ttl: 0
+                      priority: high
+                      url: /calm-mobile/climate
+                      actions:
+                        - action: BASEMENT_HUMIDITY_SNOOZE_24H
+                          title: Snooze 24h
+                        - action: URI
+                          title: Open Climate
+                          uri: /calm-mobile/climate
+          default:
+            - action: script.notify_trevor_phone
+              data:
+                title: "{{ title_icon }} {{ alert_room }} {{ title_issue }}"
+                message: "{{ notification_message }}"
+                data:
+                  group: environment
+                  tag: "{{ tag }}"
+                  sticky: "{{ sticky_alert }}"
+                  ttl: 0
+                  priority: high
+                  url: /calm-mobile/climate
 
 basement_humidity_send_alert:
   alias: Basement Humidity Send Alert
@@ -4445,3 +4490,21 @@ basement_humidity_clear_alert:
         message: clear_notification
         data:
           tag: basement-humidity
+
+basement_humidity_snooze_24h:
+  alias: Basement Humidity Snooze 24h
+  description: Pauses basement humidity notifications for 24 hours and clears the active push.
+  icon: mdi:alarm-snooze
+  mode: restart
+  sequence:
+    - action: input_datetime.set_datetime
+      target:
+        entity_id: input_datetime.basement_humidity_snooze_until
+      data:
+        datetime: "{{ (now() + timedelta(hours=24)).strftime('%Y-%m-%d %H:%M:%S') }}"
+    - action: script.environment_send_alert
+      data:
+        room: Basement
+        alert_kind: humidity_high
+        clear: true
+    - action: script.basement_humidity_clear_alert

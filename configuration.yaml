@@ -210,6 +210,10 @@ input_datetime:
     name: Water Pressure Snooze Until
     has_date: true
     has_time: true
+  basement_humidity_snooze_until:
+    name: Basement Humidity Snooze Until
+    has_date: true
+    has_time: true
   water_latest_alert_at:
     name: Water Latest Alert At
     has_date: true
@@ -2397,6 +2401,13 @@ template:
                   + [{'label': 'Sleep 30 min', 'service': 'script.away_security_snooze_30', 'inline': false}]
               }] %}
             {% endif %}
+            {% set basement_humidity_raw = states('sensor.mechanical_room_humidity') %}
+            {% set basement_humidity_snooze = states('input_datetime.basement_humidity_snooze_until') %}
+            {% set basement_humidity_snoozed = basement_humidity_snooze not in ['unknown', 'unavailable', 'none', '']
+               and as_timestamp(basement_humidity_snooze, 0) > as_timestamp(now()) %}
+            {% set basement_humidity_active = is_number(basement_humidity_raw)
+               and (basement_humidity_raw | float(0)) >= 55
+               and not basement_humidity_snoozed %}
             {% set env_entities = {
               'Kitchen high temp': 'binary_sensor.environment_kitchen_temp_high_alert',
               'Kitchen low temp': 'binary_sensor.environment_kitchen_temp_low_alert',
@@ -2425,7 +2436,15 @@ template:
                 {% set env.labels = env.labels + [label] %}
               {% endif %}
             {% endfor %}
+            {% if basement_humidity_active %}
+              {% set env.labels = env.labels + ['Basement humidity high'] %}
+            {% endif %}
             {% if env.labels | count > 0 %}
+              {% set env_facts = env.labels %}
+              {% if is_number(basement_humidity_raw) %}
+                {% set env_facts = env_facts + ['Basement humidity: ' ~ (basement_humidity_raw | float(0) | round(0)) ~ '%'] %}
+              {% endif %}
+              {% set env_facts = env_facts + ['Basement humidity snooze: hides repeat humidity pushes for 24 hours'] if basement_humidity_active else env_facts %}
               {% set ns.items = ns.items + [{
                 'id': 'environment-guard',
                 'title': 'Environment watch',
@@ -2438,7 +2457,14 @@ template:
                 'due_prefix': 'Active',
                 'narrative': env.labels | join(', '),
                 'url': '/calm-mobile/climate',
-                'entity_id': 'input_boolean.environment_alerts_enabled'
+                'entity_id': 'input_boolean.environment_alerts_enabled',
+                'details': {
+                  'summary': env.labels | join(', '),
+                  'facts': env_facts,
+                  'after_action': 'Snooze basement 24h clears the active basement humidity push and pauses repeat basement humidity notifications until tomorrow. It does not disable environment monitoring.',
+                  'tracking': 'Home Assistant keeps watching the basement climate sensor and will surface the issue again after the snooze if humidity is still high.'
+                },
+                'actions': [{'label': 'Snooze basement 24h', 'service': 'script.basement_humidity_snooze_24h', 'inline': false}] if basement_humidity_active else []
               }] %}
             {% endif %}
             {% if is_state('binary_sensor.house_low_battery_alert', 'on') %}

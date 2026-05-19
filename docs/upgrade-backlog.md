@@ -21,7 +21,7 @@ Grounding from `docs/device-inventory.md`: 114 devices, 962 entities, 469 teleme
    Use `sensor.house_notice_timeline`, water, wine, weather, Metro-North, property tax/admin reminders, batteries, and environment status. A daily push like `All quiet. Train at 8:12. Basement humidity steady.` would make the system feel more useful without new hardware.
 
 5. **HVAC Runtime + Comfort Advisor**
-   Add runtime intelligence: heating/cooling duration, aux-vs-heat-pump policy, comfort lag by room, open-window timing, humidity recovery, and away/home mode sanity checks. Mostly buildable from `climate.dining_room`, SensorPush, weather, and presence.
+   Add runtime intelligence: heating/cooling duration, aux-vs-heat-pump policy, comfort lag by room, open-window timing, humidity recovery, and away/home mode sanity checks. Mostly buildable from `climate.dining_room`, SensorPush, weather, and presence. Keep `docs/climate-notes.md` in mind: the Dining Room thermostat is governed by the Kitchen/main-floor Ecobee sensor `RQN8`, and a future version may blend SensorPush readings and averages for a smarter downstairs control signal.
 
 6. **Water Guard 2.0: Dampness Before Leak**
    Use each leak puck's humidity and temperature trend to catch `something is getting damp here` before `water_detected` trips, plus stale/offline detection per leak location.
