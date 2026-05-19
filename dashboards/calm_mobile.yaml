@@ -293,14 +293,14 @@ views:
               {% elif hvac_action == 'cooling' %}blue
               {% elif is_state('binary_sensor.downstairs_open_window_eligible', 'on') %}teal
               {% else %}grey{% endif %}
-            # The Dining Room thermostat is governed by the Kitchen/main-floor sensor.
+            # The Dining Room thermostat is governed by the Kitchen/main-floor sensor, but the home chip stays label-light.
             content: >-
               {% set profile = states('select.dining_room_current_mode') %}
               {% set temp = states('sensor.downstairs_temp_avg') %}
-              {% if profile == 'away' %}Kitchen Away
-              {% elif profile == 'sleep' %}Kitchen Sleep
-              {% elif is_number(temp) %}Kitchen {{ temp | float(0) | round(0) }}°
-              {% else %}Kitchen HVAC{% endif %}
+              {% if profile == 'away' %}Away
+              {% elif profile == 'sleep' %}Sleep
+              {% elif is_number(temp) %}{{ temp | float(0) | round(0) }}°
+              {% else %}HVAC{% endif %}
             tap_action:
               action: navigate
               navigation_path: /calm-mobile/climate
