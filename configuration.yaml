@@ -1,6 +1,11 @@
 # Loads default set of integrations. Do not remove.
 default_config:
 
+homeassistant:
+  customize:
+    light.master_casey_s_closet:
+      friendly_name: Casey's closet
+
 # Load frontend themes from the themes folder
 frontend:
   themes: !include_dir_merge_named themes

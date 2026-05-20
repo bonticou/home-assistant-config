@@ -6145,7 +6145,7 @@ views:
               style: *lights_compact_card_style
           - type: custom:mushroom-light-card
             entity: light.master_casey_s_closet
-            name: Casey Closet
+            name: Casey's closet
             icon: mdi:wardrobe-outline
             tap_action:
               <<: *lights_transition_tap_action
