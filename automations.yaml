@@ -1051,6 +1051,23 @@
                     - action: script.foyer_chandelier_schedule_on
   mode: single
 
+- id: casey_closet_auto_off
+  alias: "Lights — Casey's Closet Auto-Off"
+  description: Turn Casey's closet off when it has been left on for more than five minutes.
+  triggers:
+    - trigger: state
+      entity_id: light.master_casey_s_closet
+      to: "on"
+      for:
+        minutes: 5
+  actions:
+    - action: light.turn_off
+      target:
+        entity_id: light.master_casey_s_closet
+      data:
+        transition: 2
+  mode: single
+
 - id: vacation_activity_schedule_sync
   alias: "Vacation — Activity Lighting Sync"
   description: Keeps the vacation activity simulation aligned with the evening and pre-sunrise sun-curve windows.
