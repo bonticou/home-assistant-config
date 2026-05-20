@@ -1068,6 +1068,53 @@
         transition: 2
   mode: single
 
+- id: garage_light_auto_off
+  alias: "Lights — Garage Light Auto-Off"
+  description: Turn the garage light off after five quiet minutes, unless the garage camera has seen recent activity.
+  triggers:
+    - trigger: state
+      entity_id: switch.garage_garage_lights
+      to: "on"
+      for:
+        minutes: 5
+    - trigger: state
+      entity_id:
+        - binary_sensor.g6_instant_motion_3
+        - binary_sensor.garage_person_detected
+        - binary_sensor.garage_vehicle_detected
+      to: "off"
+      for:
+        minutes: 5
+  conditions:
+    - condition: template
+      value_template: >-
+        {{ is_state('switch.garage_garage_lights', 'on')
+           and (as_timestamp(now()) - as_timestamp(states.switch.garage_garage_lights.last_changed, 0)) >= 300 }}
+    - condition: template
+      value_template: >-
+        {% set camera_entities = [
+          'binary_sensor.g6_instant_motion_3',
+          'binary_sensor.garage_person_detected',
+          'binary_sensor.garage_vehicle_detected'
+        ] %}
+        {% set ns = namespace(recent=false) %}
+        {% for entity_id in camera_entities %}
+          {% set sensor = states[entity_id] %}
+          {% if sensor is not none and sensor.state == 'on' %}
+            {% set ns.recent = true %}
+          {% elif sensor is not none
+                  and sensor.state == 'off'
+                  and (as_timestamp(now()) - as_timestamp(sensor.last_changed, 0)) < 300 %}
+            {% set ns.recent = true %}
+          {% endif %}
+        {% endfor %}
+        {{ not ns.recent }}
+  actions:
+    - action: switch.turn_off
+      target:
+        entity_id: switch.garage_garage_lights
+  mode: single
+
 - id: vacation_activity_schedule_sync
   alias: "Vacation — Activity Lighting Sync"
   description: Keeps the vacation activity simulation aligned with the evening and pre-sunrise sun-curve windows.

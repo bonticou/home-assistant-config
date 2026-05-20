@@ -5767,6 +5767,8 @@ views:
         card:
           type: vertical-stack
           cards:
+            - type: custom:mushroom-title-card
+              title: Evening automations
             - type: custom:mushroom-template-card
               entity: binary_sensor.door_lights_schedule_active
               primary: Front door lights
@@ -5837,7 +5839,7 @@ views:
               card_mod:
                 style: *lights_compact_card_style
             - type: custom:mushroom-title-card
-              title: Safety automations
+              title: Auto-off helpers
             - type: custom:mushroom-template-card
               entity: automation.lights_casey_s_closet_auto_off
               primary: Casey's closet auto-off
@@ -5853,6 +5855,49 @@ views:
               icon: mdi:timer-off-outline
               icon_color: >-
                 {% if is_state('light.master_casey_s_closet', 'on') %}
+                  amber
+                {% else %}
+                  grey
+                {% endif %}
+              tap_action:
+                action: more-info
+              hold_action:
+                action: more-info
+              card_mod:
+                style: *lights_compact_card_style
+            - type: custom:mushroom-template-card
+              entity: automation.lights_garage_light_auto_off
+              primary: Garage light auto-off
+              secondary: >-
+                {% set camera_entities = [
+                  'binary_sensor.g6_instant_motion_3',
+                  'binary_sensor.garage_person_detected',
+                  'binary_sensor.garage_vehicle_detected'
+                ] %}
+                {% set ns = namespace(recent=false) %}
+                {% for entity_id in camera_entities %}
+                  {% set sensor = states[entity_id] %}
+                  {% if sensor is not none and sensor.state == 'on' %}
+                    {% set ns.recent = true %}
+                  {% elif sensor is not none
+                          and sensor.state == 'off'
+                          and (as_timestamp(now()) - as_timestamp(sensor.last_changed, 0)) < 300 %}
+                    {% set ns.recent = true %}
+                  {% endif %}
+                {% endfor %}
+                {% if is_state('switch.garage_garage_lights', 'on') and ns.recent %}
+                  Garage light is on - holding because the garage camera saw recent motion.
+                {% elif is_state('switch.garage_garage_lights', 'on') %}
+                  Garage light is on - auto-off after 5 quiet minutes.
+                {% elif is_state('automation.lights_garage_light_auto_off', 'on') %}
+                  If it gets left on, it shuts itself off after 5 quiet minutes.
+                {% else %}
+                  Automation is disabled.
+                {% endif %}
+              multiline_secondary: true
+              icon: mdi:garage-variant
+              icon_color: >-
+                {% if is_state('switch.garage_garage_lights', 'on') %}
                   amber
                 {% else %}
                   grey
