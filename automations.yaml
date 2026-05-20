@@ -907,10 +907,12 @@
 
 - id: door_lights_schedule_sync
   alias: "Lights — Door Lights Schedule Sync"
-  description: Keep the front door lights synced to the adaptive sun-elevation evening schedule and restore the correct state on startup.
+  description: Keep the front door lights synced to the adaptive sun-elevation evening schedule and restore the correct state on startup or refresh.
   triggers:
     - trigger: homeassistant
       event: start
+    - trigger: time_pattern
+      minutes: "/15"
     - trigger: state
       entity_id: binary_sensor.door_lights_schedule_active
       to: "on"
