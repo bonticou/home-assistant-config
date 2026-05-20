@@ -5770,18 +5770,89 @@ views:
             - type: custom:mushroom-title-card
               title: Evening automations
             - type: custom:mushroom-template-card
+              entity: sensor.lighting_evening_schedule_elevation_threshold
+              primary: Evening threshold
+              secondary: >-
+                {% set base = state_attr('sensor.lighting_evening_schedule_elevation_threshold', 'base_elevation') | float(10) %}
+                {% set adjustment = state_attr('sensor.lighting_evening_schedule_elevation_threshold', 'weather_adjustment') | float(0) %}
+                {% set threshold = states('sensor.lighting_evening_schedule_elevation_threshold') | float(base) %}
+                {% set summary = state_attr('sensor.lighting_evening_schedule_elevation_threshold', 'summary') | default('Baseline evening threshold', true) %}
+                Baseline {{ base | round(0) }}°
+                {% if adjustment > 0 %}+ {{ adjustment | round(0) }}° weather nudge
+                {% elif adjustment < 0 %}- {{ (adjustment | abs) | round(0) }}° clear-day nudge
+                {% else %}+ 0° weather nudge{% endif %}
+                • Using {{ threshold | round(0) }}°
+                • {{ summary }}
+              multiline_secondary: true
+              icon: mdi:weather-sunset
+              icon_color: >-
+                {% set adjustment = state_attr('sensor.lighting_evening_schedule_elevation_threshold', 'weather_adjustment') | float(0) %}
+                {% if adjustment > 0 %}blue
+                {% elif adjustment < 0 %}amber
+                {% else %}grey{% endif %}
+              tap_action:
+                action: more-info
+              card_mod:
+                style: *lights_compact_card_style
+            - type: custom:mushroom-template-card
+              entity: automation.lights_interior_evening_mode_schedule_sync
+              primary: Interior evening mode
+              secondary: >-
+                {% set active = is_state('binary_sensor.front_stairs_schedule_active', 'on') %}
+                {% set home = is_state('person.bonticou', 'home') or is_state('person.casey', 'home') %}
+                {% set scene = states('input_select.lighting_active_scene') %}
+                {% if scene == 'Evening' %}Evening mode is active
+                {% elif scene in ['TV', 'Bedtime'] %}Paused while {{ scene }} mode is active
+                {% elif not home %}Waiting until Casey or Trevor is home
+                {% elif active %}Ready at the adjusted evening threshold
+                {% else %}Off until the evening threshold{% endif %}
+              multiline_secondary: true
+              icon: mdi:home-lightbulb-outline
+              icon_color: >-
+                {% if is_state('input_select.lighting_active_scene', 'Evening') %}amber
+                {% else %}grey{% endif %}
+              tap_action:
+                action: more-info
+              card_mod:
+                style: *lights_compact_card_style
+            - type: custom:mushroom-template-card
               entity: binary_sensor.door_lights_schedule_active
               primary: Front door lights
               secondary: >-
                 {% set active = is_state('binary_sensor.door_lights_schedule_active', 'on') %}
                 {% set elevation = state_attr('sun.sun', 'elevation') | float(0) | round(1) %}
+                {% set threshold = states('sensor.lighting_evening_schedule_elevation_threshold') | float(10) | round(0) %}
                 {{ 'On for evening routine' if active else 'Off until dusk' }}
                 • Sun {{ elevation }}°
-                • Below 10°
+                • Below {{ threshold }}°
               multiline_secondary: true
               icon: mdi:coach-lamp
               icon_color: >-
                 {{ 'amber' if is_state('binary_sensor.door_lights_schedule_active', 'on') else 'grey' }}
+              tap_action:
+                action: more-info
+              card_mod:
+                style: *lights_compact_card_style
+            - type: custom:mushroom-template-card
+              entity: switch.exterior_mud_room_stairs
+              primary: Mudroom exterior stairs
+              secondary: >-
+                {% set active = is_state('binary_sensor.door_lights_schedule_active', 'on') %}
+                {% set sleep_override = is_state('input_boolean.front_stairs_sleep_override', 'on') %}
+                {% set elevation = state_attr('sun.sun', 'elevation') | float(0) | round(1) %}
+                {% set threshold = states('sensor.lighting_evening_schedule_elevation_threshold') | float(10) | round(0) %}
+                {% if sleep_override %}Held off for bedtime
+                {% elif is_state('switch.exterior_mud_room_stairs', 'on') %}On with evening routine
+                {% elif active %}Ready with evening routine
+                {% else %}Off until dusk{% endif %}
+                • Sun {{ elevation }}°
+                • Follows front door schedule below {{ threshold }}°
+              multiline_secondary: true
+              icon: mdi:stairs
+              icon_color: >-
+                {% if is_state('switch.exterior_mud_room_stairs', 'on') %}amber
+                {% elif is_state('input_boolean.front_stairs_sleep_override', 'on') %}indigo
+                {% else %}grey{% endif %}
               tap_action:
                 action: more-info
               card_mod:
@@ -5795,12 +5866,13 @@ views:
                 {% set active = is_state('binary_sensor.front_stairs_schedule_active', 'on') %}
                 {% set target = 4 if sleep_override else (states('sensor.front_stairs_schedule_brightness') | int(0)) %}
                 {% set elevation = state_attr('sun.sun', 'elevation') | float(0) | round(1) %}
+                {% set threshold = states('sensor.lighting_evening_schedule_elevation_threshold') | float(10) | round(0) %}
                 {% if guest_override %}Paused by guest override
                 {% elif sleep_override %}Sleep glow • {{ target }}% target
                 {% elif active %}Active now • {{ target }}% target
                 {% else %}Off until dusk{% endif %}
                 • Sun {{ elevation }}°
-                • Below 10°
+                • Below {{ threshold }}°
               multiline_secondary: true
               icon: mdi:stairs
               icon_color: >-
@@ -5821,12 +5893,13 @@ views:
                 {% set active = is_state('binary_sensor.foyer_chandelier_schedule_active', 'on') %}
                 {% set target = states('sensor.foyer_chandelier_schedule_brightness') | int(0) %}
                 {% set elevation = state_attr('sun.sun', 'elevation') | float(0) | round(1) %}
+                {% set threshold = states('sensor.lighting_evening_schedule_elevation_threshold') | float(10) | round(0) %}
                 {% if guest_override %}Paused by guest override
                 {% elif sleep_hold %}Held off for bedtime
                 {% elif active %}Active now • {{ target }}% target
                 {% else %}Off until dusk{% endif %}
                 • Sun {{ elevation }}°
-                • Below 10°
+                • Below {{ threshold }}°
               multiline_secondary: true
               icon: mdi:chandelier
               icon_color: >-

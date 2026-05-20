@@ -1544,6 +1544,57 @@ template:
             {% endif %}
           {% endif %}
 
+      - name: "lighting_evening_schedule_elevation_threshold"
+        unique_id: lighting_evening_schedule_elevation_threshold
+        unit_of_measurement: "°"
+        icon: mdi:weather-sunset
+        state: >
+          {% set base_elevation = 10 %}
+          {% set weather_state = states('weather.forecast_home') %}
+          {% if is_state_attr('sun.sun', 'rising', true) %}
+            {% set weather_adjustment = 0 %}
+          {% elif weather_state in ['sunny', 'clear-night'] %}
+            {% set weather_adjustment = -2 %}
+          {% elif weather_state == 'partlycloudy' %}
+            {% set weather_adjustment = -1 %}
+          {% elif weather_state in ['cloudy', 'fog'] %}
+            {% set weather_adjustment = 1 %}
+          {% elif weather_state in ['rainy', 'pouring', 'lightning-rainy', 'snowy', 'snowy-rainy'] %}
+            {% set weather_adjustment = 2 %}
+          {% else %}
+            {% set weather_adjustment = 0 %}
+          {% endif %}
+          {{ base_elevation + weather_adjustment }}
+        attributes:
+          base_elevation: 10
+          weather_adjustment: >
+            {% set weather_state = states('weather.forecast_home') %}
+            {% if is_state_attr('sun.sun', 'rising', true) %}
+              0
+            {% elif weather_state in ['sunny', 'clear-night'] %}
+              -2
+            {% elif weather_state == 'partlycloudy' %}
+              -1
+            {% elif weather_state in ['cloudy', 'fog'] %}
+              1
+            {% elif weather_state in ['rainy', 'pouring', 'lightning-rainy', 'snowy', 'snowy-rainy'] %}
+              2
+            {% else %}
+              0
+            {% endif %}
+          weather_condition: "{{ states('weather.forecast_home') }}"
+          summary: >
+            {% set weather_state = states('weather.forecast_home') %}
+            {% if is_state_attr('sun.sun', 'rising', true) %}
+              Base 10° for morning release
+            {% elif weather_state in ['sunny', 'clear-night', 'partlycloudy'] %}
+              Clearer evening, lights wait a little longer
+            {% elif weather_state in ['cloudy', 'fog', 'rainy', 'pouring', 'lightning-rainy', 'snowy', 'snowy-rainy'] %}
+              Dimmer weather, lights start a little earlier
+            {% else %}
+              Baseline evening threshold
+            {% endif %}
+
       - name: "front_stairs_schedule_brightness"
         unique_id: front_stairs_schedule_brightness
         unit_of_measurement: "%"
@@ -1551,7 +1602,8 @@ template:
           {% set evening_start_pct = 30 %}
           {% set overnight_pct = 10 %}
           {% set morning_end_pct = 20 %}
-          {% set schedule_elevation = 10 %}
+          {% set base_schedule_elevation = 10 %}
+          {% set schedule_elevation = states('sensor.lighting_evening_schedule_elevation_threshold') | float(base_schedule_elevation) %}
           {% set overnight_elevation = -10 %}
           {% set sun_elevation = state_attr('sun.sun', 'elevation') %}
           {% if sun_elevation is none %}
@@ -3053,14 +3105,14 @@ template:
         unique_id: door_lights_schedule_active
         icon: mdi:coach-lamp
         state: >
-          {% set schedule_elevation = 10 %}
+          {% set schedule_elevation = states('sensor.lighting_evening_schedule_elevation_threshold') | float(10) %}
           {{ state_attr('sun.sun', 'elevation') | float(90) <= schedule_elevation }}
 
       - name: "front_stairs_schedule_active"
         unique_id: front_stairs_schedule_active
         icon: mdi:stairs
         state: >
-          {% set schedule_elevation = 10 %}
+          {% set schedule_elevation = states('sensor.lighting_evening_schedule_elevation_threshold') | float(10) %}
           {{ state_attr('sun.sun', 'elevation') | float(90) <= schedule_elevation }}
 
       - name: "main_dashboard_sleep_hero_active"

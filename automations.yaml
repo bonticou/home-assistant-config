@@ -1051,6 +1051,30 @@
                     - action: script.foyer_chandelier_schedule_on
   mode: single
 
+- id: interior_evening_mode_schedule_sync
+  alias: "Lights — Interior Evening Mode Schedule Sync"
+  description: Starts the calm interior evening scene when the adjusted evening threshold is reached and Casey or Trevor is home.
+  triggers:
+    - trigger: state
+      entity_id: binary_sensor.front_stairs_schedule_active
+      to: "on"
+  conditions:
+    - condition: state
+      entity_id: binary_sensor.front_stairs_schedule_active
+      state: "on"
+    - condition: template
+      value_template: "{{ not is_state_attr('sun.sun', 'rising', true) }}"
+    - condition: template
+      value_template: "{{ is_state('person.bonticou', 'home') or is_state('person.casey', 'home') }}"
+    - condition: state
+      entity_id: input_boolean.interior_lights_guest_override
+      state: "off"
+    - condition: template
+      value_template: "{{ states('input_select.lighting_active_scene') not in ['Evening', 'TV', 'Bedtime'] }}"
+  actions:
+    - action: script.lights_evening_scene
+  mode: single
+
 - id: casey_closet_auto_off
   alias: "Lights — Casey's Closet Auto-Off"
   description: Turn Casey's closet off when it has been left on for more than five minutes.
