@@ -5791,7 +5791,11 @@ views:
                 {% elif adjustment < 0 %}amber
                 {% else %}grey{% endif %}
               tap_action:
-                action: more-info
+                action: none
+              hold_action:
+                action: none
+              double_tap_action:
+                action: none
               card_mod:
                 style: *lights_compact_card_style
             - type: custom:mushroom-template-card
@@ -5816,7 +5820,11 @@ views:
                 {% elif adjustment < 0 %}amber
                 {% else %}grey{% endif %}
               tap_action:
-                action: more-info
+                action: none
+              hold_action:
+                action: none
+              double_tap_action:
+                action: none
               card_mod:
                 style: *lights_compact_card_style
             - type: custom:mushroom-title-card
