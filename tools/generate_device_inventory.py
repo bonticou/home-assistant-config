@@ -21,7 +21,7 @@ from pathlib import Path
 from typing import Any
 
 
-SCHEMA_VERSION = 2
+SCHEMA_VERSION = 3
 CHANGE_REPORT_VERSION = 1
 DIGEST_VERSION = 1
 
@@ -264,15 +264,30 @@ def entity_availability(entity: dict[str, Any], state: dict[str, Any] | None) ->
 def display_entity_name(entity: dict[str, Any], state: dict[str, Any] | None, salt: str) -> str:
     attributes = state.get("attributes") if state else {}
     friendly_name = attributes.get("friendly_name") if isinstance(attributes, dict) else None
-    name = entity.get("name") or entity.get("original_name") or friendly_name or entity.get("entity_id")
+    name = friendly_name or entity.get("name") or entity.get("original_name") or entity.get("entity_id")
     return sanitize_string(name, salt)
+
+
+def add_entity_name_metadata(payload: dict[str, Any], entity: dict[str, Any], state: dict[str, Any] | None, salt: str) -> None:
+    attributes = state.get("attributes") if state else {}
+    friendly_name = attributes.get("friendly_name") if isinstance(attributes, dict) else None
+    registry_name = entity.get("name")
+    original_name = entity.get("original_name")
+    display_name = payload["name"]
+
+    if friendly_name and sanitize_string(friendly_name, salt) != sanitize_string(original_name or "", salt):
+        payload["friendly_name"] = sanitize_string(friendly_name, salt)
+    if registry_name and sanitize_string(registry_name, salt) != display_name:
+        payload["registry_name"] = sanitize_string(registry_name, salt)
+    if original_name and sanitize_string(original_name, salt) != display_name:
+        payload["original_name"] = sanitize_string(original_name, salt)
 
 
 def public_entity(entity: dict[str, Any], state: dict[str, Any] | None, salt: str) -> dict[str, Any]:
     entity_id = entity.get("entity_id") or ""
     capabilities = entity.get("capabilities") or {}
     domain = domain_from_entity_id(entity_id)
-    return {
+    payload = {
         "entity_id": sanitize_string(entity_id, salt),
         "name": display_entity_name(entity, state, salt),
         "domain": domain,
@@ -286,6 +301,19 @@ def public_entity(entity: dict[str, Any], state: dict[str, Any] | None, salt: st
         "availability": entity_availability(entity, state),
         "capability_keys": sorted(capabilities.keys()) if isinstance(capabilities, dict) else [],
     }
+    add_entity_name_metadata(payload, entity, state, salt)
+    return payload
+
+
+def add_device_name_metadata(payload: dict[str, Any], device: dict[str, Any], salt: str) -> None:
+    friendly_name = device.get("name_by_user")
+    original_name = device.get("name")
+    display_name = payload["name"]
+
+    if friendly_name and sanitize_string(friendly_name, salt) != sanitize_string(original_name or "", salt):
+        payload["friendly_name"] = sanitize_string(friendly_name, salt)
+    if original_name and sanitize_string(original_name, salt) != display_name:
+        payload["original_name"] = sanitize_string(original_name, salt)
 
 
 def state_map(states: list[dict[str, Any]] | None) -> dict[str, dict[str, Any]]:
@@ -478,24 +506,24 @@ def build_inventory(
         role_counts = Counter(entity_lookup[entity_id]["role"] for entity_id in entity_ids if entity_id in entity_lookup)
         domains = integration_domains_for_device(device, device_entities_raw, config_entries)
         area_id = device.get("area_id") or ""
-        public_devices.append(
-            {
-                "device_id": public_id,
-                "name": sanitize_string(device.get("name_by_user") or device.get("name") or public_id, salt),
-                "area": areas_by_id.get(area_id, sanitize_string(area_id, salt) if area_id else ""),
-                "manufacturer": sanitize_string(device.get("manufacturer") or "", salt),
-                "model": sanitize_string(device.get("model") or device.get("model_id") or "", salt),
-                "integrations": domains,
-                "disabled_by": device.get("disabled_by") or "",
-                "entry_type": device.get("entry_type") or "",
-                "entity_count": len(entity_ids),
-                "telemetry_count": role_counts.get("telemetry", 0),
-                "control_count": role_counts.get("control", 0),
-                "network_count": role_counts.get("network", 0),
-                "other_count": role_counts.get("other", 0),
-                "entities": entity_ids,
-            }
-        )
+        public_device = {
+            "device_id": public_id,
+            "name": sanitize_string(device.get("name_by_user") or device.get("name") or public_id, salt),
+            "area": areas_by_id.get(area_id, sanitize_string(area_id, salt) if area_id else ""),
+            "manufacturer": sanitize_string(device.get("manufacturer") or "", salt),
+            "model": sanitize_string(device.get("model") or device.get("model_id") or "", salt),
+            "integrations": domains,
+            "disabled_by": device.get("disabled_by") or "",
+            "entry_type": device.get("entry_type") or "",
+            "entity_count": len(entity_ids),
+            "telemetry_count": role_counts.get("telemetry", 0),
+            "control_count": role_counts.get("control", 0),
+            "network_count": role_counts.get("network", 0),
+            "other_count": role_counts.get("other", 0),
+            "entities": entity_ids,
+        }
+        add_device_name_metadata(public_device, device, salt)
+        public_devices.append(public_device)
 
     known_public_device_ids = {device["device_id"] for device in public_devices}
     orphan_entities = [
@@ -630,9 +658,11 @@ def render_markdown(inventory: dict[str, Any]) -> str:
                     f"- Integration: {integrations}",
                     f"- Model: {model}",
                     f"- Capability mix: {device['telemetry_count']} telemetry, {device['control_count']} control, {device['network_count']} network, {device['other_count']} other",
-                    "",
                 ]
             )
+            if device.get("original_name"):
+                lines.append(f"- Original name: {device['original_name']}")
+            lines.append("")
             rows = []
             for entity_id in device["entities"]:
                 entity = entities_by_id.get(entity_id)
@@ -641,9 +671,9 @@ def render_markdown(inventory: dict[str, Any]) -> str:
                 detail = entity["device_class"] or entity["entity_category"] or ""
                 if entity["unit"]:
                     detail = f"{detail} ({entity['unit']})" if detail else entity["unit"]
-                rows.append([f"`{entity_id}`", entity["role"], entity["platform"], detail, entity["availability"]])
+                rows.append([f"`{entity_id}`", entity["name"], entity["role"], entity["platform"], detail, entity["availability"]])
             if rows:
-                lines.extend([markdown_table(["Entity", "Role", "Integration", "Detail", "Availability"], rows), ""])
+                lines.extend([markdown_table(["Entity", "Name", "Role", "Integration", "Detail", "Availability"], rows), ""])
             else:
                 lines.append("_No registered entities._")
                 lines.append("")
