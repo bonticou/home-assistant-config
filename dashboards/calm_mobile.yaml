@@ -5854,8 +5854,6 @@ views:
               icon_color: >-
                 {% if is_state('light.master_casey_s_closet', 'on') %}
                   amber
-                {% elif is_state('automation.lights_casey_s_closet_auto_off', 'on') %}
-                  green
                 {% else %}
                   grey
                 {% endif %}
