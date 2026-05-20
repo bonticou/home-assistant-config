@@ -4,17 +4,17 @@ Generated from Home Assistant registries and UniFi-tracked network clients. Sens
 
 ## Last Updated
 
-- Snapshot: `2026-05-15T11:18:49-04:00`
-- Summary: 170 devices, 1796 entities, 114 network clients, 26 Lutron Caséta entities
+- Snapshot: `2026-05-20T13:35:36.331791+00:00`
+- Summary: 174 devices, 1853 entities, 119 network clients, 27 Lutron Caséta entities
 
 ## Summary
 
 | Metric | Count |
 | --- | --- |
-| Devices | 170 |
-| Entities | 1796 |
-| Orphan entities | 642 |
-| Network clients | 114 |
+| Devices | 174 |
+| Entities | 1853 |
+| Orphan entities | 699 |
+| Network clients | 119 |
 | Areas | 32 |
 | Integrations | 40 |
 
@@ -22,35 +22,35 @@ Generated from Home Assistant registries and UniFi-tracked network clients. Sens
 
 | Role | Entities |
 | --- | --- |
-| control | 633 |
-| network | 114 |
-| other | 249 |
-| telemetry | 800 |
+| control | 643 |
+| network | 119 |
+| other | 289 |
+| telemetry | 802 |
 
 ### Top Integrations
 
 | Integration | Entities |
 | --- | --- |
-| unifiprotect | 371 |
-| unifi | 261 |
-| template | 192 |
+| unifiprotect | 372 |
+| unifi | 264 |
+| template | 194 |
 | sonos | 153 |
-| script | 125 |
-| automation | 112 |
-| input_datetime | 66 |
+| script | 148 |
+| automation | 129 |
+| input_datetime | 70 |
 | sensorpush_cloud | 56 |
-| input_boolean | 48 |
+| input_boolean | 51 |
 | flo | 43 |
 | homekit_controller | 39 |
 | ring | 39 |
 | hassio | 35 |
 | esphome | 34 |
-| lutron_caseta | 26 |
+| lutron_caseta | 27 |
 | mobile_app | 26 |
 | matter | 22 |
 | tplink | 21 |
 | hacs | 20 |
-| input_select | 14 |
+| input_select | 15 |
 
 ## Devices By Area
 
@@ -794,6 +794,17 @@ Generated from Home Assistant registries and UniFi-tracked network clients. Sens
 | `sensor.master_temperature` | telemetry | sensorpush_cloud |  | available |
 | `sensor.master_vapor_pressure` | telemetry | sensorpush_cloud |  | disabled |
 
+#### Master Casey's Closet
+
+- Device ID: `device_fe512f1a9d5c`
+- Integration: lutron_caseta
+- Model: Lutron Electronics Co., Inc DVRF-6L (DivaSmartDimmer)
+- Capability mix: 0 telemetry, 1 control, 0 network, 0 other
+
+| Entity | Role | Integration | Detail | Availability |
+| --- | --- | --- | --- | --- |
+| `light.master_casey_s_closet` | control | lutron_caseta |  | available |
+
 #### Master Lantern
 
 - Device ID: `device_de9e0458bd8b`
@@ -819,7 +830,7 @@ Generated from Home Assistant registries and UniFi-tracked network clients. Sens
 | `button.master_clear_hold_2` | control | homekit_controller |  | available |
 | `button.master_identify_2` | control | homekit_controller | diagnostic | unknown |
 | `climate.master_2` | control | homekit_controller |  | available |
-| `select.master_current_mode_2` | control | homekit_controller |  | available |
+| `select.master_current_mode_2` | control | homekit_controller |  | unknown |
 | `select.master_temperature_display_units_2` | control | homekit_controller | config | available |
 | `sensor.master_current_humidity_2` | telemetry | homekit_controller |  | available |
 | `sensor.master_current_temperature_2` | telemetry | homekit_controller |  | available |
@@ -844,17 +855,11 @@ Generated from Home Assistant registries and UniFi-tracked network clients. Sens
 #### Master Ecobee Sensor
 
 - Device ID: `device_197b3d0ffca2`
-- Integration: homekit_controller
+- Integration: unknown
 - Model: ecobee Inc. EBERS41
-- Capability mix: 4 telemetry, 1 control, 0 network, 0 other
+- Capability mix: 0 telemetry, 0 control, 0 network, 0 other
 
-| Entity | Role | Integration | Detail | Availability |
-| --- | --- | --- | --- | --- |
-| `binary_sensor.master_sensor_new_motion_2` | telemetry | homekit_controller |  | available |
-| `binary_sensor.master_sensor_new_occupancy_2` | telemetry | homekit_controller |  | available |
-| `button.master_sensor_new_identify_2` | control | homekit_controller | diagnostic | unknown |
-| `sensor.master_sensor_new_battery_2` | telemetry | homekit_controller | diagnostic | available |
-| `sensor.master_sensor_new_temperature_2` | telemetry | homekit_controller |  | available |
+_No registered entities._
 
 ### Master Bedroom
 
@@ -1576,7 +1581,7 @@ _No registered entities._
 - Device ID: `device_c305c1f8549c`
 - Integration: unifi, unifiprotect
 - Model: Ubiquiti G6 Instant
-- Capability mix: 26 telemetry, 33 control, 1 network, 0 other
+- Capability mix: 27 telemetry, 33 control, 1 network, 0 other
 
 | Entity | Role | Integration | Detail | Availability |
 | --- | --- | --- | --- | --- |
@@ -1599,6 +1604,7 @@ _No registered entities._
 | `button.g6_instant_restart_3` | control | unifiprotect |  | disabled |
 | `button.g6_instant_unadopt_device_3` | control | unifiprotect |  | disabled |
 | `camera.g6_instant_high_resolution_channel_3` | telemetry | unifiprotect |  | available |
+| `camera.garage_high_resolution_channel_insecure` | telemetry | unifiprotect |  | disabled |
 | `device_tracker.uvc_g6_instant_3` | network | unifi | diagnostic | available |
 | `event.garage_vehicle` | telemetry | unifiprotect |  | available |
 | `media_player.garage_speaker` | control | unifiprotect |  | available |
@@ -1663,6 +1669,15 @@ _No registered entities._
 | --- | --- | --- | --- | --- |
 | `switch.hacs_pre_release` | control | hacs | diagnostic | disabled |
 | `update.hacs_update` | telemetry | hacs | config | available |
+
+#### HASS Bridge GD:21066
+
+- Device ID: `device_893e59af27bb`
+- Integration: unknown
+- Model: Home Assistant HomeBridge
+- Capability mix: 0 telemetry, 0 control, 0 network, 0 other
+
+_No registered entities._
 
 #### HASS Bridge:21064
 
@@ -1738,6 +1753,30 @@ _No registered entities._
 | `sensor.home_assistant_supervisor_cpu_percent` | telemetry | hassio |  | disabled |
 | `sensor.home_assistant_supervisor_memory_percent` | telemetry | hassio |  | disabled |
 | `update.home_assistant_supervisor_update` | telemetry | hassio | config | available |
+
+#### House Modes:21076
+
+- Device ID: `device_a9c0d9ada603`
+- Integration: unknown
+- Model: Home Assistant HomeBridge
+- Capability mix: 0 telemetry, 0 control, 0 network, 0 other
+
+_No registered entities._
+
+#### Kitchen
+
+- Device ID: `device_6431d4aeb054`
+- Integration: homekit_controller
+- Model: ecobee Inc. EBERS41
+- Capability mix: 4 telemetry, 1 control, 0 network, 0 other
+
+| Entity | Role | Integration | Detail | Availability |
+| --- | --- | --- | --- | --- |
+| `binary_sensor.rqn8_motion` | telemetry | homekit_controller |  | available |
+| `binary_sensor.rqn8_occupancy` | telemetry | homekit_controller |  | available |
+| `button.rqn8_identify` | control | homekit_controller | diagnostic | unknown |
+| `sensor.rqn8_battery` | telemetry | homekit_controller | diagnostic | available |
+| `sensor.rqn8_temperature` | telemetry | homekit_controller |  | available |
 
 #### Live view:21075
 
@@ -2146,15 +2185,13 @@ _No registered entities._
 - Device ID: `device_eb5e03453518`
 - Integration: unifi
 - Model: Ubiquiti Networks UAPA6A6
-- Capability mix: 7 telemetry, 1 control, 1 network, 0 other
+- Capability mix: 5 telemetry, 1 control, 1 network, 0 other
 
 | Entity | Role | Integration | Detail | Availability |
 | --- | --- | --- | --- | --- |
 | `button.u7_pro_outdoor_restart` | control | unifi | config | unknown |
 | `device_tracker.u7_pro_outdoor` | network | unifi | diagnostic | available |
 | `sensor.u7_pro_outdoor_clients` | telemetry | unifi | diagnostic | disabled |
-| `sensor.u7_pro_outdoor_cpu_utilization` | telemetry | unifi | diagnostic | available |
-| `sensor.u7_pro_outdoor_memory_utilization` | telemetry | unifi | diagnostic | available |
 | `sensor.u7_pro_outdoor_state` | telemetry | unifi | diagnostic | available |
 | `sensor.u7_pro_outdoor_uplink_mac` | telemetry | unifi | diagnostic | available |
 | `sensor.u7_pro_outdoor_uptime` | telemetry | unifi | diagnostic | available |
@@ -2208,7 +2245,7 @@ _No registered entities._
 | Entity | Role | Integration | Detail | Availability |
 | --- | --- | --- | --- | --- |
 | `binary_sensor.unnamed_room_microphone_7` | telemetry | sonos | diagnostic | unavailable |
-| `device_tracker.sonoszp_10` | network | unifi | diagnostic | available |
+| `device_tracker.sonoszp_10` | network | unifi | diagnostic | unavailable |
 | `media_player.unnamed_room_4` | control | sonos |  | unavailable |
 | `number.unnamed_room_balance_9` | control | sonos | config | unavailable |
 | `number.unnamed_room_bass_9` | control | sonos | config | unavailable |
@@ -2229,7 +2266,7 @@ _No registered entities._
 | Entity | Role | Integration | Detail | Availability |
 | --- | --- | --- | --- | --- |
 | `binary_sensor.unnamed_room_microphone_6` | telemetry | sonos | diagnostic | unavailable |
-| `device_tracker.unifi_default_mac_e322eb2d1cf7` | network | unifi | diagnostic | available |
+| `device_tracker.unifi_default_mac_e322eb2d1cf7` | network | unifi | diagnostic | unavailable |
 | `media_player.unnamed_room_3` | control | sonos |  | unavailable |
 | `number.unnamed_room_balance_8` | control | sonos | config | unavailable |
 | `number.unnamed_room_bass_8` | control | sonos | config | unavailable |
@@ -2540,7 +2577,7 @@ _No registered entities._
 
 | Entity | Role | Integration | Detail | Availability |
 | --- | --- | --- | --- | --- |
-| `device_tracker.unifi_default_mac_9878938b26f8` | network | unifi | diagnostic | available |
+| `device_tracker.unifi_default_mac_9878938b26f8` | network | unifi | diagnostic | unavailable |
 | `sensor.link_speed_13` | telemetry | unifi | diagnostic | disabled |
 
 #### device_af20e0206ce0
@@ -2588,7 +2625,7 @@ _No registered entities._
 
 | Entity | Role | Integration | Detail | Availability |
 | --- | --- | --- | --- | --- |
-| `device_tracker.unifi_default_mac_be3f4a9ec204` | network | unifi | diagnostic | available |
+| `device_tracker.unifi_default_mac_be3f4a9ec204` | network | unifi | diagnostic | unavailable |
 | `sensor.link_speed_15` | telemetry | unifi | diagnostic | disabled |
 
 #### device_c8b798d0e2b2
@@ -2980,6 +3017,7 @@ _No registered entities._
 | `automation.driver_license_ai_renewal_reminder` | Driver License — Renewal Reminder | other | automation | available |
 | `automation.dryer_vent_annual_cleaning_reminder` | Dryer Vent — Annual Cleaning Reminder | other | automation | available |
 | `automation.dryer_vent_maintenance_notification_actions` | Dryer Vent — Maintenance Notification Actions | other | automation | available |
+| `automation.environment_basement_humidity_notification_actions` | Environment — Basement Humidity Notification Actions | other | automation | available |
 | `automation.environment_basement_humidity_watch` | Environment — Basement Humidity Watch | other | automation | available |
 | `automation.environment_basement_radon_notification` | Environment — Basement Radon Notification | other | automation | available |
 | `automation.environment_clear_room_alerts` | Environment — Clear Room Alerts | other | automation | available |
@@ -2988,6 +3026,13 @@ _No registered entities._
 | `automation.espresso_notification_actions` | Espresso — Notification Actions | other | automation | available |
 | `automation.frame_tv_idle_behavior` | Frame TV — Idle Behavior | other | automation | unavailable |
 | `automation.frontend_set_liquid_glass_theme` | Frontend — Set Liquid Glass Theme | other | automation | available |
+| `automation.garage_clear_alerts_when_resolved` | Garage — Clear Alerts When Resolved | other | automation | available |
+| `automation.garage_notification_actions` | Garage — Notification Actions | other | automation | available |
+| `automation.garage_obstruction_detected` | Garage — Obstruction Detected | other | automation | available |
+| `automation.garage_open_at_night` | Garage — Open At Night | other | automation | available |
+| `automation.garage_open_too_long` | Garage — Open Too Long | other | automation | available |
+| `automation.garage_open_while_person_away` | Garage — Open While Person Away | other | automation | available |
+| `automation.garage_opened_overnight` | Garage — Opened Overnight | other | automation | available |
 | `automation.garbage_recycling_night_before_and_morning_reminders` | Garbage Recycling - Night Before And Morning Reminders | other | automation | available |
 | `automation.garbage_recycling_notification_actions` | Garbage Recycling - Notification Actions | other | automation | available |
 | `automation.garden_afternoon_weather_protection_notification` | Garden — Afternoon Weather Protection Notification | other | automation | available |
@@ -3009,6 +3054,7 @@ _No registered entities._
 | `automation.lights_door_lights_schedule_sync` | Lights — Door Lights Schedule Sync | other | automation | available |
 | `automation.lights_foyer_chandelier_schedule_sync` | Lights — Foyer Chandelier Schedule Sync | other | automation | available |
 | `automation.lights_front_stairs_schedule_sync` | Lights — Front Stairs Schedule Sync | other | automation | available |
+| `automation.lights_sync_master_bedroom_sconces` | Lights — Sync Master Bedroom Sconces | other | automation | available |
 | `automation.new_automation` | Noise Detection - Wynn's Room | other | automation | available |
 | `automation.notices_ai_notification_action_history` | Notices — Notification Action History | other | automation | available |
 | `automation.passport_ai_renewal_notification_actions` | Passport — Renewal Notification Actions | other | automation | available |
@@ -3022,17 +3068,25 @@ _No registered entities._
 | `automation.robison_oil_notification_actions` | Robison Oil — Notification Actions | other | automation | available |
 | `automation.robison_oil_price_check_follow_up` | Robison Oil — Price Check Follow-Up | other | automation | available |
 | `automation.security_alert_garage_door_unlocked` | Security Alert - Garage door unlocked | other | automation | unavailable |
+| `automation.security_away_motion_notification_actions` | Security — Away Motion Notification Actions | other | automation | available |
 | `automation.security_away_reminder_actions` | Security — Away Reminder Actions | other | automation | available |
 | `automation.security_casey_left_combo_alert` | Security — Casey Left Combo Alert | other | automation | unavailable |
 | `automation.security_casey_left_garage_unlocked` | Security — Casey Left Garage Unlocked | other | automation | unavailable |
 | `automation.security_casey_left_lights_on` | Security — Casey Left Lights On | other | automation | unavailable |
+| `automation.security_clear_away_motion_alert_when_home` | Security — Clear Away Motion Alert When Home | other | automation | available |
 | `automation.security_clear_away_reminder_when_resolved` | Security — Clear Away Reminder When Resolved | other | automation | available |
 | `automation.security_clear_casey_left_combo_alert` | Security — Clear Casey Left Combo Alert | other | automation | available |
 | `automation.security_clear_casey_left_garage_alert` | Security — Clear Casey Left Entry Alert | other | automation | available |
 | `automation.security_clear_casey_left_lights_alert` | Security — Clear Casey Left Lights Alert | other | automation | available |
+| `automation.security_clear_entry_night_reminder_when_resolved` | Security — Clear Entry Night Reminder When Resolved | other | automation | available |
 | `automation.security_entry_camera_notifications` | Security — Entry Camera Notifications | other | automation | unavailable |
+| `automation.security_entry_night_notification_actions` | Security — Entry Night Notification Actions | other | automation | available |
 | `automation.security_entry_ring_notifications` | Security — Entry Ring Notifications | other | automation | available |
 | `automation.security_house_unsecured_while_away` | Security — House Unsecured While Away | other | automation | available |
+| `automation.security_motion_while_everyone_away` | Security — Motion While Everyone Away | other | automation | available |
+| `automation.security_mudroom_unlocked_at_night` | Security — Mudroom Unlocked At Night | other | automation | available |
+| `automation.vacation_activity_lighting_sync` | Vacation — Activity Lighting Sync | other | automation | available |
+| `automation.vacation_activity_window_notifications` | Vacation — Activity Window Notifications | other | automation | available |
 | `automation.water_clear_notification_state_when_normal` | Water — Clear Notification State When Normal | other | automation | available |
 | `automation.water_daytime_sustained_low_flow` | Water — Daytime Sustained Low Flow | other | automation | available |
 | `automation.water_flo_system_alert` | Water — Flo System Alert | other | automation | available |
@@ -3116,6 +3170,7 @@ _No registered entities._
 | `binary_sensor.espresso_water_backflush_due` | Espresso Water Backflush Due | telemetry | template | available |
 | `binary_sensor.foyer_chandelier_schedule_active` | foyer_chandelier_schedule_active | telemetry | template | available |
 | `binary_sensor.front_stairs_schedule_active` | front_stairs_schedule_active | telemetry | template | available |
+| `binary_sensor.garage_close_hazard_active` | Garage Close Hazard Active | telemetry | template | available |
 | `binary_sensor.garbage_recycling_takeout_due` | Garbage Recycling Takeout Due | telemetry | template | available |
 | `binary_sensor.garden_actionable_alert` | Garden Actionable Alert | telemetry | template | available |
 | `binary_sensor.garden_basil_weather_ready` | Garden Basil Weather Ready | telemetry | template | unavailable |
@@ -3157,6 +3212,7 @@ _No registered entities._
 | `device_tracker.dining_room` | Dining-Room | network | unifi | disabled |
 | `device_tracker.ecobee_master` | Ecobee (Master) | network | unifi | disabled |
 | `device_tracker.ecobee_office` | Ecobee (Office) | network | unifi | disabled |
+| `device_tracker.ep25_2` | EP25 | network | unifi | disabled |
 | `device_tracker.galaxy_tab_a_80_2019` | Google Tablet (Monitor) | network | unifi | disabled |
 | `device_tracker.google_tablet` | device_tracker.google_tablet | network | unifi | disabled |
 | `device_tracker.hs103` | HS103 | network | unifi | disabled |
@@ -3167,6 +3223,7 @@ _No registered entities._
 | `device_tracker.iphone_4` | iPhone | network | unifi | disabled |
 | `device_tracker.iphone_5` | iPhone | network | unifi | disabled |
 | `device_tracker.iphone_6` | iPhone | network | unifi | disabled |
+| `device_tracker.iphone_7` | iPhone | network | unifi | disabled |
 | `device_tracker.jose_s_s23_fe` | Jose-s-S23-FE | network | unifi | disabled |
 | `device_tracker.lg_tv_master` | LG TV (Master) | network | unifi | disabled |
 | `device_tracker.mac` | Mac | network | unifi | disabled |
@@ -3181,6 +3238,8 @@ _No registered entities._
 | `device_tracker.sonoszp_5` | SonosZP | network | unifi | disabled |
 | `device_tracker.sonoszp_8` | SonosZP | network | unifi | disabled |
 | `device_tracker.sonoszp_9` | SonosZP | network | unifi | disabled |
+| `device_tracker.ting_8b_86` | Ting-8B-86 | network | unifi | disabled |
+| `device_tracker.ting_8b_8e` | Ting-8B-8E | network | unifi | disabled |
 | `device_tracker.trevor_s_iphone_16_pro` | Trevor's iPhone 16 Pro | network | unifi | disabled |
 | `device_tracker.unifi_default_mac_5395b13a8a3d` | iPhone | network | unifi | disabled |
 | `device_tracker.unifi_default_mac_c8c81f1a78e1` | device_tracker.unifi_default_mac_c8c81f1a78e1 | network | unifi | disabled |
@@ -3188,6 +3247,7 @@ _No registered entities._
 | `device_tracker.vizio_tv_family_room` | Vizio TV (Family Room) | network | unifi | disabled |
 | `device_tracker.watch` | Watch | network | unifi | disabled |
 | `device_tracker.watch_2` | Watch | network | unifi | disabled |
+| `device_tracker.watch_4` | Watch | network | unifi | disabled |
 | `input_boolean.business_admin_reminders_enabled` | Business Admin Reminders Enabled | control | input_boolean | available |
 | `input_boolean.casey_driver_license_renewal_enabled` | Casey Driver License Renewal Enabled | control | input_boolean | available |
 | `input_boolean.casey_passport_renewal_enabled` | Casey Passport Renewal Enabled | control | input_boolean | available |
@@ -3224,10 +3284,13 @@ _No registered entities._
 | `input_boolean.garden_weather_panel_expanded` | Garden Weather Panel Expanded | control | input_boolean | available |
 | `input_boolean.house_battery_alerts_enabled` | House Battery Alerts Enabled | control | input_boolean | available |
 | `input_boolean.interior_lights_guest_override` | Guest Lighting Override | control | input_boolean | available |
+| `input_boolean.interior_lights_guest_override_confirm` | Guest Lighting Override Confirm | control | input_boolean | available |
 | `input_boolean.metro_north_commute_notified_today` | Metro-North Commute Notified Today | control | input_boolean | available |
 | `input_boolean.passport_renewal_enabled` | Passport Renewal Enabled | control | input_boolean | available |
 | `input_boolean.piano_care_enabled` | Piano Care Enabled | control | input_boolean | available |
 | `input_boolean.tax_reminders_enabled` | Tax Reminders Enabled | control | input_boolean | available |
+| `input_boolean.vacation_mode` | Vacation Mode | control | input_boolean | available |
+| `input_boolean.vacation_mode_start_confirm` | Vacation Mode Start Confirm | control | input_boolean | available |
 | `input_boolean.water_flow_alert_active` | Water Flow Alert Active | control | input_boolean | available |
 | `input_boolean.water_leak_alert_active` | Water Leak Alert Active | control | input_boolean | available |
 | `input_boolean.water_pressure_alert_active` | Water Pressure Alert Active | control | input_boolean | available |
@@ -3239,6 +3302,7 @@ _No registered entities._
 | `input_datetime.ai_garden_brief_updated` | AI Garden Brief Updated | control | input_datetime | unavailable |
 | `input_datetime.ai_home_brief_updated` | AI Home Brief Updated | control | input_datetime | unavailable |
 | `input_datetime.ai_wine_brief_updated` | AI Wine Brief Updated | control | input_datetime | unavailable |
+| `input_datetime.away_motion_security_snooze_until` | Away Motion Security Snooze Until | control | input_datetime | available |
 | `input_datetime.away_security_snooze_until` | Away Security Snooze Until | control | input_datetime | available |
 | `input_datetime.basement_humidity_snooze_until` | Basement Humidity Snooze Until | control | input_datetime | available |
 | `input_datetime.bonticou_llc_de_franchise_tax_last_paid_at` | Bonticou LLC DE Franchise Tax Last Paid At | control | input_datetime | available |
@@ -3254,10 +3318,13 @@ _No registered entities._
 | `input_datetime.driver_license_renewed_at` | Driver License Renewed At | control | input_datetime | available |
 | `input_datetime.dryer_vent_cleaning_snooze_until` | Dryer Vent Cleaning Snooze Until | control | input_datetime | available |
 | `input_datetime.dryer_vent_last_cleaned` | Dryer Vent Last Cleaned | control | input_datetime | available |
+| `input_datetime.entry_security_snooze_until` | Entry Security Snooze Until | control | input_datetime | available |
 | `input_datetime.environment_radon_last_alert` | Environment Radon Last Alert | control | input_datetime | available |
 | `input_datetime.espresso_last_cafiza_clean` | Espresso Last Cafiza Clean | control | input_datetime | available |
 | `input_datetime.espresso_last_water_backflush` | Espresso Last Water Backflush | control | input_datetime | available |
+| `input_datetime.espresso_maintenance_last_notified_at` | Espresso Maintenance Last Notified At | control | input_datetime | available |
 | `input_datetime.espresso_maintenance_snooze_until` | Espresso Maintenance Snooze Until | control | input_datetime | available |
+| `input_datetime.garage_security_snooze_until` | Garage Security Snooze Until | control | input_datetime | available |
 | `input_datetime.garbage_recycling_last_taken_out_at` | Garbage Recycling Last Taken Out At | control | input_datetime | available |
 | `input_datetime.garden_basil_hardening_started` | Garden Basil Hardening Started | control | input_datetime | unavailable |
 | `input_datetime.garden_basil_moved_outside` | Garden Basil Moved Outside | control | input_datetime | unavailable |
@@ -3328,9 +3395,11 @@ _No registered entities._
 | `input_select.garden_spinach_observation` | Garden Spinach Observation | control | input_select | available |
 | `input_select.garden_tomatoes_observation` | Garden Tomatoes Observation | control | input_select | available |
 | `input_select.garden_tomatoes_stage` | Garden Tomatoes Stage | control | input_select | available |
+| `input_select.lighting_active_scene` | Lighting Active Scene | control | input_select | available |
 | `input_text.ai_garden_brief` | AI Garden Brief | control | input_text | unavailable |
 | `input_text.ai_home_brief` | AI Home Brief | control | input_text | unavailable |
 | `input_text.ai_wine_brief` | AI Wine Brief | control | input_text | unavailable |
+| `input_text.bonticou_llc_de_franchise_tax_paid_cycle` | Bonticou LLC DE Franchise Tax Paid Cycle | control | input_text | available |
 | `input_text.garbage_recycling_last_taken_out_pickup` | Garbage Recycling Last Taken Out Pickup | control | input_text | available |
 | `input_text.latest_camera_motion_entity` | Latest Camera Motion Entity | control | input_text | available |
 | `input_text.latest_camera_motion_label` | Latest Camera Motion Label | control | input_text | available |
@@ -3346,9 +3415,17 @@ _No registered entities._
 | `script.ai_refresh_garden_brief` | AI Refresh Garden Brief | other | script | unavailable |
 | `script.ai_refresh_home_brief` | AI Refresh Home Brief | other | script | unavailable |
 | `script.ai_refresh_wine_brief` | AI Refresh Wine Brief | other | script | unavailable |
+| `script.away_motion_security_clear_alert` | Away Motion Security Clear Alert | other | script | available |
+| `script.away_motion_security_guest_toggle` | Away Motion Security Guest Toggle | other | script | available |
+| `script.away_motion_security_resume` | Away Motion Security Resume | other | script | available |
+| `script.away_motion_security_send_alert` | Away Motion Security Send Alert | other | script | available |
+| `script.away_motion_security_snooze_30` | Away Motion Security Snooze 30 Minutes | other | script | available |
 | `script.away_security_clear_alert` | Away Security Clear Alert | other | script | available |
+| `script.away_security_close_garage_door` | Away Security Close Garage Door | other | script | available |
 | `script.away_security_lock_unlocked_entry_doors` | Away Security Lock Unlocked Entry Doors | other | script | available |
+| `script.away_security_move_garage_door` | Away Security Move Garage Door | other | script | available |
 | `script.away_security_send_alert` | Away Security Send Alert | other | script | available |
+| `script.away_security_snooze_30` | Away Security Snooze 30 Minutes | other | script | available |
 | `script.basement_humidity_clear_alert` | Basement Humidity Clear Alert | other | script | available |
 | `script.basement_humidity_send_alert` | Basement Humidity Send Alert | other | script | available |
 | `script.basement_humidity_snooze_24h` | Basement Humidity Snooze 24h | other | script | available |
@@ -3392,6 +3469,11 @@ _No registered entities._
 | `script.dryer_vent_send_cleaning_reminder` | Dryer Vent Send Cleaning Reminder | other | script | available |
 | `script.dryer_vent_snooze_cleaning` | Dryer Vent Snooze Cleaning | other | script | available |
 | `script.entry_camera_send_alert` | Entry Camera Send Alert | other | script | available |
+| `script.entry_security_clear_alerts` | Entry Security Clear Alerts | other | script | available |
+| `script.entry_security_lock_mudroom_door` | Entry Security Lock Mudroom Door | other | script | available |
+| `script.entry_security_send_alert` | Entry Security Send Alert | other | script | available |
+| `script.entry_security_snooze_30` | Entry Security Snooze 30 Minutes | other | script | available |
+| `script.entry_security_snooze_until_morning` | Entry Security Snooze Until Morning | other | script | available |
 | `script.environment_send_alert` | Environment Send Alert | other | script | available |
 | `script.espresso_clear_maintenance_notification` | Espresso Clear Maintenance Notification | other | script | available |
 | `script.espresso_mark_cafiza_clean_done` | Espresso Mark Cafiza Clean Done | other | script | available |
@@ -3407,6 +3489,11 @@ _No registered entities._
 | `script.frame_tv_off` | Frame TV Off | other | script | unavailable |
 | `script.front_stairs_schedule_off` | Front Stairs Schedule Off | other | script | available |
 | `script.front_stairs_schedule_on` | Front Stairs Schedule On | other | script | available |
+| `script.garage_security_clear_alerts` | Garage Security Clear Alerts | other | script | available |
+| `script.garage_security_clear_person_away_alerts` | Garage Security Clear Person-Away Alerts | other | script | available |
+| `script.garage_security_send_alert` | Garage Security Send Alert | other | script | available |
+| `script.garage_security_snooze_30` | Garage Security Snooze 30 Minutes | other | script | available |
+| `script.garage_security_snooze_until_morning` | Garage Security Snooze Until Morning | other | script | available |
 | `script.garbage_recycling_clear_notification` | Garbage Recycling Clear Notification | other | script | available |
 | `script.garbage_recycling_mark_taken_out` | Garbage Recycling Mark Taken Out | other | script | available |
 | `script.garbage_recycling_send_reminder` | Garbage Recycling Send Reminder | other | script | available |
@@ -3435,6 +3522,8 @@ _No registered entities._
 | `script.garden_snooze_notifications` | Garden Snooze Notifications | other | script | available |
 | `script.garden_start_basil_hardening` | Garden Start Basil Hardening | other | script | unavailable |
 | `script.garden_start_marigolds_hardening` | Garden Start Marigolds Hardening | other | script | unavailable |
+| `script.interior_lights_guest_override_end` | Interior Lights Guest Override End | other | script | available |
+| `script.interior_lights_guest_override_start` | Interior Lights Guest Override Start | other | script | available |
 | `script.light_transition_toggle` | Light Transition Toggle | other | script | available |
 | `script.lights_all_off_scene` | Lights All Off Scene | other | script | available |
 | `script.lights_bedtime_scene` | Lights Bedtime Scene | other | script | available |
@@ -3456,6 +3545,9 @@ _No registered entities._
 | `script.robison_oil_send_price_check_reminder` | Robison Oil Send Price Check Reminder | other | script | available |
 | `script.robison_oil_send_tune_up_reminder` | Robison Oil Send Tune-Up Reminder | other | script | available |
 | `script.spotify_bedtime_fade` | Spotify Bedtime Fade | other | script | available |
+| `script.vacation_activity_apply` | Vacation Activity Apply | other | script | available |
+| `script.vacation_mode_end` | Vacation Mode End | other | script | available |
+| `script.vacation_mode_start` | Vacation Mode Start | other | script | available |
 | `script.water_send_alert` | Water Send Alert | other | script | available |
 | `script.wine_cave_clear_cabinet_cleaning_notification` | Wine Cave Clear Cabinet Cleaning Notification | other | script | available |
 | `script.wine_cave_clear_charcoal_filter_notification` | Wine Cave Clear Charcoal Filter Notification | other | script | available |
@@ -3492,7 +3584,7 @@ _No registered entities._
 | `sensor.downstairs_comfort_profile_reason` | Downstairs Comfort Profile Reason | telemetry | template | unavailable |
 | `sensor.downstairs_comfort_profile_recommendation` | Downstairs Comfort Profile Recommendation | telemetry | template | unavailable |
 | `sensor.downstairs_cooling_truth_temp` | Downstairs Cooling Truth Temp | telemetry | template | unavailable |
-| `sensor.downstairs_ecobee_setpoint` | Dining Room Ecobee Setpoint | telemetry | template | unknown |
+| `sensor.downstairs_ecobee_setpoint` | Dining Room Ecobee Setpoint | telemetry | template | available |
 | `sensor.downstairs_heating_truth_temp` | Downstairs Heating Truth Temp | telemetry | template | unavailable |
 | `sensor.downstairs_humidity_avg` | Main Floor Humidity Avg | telemetry | template | available |
 | `sensor.downstairs_hvac_reason` | Downstairs HVAC Reason | telemetry | template | unavailable |
@@ -3553,6 +3645,7 @@ _No registered entities._
 | `sensor.garden_weather_readiness` | Garden Weather Readiness | telemetry | template | unavailable |
 | `sensor.garden_weather_window` | Garden Weather Window | telemetry | template | available |
 | `sensor.garden_workflow_status` | Garden Workflow Status | telemetry | template | available |
+| `sensor.house_action_stamp_ledger` | House Action Stamp Ledger | telemetry | command_line | available |
 | `sensor.house_low_battery_summary` | House Low Battery Summary | telemetry | template | available |
 | `sensor.house_notice_history` | House Notice History | telemetry | template | available |
 | `sensor.house_notice_timeline` | House Notice Timeline | telemetry | template | available |
@@ -3566,6 +3659,7 @@ _No registered entities._
 | `sensor.school_tax_september_due_date` | School Tax September Due Date | telemetry | template | available |
 | `sensor.sonos_favorites` | Sonos favorites | telemetry | sonos | disabled |
 | `sensor.town_tax_due_date` | Town Tax Due Date | telemetry | template | available |
+| `sensor.vacation_activity_window` | Vacation Activity Window | telemetry | template | available |
 | `sensor.water_guard_alert_events` | Water Guard Alert Events | telemetry | template | available |
 | `sensor.water_guard_flow_events` | Water Guard Flow Events | telemetry | template | available |
 | `sensor.water_guard_leak_events` | Water Guard Leak Events | telemetry | template | unknown |
@@ -3610,8 +3704,10 @@ _No registered entities._
 | `network_063dcd69dabd` | entity_registry |  |  | `device_tracker.sonoszp_13` | SonosZP |
 | `network_0701248004f4` | entity_registry | wireless |  | `device_tracker.sonoszp_7` | SonosZP |
 | `network_077f803201db` | entity_registry |  |  | `device_tracker.mechanical_room_leak_detection_espressif` | espressif |
+| `network_084d7be75689` | entity_registry |  |  | `device_tracker.ep25_2` | EP25 |
 | `network_0bb5a2bc3a59` | entity_registry |  |  | `device_tracker.apple_tv_family_room` | Apple TV (Family Room) |
 | `network_1134d72f2862` | entity_registry |  |  | `device_tracker.u7_pro_mesh` | U7 Pro (Mesh) |
+| `network_1267ce0e8fd7` | entity_registry |  |  | `device_tracker.ting_8b_86` | Ting-8B-86 |
 | `network_138dd978fd39` | entity_registry |  |  | `device_tracker.tesla` | Tesla |
 | `network_162861e9f8a0` | entity_registry |  |  | `device_tracker.macbook_air_trevor` | Macbook Air (Trevor) |
 | `network_1becf4615ae2` | entity_registry |  |  | `device_tracker.unifi_default_mac_b01ea2b181ff` |  |
@@ -3619,6 +3715,7 @@ _No registered entities._
 | `network_24f2b3079862` | entity_registry |  |  | `device_tracker.unifi_default_mac_5395b13a8a3d` | iPhone |
 | `network_2cad38dabb52` | entity_registry |  |  | `device_tracker.galaxy_tab_a_80_2019` | Google Tablet (Monitor) |
 | `network_2dbcba4c5e25` | entity_registry |  |  | `device_tracker.unifi_default_mac_c8c81f1a78e1` |  |
+| `network_2eb1fbd74359` | entity_registry |  |  | `device_tracker.ting_8b_8e` | Ting-8B-8E |
 | `network_2f2f22413762` | entity_registry |  |  | `device_tracker.unifi_default_mac_d9959f2a8987` | Watch |
 | `network_31c6e9accc86` | entity_registry |  |  | `device_tracker.bonticou_gateway` | Bonticou Gateway |
 | `network_381b44eab343` | entity_registry |  |  | `device_tracker.apple_tv_master` | Apple TV (Master) |
@@ -3640,7 +3737,7 @@ _No registered entities._
 | `network_56124397cc01` | entity_registry | wireless |  | `device_tracker.flo_d4e95ef8775b` | Moen Flo |
 | `network_5c77c2cb10f4` | entity_registry |  |  | `device_tracker.family_room_frame_tv` | Frame TV Pro |
 | `network_5d120dfc3950` | entity_registry |  |  | `device_tracker.unifi_default_mac_de716b80d9a5` | Watch |
-| `network_5d21a958dc6c` | entity_registry |  |  | `device_tracker.washing_machine_leak_detection_espressif` | espressif |
+| `network_5d21a958dc6c` | entity_registry | wireless |  | `device_tracker.washing_machine_leak_detection_espressif` | espressif |
 | `network_5db1c1849ddb` | entity_registry |  |  | `device_tracker.basement_ejector_leak_detection_espressif` | espressif |
 | `network_5dca10f15aa3` | entity_registry |  |  | `device_tracker.lg_tv_master` | LG TV (Master) |
 | `network_5f232cbd21d5` | entity_registry |  |  | `device_tracker.ecobee_office` | Ecobee (Office) |
@@ -3663,20 +3760,21 @@ _No registered entities._
 | `network_7c5c974675ea` | entity_registry |  |  | `device_tracker.sonoszp_10` | SonosZP |
 | `network_7c8af86dfe2f` | entity_registry |  |  | `device_tracker.unifi_default_mac_2c894ada8b0b` |  |
 | `network_7cbdb6e2ee7c` | entity_registry |  |  | `device_tracker.iphone_3` | iPhone |
-| `network_7d82b3372ee2` | entity_registry | wireless |  | `device_tracker.kitchen_fridge_leak_detection_espressif` | espressif |
+| `network_7d82b3372ee2` | entity_registry |  |  | `device_tracker.kitchen_fridge_leak_detection_espressif` | espressif |
 | `network_7e17b1e5ef19` | entity_registry |  |  | `device_tracker.jose_s_s23_fe` | Jose-s-S23-FE |
-| `network_825c2d064323` | entity_registry | wireless |  | `device_tracker.ratgdo` | ratgdo |
+| `network_825c2d064323` | entity_registry | wireless |  | `device_tracker.ratgdo` | Garage Door (middle) |
 | `network_835ec58c4a7c` | entity_registry |  |  | `device_tracker.unifi_default_mac_dd5079c60353` | iPhone |
 | `network_853689a7af66` | entity_registry |  |  | `device_tracker.unifi_default_mac_b019bd33cc89` | iPhone |
 | `network_88fdba8f6b4d` | entity_registry |  |  | `device_tracker.usw_flex_2_5g_5` | USW Flex 2.5G 5 |
 | `network_89e7f0fa3fd2` | entity_registry |  |  | `device_tracker.db15_2` | DB15 |
-| `network_8a7a9f3fb2a8` | entity_registry | wireless |  | `device_tracker.brw849e567c91bc` | Office Printer |
+| `network_8a7a9f3fb2a8` | entity_registry |  |  | `device_tracker.brw849e567c91bc` | Office Printer |
 | `network_8b065ef7c1a0` | entity_registry |  |  | `device_tracker.lutron_06926f09` | Lutron Hub |
 | `network_90db9d129b74` | entity_registry | wireless |  | `device_tracker.mud_room` | mud-room |
 | `network_968a6d9f0306` | entity_registry | wireless |  | `device_tracker.sonoszp_6` | SonosZP |
 | `network_9a89c65234c8` | entity_registry |  |  | `device_tracker.unifi_default_mac_a38f4e4b84a0` | iPhone |
 | `network_9f52e1e5c4b5` | entity_registry |  |  | `device_tracker.trevor_s_iphone_16_pro` | Trevor's iPhone 16 Pro |
 | `network_a3399227e493` | entity_registry |  |  | `device_tracker.dishwasher_leak_detection_espressif` | espressif |
+| `network_a5cb64931ab6` | entity_registry |  |  | `device_tracker.iphone_7` | iPhone |
 | `network_a836f64560be` | entity_registry |  |  | `device_tracker.watch_2` | Watch |
 | `network_a8b2458417f9` | entity_registry |  |  | `device_tracker.sonoszp_14` | SonosZP |
 | `network_ab5c96352376` | entity_registry | wireless |  | `device_tracker.unifi_default_mac_754c3a1ea02a` | Aqara Hub M100 |
@@ -3699,6 +3797,7 @@ _No registered entities._
 | `network_cc8a57ab7094` | entity_registry |  |  | `device_tracker.unifi_default_mac_e322eb2d1cf7` | SonosZP |
 | `network_cc94aabe6ac8` | entity_registry |  |  | `device_tracker.u7_pro_outdoor` | U7 Pro Outdoor |
 | `network_cd85e1b091a0` | entity_registry |  |  | `device_tracker.unifi_default_mac_f209cb9d07da` |  |
+| `network_cf592a460a64` | entity_registry |  |  | `device_tracker.watch_4` | Watch |
 | `network_d24c85bd5443` | entity_registry |  |  | `device_tracker.iphone` | Steve's iPhone |
 | `network_d6c8b6df39de` | entity_registry | wireless |  | `device_tracker.mechanical_room` | mechanical-room |
 | `network_d8833f9e6da5` | entity_registry |  |  | `device_tracker.sonoszp_4` | SonosZP |
@@ -3716,5 +3815,5 @@ _No registered entities._
 | `network_f4b709ebd714` | entity_registry |  |  | `device_tracker.unifi_default_mac_92902c5c8aa5` |  |
 | `network_f9edbe1f2387` | entity_registry |  |  | `device_tracker.sonoszp_12` | SonosZP |
 | `network_fb15e20f5084` | entity_registry |  |  | `device_tracker.apple_tv_basement` | Apple TV (Basement) |
-| `network_fb3eecf6e92b` | entity_registry | wireless |  | `device_tracker.unifi_default_mac_5042130907ce` | Casey's iPhone 17 Pro |
+| `network_fb3eecf6e92b` | entity_registry |  |  | `device_tracker.unifi_default_mac_5042130907ce` | Casey's iPhone 17 Pro |
 | `network_fce37b630e1f` | entity_registry |  |  | `device_tracker.sonoszp_11` | SonosZP |

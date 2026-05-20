@@ -6124,21 +6124,40 @@ views:
       - type: custom:mushroom-title-card
         title: Master Bedroom
 
-      - type: custom:mushroom-light-card
-        entity: light.master_bedroom_sconces
-        name: Sconces
-        icon: mdi:wall-sconce-flat
-        tap_action:
-          <<: *lights_transition_tap_action
-          data:
-            light_entity: light.master_bedroom_sconces
-            transition_seconds: 3
-        show_brightness_control: true
-        show_color_temp_control: false
-        use_light_color: true
-        fill_container: true
-        card_mod:
-          style: *lights_compact_card_style
+      - type: grid
+        columns: 2
+        square: false
+        cards:
+          - type: custom:mushroom-light-card
+            entity: light.master_bedroom_sconces
+            name: Sconces
+            icon: mdi:wall-sconce-flat
+            tap_action:
+              <<: *lights_transition_tap_action
+              data:
+                light_entity: light.master_bedroom_sconces
+                transition_seconds: 3
+            show_brightness_control: true
+            collapsible_controls: true
+            show_color_temp_control: false
+            use_light_color: true
+            card_mod:
+              style: *lights_compact_card_style
+          - type: custom:mushroom-light-card
+            entity: light.master_casey_s_closet
+            name: Casey Closet
+            icon: mdi:wardrobe-outline
+            tap_action:
+              <<: *lights_transition_tap_action
+              data:
+                light_entity: light.master_casey_s_closet
+                transition_seconds: 3
+            show_brightness_control: true
+            collapsible_controls: true
+            show_color_temp_control: false
+            use_light_color: true
+            card_mod:
+              style: *lights_compact_card_style
 
       - type: vertical-stack
         cards:

@@ -521,6 +521,7 @@ lights_all_off_scene:
           - light.back_patio_light
           - light.deck_deck_lights
           - light.exterior_yard_lights
+          - light.master_casey_s_closet
         transition: 3
     - variables:
         master_sconces_sleep_fade_down: >-
@@ -617,6 +618,7 @@ lights_bedtime_scene:
           - light.mudroom_main_lights
           - light.mudroom_nook_lights
           - light.back_patio_light
+          - light.master_casey_s_closet
         transition: 8
     - action: light.turn_on
       target:
@@ -844,6 +846,7 @@ vacation_mode_start:
           - light.mudroom_nook_lights
           - light.wynn_s_room_chandelier
           - light.wynn_s_room_ceiling_lights
+          - light.master_casey_s_closet
         transition: 3
     - action: switch.turn_off
       data:
