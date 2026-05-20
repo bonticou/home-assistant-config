@@ -579,13 +579,162 @@ def markdown_table(headers: list[str], rows: list[list[Any]]) -> str:
     return "\n".join(lines)
 
 
+def format_entity_reference(entity: dict[str, Any]) -> str:
+    name = entity.get("name") or ""
+    entity_id = entity.get("entity_id") or ""
+    if name and name != entity_id:
+        return f"{name} (`{entity_id}`)"
+    return f"`{entity_id}`"
+
+
+def compact_entity_references(entities: list[dict[str, Any]], limit: int = 5) -> str:
+    visible = entities[:limit]
+    label = "; ".join(format_entity_reference(entity) for entity in visible)
+    remaining = len(entities) - len(visible)
+    if remaining > 0:
+        label = f"{label}; +{remaining} more" if label else f"+{remaining} more"
+    return label
+
+
 def render_markdown(inventory: dict[str, Any]) -> str:
     summary = inventory["summary"]
     generated_at = inventory.get("generated_at")
+    entities_by_id = {entity["entity_id"]: entity for entity in inventory["entities"]}
+
+    area_rollup: dict[str, dict[str, int]] = defaultdict(lambda: defaultdict(int))
+    for device in inventory["devices"]:
+        area = device.get("area") or "Unassigned"
+        area_rollup[area]["devices"] += 1
+        area_rollup[area]["controls"] += device.get("control_count", 0)
+        area_rollup[area]["telemetry"] += device.get("telemetry_count", 0)
+        area_rollup[area]["network"] += device.get("network_count", 0)
+    for entity in inventory["entities"]:
+        if entity.get("domain") == "light":
+            area_rollup[entity.get("area") or "Unassigned"]["lights"] += 1
+
+    light_entities = sorted(
+        [entity for entity in inventory["entities"] if entity.get("domain") == "light"],
+        key=lambda item: (item.get("area") or "", item.get("name") or "", item.get("entity_id") or ""),
+    )
+
+    control_devices_by_area: dict[str, list[dict[str, Any]]] = defaultdict(list)
+    for device in inventory["devices"]:
+        if device.get("control_count", 0) > 0:
+            control_devices_by_area[device.get("area") or "Unassigned"].append(device)
+
     lines = [
         "# Device Inventory",
         "",
-        "Generated from Home Assistant registries and UniFi-tracked network clients. Sensitive network identifiers are redacted.",
+        "A human-readable map of the Home Assistant device model. The full audit dump is in [device-inventory-detail.md](device-inventory-detail.md); this page is the quick view.",
+        "",
+        "## At A Glance",
+        "",
+    ]
+    if generated_at:
+        lines.extend(
+            [
+                f"- Snapshot: `{generated_at}`",
+                f"- Scale: {summary['device_count']} devices, {summary['entity_count']} entities, {summary['network_client_count']} network clients",
+                f"- Lighting: {summary['domain_counts'].get('light', 0)} light entities, {summary['integration_counts'].get('lutron_caseta', 0)} Lutron Caséta entities",
+                "",
+            ]
+        )
+
+    lines.extend(
+        [
+            markdown_table(
+                ["Thing", "Count"],
+                [
+                    ["Devices", summary["device_count"]],
+                    ["Entities", summary["entity_count"]],
+                    ["Control entities", summary["role_counts"].get("control", 0)],
+                    ["Telemetry entities", summary["role_counts"].get("telemetry", 0)],
+                    ["Network clients", summary["network_client_count"]],
+                    ["Areas", summary["area_count"]],
+                ],
+            ),
+            "",
+            "## Area Index",
+            "",
+            markdown_table(
+                ["Area", "Devices", "Controls", "Lights", "Telemetry", "Network"],
+                [
+                    [
+                        area,
+                        counts.get("devices", 0),
+                        counts.get("controls", 0),
+                        counts.get("lights", 0),
+                        counts.get("telemetry", 0),
+                        counts.get("network", 0),
+                    ]
+                    for area, counts in sorted(area_rollup.items())
+                ],
+            ),
+            "",
+            "## Lighting Controls",
+            "",
+            markdown_table(
+                ["Area", "Light", "Entity", "Integration", "Original name"],
+                [
+                    [
+                        entity.get("area") or "Unassigned",
+                        entity.get("name") or "",
+                        f"`{entity['entity_id']}`",
+                        entity.get("platform") or "",
+                        entity.get("original_name") or "",
+                    ]
+                    for entity in light_entities
+                ],
+            ),
+            "",
+            "## Control Devices By Area",
+            "",
+        ]
+    )
+
+    for area in sorted(control_devices_by_area):
+        lines.extend([f"### {area}", ""])
+        rows = []
+        for device in sorted(control_devices_by_area[area], key=lambda item: (item.get("name") or "", item.get("device_id") or "")):
+            control_entities = [
+                entities_by_id[entity_id]
+                for entity_id in device.get("entities", [])
+                if entity_id in entities_by_id and entities_by_id[entity_id].get("role") == "control"
+            ]
+            rows.append(
+                [
+                    device.get("name") or "",
+                    device.get("integrations") and ", ".join(device["integrations"]) or "unknown",
+                    compact_entity_references(control_entities),
+                    device.get("original_name") or "",
+                ]
+            )
+        lines.extend([markdown_table(["Device", "Integration", "Main controls", "Original name"], rows), ""])
+
+    lines.extend(
+        [
+            "## Files",
+            "",
+            markdown_table(
+                ["File", "Use"],
+                [
+                    ["[device-inventory-detail.md](device-inventory-detail.md)", "Full per-device audit view"],
+                    ["[device-inventory.json](device-inventory.json)", "Structured inventory for scripts and checks"],
+                ],
+            ),
+            "",
+        ]
+    )
+    return "\n".join(lines)
+
+
+def render_detail_markdown(inventory: dict[str, Any]) -> str:
+    summary = inventory["summary"]
+    generated_at = inventory.get("generated_at")
+    lines = [
+        "# Device Inventory Detail",
+        "",
+        "Full generated audit view. For the readable overview, use [device-inventory.md](device-inventory.md). Sensitive network identifiers are redacted.",
         "",
         "## Last Updated",
         "",
@@ -1273,9 +1422,11 @@ def main(argv: list[str] | None = None) -> int:
 
     json_text = json.dumps(inventory, indent=2, sort_keys=True) + "\n"
     markdown_text = render_markdown(inventory)
+    detail_markdown_text = render_detail_markdown(inventory)
     changed = {
         "json": write_if_changed(output_dir / "device-inventory.json", json_text),
         "markdown": write_if_changed(output_dir / "device-inventory.md", markdown_text),
+        "detail_markdown": write_if_changed(output_dir / "device-inventory-detail.md", detail_markdown_text),
     }
     write_json_if_changed(changes_file, change_report)
     update_pending_digest(digest_file, change_report)
