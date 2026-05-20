@@ -302,8 +302,11 @@ views:
               {% elif is_number(temp) %}{{ temp | float(0) | round(0) }}°
               {% else %}HVAC{% endif %}
             tap_action:
-              action: navigate
-              navigation_path: /calm-mobile/climate
+              action: fire-dom-event
+              browser_mod:
+                service: browser_mod.popup
+                data:
+                  popup_card_id: climate-quick-popup
             hold_action:
               action: more-info
           - type: template
@@ -613,6 +616,438 @@ views:
                           - color: '#f8fafc'
                         label:
                           - color: rgba(224, 231, 255, 0.9)
+
+      - type: custom:popup-card
+        popup_card_id: climate-quick-popup
+        target:
+          entity_id: climate.dining_room
+        title: " "
+        initial_style: wide
+        card_mod:
+          style:
+            ha-dialog$: |
+              ha-icon-button {
+                display: none !important;
+              }
+        popup_styles:
+          - style: all
+            styles: |
+              :host {
+                --primary-text-color: #f8fafc;
+                --secondary-text-color: #cbd5e1;
+                --popup-padding-x: 0px;
+                --popup-padding-y: 0px;
+              }
+              ha-dialog {
+                --mdc-dialog-scrim-color: rgba(2, 6, 23, 0.68);
+                --dialog-backdrop-filter: blur(30px) saturate(160%);
+                --ha-dialog-border-radius: 32px;
+                --mdc-dialog-container-color: transparent;
+                --mdc-theme-surface: transparent;
+                --ha-dialog-surface-background: transparent;
+              }
+              dialog {
+                background: transparent !important;
+                box-shadow: none !important;
+              }
+          - style: wide
+            styles: |
+              .content {
+                width: min(390px, calc(100vw - 30px)) !important;
+                margin-inline: auto;
+              }
+              .content .container {
+                overflow: visible;
+                box-sizing: border-box;
+                margin-top: clamp(94px, 17vh, 190px);
+                position: relative;
+                padding: 0 !important;
+                border-radius: 32px;
+                border: 1px solid rgba(148, 163, 184, 0.22);
+                background:
+                  radial-gradient(circle at 18% -8%, rgba(59, 130, 246, 0.22), transparent 40%),
+                  radial-gradient(circle at 104% 8%, rgba(20, 184, 166, 0.13), transparent 34%),
+                  linear-gradient(180deg, rgba(30, 41, 59, 0.96), rgba(15, 23, 42, 0.94));
+                box-shadow:
+                  inset 0 1px 0 rgba(255, 255, 255, 0.08),
+                  0 30px 68px rgba(2, 6, 23, 0.48);
+                -webkit-backdrop-filter: blur(24px) saturate(155%);
+                backdrop-filter: blur(24px) saturate(155%);
+              }
+        card:
+          type: vertical-stack
+          cards:
+            - type: custom:button-card
+              icon: mdi:close
+              show_name: false
+              show_state: false
+              tap_action:
+                action: fire-dom-event
+                browser_mod:
+                  service: browser_mod.close_popup
+                  data: {}
+              styles:
+                card:
+                  - width: 44px
+                  - height: 44px
+                  - padding: 0
+                  - border-radius: 999px
+                  - border: 1px solid rgba(148, 163, 184, 0.24)
+                  - background: rgba(15, 23, 42, 0.62)
+                  - color: "#f8fafc"
+                  - box-shadow: 0 12px 26px rgba(2, 6, 23, 0.30)
+                  - -webkit-backdrop-filter: blur(14px) saturate(150%)
+                  - backdrop-filter: blur(14px) saturate(150%)
+                icon:
+                  - width: 22px
+                  - color: "#f8fafc"
+              card_mod:
+                style: |
+                  :host {
+                    position: absolute !important;
+                    top: -56px;
+                    left: 0;
+                    z-index: 5;
+                    width: 44px;
+                    height: 44px;
+                    display: block;
+                  }
+            - type: custom:button-card
+              name: More
+              icon: mdi:chevron-right
+              show_icon: true
+              show_name: true
+              show_state: false
+              tap_action:
+                action: navigate
+                navigation_path: /calm-mobile/climate
+              styles:
+                card:
+                  - height: 44px
+                  - padding: 0 6px 0 14px
+                  - border-radius: 999px
+                  - border: 1px solid rgba(148, 163, 184, 0.20)
+                  - background: rgba(15, 23, 42, 0.48)
+                  - box-shadow: 0 12px 26px rgba(2, 6, 23, 0.22)
+                  - -webkit-backdrop-filter: blur(14px) saturate(150%)
+                  - backdrop-filter: blur(14px) saturate(150%)
+                grid:
+                  - grid-template-areas: '"n i"'
+                  - grid-template-columns: auto 20px
+                  - align-items: center
+                  - column-gap: 3px
+                name:
+                  - color: "#f8fafc"
+                  - font-size: 18px
+                  - font-weight: 500
+                  - justify-self: end
+                icon:
+                  - width: 20px
+                  - color: "#f8fafc"
+              card_mod:
+                style: |
+                  :host {
+                    position: absolute !important;
+                    top: -56px;
+                    right: 0;
+                    z-index: 5;
+                    width: 98px;
+                    display: block;
+                  }
+            - type: custom:button-card
+              show_icon: false
+              show_name: false
+              show_state: false
+              tap_action:
+                action: none
+              custom_fields:
+                sheet: >-
+                  [[[
+                    const entityState = (id) => hass.states[id];
+                    const state = (id) => entityState(id)?.state;
+                    const attr = (id, key) => entityState(id)?.attributes?.[key];
+                    const number = (value) => {
+                      const parsed = Number(value);
+                      return Number.isFinite(parsed) ? parsed : null;
+                    };
+                    const rounded = (value, digits = 0) => {
+                      const parsed = number(value);
+                      return parsed === null ? '--' : parsed.toFixed(digits);
+                    };
+                    const avgTemp = number(state('sensor.downstairs_temp_avg'))
+                      ?? number(attr('climate.dining_room', 'current_temperature'));
+                    const avgHumidity = number(state('sensor.downstairs_humidity_avg'))
+                      ?? number(attr('climate.dining_room', 'current_humidity'));
+                    const setpoint = number(state('sensor.downstairs_ecobee_setpoint'))
+                      ?? number(attr('climate.dining_room', 'temperature'));
+                    const hvacAction = String(attr('climate.dining_room', 'hvac_action') || 'idle');
+                    const status = String(state('sensor.downstairs_climate_status') || 'steady');
+                    const profile = String(state('select.dining_room_current_mode') || 'unknown');
+                    const actionMap = {
+                      heating: ['mdi:radiator', 'Heating', '#fb923c'],
+                      cooling: ['mdi:snowflake', 'Cooling', '#60a5fa'],
+                      fan: ['mdi:fan', 'Fan', '#38bdf8'],
+                      idle: ['mdi:weather-night', 'Idle', 'rgba(226, 232, 240, 0.86)'],
+                      off: ['mdi:power', 'Off', 'rgba(148, 163, 184, 0.84)'],
+                    };
+                    const action = actionMap[hvacAction] || actionMap.idle;
+                    const statusMap = {
+                      steady: ['mdi:check-circle-outline', 'Steady', '#86efac'],
+                      warming: ['mdi:radiator', 'Warming', '#fb923c'],
+                      cooling: ['mdi:snowflake', 'Cooling', '#60a5fa'],
+                      too_warm: ['mdi:thermometer-high', 'Warm', '#fca5a5'],
+                      too_cool: ['mdi:thermometer-low', 'Cool', '#a5b4fc'],
+                      humid: ['mdi:water-percent-alert', 'Humid', '#67e8f9'],
+                      dry: ['mdi:water-off-outline', 'Dry', '#fbbf24'],
+                      uneven: ['mdi:thermometer-alert', 'Uneven', '#fdba74'],
+                    };
+                    const comfort = statusMap[status] || statusMap.steady;
+                    const modeLabel = ['home', 'sleep', 'away'].includes(profile)
+                      ? profile.charAt(0).toUpperCase() + profile.slice(1)
+                      : 'Setpoint';
+                    const kitchenTemp = rounded(state('sensor.main_floor_temperature'));
+                    const kitchenHumidity = rounded(state('sensor.main_floor_humidity'));
+                    const diningTemp = rounded(state('sensor.main_floor_2_temperature'));
+                    const diningHumidity = rounded(state('sensor.main_floor_2_humidity'));
+                    const spread = rounded(state('sensor.downstairs_temp_spread'), 1);
+                    return `
+                      <div class="climate-sheet">
+                        <div class="climate-header">
+                          <div class="room-lockup">
+                            <div class="room-icon"><ha-icon icon="mdi:home-thermometer-outline"></ha-icon></div>
+                            <div>
+                              <div class="room-title">Main Floor</div>
+                              <div class="room-subtitle">Kitchen control sensor</div>
+                            </div>
+                          </div>
+                        </div>
+                        <div class="climate-metrics">
+                          <div class="metric">
+                            <ha-icon icon="mdi:water-outline"></ha-icon>
+                            <span>${rounded(avgHumidity)}%</span>
+                          </div>
+                          <div class="metric metric-strong" style="--metric-color:${action[2]}">
+                            <ha-icon icon="${action[0]}"></ha-icon>
+                            <span>${action[1]}</span>
+                          </div>
+                          <div class="metric" style="--metric-color:${comfort[2]}">
+                            <ha-icon icon="${comfort[0]}"></ha-icon>
+                            <span>${comfort[1]}</span>
+                          </div>
+                        </div>
+                        <div class="climate-temp">${avgTemp === null ? '--' : Math.round(avgTemp)}</div>
+                        <div class="setpoint-pill">
+                          <span class="setpoint-value">${setpoint === null ? '--' : Math.round(setpoint)}</span>
+                          <span class="setpoint-rule"></span>
+                          <span class="setpoint-label">${modeLabel}</span>
+                        </div>
+                        <div class="sensor-section">
+                          <div class="sensor-heading">
+                            <span>2 sensors</span>
+                            <ha-icon icon="mdi:chevron-down"></ha-icon>
+                          </div>
+                          <div class="sensor-row">
+                            <div>
+                              <div class="sensor-name">Kitchen</div>
+                              <div class="sensor-meta">Control sensor</div>
+                            </div>
+                            <div class="sensor-reading">${kitchenTemp}° · ${kitchenHumidity}%</div>
+                          </div>
+                          <div class="sensor-row">
+                            <div>
+                              <div class="sensor-name">Dining Room</div>
+                              <div class="sensor-meta">Room sensor · spread ${spread}°</div>
+                            </div>
+                            <div class="sensor-reading">${diningTemp}° · ${diningHumidity}%</div>
+                          </div>
+                        </div>
+                      </div>
+                    `;
+                  ]]]
+              styles:
+                card:
+                  - padding: 0
+                  - border-radius: 32px
+                  - background: transparent
+                  - box-shadow: none
+                  - overflow: hidden
+                grid:
+                  - grid-template-areas: '"sheet"'
+                  - grid-template-columns: minmax(0, 1fr)
+                  - grid-template-rows: auto
+                custom_fields:
+                  sheet:
+                    - justify-self: stretch
+                    - align-self: stretch
+                    - min-width: 0
+              extra_styles: |
+                .climate-sheet {
+                  box-sizing: border-box;
+                  width: 100%;
+                  padding: 24px 20px 22px;
+                  color: #f8fafc;
+                  font-family: var(--primary-font-family);
+                }
+                .climate-header {
+                  display: flex;
+                  justify-content: space-between;
+                  align-items: center;
+                  gap: 14px;
+                }
+                .room-lockup {
+                  display: flex;
+                  align-items: center;
+                  min-width: 0;
+                  gap: 13px;
+                }
+                .room-icon {
+                  width: 48px;
+                  height: 48px;
+                  border-radius: 16px;
+                  border: 2px solid rgba(248, 250, 252, 0.92);
+                  display: grid;
+                  place-items: center;
+                  flex: 0 0 auto;
+                }
+                .room-icon ha-icon {
+                  --mdc-icon-size: 24px;
+                  color: #f8fafc;
+                }
+                .room-title {
+                  color: #f8fafc;
+                  font-size: 31px;
+                  font-weight: 720;
+                  line-height: 1.05;
+                  letter-spacing: 0;
+                  text-align: left;
+                }
+                .room-subtitle {
+                  margin-top: 5px;
+                  color: rgba(226, 232, 240, 0.66);
+                  font-size: 12px;
+                  font-weight: 620;
+                  letter-spacing: 0.04em;
+                  text-transform: uppercase;
+                  text-align: left;
+                }
+                .climate-metrics {
+                  display: grid;
+                  grid-template-columns: repeat(3, minmax(0, 1fr));
+                  gap: 12px;
+                  margin-top: 26px;
+                  align-items: center;
+                }
+                .metric {
+                  min-width: 0;
+                  display: flex;
+                  align-items: center;
+                  justify-content: center;
+                  gap: 7px;
+                  color: var(--metric-color, rgba(248, 250, 252, 0.92));
+                  font-size: 22px;
+                  font-weight: 720;
+                  line-height: 1;
+                  white-space: nowrap;
+                }
+                .metric ha-icon {
+                  --mdc-icon-size: 24px;
+                  color: var(--metric-color, rgba(248, 250, 252, 0.86));
+                }
+                .metric-strong {
+                  font-size: 24px;
+                }
+                .climate-temp {
+                  margin-top: 28px;
+                  text-align: center;
+                  color: #f8fafc;
+                  font-size: clamp(104px, 30vw, 142px);
+                  font-weight: 280;
+                  line-height: 0.96;
+                  letter-spacing: 0;
+                  font-variant-numeric: tabular-nums;
+                }
+                .setpoint-pill {
+                  width: fit-content;
+                  max-width: 100%;
+                  margin: 24px auto 26px;
+                  min-height: 72px;
+                  padding: 0 22px;
+                  border-radius: 999px;
+                  border: 4px solid #3b82f6;
+                  display: grid;
+                  grid-template-columns: auto 2px auto;
+                  align-items: center;
+                  gap: 22px;
+                  background: rgba(15, 23, 42, 0.18);
+                  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.04);
+                }
+                .setpoint-value {
+                  color: #3b82f6;
+                  font-size: 36px;
+                  font-weight: 760;
+                  line-height: 1;
+                  font-variant-numeric: tabular-nums;
+                }
+                .setpoint-rule {
+                  width: 2px;
+                  height: 46px;
+                  border-radius: 999px;
+                  background: rgba(148, 163, 184, 0.74);
+                }
+                .setpoint-label {
+                  color: rgba(248, 250, 252, 0.92);
+                  font-size: 27px;
+                  font-weight: 360;
+                  line-height: 1;
+                  white-space: nowrap;
+                }
+                .sensor-section {
+                  border-top: 1px solid rgba(148, 163, 184, 0.40);
+                  padding-top: 18px;
+                }
+                .sensor-heading {
+                  display: flex;
+                  align-items: center;
+                  justify-content: space-between;
+                  gap: 12px;
+                  color: #f8fafc;
+                  font-size: 30px;
+                  font-weight: 430;
+                  line-height: 1;
+                }
+                .sensor-heading ha-icon {
+                  --mdc-icon-size: 28px;
+                  color: #f8fafc;
+                }
+                .sensor-row {
+                  display: grid;
+                  grid-template-columns: minmax(0, 1fr) auto;
+                  gap: 14px;
+                  align-items: center;
+                  padding: 15px 0 0;
+                }
+                .sensor-name {
+                  color: rgba(248, 250, 252, 0.96);
+                  font-size: 16px;
+                  font-weight: 680;
+                  line-height: 1.1;
+                  text-align: left;
+                }
+                .sensor-meta {
+                  margin-top: 3px;
+                  color: rgba(203, 213, 225, 0.62);
+                  font-size: 12px;
+                  font-weight: 520;
+                  line-height: 1.2;
+                  text-align: left;
+                }
+                .sensor-reading {
+                  color: rgba(248, 250, 252, 0.90);
+                  font-size: 16px;
+                  font-weight: 700;
+                  white-space: nowrap;
+                  font-variant-numeric: tabular-nums;
+                }
       - type: grid
         columns: 2
         square: false
