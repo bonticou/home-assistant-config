@@ -1687,26 +1687,62 @@ views:
             custom_fields:
               icon: >-
                 [[[
+                  const stateMap = hass?.states || {};
                   const status = entity?.state || 'Unknown';
-                  const color = ['Optimal', 'Normal', 'Good'].includes(status)
-                    ? '#22c55e'
-                    : ['Warning', 'Caution'].includes(status)
-                      ? '#f59e0b'
-                      : status === 'Critical'
-                        ? '#ef4444'
-                        : '#94a3b8';
-                  return `<div class="tile-icon"><ha-icon icon="mdi:glass-wine" style="color:${color}"></ha-icon></div>`;
+                  const cooling = stateMap['binary_sensor.wine_cave_cooling_cycle']?.state === 'on';
+                  const actionable = stateMap['binary_sensor.wine_cave_actionable_alert']?.state === 'on';
+                  const unavailable = stateMap['binary_sensor.wine_cave_sensor_unavailable']?.state === 'on';
+                  const coolingChanged = Date.parse(stateMap['binary_sensor.wine_cave_cooling_cycle']?.last_changed || '');
+                  const coolingMinutes = Number.isFinite(coolingChanged)
+                    ? (Date.now() - coolingChanged) / 60000
+                    : 0;
+                  let icon = 'mdi:glass-wine';
+                  let color = '#94a3b8';
+                  if (unavailable) {
+                    icon = 'mdi:wifi-alert';
+                    color = '#f59e0b';
+                  } else if (cooling && !actionable && coolingMinutes >= 90) {
+                    icon = 'mdi:snowflake-alert';
+                    color = '#f59e0b';
+                  } else if (cooling && !actionable) {
+                    icon = 'mdi:snowflake';
+                    color = '#7dd3fc';
+                  } else if (['Optimal', 'Normal', 'Good'].includes(status)) {
+                    color = '#22c55e';
+                  } else if (['Warning', 'Caution'].includes(status)) {
+                    icon = 'mdi:alert-circle-outline';
+                    color = '#f59e0b';
+                  } else if (status === 'Critical') {
+                    icon = 'mdi:alert-circle';
+                    color = '#ef4444';
+                  }
+                  return `<div class="tile-icon"><ha-icon icon="${icon}" style="color:${color}"></ha-icon></div>`;
                 ]]]
               text: >-
                 [[[
+                  const stateMap = hass?.states || {};
                   const status = entity?.state || 'Unknown';
-                  const meta = ['Optimal', 'Normal', 'Good'].includes(status)
-                    ? 'Healthy'
-                    : ['Warning', 'Caution'].includes(status)
-                      ? 'Needs attention'
-                      : status === 'Critical'
-                        ? 'Critical'
-                        : (status || 'Unknown');
+                  const cooling = stateMap['binary_sensor.wine_cave_cooling_cycle']?.state === 'on';
+                  const actionable = stateMap['binary_sensor.wine_cave_actionable_alert']?.state === 'on';
+                  const unavailable = stateMap['binary_sensor.wine_cave_sensor_unavailable']?.state === 'on';
+                  const coolingChanged = Date.parse(stateMap['binary_sensor.wine_cave_cooling_cycle']?.last_changed || '');
+                  const coolingMinutes = Number.isFinite(coolingChanged)
+                    ? (Date.now() - coolingChanged) / 60000
+                    : 0;
+                  let meta = status || 'Unknown';
+                  if (unavailable) {
+                    meta = 'Sensor unavailable';
+                  } else if (cooling && !actionable && coolingMinutes >= 90) {
+                    meta = 'Cycle still settling';
+                  } else if (cooling && !actionable) {
+                    meta = 'Cooling cycle in progress';
+                  } else if (['Optimal', 'Normal', 'Good'].includes(status)) {
+                    meta = 'Healthy';
+                  } else if (['Warning', 'Caution'].includes(status)) {
+                    meta = 'Needs attention';
+                  } else if (status === 'Critical') {
+                    meta = 'Critical';
+                  }
                   return `<div class="tile-copy"><div class="tile-label">Wine cave</div><div class="tile-meta">${meta}</div></div>`;
                 ]]]
             tap_action:
