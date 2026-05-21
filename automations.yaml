@@ -4488,30 +4488,9 @@
   mode: parallel
   max: 10
 
-- id: wine_cave_cooling_cycle_notification
-  alias: "Wine Cave — Cooling Cycle Notification"
-  description: Sends one calm push when the cave looks like it entered a normal refrigeration cycle.
-  triggers:
-    - trigger: state
-      entity_id: binary_sensor.wine_cave_cooling_cycle
-      to: "on"
-  conditions:
-    - condition: state
-      entity_id: binary_sensor.wine_cave_sensor_unavailable
-      state: "off"
-  actions:
-    - action: script.wine_cave_send_alert
-      data:
-        alert_kind: cycle
-        severity: info
-        message: >-
-          We'll keep an eye on it to make sure the pattern matches a normal cycle.
-          Keep you posted!
-  mode: single
-
 - id: wine_cave_cooling_cycle_settled_notification
   alias: "Wine Cave — Cooling Cycle Settled Notification"
-  description: Confirms that a normal wine cave cycle recovered once humidity returns to the target band.
+  description: Clears outstanding wine cave cycle notifications once humidity returns to the target band.
   triggers:
     - trigger: state
       entity_id: binary_sensor.wine_cave_cooling_cycle
@@ -4536,14 +4515,11 @@
         message: clear_notification
         data:
           tag: wine-cave-unresolved
-    - action: script.wine_cave_send_alert
+    - action: script.notify_trevor_phone
       data:
-        alert_kind: cycle_settled
-        severity: info
-        message: >-
-          Humidity has recovered to {{ states('sensor.wine_humidity') | float(0) | round(0) }}% RH
-          after the cooling cycle.
-          Wine cave is {{ states('sensor.wine_temperature') | float(0) | round(1) }}°F.
+        message: clear_notification
+        data:
+          tag: wine-cave-cycle
   mode: single
 
 - id: wine_cave_cooling_cycle_overdue_notification
@@ -4820,6 +4796,9 @@
       state: "off"
     - condition: state
       entity_id: binary_sensor.wine_cave_actionable_alert
+      state: "off"
+    - condition: state
+      entity_id: binary_sensor.wine_cave_cooling_cycle
       state: "off"
   actions:
     - action: script.wine_cave_send_alert

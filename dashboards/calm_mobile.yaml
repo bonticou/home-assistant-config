@@ -9055,16 +9055,43 @@ views:
         primary: >-
           {% set temp = states('sensor.wine_temperature') | float(0) | round(1) %}
           {% set status = states('sensor.wine_cave_status') %}
+          {% set cooling = is_state('binary_sensor.wine_cave_cooling_cycle', 'on') %}
+          {% set actionable = is_state('binary_sensor.wine_cave_actionable_alert', 'on') %}
+          {% set unavailable = is_state('binary_sensor.wine_cave_sensor_unavailable', 'on') %}
+          {% set cooling_age = as_timestamp(now()) - as_timestamp(states.binary_sensor.wine_cave_cooling_cycle.last_changed, now()) %}
           {% if status in ['Optimal', 'Normal', 'Good'] %}{{ temp }}°F · Wine cave is optimal
-          {% elif status in ['Warning', 'Caution'] %}{{ temp }}°F · Drift needs a look
-          {% elif status == 'Critical' %}{{ temp }}°F · Conditions need attention
+          {% elif unavailable %}{{ temp }}°F · Sensor unavailable
+          {% elif cooling and not actionable and cooling_age < 5400 %}{{ temp }}°F · Cooling cycle in progress
+          {% elif cooling and not actionable %}{{ temp }}°F · Cycle still settling
+          {% elif status == 'Critical' or actionable %}{{ temp }}°F · Conditions need attention
+          {% elif is_state('binary_sensor.wine_cave_drift_alert', 'on') %}{{ temp }}°F · Drift needs a look
+          {% elif status in ['Warning', 'Caution'] %}{{ temp }}°F · Slightly outside target
           {% else %}{{ temp }}°F · Wine cave unavailable{% endif %}
         secondary: >-
-          {{ states('sensor.wine_humidity') | float(0) | round(0) }}% humidity
-        icon: mdi:glass-wine
+          {% set humidity = states('sensor.wine_humidity') | float(0) | round(0) %}
+          {% set cooling = is_state('binary_sensor.wine_cave_cooling_cycle', 'on') %}
+          {% set actionable = is_state('binary_sensor.wine_cave_actionable_alert', 'on') %}
+          {% set cooling_age = as_timestamp(now()) - as_timestamp(states.binary_sensor.wine_cave_cooling_cycle.last_changed, now()) %}
+          {% if cooling and not actionable and cooling_age < 5400 %}
+            {{ humidity }}% humidity · normal dip while cooling
+          {% elif cooling and not actionable %}
+            {{ humidity }}% humidity · watching recovery
+          {% else %}
+            {{ humidity }}% humidity
+          {% endif %}
+        icon: >-
+          {% set cooling = is_state('binary_sensor.wine_cave_cooling_cycle', 'on') %}
+          {% set actionable = is_state('binary_sensor.wine_cave_actionable_alert', 'on') %}
+          {% if is_state('binary_sensor.wine_cave_sensor_unavailable', 'on') %}mdi:wifi-alert
+          {% elif cooling and not actionable %}mdi:snowflake
+          {% elif actionable or states('sensor.wine_cave_status') == 'Critical' %}mdi:alert-circle-outline
+          {% else %}mdi:glass-wine{% endif %}
         icon_color: >-
           {% set status = states('sensor.wine_cave_status') %}
+          {% set cooling = is_state('binary_sensor.wine_cave_cooling_cycle', 'on') %}
+          {% set actionable = is_state('binary_sensor.wine_cave_actionable_alert', 'on') %}
           {% if status in ['Optimal', 'Normal', 'Good'] %}teal
+          {% elif cooling and not actionable %}light-blue
           {% elif status in ['Warning', 'Caution'] %}orange
           {% elif status == 'Critical' %}red
           {% else %}grey{% endif %}
@@ -10064,25 +10091,43 @@ views:
                 {% set status = states('sensor.wine_cave_status') %}
                 {% set temp_avg = states('sensor.wine_temperature_24h_stats') %}
                 {% set humidity_avg = states('sensor.wine_humidity_24h_stats') %}
+                {% set cooling = is_state('binary_sensor.wine_cave_cooling_cycle', 'on') %}
+                {% set actionable = is_state('binary_sensor.wine_cave_actionable_alert', 'on') %}
+                {% set cooling_age = as_timestamp(now()) - as_timestamp(states.binary_sensor.wine_cave_cooling_cycle.last_changed, now()) %}
                 {% if status in ['Optimal', 'Normal', 'Good'] %}
                   The cellar is steady. Dew point is {{ states('sensor.wine_cave_dew_point') | float(0) | round(1) }}°F
                   with 24h averages of
                   {{ (temp_avg | float | round(1) ~ '°F') if is_number(temp_avg) else 'pending temp data' }}
                   and
                   {{ (humidity_avg | float | round(0) ~ '%') if is_number(humidity_avg) else 'pending humidity data' }}.
+                {% elif cooling and not actionable and cooling_age < 5400 %}
+                  This looks like a normal cooling cycle: temperature is in range and humidity is temporarily low.
+                  Alerts wait unless the recovery runs long or stops matching the cycle pattern.
+                {% elif cooling and not actionable %}
+                  This started as a normal cooling cycle, but humidity has been low longer than expected.
+                  The watch notification is appropriate now; check the cartridge or door if it does not recover.
                 {% elif status in ['Warning', 'Caution'] %}
-                  Drift is starting to show. Dew point is {{ states('sensor.wine_cave_dew_point') | float(0) | round(1) }}°F
-                  and the cave should be watched a bit more closely.
+                  Conditions are slightly outside target. Dew point is {{ states('sensor.wine_cave_dew_point') | float(0) | round(1) }}°F.
+                  Home Assistant will wait for the stricter alert sensors before pushing.
                 {% elif status == 'Critical' %}
                   Conditions are out of range. Dew point is {{ states('sensor.wine_cave_dew_point') | float(0) | round(1) }}°F
                   and the cave needs attention.
                 {% else %}
                   Wine cave status is unavailable right now.
                 {% endif %}
-              icon: mdi:glass-wine
+              icon: >-
+                {% set cooling = is_state('binary_sensor.wine_cave_cooling_cycle', 'on') %}
+                {% set actionable = is_state('binary_sensor.wine_cave_actionable_alert', 'on') %}
+                {% if is_state('binary_sensor.wine_cave_sensor_unavailable', 'on') %}mdi:wifi-alert
+                {% elif cooling and not actionable %}mdi:snowflake
+                {% elif actionable or states('sensor.wine_cave_status') == 'Critical' %}mdi:alert-circle-outline
+                {% else %}mdi:glass-wine{% endif %}
               icon_color: >-
                 {% set status = states('sensor.wine_cave_status') %}
+                {% set cooling = is_state('binary_sensor.wine_cave_cooling_cycle', 'on') %}
+                {% set actionable = is_state('binary_sensor.wine_cave_actionable_alert', 'on') %}
                 {% if status in ['Optimal', 'Normal', 'Good'] %}teal
+                {% elif cooling and not actionable %}light-blue
                 {% elif status in ['Warning', 'Caution'] %}orange
                 {% elif status == 'Critical' %}red
                 {% else %}grey{% endif %}
@@ -10166,15 +10211,28 @@ views:
                     action: none
                 - type: template
                   entity: sensor.wine_cave_status
-                  icon: mdi:heart-pulse
+                  icon: >-
+                    {% set cooling = is_state('binary_sensor.wine_cave_cooling_cycle', 'on') %}
+                    {% set actionable = is_state('binary_sensor.wine_cave_actionable_alert', 'on') %}
+                    {% if cooling and not actionable %}mdi:snowflake
+                    {% elif actionable or states('sensor.wine_cave_status') == 'Critical' %}mdi:alert-circle-outline
+                    {% else %}mdi:heart-pulse{% endif %}
                   icon_color: >-
                     {% set status = states('sensor.wine_cave_status') %}
+                    {% set cooling = is_state('binary_sensor.wine_cave_cooling_cycle', 'on') %}
+                    {% set actionable = is_state('binary_sensor.wine_cave_actionable_alert', 'on') %}
                     {% if status in ['Optimal', 'Normal', 'Good'] %}teal
+                    {% elif cooling and not actionable %}light-blue
                     {% elif status in ['Warning', 'Caution'] %}orange
                     {% elif status == 'Critical' %}red
                     {% else %}grey{% endif %}
                   content: >-
-                    {{ states('sensor.wine_cave_status') }}
+                    {% set cooling = is_state('binary_sensor.wine_cave_cooling_cycle', 'on') %}
+                    {% set actionable = is_state('binary_sensor.wine_cave_actionable_alert', 'on') %}
+                    {% set cooling_age = as_timestamp(now()) - as_timestamp(states.binary_sensor.wine_cave_cooling_cycle.last_changed, now()) %}
+                    {% if cooling and not actionable and cooling_age < 5400 %}Cooling cycle
+                    {% elif cooling and not actionable %}Cycle watch
+                    {% else %}{{ states('sensor.wine_cave_status') }}{% endif %}
                   tap_action:
                     action: none
               card_mod:
