@@ -1532,9 +1532,10 @@ views:
             custom_fields:
               icon: >-
                 [[[
-                  const count = Number(entity.state || 0);
-                  const garageOpen = hass.states['binary_sensor.away_security_garage_door_open']?.state === 'on';
-                  const motionUntil = hass.states['input_datetime.away_motion_security_snooze_until']?.state;
+                  const stateMap = hass?.states || {};
+                  const count = Number(entity?.state ?? 0);
+                  const garageOpen = stateMap['binary_sensor.away_security_garage_door_open']?.state === 'on';
+                  const motionUntil = stateMap['input_datetime.away_motion_security_snooze_until']?.state;
                   const motionPaused = motionUntil
                     && !['unknown', 'unavailable', ''].includes(motionUntil)
                     && new Date(motionUntil.replace(' ', 'T')).getTime() > Date.now();
@@ -1550,9 +1551,10 @@ views:
                 ]]]
               text: >-
                 [[[
-                  const count = Number(entity.state || 0);
-                  const issue = entity.attributes?.issue || entity.attributes?.label || '';
-                  const motionUntil = hass.states['input_datetime.away_motion_security_snooze_until']?.state;
+                  const stateMap = hass?.states || {};
+                  const count = Number(entity?.state ?? 0);
+                  const issue = entity?.attributes?.issue || entity?.attributes?.label || '';
+                  const motionUntil = stateMap['input_datetime.away_motion_security_snooze_until']?.state;
                   const motionUntilDate = motionUntil && !['unknown', 'unavailable', ''].includes(motionUntil)
                     ? new Date(motionUntil.replace(' ', 'T'))
                     : null;
@@ -1658,15 +1660,17 @@ views:
             custom_fields:
               icon: >-
                 [[[
-                  const flow = Number(states['sensor.flo_shutoff_water_flow_rate']?.state ?? 0);
-                  const color = entity.state === 'off'
+                  const stateMap = hass?.states || {};
+                  const flow = Number(stateMap['sensor.flo_shutoff_water_flow_rate']?.state ?? 0);
+                  const color = entity?.state === 'off'
                     ? '#ef4444'
                     : flow > 0.1 ? '#3b82f6' : '#22c55e';
                   return `<div class="tile-icon"><ha-icon icon="mdi:water" style="color:${color}"></ha-icon></div>`;
                 ]]]
               text: >-
                 [[[
-                  const flow = Number(states['sensor.flo_shutoff_water_flow_rate']?.state ?? 0);
+                  const stateMap = hass?.states || {};
+                  const flow = Number(stateMap['sensor.flo_shutoff_water_flow_rate']?.state ?? 0);
                   return `<div class="tile-copy"><div class="tile-label">Water</div><div class="tile-meta">${flow.toFixed(1)} gal/min</div></div>`;
                 ]]]
             tap_action:
@@ -1695,7 +1699,7 @@ views:
                 ]]]
               text: >-
                 [[[
-                  const status = entity.state;
+                  const status = entity?.state || 'Unknown';
                   const meta = ['Optimal', 'Normal', 'Good'].includes(status)
                     ? 'Healthy'
                     : ['Warning', 'Caution'].includes(status)
@@ -1719,10 +1723,11 @@ views:
             custom_fields:
               icon: >-
                 [[[
-                  const status = entity.state;
-                  const cafizaDue = states['binary_sensor.espresso_cafiza_clean_due']?.state === 'on';
-                  const maintenanceDue = states['binary_sensor.espresso_maintenance_due']?.state === 'on';
-                  const enabled = states['input_boolean.espresso_maintenance_enabled']?.state !== 'off';
+                  const stateMap = hass?.states || {};
+                  const status = entity?.state || 'Unknown';
+                  const cafizaDue = stateMap['binary_sensor.espresso_cafiza_clean_due']?.state === 'on';
+                  const maintenanceDue = stateMap['binary_sensor.espresso_maintenance_due']?.state === 'on';
+                  const enabled = stateMap['input_boolean.espresso_maintenance_enabled']?.state !== 'off';
                   const color = !enabled || status === 'Snoozed'
                     ? '#94a3b8'
                     : cafizaDue
