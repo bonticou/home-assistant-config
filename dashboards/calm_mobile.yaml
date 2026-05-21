@@ -2756,40 +2756,6 @@ views:
                   styles:
                     <<: *calm_weather_mini_tile_styles
                   extra_styles: *calm_weather_mini_tile_extra
-            - type: custom:mushroom-template-card
-              entity: weather.forecast_home
-              primary: Outlook
-              secondary: >-
-                {% set condition = states('weather.forecast_home') | replace('-', ' ') | replace('_', ' ') | title %}
-                {% set temp = state_attr('weather.forecast_home', 'temperature') | float(0) | round(0) %}
-                {% set humidity = state_attr('weather.forecast_home', 'humidity') | int(0) %}
-                {% set wind = state_attr('weather.forecast_home', 'wind_speed') | float(0) | round(0) %}
-                {% set apparent = state_attr('weather.forecast_home', 'apparent_temperature') %}
-                {% set feels = (apparent if apparent is not none else state_attr('weather.forecast_home', 'temperature')) | float(0) | round(0) %}
-                {% if humidity < 30 %}{% set air = 'dry air' %}
-                {% elif humidity < 60 %}{% set air = 'comfortable air' %}
-                {% elif humidity < 75 %}{% set air = 'humid air' %}
-                {% else %}{% set air = 'very humid air' %}{% endif %}
-                {% if wind < 4 %}{% set breeze = 'calm' %}
-                {% elif wind < 12 %}{% set breeze = 'light' %}
-                {% elif wind < 20 %}{% set breeze = 'noticeable' %}
-                {% else %}{% set breeze = 'strong' %}{% endif %}
-                {% if is_state('sun.sun', 'above_horizon') %}
-                  {% set sun_label = 'Sunset' %}
-                  {% set sun_time = as_timestamp(state_attr('sun.sun', 'next_setting')) | timestamp_custom('%-I:%M %p') %}
-                {% else %}
-                  {% set sun_label = 'Sunrise' %}
-                  {% set sun_time = as_timestamp(state_attr('sun.sun', 'next_rising')) | timestamp_custom('%-I:%M %p') %}
-                {% endif %}
-                {{ condition }} right now at {{ temp }}°. It feels like {{ feels }}° outside with {{ air }} and {{ breeze }} wind. {{ sun_label }} is at {{ sun_time }}.
-              icon: mdi:timeline-text-outline
-              icon_color: blue-grey
-              multiline_secondary: true
-              tap_action:
-                action: none
-              card_mod:
-                style: *calm_popup_panel_style
-
       - type: custom:popup-card
         popup_card_id: security-popup
         target:
