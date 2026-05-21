@@ -254,9 +254,8 @@ views:
             icon: >-
               {{ 'mdi:home' if is_state('device_tracker.unifi_default_42_15_78_4a_d9_f8', 'home') else 'mdi:home-export-outline' }}
             icon_color: >-
-              {{ 'green' if is_state('device_tracker.unifi_default_42_15_78_4a_d9_f8', 'home') else 'grey' }}
-            content: >-
-              {{ 'Casey home' if is_state('device_tracker.unifi_default_42_15_78_4a_d9_f8', 'home') else 'Casey away' }}
+              {{ 'green' if is_state('device_tracker.unifi_default_42_15_78_4a_d9_f8', 'home') else 'red' }}
+            content: Casey
             tap_action:
               action: more-info
           - type: template
@@ -265,8 +264,7 @@ views:
               {{ 'mdi:lightbulb-on-outline' if states('sensor.away_security_active_lights') | int(0) > 0 else 'mdi:lightbulb-off-outline' }}
             icon_color: >-
               {{ 'amber' if states('sensor.away_security_active_lights') | int(0) > 0 else 'grey' }}
-            content: >-
-              {{ 'Lights on' if states('sensor.away_security_active_lights') | int(0) > 0 else 'Lights off' }}
+            content: Lights
             tap_action:
               action: fire-dom-event
               browser_mod:
