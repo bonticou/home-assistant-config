@@ -3070,6 +3070,27 @@ water_send_alert:
     - choose:
         - conditions:
             - condition: template
+              value_template: "{{ kind == 'leak' }}"
+          sequence:
+            - action: script.notify_trevor_phone
+              data:
+                title: "{{ notification_title }}"
+                message: "{{ notification_message }}"
+                data:
+                  group: water
+                  tag: "water-{{ kind }}"
+                  url: /calm-mobile/water
+                  sticky: true
+                  ttl: 0
+                  priority: high
+                  critical: true
+                  push:
+                    sound:
+                      name: default
+                      critical: 1
+                      volume: 1.0
+        - conditions:
+            - condition: template
               value_template: "{{ resolved_severity | trim == 'critical' }}"
           sequence:
             - action: script.notify_trevor_phone
