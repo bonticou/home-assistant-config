@@ -220,6 +220,26 @@ input_datetime:
     name: Basement Humidity Snooze Until
     has_date: true
     has_time: true
+  ting_confirmed_hazard_last_sent_at:
+    name: Ting Confirmed Hazard Last Sent At
+    has_date: true
+    has_time: true
+  ting_unverified_hazard_last_sent_at:
+    name: Ting Unverified Hazard Last Sent At
+    has_date: true
+    has_time: true
+  ting_voltage_watch_last_sent_at:
+    name: Ting Voltage Watch Last Sent At
+    has_date: true
+    has_time: true
+  ting_offline_watch_last_sent_at:
+    name: Ting Offline Watch Last Sent At
+    has_date: true
+    has_time: true
+  ting_freeze_risk_last_sent_at:
+    name: Ting Freeze Risk Last Sent At
+    has_date: true
+    has_time: true
   water_latest_alert_at:
     name: Water Latest Alert At
     has_date: true
@@ -515,6 +535,16 @@ input_boolean:
     name: House Battery Alerts Enabled
     icon: mdi:battery-heart-variant
     initial: true
+  ting_watch_notifications_enabled:
+    name: Ting Watch Notifications Enabled
+    icon: mdi:flash-alert-outline
+    initial: true
+  ting_learning_complete_notified:
+    name: Ting Learning Complete Notified
+    icon: mdi:school-outline
+  ting_offline_watch_alert_active:
+    name: Ting Offline Watch Alert Active
+    icon: mdi:access-point-off
   tax_reminders_enabled:
     name: Tax Reminders Enabled
     icon: mdi:calendar-cash
@@ -2220,6 +2250,149 @@ template:
             {{ snooze not in ['unknown', 'unavailable', 'none', '']
                and as_timestamp(snooze, 0) > as_timestamp(now()) }}
 
+      - name: "Ting Notification Status"
+        unique_id: ting_notification_status
+        state: >
+          {% set active = [
+            is_state('binary_sensor.ting_confirmed_hazard_active', 'on'),
+            is_state('binary_sensor.ting_unverified_hazard_active', 'on'),
+            is_state('binary_sensor.ting_power_quality_watch', 'on'),
+            is_state('binary_sensor.ting_offline_watch', 'on'),
+            is_state('binary_sensor.ting_freeze_risk_watch', 'on')
+          ] | select('eq', true) | list | count %}
+          {% if active == 0 %}
+            Quiet
+          {% elif active == 1 %}
+            Active
+          {% else %}
+            {{ active }} active
+          {% endif %}
+        icon: >
+          {% if is_state('binary_sensor.ting_confirmed_hazard_active', 'on') %}
+            mdi:flash-alert
+          {% elif is_state('binary_sensor.ting_unverified_hazard_active', 'on')
+             or is_state('binary_sensor.ting_power_quality_watch', 'on')
+             or is_state('binary_sensor.ting_offline_watch', 'on')
+             or is_state('binary_sensor.ting_freeze_risk_watch', 'on') %}
+            mdi:flash-alert-outline
+          {% else %}
+            mdi:flash-check-outline
+          {% endif %}
+        attributes:
+          active_count: >
+            {{ [
+              is_state('binary_sensor.ting_confirmed_hazard_active', 'on'),
+              is_state('binary_sensor.ting_unverified_hazard_active', 'on'),
+              is_state('binary_sensor.ting_power_quality_watch', 'on'),
+              is_state('binary_sensor.ting_offline_watch', 'on'),
+              is_state('binary_sensor.ting_freeze_risk_watch', 'on')
+            ] | select('eq', true) | list | count }}
+          active_alerts: >
+            {% set ns = namespace(items=[]) %}
+            {% if is_state('binary_sensor.ting_confirmed_hazard_active', 'on') %}
+              {% set ns.items = ns.items + ['confirmed electrical hazard'] %}
+            {% endif %}
+            {% if is_state('binary_sensor.ting_unverified_hazard_active', 'on') %}
+              {% set ns.items = ns.items + ['unverified electrical pattern'] %}
+            {% endif %}
+            {% if is_state('binary_sensor.ting_power_quality_watch', 'on') %}
+              {% set ns.items = ns.items + ['power quality watch'] %}
+            {% endif %}
+            {% if is_state('binary_sensor.ting_offline_watch', 'on') %}
+              {% set ns.items = ns.items + ['Ting offline'] %}
+            {% endif %}
+            {% if is_state('binary_sensor.ting_freeze_risk_watch', 'on') %}
+              {% set ns.items = ns.items + ['freeze risk'] %}
+            {% endif %}
+            {{ ns.items | join(', ') if ns.items else 'None' }}
+          severity: >
+            {% if is_state('binary_sensor.ting_confirmed_hazard_active', 'on') %}
+              critical
+            {% elif is_state('binary_sensor.ting_unverified_hazard_active', 'on')
+               or is_state('binary_sensor.ting_power_quality_watch', 'on')
+               or is_state('binary_sensor.ting_offline_watch', 'on')
+               or is_state('binary_sensor.ting_freeze_risk_watch', 'on') %}
+              watch
+            {% else %}
+              clear
+            {% endif %}
+          confirmed_devices: >
+            {% set ns = namespace(items=[]) %}
+            {% if is_state('binary_sensor.ting_1_fire_hazard', 'on') or is_state('binary_sensor.ting_1_electrical_fire_hazard', 'on') %}
+              {% set ns.items = ns.items + ['Ting 1'] %}
+            {% endif %}
+            {% if is_state('binary_sensor.ting_2_fire_hazard', 'on') or is_state('binary_sensor.ting_2_electrical_fire_hazard', 'on') %}
+              {% set ns.items = ns.items + ['Ting 2'] %}
+            {% endif %}
+            {{ ns.items | join(', ') if ns.items else 'None' }}
+          unverified_devices: >
+            {% set ns = namespace(items=[]) %}
+            {% if is_state('binary_sensor.ting_1_unverified_fire_hazard', 'on') %}
+              {% set ns.items = ns.items + ['Ting 1'] %}
+            {% endif %}
+            {% if is_state('binary_sensor.ting_2_unverified_fire_hazard', 'on') %}
+              {% set ns.items = ns.items + ['Ting 2'] %}
+            {% endif %}
+            {{ ns.items | join(', ') if ns.items else 'None' }}
+          offline_devices: >
+            {% set ns = namespace(items=[]) %}
+            {% if states('sensor.ting_1_current_voltage') in ['unknown', 'unavailable', 'none', ''] %}
+              {% set ns.items = ns.items + ['Ting 1'] %}
+            {% endif %}
+            {% if states('sensor.ting_2_current_voltage') in ['unknown', 'unavailable', 'none', ''] %}
+              {% set ns.items = ns.items + ['Ting 2'] %}
+            {% endif %}
+            {{ ns.items | join(', ') if ns.items else 'None' }}
+          freeze_devices: >
+            {% set ns = namespace(items=[]) %}
+            {% if is_state('binary_sensor.ting_1_frozen_pipe_risk', 'on') %}
+              {% set ns.items = ns.items + ['Ting 1'] %}
+            {% endif %}
+            {% if is_state('binary_sensor.ting_2_frozen_pipe_risk', 'on') %}
+              {% set ns.items = ns.items + ['Ting 2'] %}
+            {% endif %}
+            {{ ns.items | join(', ') if ns.items else 'None' }}
+          voltage_summary: >
+            {% set v1 = states('sensor.ting_1_current_voltage') %}
+            {% set v2 = states('sensor.ting_2_current_voltage') %}
+            Ting 1 {{ ((v1 | float(0)) | round(1)) ~ 'V' if is_number(v1) else 'unknown' }},
+            Ting 2 {{ ((v2 | float(0)) | round(1)) ~ 'V' if is_number(v2) else 'unknown' }}
+          voltage_spread: >
+            {% set v1 = states('sensor.ting_1_current_voltage') %}
+            {% set v2 = states('sensor.ting_2_current_voltage') %}
+            {% if is_number(v1) and is_number(v2) %}
+              {% set spread = (v1 | float(0)) - (v2 | float(0)) %}
+              {{ (spread | abs) | round(1) }}
+            {% else %}
+              unknown
+            {% endif %}
+          hazard_status_summary: >
+            Ting 1 {{ states('sensor.ting_1_hazard_status') }},
+            Ting 2 {{ states('sensor.ting_2_hazard_status') }}
+          ting_messages: >
+            {% set ignored = ['unknown', 'unavailable', 'none', '', 'No hazards detected'] %}
+            {% set ns = namespace(items=[]) %}
+            {% for message in [
+              states('sensor.ting_1_hazard_message'),
+              states('sensor.ting_1_electrical_fire_hazard_message'),
+              states('sensor.ting_1_unverified_fire_hazard_message'),
+              states('sensor.ting_2_hazard_message'),
+              states('sensor.ting_2_electrical_fire_hazard_message'),
+              states('sensor.ting_2_unverified_fire_hazard_message')
+            ] %}
+              {% if message not in ignored and message not in ns.items %}
+                {% set ns.items = ns.items + [message] %}
+              {% endif %}
+            {% endfor %}
+            {{ ns.items | join(' ') if ns.items else '' }}
+          freeze_context: >
+            Outdoor {{ states('sensor.downstairs_outdoor_temp') }}°F,
+            garage {{ states('sensor.garage_temperature') }}°F,
+            mechanical room {{ states('sensor.mechanical_room_temperature') }}°F,
+            weather {{ states('weather.forecast_home') }}
+          notification_policy: >
+            Confirmed hazards always notify. Other Ting watches follow Ting Watch Notifications Enabled.
+
       - name: "House Notice Timeline"
         unique_id: house_notice_timeline
         icon: mdi:bell-outline
@@ -2257,6 +2430,7 @@ template:
           {% endfor %}
           {% for active in [
             is_state('binary_sensor.water_notification_alert_active', 'on'),
+            states('sensor.ting_notification_status') not in ['Quiet', 'unknown', 'unavailable', 'none', ''],
             is_state('binary_sensor.house_unsecured_while_away', 'on'),
             ns.env_active,
             is_state('binary_sensor.house_low_battery_alert', 'on'),
@@ -2314,6 +2488,7 @@ template:
             {% endfor %}
             {% for active in [
               is_state('binary_sensor.water_notification_alert_active', 'on'),
+              states('sensor.ting_notification_status') not in ['Quiet', 'unknown', 'unavailable', 'none', ''],
               is_state('binary_sensor.house_unsecured_while_away', 'on'),
               ns.env_active,
               is_state('binary_sensor.house_low_battery_alert', 'on'),
@@ -2464,6 +2639,40 @@ template:
                 'narrative': state_attr('sensor.water_notification_status', 'active_alerts') | default('Water guardrail is active.', true),
                 'url': '/calm-mobile/water',
                 'entity_id': 'sensor.water_notification_status'
+              }] %}
+            {% endif %}
+            {% if states('sensor.ting_notification_status') not in ['Quiet', 'unknown', 'unavailable', 'none', ''] %}
+              {% set ting_facts = [
+                'Active: ' ~ state_attr('sensor.ting_notification_status', 'active_alerts') | default('Ting watch active', true),
+                'Confirmed devices: ' ~ state_attr('sensor.ting_notification_status', 'confirmed_devices') | default('None', true),
+                'Unverified devices: ' ~ state_attr('sensor.ting_notification_status', 'unverified_devices') | default('None', true),
+                'Offline devices: ' ~ state_attr('sensor.ting_notification_status', 'offline_devices') | default('None', true),
+                'Freeze devices: ' ~ state_attr('sensor.ting_notification_status', 'freeze_devices') | default('None', true),
+                'Voltage: ' ~ state_attr('sensor.ting_notification_status', 'voltage_summary') | default('unknown', true),
+                'Voltage spread: ' ~ state_attr('sensor.ting_notification_status', 'voltage_spread') | default('unknown', true),
+                'Hazard status: ' ~ state_attr('sensor.ting_notification_status', 'hazard_status_summary') | default('unknown', true),
+                'Ting messages: ' ~ (state_attr('sensor.ting_notification_status', 'ting_messages') | default('none', true) if (state_attr('sensor.ting_notification_status', 'ting_messages') | default('', true)) | trim else 'none'),
+                'Freeze context: ' ~ state_attr('sensor.ting_notification_status', 'freeze_context') | default('unknown', true)
+              ] %}
+              {% set ns.items = ns.items + [{
+                'id': 'ting-watch',
+                'title': 'Ting watch',
+                'emoji': '⚡',
+                'icon': 'mdi:flash-alert-outline',
+                'group': 'Guardrails',
+                'state': 'active',
+                'severity': 'critical' if is_state('binary_sensor.ting_confirmed_hazard_active', 'on') else 'watch',
+                'date': now_stamp,
+                'due_prefix': 'Active',
+                'narrative': state_attr('sensor.ting_notification_status', 'active_alerts') | default('Ting watch active.', true),
+                'url': '/calm-mobile/notices',
+                'entity_id': 'sensor.ting_notification_status',
+                'details': {
+                  'summary': 'Ting is reporting ' ~ (state_attr('sensor.ting_notification_status', 'active_alerts') | default('an electrical watch', true)) ~ '. Home Assistant is surfacing the alert and adding context only; it does not control electrical shutoff.',
+                  'facts': ting_facts,
+                  'after_action': 'Check the Ting app for diagnosis and guidance. There are no camera actions and no HA-side power controls in this watch.',
+                  'tracking': 'Confirmed Ting hazards always notify. Unverified, voltage, offline, and freeze watches follow the Ting watch notification toggle and repeat only at their throttle intervals.'
+                }
               }] %}
             {% endif %}
             {% if is_state('binary_sensor.house_unsecured_while_away', 'on') %}
@@ -3090,6 +3299,83 @@ template:
           {% else %}
             mdi:bell-check-outline
           {% endif %}
+
+      - name: "Ting Confirmed Hazard Active"
+        unique_id: ting_confirmed_hazard_active
+        device_class: problem
+        state: >
+          {{ is_state('binary_sensor.ting_1_fire_hazard', 'on')
+             or is_state('binary_sensor.ting_2_fire_hazard', 'on')
+             or is_state('binary_sensor.ting_1_electrical_fire_hazard', 'on')
+             or is_state('binary_sensor.ting_2_electrical_fire_hazard', 'on') }}
+        icon: >
+          {{ 'mdi:flash-alert' if is_state('binary_sensor.ting_confirmed_hazard_active', 'on') else 'mdi:flash-check-outline' }}
+
+      - name: "Ting Unverified Hazard Active"
+        unique_id: ting_unverified_hazard_active
+        device_class: problem
+        state: >
+          {% set confirmed = is_state('binary_sensor.ting_1_fire_hazard', 'on')
+             or is_state('binary_sensor.ting_2_fire_hazard', 'on')
+             or is_state('binary_sensor.ting_1_electrical_fire_hazard', 'on')
+             or is_state('binary_sensor.ting_2_electrical_fire_hazard', 'on') %}
+          {% set unverified = is_state('binary_sensor.ting_1_unverified_fire_hazard', 'on')
+             or is_state('binary_sensor.ting_2_unverified_fire_hazard', 'on') %}
+          {{ unverified and not confirmed }}
+        icon: >
+          {{ 'mdi:flash-triangle-outline' if is_state('binary_sensor.ting_unverified_hazard_active', 'on') else 'mdi:flash-check-outline' }}
+
+      - name: "Ting Power Quality Watch"
+        unique_id: ting_power_quality_watch
+        device_class: problem
+        state: >
+          {% set learning = is_state('binary_sensor.ting_1_learning_mode', 'on')
+             or is_state('binary_sensor.ting_2_learning_mode', 'on') %}
+          {% set v1 = states('sensor.ting_1_current_voltage') %}
+          {% set v2 = states('sensor.ting_2_current_voltage') %}
+          {% set low_1 = is_number(v1) and (v1 | float(0)) < 108 %}
+          {% set high_1 = is_number(v1) and (v1 | float(0)) > 132 %}
+          {% set low_2 = is_number(v2) and (v2 | float(0)) < 108 %}
+          {% set high_2 = is_number(v2) and (v2 | float(0)) > 132 %}
+          {% set spread = is_number(v1) and is_number(v2) and (((v1 | float(0)) - (v2 | float(0))) | abs) >= 5 %}
+          {{ not learning and (low_1 or high_1 or low_2 or high_2 or spread) }}
+        icon: >
+          {{ 'mdi:sine-wave' if is_state('binary_sensor.ting_power_quality_watch', 'on') else 'mdi:flash-check-outline' }}
+        attributes:
+          threshold_low: 108
+          threshold_high: 132
+          spread_threshold: 5
+
+      - name: "Ting Offline Watch"
+        unique_id: ting_offline_watch
+        device_class: problem
+        state: >
+          {% set learning = is_state('binary_sensor.ting_1_learning_mode', 'on')
+             or is_state('binary_sensor.ting_2_learning_mode', 'on') %}
+          {% set offline = states('sensor.ting_1_current_voltage') in ['unknown', 'unavailable', 'none', '']
+             or states('sensor.ting_2_current_voltage') in ['unknown', 'unavailable', 'none', ''] %}
+          {{ offline and not learning }}
+        icon: >
+          {{ 'mdi:access-point-off' if is_state('binary_sensor.ting_offline_watch', 'on') else 'mdi:access-point-check' }}
+
+      - name: "Ting Freeze Risk Watch"
+        unique_id: ting_freeze_risk_watch
+        device_class: problem
+        state: >
+          {% set ting_risk = is_state('binary_sensor.ting_1_frozen_pipe_risk', 'on')
+             or is_state('binary_sensor.ting_2_frozen_pipe_risk', 'on') %}
+          {% set outdoor = states('sensor.downstairs_outdoor_temp') %}
+          {% set garage = states('sensor.garage_temperature') %}
+          {% set mechanical = states('sensor.mechanical_room_temperature') %}
+          {% set weather_state = states('weather.forecast_home') %}
+          {% set context_supports =
+            (is_number(outdoor) and (outdoor | float(99)) <= 32)
+            or (is_number(garage) and (garage | float(99)) <= 38)
+            or (is_number(mechanical) and (mechanical | float(99)) <= 45)
+            or weather_state in ['snowy', 'snowy-rainy'] %}
+          {{ ting_risk and context_supports }}
+        icon: >
+          {{ 'mdi:snowflake-alert' if is_state('binary_sensor.ting_freeze_risk_watch', 'on') else 'mdi:snowflake-check' }}
 
       - name: "away_security_garage_door_open"
         unique_id: away_security_garage_door_open

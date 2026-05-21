@@ -1182,6 +1182,196 @@ notify_trevor_phone:
         message: "{{ notification_message }}"
         data: "{{ notification_data }}"
 
+ting_send_notification:
+  alias: Ting Send Notification
+  description: Sends high-signal Ting electrical, voltage, offline, freeze, and learning notifications.
+  icon: mdi:flash-alert-outline
+  mode: parallel
+  fields:
+    alert_kind:
+      description: confirmed, unverified, voltage, offline, offline_clear, freeze, learning_complete, or confirmed_clear.
+      example: confirmed
+  sequence:
+    - variables:
+        kind: "{{ alert_kind | default('confirmed', true) }}"
+        confirmed_devices: "{{ state_attr('sensor.ting_notification_status', 'confirmed_devices') | default('None', true) }}"
+        unverified_devices: "{{ state_attr('sensor.ting_notification_status', 'unverified_devices') | default('None', true) }}"
+        offline_devices: "{{ state_attr('sensor.ting_notification_status', 'offline_devices') | default('None', true) }}"
+        freeze_devices: "{{ state_attr('sensor.ting_notification_status', 'freeze_devices') | default('None', true) }}"
+        voltage_summary: "{{ state_attr('sensor.ting_notification_status', 'voltage_summary') | default('Ting voltage unknown', true) }}"
+        voltage_spread: "{{ state_attr('sensor.ting_notification_status', 'voltage_spread') | default('unknown', true) }}"
+        ting_messages: "{{ state_attr('sensor.ting_notification_status', 'ting_messages') | default('', true) }}"
+        freeze_context: "{{ state_attr('sensor.ting_notification_status', 'freeze_context') | default('house context unavailable', true) }}"
+    - choose:
+        - conditions:
+            - condition: template
+              value_template: "{{ kind == 'confirmed' }}"
+          sequence:
+            - action: script.notify_trevor_phone
+              data:
+                title: "⚡🔥 Ting electrical hazard"
+                message: >-
+                  Ting is flagging a confirmed electrical hazard on {{ confirmed_devices }}.
+                  {{ ting_messages ~ ' ' if ting_messages | trim else '' }}Current readings:
+                  {{ voltage_summary }}. Check the Ting app now; if anything smells hot,
+                  smoky, or wrong, treat it like an emergency.
+                data:
+                  group: ting
+                  tag: ting-confirmed-hazard
+                  url: /calm-mobile/notices
+                  sticky: true
+                  ttl: 0
+                  priority: high
+                  critical: true
+                  push:
+                    sound:
+                      name: default
+                      critical: 1
+                      volume: 1.0
+            - action: input_datetime.set_datetime
+              target:
+                entity_id: input_datetime.ting_confirmed_hazard_last_sent_at
+              data:
+                datetime: "{{ now().strftime('%Y-%m-%d %H:%M:%S') }}"
+        - conditions:
+            - condition: template
+              value_template: "{{ kind == 'confirmed_clear' }}"
+          sequence:
+            - action: script.notify_trevor_phone
+              data:
+                message: clear_notification
+                data:
+                  tag: ting-confirmed-hazard
+            - action: script.notify_trevor_phone
+              data:
+                title: "✅⚡ Ting hazard cleared"
+                message: Ting is no longer reporting the confirmed electrical hazard.
+                data:
+                  group: ting
+                  tag: ting-confirmed-hazard-clear
+                  url: /calm-mobile/notices
+        - conditions:
+            - condition: template
+              value_template: "{{ kind == 'unverified' }}"
+          sequence:
+            - action: script.notify_trevor_phone
+              data:
+                title: "⚡ Ting sees something odd"
+                message: >-
+                  Ting flagged an unverified electrical pattern on {{ unverified_devices }}.
+                  {{ ting_messages ~ ' ' if ting_messages | trim else '' }}No confirmed hazard yet.
+                  I’m watching for escalation.
+                data:
+                  group: ting
+                  tag: ting-unverified-hazard
+                  url: /calm-mobile/notices
+                  sticky: true
+                  ttl: 0
+                  priority: high
+            - action: input_datetime.set_datetime
+              target:
+                entity_id: input_datetime.ting_unverified_hazard_last_sent_at
+              data:
+                datetime: "{{ now().strftime('%Y-%m-%d %H:%M:%S') }}"
+        - conditions:
+            - condition: template
+              value_template: "{{ kind == 'voltage' }}"
+          sequence:
+            - action: script.notify_trevor_phone
+              data:
+                title: "⚡ Ting voltage drift"
+                message: >-
+                  Ting readings have been outside the quiet range for 10 minutes.
+                  {{ voltage_summary }}{% if is_number(voltage_spread) %}. Spread {{ voltage_spread }}V{% endif %}.
+                  This may be utility-side or circuit-specific; I’ll keep watching.
+                data:
+                  group: ting
+                  tag: ting-voltage-watch
+                  url: /calm-mobile/notices
+            - action: input_datetime.set_datetime
+              target:
+                entity_id: input_datetime.ting_voltage_watch_last_sent_at
+              data:
+                datetime: "{{ now().strftime('%Y-%m-%d %H:%M:%S') }}"
+        - conditions:
+            - condition: template
+              value_template: "{{ kind == 'offline' }}"
+          sequence:
+            - action: script.notify_trevor_phone
+              data:
+                title: "⚡ Ting went quiet"
+                message: >-
+                  {{ offline_devices }} has not reported voltage for 30 minutes.
+                  I’ll keep watching; check the outlet or Wi-Fi if it stays offline.
+                data:
+                  group: ting
+                  tag: ting-offline-watch
+                  url: /calm-mobile/notices
+            - action: input_datetime.set_datetime
+              target:
+                entity_id: input_datetime.ting_offline_watch_last_sent_at
+              data:
+                datetime: "{{ now().strftime('%Y-%m-%d %H:%M:%S') }}"
+            - action: input_boolean.turn_on
+              target:
+                entity_id: input_boolean.ting_offline_watch_alert_active
+        - conditions:
+            - condition: template
+              value_template: "{{ kind == 'offline_clear' }}"
+          sequence:
+            - action: script.notify_trevor_phone
+              data:
+                message: clear_notification
+                data:
+                  tag: ting-offline-watch
+            - action: script.notify_trevor_phone
+              data:
+                title: "✅⚡ Ting is back"
+                message: Both Ting sensors are reporting voltage normally again.
+                data:
+                  group: ting
+                  tag: ting-offline-recovered
+                  url: /calm-mobile/notices
+            - action: input_boolean.turn_off
+              target:
+                entity_id: input_boolean.ting_offline_watch_alert_active
+        - conditions:
+            - condition: template
+              value_template: "{{ kind == 'freeze' }}"
+          sequence:
+            - action: script.notify_trevor_phone
+              data:
+                title: "🥶 Ting sees freeze risk"
+                message: >-
+                  Ting is flagging possible freeze risk on {{ freeze_devices }}.
+                  {{ freeze_context }}. I’ll keep watching temperature and house context.
+                data:
+                  group: ting
+                  tag: ting-freeze-risk
+                  url: /calm-mobile/notices
+                  sticky: true
+                  priority: high
+            - action: input_datetime.set_datetime
+              target:
+                entity_id: input_datetime.ting_freeze_risk_last_sent_at
+              data:
+                datetime: "{{ now().strftime('%Y-%m-%d %H:%M:%S') }}"
+        - conditions:
+            - condition: template
+              value_template: "{{ kind == 'learning_complete' }}"
+          sequence:
+            - action: script.notify_trevor_phone
+              data:
+                title: "⚡ Ting has its baseline"
+                message: Both Ting sensors are out of learning mode. Home Assistant will now watch for hazards, sustained voltage drift, offline sensors, and freeze risk.
+                data:
+                  group: ting
+                  tag: ting-learning-complete
+                  url: /calm-mobile/notices
+            - action: input_boolean.turn_on
+              target:
+                entity_id: input_boolean.ting_learning_complete_notified
+
 garden_clear_notifications:
   alias: Garden Clear Notifications
   description: Clears active garden notification tags.

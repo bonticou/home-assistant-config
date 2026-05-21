@@ -18,7 +18,7 @@
     metadata: {}
     data:
       message: Check on Wynn
-      title: "👂 Noise detected"
+      title: "🎀 Noise detected"
   mode: single
 
 - id: camera_latest_motion_tracker
@@ -2790,6 +2790,340 @@
         message: clear_notification
         data:
           tag: house-low-battery
+  mode: single
+
+- id: ting_confirmed_hazard_notification
+  alias: "Ting — Confirmed Hazard Notification"
+  description: Sends immediate critical Ting hazard alerts and repeats while the confirmed hazard remains active.
+  triggers:
+    - trigger: state
+      entity_id: binary_sensor.ting_confirmed_hazard_active
+      to: "on"
+      id: activated
+    - trigger: time_pattern
+      minutes: "/5"
+      id: repeat
+    - trigger: homeassistant
+      event: start
+      id: startup
+  conditions:
+    - condition: state
+      entity_id: binary_sensor.ting_confirmed_hazard_active
+      state: "on"
+  actions:
+    - variables:
+        last_sent: "{{ states('input_datetime.ting_confirmed_hazard_last_sent_at') }}"
+        send_due: >
+          {{ last_sent in ['unknown', 'unavailable', 'none', '']
+             or (as_timestamp(now()) - as_timestamp(last_sent, 0)) >= 600 }}
+    - if:
+        - condition: template
+          value_template: "{{ send_due }}"
+      then:
+        - action: script.ting_send_notification
+          data:
+            alert_kind: confirmed
+  mode: single
+
+- id: ting_confirmed_hazard_clear_notification
+  alias: "Ting — Confirmed Hazard Clear Notification"
+  description: Clears the critical Ting hazard push and sends one recovery note when the confirmed hazard resolves.
+  triggers:
+    - trigger: state
+      entity_id: binary_sensor.ting_confirmed_hazard_active
+      from: "on"
+      to: "off"
+  conditions: []
+  actions:
+    - action: script.ting_send_notification
+      data:
+        alert_kind: confirmed_clear
+  mode: single
+
+- id: ting_unverified_hazard_notification
+  alias: "Ting — Unverified Hazard Notification"
+  description: Sends non-critical Ting unverified-hazard watches, without duplicating confirmed hazard alerts.
+  triggers:
+    - trigger: state
+      entity_id: binary_sensor.ting_unverified_hazard_active
+      to: "on"
+      id: activated
+    - trigger: time_pattern
+      minutes: "/15"
+      id: repeat
+  conditions:
+    - condition: state
+      entity_id: input_boolean.ting_watch_notifications_enabled
+      state: "on"
+    - condition: state
+      entity_id: binary_sensor.ting_unverified_hazard_active
+      state: "on"
+    - condition: state
+      entity_id: binary_sensor.ting_confirmed_hazard_active
+      state: "off"
+  actions:
+    - variables:
+        last_sent: "{{ states('input_datetime.ting_unverified_hazard_last_sent_at') }}"
+        send_due: >
+          {{ last_sent in ['unknown', 'unavailable', 'none', '']
+             or (as_timestamp(now()) - as_timestamp(last_sent, 0)) >= 3600 }}
+    - if:
+        - condition: template
+          value_template: "{{ send_due }}"
+      then:
+        - action: script.ting_send_notification
+          data:
+            alert_kind: unverified
+  mode: single
+
+- id: ting_unverified_hazard_clear_notification
+  alias: "Ting — Clear Unverified Hazard Notification"
+  description: Silently clears the unverified Ting watch notification when the watch resolves.
+  triggers:
+    - trigger: state
+      entity_id: binary_sensor.ting_unverified_hazard_active
+      from: "on"
+      to: "off"
+  conditions: []
+  actions:
+    - action: script.notify_trevor_phone
+      data:
+        message: clear_notification
+        data:
+          tag: ting-unverified-hazard
+  mode: single
+
+- id: ting_power_quality_notification
+  alias: "Ting — Power Quality Notification"
+  description: Sends a Ting voltage watch only after sustained low/high voltage or a sustained spread between the two Ting sensors.
+  triggers:
+    - trigger: state
+      entity_id: binary_sensor.ting_power_quality_watch
+      to: "on"
+      for: "00:10:00"
+      id: sustained
+    - trigger: time_pattern
+      minutes: "/15"
+      id: repeat
+  conditions:
+    - condition: state
+      entity_id: input_boolean.ting_watch_notifications_enabled
+      state: "on"
+    - condition: state
+      entity_id: binary_sensor.ting_power_quality_watch
+      state: "on"
+    - condition: state
+      entity_id: binary_sensor.ting_confirmed_hazard_active
+      state: "off"
+    - condition: template
+      value_template: >
+        {{ (as_timestamp(now()) - as_timestamp(states.binary_sensor.ting_power_quality_watch.last_changed, 0)) >= 600 }}
+  actions:
+    - variables:
+        last_sent: "{{ states('input_datetime.ting_voltage_watch_last_sent_at') }}"
+        send_due: >
+          {{ last_sent in ['unknown', 'unavailable', 'none', '']
+             or (as_timestamp(now()) - as_timestamp(last_sent, 0)) >= 7200 }}
+    - if:
+        - condition: template
+          value_template: "{{ send_due }}"
+      then:
+        - action: script.ting_send_notification
+          data:
+            alert_kind: voltage
+  mode: single
+
+- id: ting_power_quality_clear_notification
+  alias: "Ting — Clear Power Quality Notification"
+  description: Silently clears the Ting voltage watch after readings recover and stay stable.
+  triggers:
+    - trigger: state
+      entity_id: binary_sensor.ting_power_quality_watch
+      from: "on"
+      to: "off"
+      for: "00:10:00"
+  conditions: []
+  actions:
+    - action: script.notify_trevor_phone
+      data:
+        message: clear_notification
+        data:
+          tag: ting-voltage-watch
+  mode: single
+
+- id: ting_offline_notification
+  alias: "Ting — Offline Notification"
+  description: Sends a Ting offline watch after either sensor stops reporting voltage for 30 minutes.
+  triggers:
+    - trigger: state
+      entity_id: binary_sensor.ting_offline_watch
+      to: "on"
+      for: "00:30:00"
+      id: sustained
+    - trigger: time_pattern
+      minutes: "/15"
+      id: repeat
+  conditions:
+    - condition: state
+      entity_id: input_boolean.ting_watch_notifications_enabled
+      state: "on"
+    - condition: state
+      entity_id: binary_sensor.ting_offline_watch
+      state: "on"
+    - condition: state
+      entity_id: binary_sensor.ting_confirmed_hazard_active
+      state: "off"
+    - condition: template
+      value_template: >
+        {{ (as_timestamp(now()) - as_timestamp(states.binary_sensor.ting_offline_watch.last_changed, 0)) >= 1800 }}
+  actions:
+    - variables:
+        last_sent: "{{ states('input_datetime.ting_offline_watch_last_sent_at') }}"
+        send_due: >
+          {{ last_sent in ['unknown', 'unavailable', 'none', '']
+             or (as_timestamp(now()) - as_timestamp(last_sent, 0)) >= 7200 }}
+    - if:
+        - condition: template
+          value_template: "{{ send_due }}"
+      then:
+        - action: script.ting_send_notification
+          data:
+            alert_kind: offline
+  mode: single
+
+- id: ting_offline_clear_notification
+  alias: "Ting — Offline Clear Notification"
+  description: Sends one Ting recovery note when an offline watch that notified has recovered.
+  triggers:
+    - trigger: state
+      entity_id: binary_sensor.ting_offline_watch
+      from: "on"
+      to: "off"
+      for: "00:05:00"
+  conditions:
+    - condition: state
+      entity_id: input_boolean.ting_offline_watch_alert_active
+      state: "on"
+  actions:
+    - action: script.ting_send_notification
+      data:
+        alert_kind: offline_clear
+  mode: single
+
+- id: ting_freeze_risk_notification
+  alias: "Ting — Freeze Risk Notification"
+  description: Sends Ting freeze-risk watches only when Ting risk and house/weather context both support it.
+  triggers:
+    - trigger: state
+      entity_id: binary_sensor.ting_freeze_risk_watch
+      to: "on"
+      id: activated
+    - trigger: time_pattern
+      minutes: "0"
+      id: repeat
+  conditions:
+    - condition: state
+      entity_id: input_boolean.ting_watch_notifications_enabled
+      state: "on"
+    - condition: state
+      entity_id: binary_sensor.ting_freeze_risk_watch
+      state: "on"
+    - condition: state
+      entity_id: binary_sensor.ting_confirmed_hazard_active
+      state: "off"
+  actions:
+    - variables:
+        last_sent: "{{ states('input_datetime.ting_freeze_risk_last_sent_at') }}"
+        send_due: >
+          {{ last_sent in ['unknown', 'unavailable', 'none', '']
+             or (as_timestamp(now()) - as_timestamp(last_sent, 0)) >= 21600 }}
+    - if:
+        - condition: template
+          value_template: "{{ send_due }}"
+      then:
+        - action: script.ting_send_notification
+          data:
+            alert_kind: freeze
+  mode: single
+
+- id: ting_freeze_risk_clear_notification
+  alias: "Ting — Clear Freeze Risk Notification"
+  description: Silently clears the Ting freeze-risk notification when the watch resolves.
+  triggers:
+    - trigger: state
+      entity_id: binary_sensor.ting_freeze_risk_watch
+      from: "on"
+      to: "off"
+  conditions: []
+  actions:
+    - action: script.notify_trevor_phone
+      data:
+        message: clear_notification
+        data:
+          tag: ting-freeze-risk
+  mode: single
+
+- id: ting_learning_complete_notification
+  alias: "Ting — Learning Complete Notification"
+  description: Sends one quiet notice when both Ting sensors leave learning mode.
+  triggers:
+    - trigger: state
+      entity_id:
+        - binary_sensor.ting_1_learning_mode
+        - binary_sensor.ting_2_learning_mode
+      to: "off"
+      for: "00:30:00"
+      id: learned
+    - trigger: homeassistant
+      event: start
+      id: startup
+  conditions:
+    - condition: state
+      entity_id: input_boolean.ting_watch_notifications_enabled
+      state: "on"
+    - condition: state
+      entity_id: input_boolean.ting_learning_complete_notified
+      state: "off"
+    - condition: state
+      entity_id: binary_sensor.ting_1_learning_mode
+      state: "off"
+    - condition: state
+      entity_id: binary_sensor.ting_2_learning_mode
+      state: "off"
+  actions:
+    - if:
+        - condition: template
+          value_template: "{{ trigger.id == 'startup' }}"
+      then:
+        - delay: "00:30:00"
+    - condition: state
+      entity_id: binary_sensor.ting_1_learning_mode
+      state: "off"
+    - condition: state
+      entity_id: binary_sensor.ting_2_learning_mode
+      state: "off"
+    - condition: state
+      entity_id: input_boolean.ting_learning_complete_notified
+      state: "off"
+    - action: script.ting_send_notification
+      data:
+        alert_kind: learning_complete
+  mode: single
+
+- id: ting_learning_resumed_reset
+  alias: "Ting — Reset Learning Complete Flag"
+  description: Lets the learning-complete notice fire again if either Ting sensor returns to learning mode later.
+  triggers:
+    - trigger: state
+      entity_id:
+        - binary_sensor.ting_1_learning_mode
+        - binary_sensor.ting_2_learning_mode
+      to: "on"
+  conditions: []
+  actions:
+    - action: input_boolean.turn_off
+      target:
+        entity_id: input_boolean.ting_learning_complete_notified
   mode: single
 
 - id: garden_morning_stage_notification
