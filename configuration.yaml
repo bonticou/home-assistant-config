@@ -1942,7 +1942,7 @@ template:
           {% endif %}
         state: >
           {% set locks = {
-            'lock.garage_entry_lock': 'Garage entry lock',
+            'lock.garage_entry_lock': 'Garage door',
             'lock.mudroom_door_lock': 'Mudroom door'
           } %}
           {% set ns = namespace(count=0) %}
@@ -1958,7 +1958,7 @@ template:
         attributes:
           names: >
             {% set locks = {
-              'lock.garage_entry_lock': 'Garage entry lock',
+              'lock.garage_entry_lock': 'Garage door',
               'lock.mudroom_door_lock': 'Mudroom door'
             } %}
             {% set ns = namespace(names=[]) %}
@@ -1973,7 +1973,7 @@ template:
             {{ ns.names | join('||') }}
           issues: >
             {% set locks = {
-              'lock.garage_entry_lock': 'Garage entry lock unlocked',
+              'lock.garage_entry_lock': 'Garage door unlocked',
               'lock.mudroom_door_lock': 'Mudroom door unlocked'
             } %}
             {% set ns = namespace(issues=[]) %}
@@ -2003,7 +2003,7 @@ template:
             {{ ns.entity_ids | join('||') }}
           label: >
             {% set locks = {
-              'lock.garage_entry_lock': 'Garage entry lock',
+              'lock.garage_entry_lock': 'Garage door',
               'lock.mudroom_door_lock': 'Mudroom door'
             } %}
             {% set ns = namespace(names=[]) %}
@@ -2025,7 +2025,7 @@ template:
             {% endif %}
           issue: >
             {% set locks = {
-              'lock.garage_entry_lock': 'Garage entry lock unlocked',
+              'lock.garage_entry_lock': 'Garage door unlocked',
               'lock.mudroom_door_lock': 'Mudroom door unlocked'
             } %}
             {% set ns = namespace(issues=[]) %}
@@ -2084,7 +2084,7 @@ template:
         unique_id: away_security_unlocked_entry_locks
         icon: >
           {% set locks = {
-            'lock.garage_entry_lock': 'Garage entry lock',
+            'lock.garage_entry_lock': 'Garage door',
             'lock.mudroom_door_lock': 'Mudroom door'
           } %}
           {% set ns = namespace(count=0) %}
@@ -2096,7 +2096,7 @@ template:
           {{ 'mdi:lock-open-alert-outline' if ns.count > 0 else 'mdi:lock-check-outline' }}
         state: >
           {% set locks = {
-            'lock.garage_entry_lock': 'Garage entry lock',
+            'lock.garage_entry_lock': 'Garage door',
             'lock.mudroom_door_lock': 'Mudroom door'
           } %}
           {% set ns = namespace(count=0) %}
@@ -2109,7 +2109,7 @@ template:
         attributes:
           names: >
             {% set locks = {
-              'lock.garage_entry_lock': 'Garage entry lock',
+              'lock.garage_entry_lock': 'Garage door',
               'lock.mudroom_door_lock': 'Mudroom door'
             } %}
             {% set ns = namespace(names=[]) %}
@@ -2121,7 +2121,7 @@ template:
             {{ ns.names | join('||') }}
           entity_ids: >
             {% set locks = {
-              'lock.garage_entry_lock': 'Garage entry lock',
+              'lock.garage_entry_lock': 'Garage door',
               'lock.mudroom_door_lock': 'Mudroom door'
             } %}
             {% set ns = namespace(entity_ids=[]) %}
@@ -2133,7 +2133,7 @@ template:
             {{ ns.entity_ids | join('||') }}
           label: >
             {% set locks = {
-              'lock.garage_entry_lock': 'Garage entry lock',
+              'lock.garage_entry_lock': 'Garage door',
               'lock.mudroom_door_lock': 'Mudroom door'
             } %}
             {% set ns = namespace(names=[]) %}
@@ -2152,7 +2152,7 @@ template:
             {% endif %}
           issue: >
             {% set locks = {
-              'lock.garage_entry_lock': 'Garage entry lock',
+              'lock.garage_entry_lock': 'Garage door',
               'lock.mudroom_door_lock': 'Mudroom door'
             } %}
             {% set ns = namespace(names=[]) %}
@@ -2683,7 +2683,7 @@ template:
               {% set lights_count = states('sensor.away_security_active_lights') | int(0) %}
               {% set facts = [
                 'Garage door: ' ~ states('cover.ratgdo32disco_c26634_door'),
-                'Garage entry lock: ' ~ states('lock.garage_entry_lock'),
+                'Garage door lock: ' ~ states('lock.garage_entry_lock'),
                 'Mudroom door lock: ' ~ states('lock.mudroom_door_lock'),
                 'Lights on: ' ~ lights_count,
                 'Trevor presence: ' ~ states('device_tracker.tk_iphone_16_pro'),

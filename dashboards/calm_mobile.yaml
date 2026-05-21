@@ -1551,7 +1551,9 @@ views:
                 [[[
                   const stateMap = hass?.states || {};
                   const count = Number(entity?.state ?? 0);
-                  const issue = entity?.attributes?.issue || entity?.attributes?.label || '';
+                  const issue = (entity?.attributes?.issue || entity?.attributes?.label || '')
+                    .replace('Garage entry lock unlocked', 'Garage door unlocked')
+                    .replace('Garage entry lock', 'Garage door');
                   const motionUntil = stateMap['input_datetime.away_motion_security_snooze_until']?.state;
                   const motionUntilDate = motionUntil && !['unknown', 'unavailable', ''].includes(motionUntil)
                     ? new Date(motionUntil.replace(' ', 'T'))
