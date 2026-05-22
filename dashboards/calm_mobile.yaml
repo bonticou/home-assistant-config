@@ -9350,45 +9350,6 @@ views:
             tap_action:
               action: more-info
 
-      - type: custom:mushroom-title-card
-        title: 24-hour trends
-      - type: custom:button-card
-        show_icon: false
-        show_name: true
-        show_state: false
-        name: >-
-          [[[
-            const temp = Number(hass.states['sensor.wine_temperature_24h_stats']?.state);
-            const humidity = Number(hass.states['sensor.wine_humidity_24h_stats']?.state);
-            return Number.isFinite(temp) && Number.isFinite(humidity)
-              ? `Mean temp ${temp.toFixed(1)}°F · Mean humidity ${Math.round(humidity)}%`
-              : 'Mean settling in';
-          ]]]
-        styles: &wine_trends_subtitle_button_styles
-          card:
-            - background: transparent
-            - box-shadow: none
-            - border: none
-            - border-radius: 0
-            - outline: none
-            - min-height: 0
-            - height: auto
-            - padding: 0 16px
-            - margin-top: -16px
-            - margin-bottom: 10px
-          name:
-            - justify-self: start
-            - color: rgba(226, 232, 240, 0.68)
-            - font-size: 14px
-            - font-weight: 400
-            - line-height: 1.4
-            - letter-spacing: -0.01em
-            - white-space: normal
-            - text-align: left
-        tap_action:
-          action: none
-        hold_action:
-          action: none
       - type: custom:apexcharts-card
         graph_span: 24h
         header:
@@ -9477,10 +9438,13 @@ views:
         card_mod:
           style: |
             ha-card {
+              --wine-chart-title: "24-hour trends";
+              --wine-chart-subtitle: "{% set temp = states('sensor.wine_temperature_24h_stats') %}{% set humidity = states('sensor.wine_humidity_24h_stats') %}{% if is_number(temp) and is_number(humidity) %}Mean temp {{ temp | float | round(1) }}°F · Mean humidity {{ humidity | float | round(0) }}%{% else %}Mean settling in{% endif %}";
               border: 1px solid rgba(148, 163, 184, 0.18);
               box-shadow: 0 10px 20px rgba(2, 8, 23, 0.18);
               border-radius: 24px;
               padding: 0;
+              position: relative;
               background: linear-gradient(180deg, rgba(15, 23, 42, 0.78), rgba(30, 41, 59, 0.72)) !important;
               backdrop-filter: blur(16px) saturate(160%);
               -webkit-backdrop-filter: blur(16px) saturate(160%);
@@ -9488,8 +9452,36 @@ views:
               --primary-text-color: #f8fafc;
               --secondary-text-color: #94a3b8;
             }
+            ha-card::before {
+              content: var(--wine-chart-title);
+              position: absolute;
+              top: 16px;
+              left: 18px;
+              right: 18px;
+              color: #f8fafc;
+              font-size: 20px;
+              line-height: 1.15;
+              font-weight: 500;
+              letter-spacing: 0;
+              pointer-events: none;
+              z-index: 1;
+            }
+            ha-card::after {
+              content: var(--wine-chart-subtitle);
+              position: absolute;
+              top: 42px;
+              left: 18px;
+              right: 18px;
+              color: rgba(226, 232, 240, 0.64);
+              font-size: 12px;
+              line-height: 1.25;
+              font-weight: 400;
+              letter-spacing: 0;
+              pointer-events: none;
+              z-index: 1;
+            }
             #graph-wrapper {
-              padding: 0 10px 0 !important;
+              padding: 58px 10px 0 !important;
               background: linear-gradient(180deg, rgba(15, 23, 42, 0.78), rgba(30, 41, 59, 0.72)) !important;
             }
             .apexcharts-canvas,
@@ -9499,25 +9491,6 @@ views:
               background: transparent !important;
             }
 
-      - type: custom:mushroom-title-card
-        title: 7-day trends
-      - type: custom:button-card
-        show_icon: false
-        show_name: true
-        show_state: false
-        name: >-
-          [[[
-            const temp = Number(hass.states['sensor.wine_temperature_7d_stats']?.state);
-            const humidity = Number(hass.states['sensor.wine_humidity_7d_stats']?.state);
-            return Number.isFinite(temp) && Number.isFinite(humidity)
-              ? `Mean temp ${temp.toFixed(1)}°F · Mean humidity ${Math.round(humidity)}%`
-              : 'Week mean settling in';
-          ]]]
-        styles: *wine_trends_subtitle_button_styles
-        tap_action:
-          action: none
-        hold_action:
-          action: none
       - type: custom:apexcharts-card
         graph_span: 7d
         header:
@@ -9567,26 +9540,62 @@ views:
               func: avg
               duration: 2h
               fill: last
+        card_mod:
+          style: |
+            ha-card {
+              --wine-chart-title: "7-day trends";
+              --wine-chart-subtitle: "{% set temp = states('sensor.wine_temperature_7d_stats') %}{% set humidity = states('sensor.wine_humidity_7d_stats') %}{% if is_number(temp) and is_number(humidity) %}Mean temp {{ temp | float | round(1) }}°F · Mean humidity {{ humidity | float | round(0) }}%{% else %}Week mean settling in{% endif %}";
+              border: 1px solid rgba(148, 163, 184, 0.18);
+              box-shadow: 0 10px 20px rgba(2, 8, 23, 0.18);
+              border-radius: 24px;
+              padding: 0;
+              position: relative;
+              background: linear-gradient(180deg, rgba(15, 23, 42, 0.78), rgba(30, 41, 59, 0.72)) !important;
+              backdrop-filter: blur(16px) saturate(160%);
+              -webkit-backdrop-filter: blur(16px) saturate(160%);
+              overflow: hidden;
+              --primary-text-color: #f8fafc;
+              --secondary-text-color: #94a3b8;
+            }
+            ha-card::before {
+              content: var(--wine-chart-title);
+              position: absolute;
+              top: 16px;
+              left: 18px;
+              right: 18px;
+              color: #f8fafc;
+              font-size: 20px;
+              line-height: 1.15;
+              font-weight: 500;
+              letter-spacing: 0;
+              pointer-events: none;
+              z-index: 1;
+            }
+            ha-card::after {
+              content: var(--wine-chart-subtitle);
+              position: absolute;
+              top: 42px;
+              left: 18px;
+              right: 18px;
+              color: rgba(226, 232, 240, 0.64);
+              font-size: 12px;
+              line-height: 1.25;
+              font-weight: 400;
+              letter-spacing: 0;
+              pointer-events: none;
+              z-index: 1;
+            }
+            #graph-wrapper {
+              padding: 58px 10px 0 !important;
+              background: linear-gradient(180deg, rgba(15, 23, 42, 0.78), rgba(30, 41, 59, 0.72)) !important;
+            }
+            .apexcharts-canvas,
+            .apexcharts-svg,
+            .apexcharts-inner,
+            svg {
+              background: transparent !important;
+            }
 
-      - type: custom:mushroom-title-card
-        title: 30-day trends
-      - type: custom:button-card
-        show_icon: false
-        show_name: true
-        show_state: false
-        name: >-
-          [[[
-            const temp = Number(hass.states['sensor.wine_temperature_30d_stats']?.state);
-            const humidity = Number(hass.states['sensor.wine_humidity_30d_stats']?.state);
-            return Number.isFinite(temp) && Number.isFinite(humidity)
-              ? `Mean temp ${temp.toFixed(1)}°F · Mean humidity ${Math.round(humidity)}%`
-              : 'Month mean settling in';
-          ]]]
-        styles: *wine_trends_subtitle_button_styles
-        tap_action:
-          action: none
-        hold_action:
-          action: none
       - type: custom:apexcharts-card
         graph_span: 30d
         header:
@@ -9643,10 +9652,13 @@ views:
         card_mod:
           style: |
             ha-card {
+              --wine-chart-title: "30-day trends";
+              --wine-chart-subtitle: "{% set temp = states('sensor.wine_temperature_30d_stats') %}{% set humidity = states('sensor.wine_humidity_30d_stats') %}{% if is_number(temp) and is_number(humidity) %}Mean temp {{ temp | float | round(1) }}°F · Mean humidity {{ humidity | float | round(0) }}%{% else %}Month mean settling in{% endif %}";
               border: 1px solid rgba(148, 163, 184, 0.18);
               box-shadow: 0 10px 20px rgba(2, 8, 23, 0.18);
               border-radius: 24px;
               padding: 0;
+              position: relative;
               background: linear-gradient(180deg, rgba(15, 23, 42, 0.78), rgba(30, 41, 59, 0.72)) !important;
               backdrop-filter: blur(16px) saturate(160%);
               -webkit-backdrop-filter: blur(16px) saturate(160%);
@@ -9654,8 +9666,36 @@ views:
               --primary-text-color: #f8fafc;
               --secondary-text-color: #94a3b8;
             }
+            ha-card::before {
+              content: var(--wine-chart-title);
+              position: absolute;
+              top: 16px;
+              left: 18px;
+              right: 18px;
+              color: #f8fafc;
+              font-size: 20px;
+              line-height: 1.15;
+              font-weight: 500;
+              letter-spacing: 0;
+              pointer-events: none;
+              z-index: 1;
+            }
+            ha-card::after {
+              content: var(--wine-chart-subtitle);
+              position: absolute;
+              top: 42px;
+              left: 18px;
+              right: 18px;
+              color: rgba(226, 232, 240, 0.64);
+              font-size: 12px;
+              line-height: 1.25;
+              font-weight: 400;
+              letter-spacing: 0;
+              pointer-events: none;
+              z-index: 1;
+            }
             #graph-wrapper {
-              padding: 0 10px 0 !important;
+              padding: 58px 10px 0 !important;
               background: linear-gradient(180deg, rgba(15, 23, 42, 0.78), rgba(30, 41, 59, 0.72)) !important;
             }
             .apexcharts-canvas,
