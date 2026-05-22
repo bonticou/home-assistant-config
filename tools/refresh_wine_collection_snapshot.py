@@ -13,7 +13,7 @@ from urllib.request import Request, urlopen
 SHEET_ID = "1XBYnqfFw7ggvTGqqeNdX6AaFtzQNf_lKnQHAzyPPA58"
 SHEET_URL = f"https://docs.google.com/spreadsheets/d/{SHEET_ID}/edit?usp=sharing"
 CSV_URL = f"https://docs.google.com/spreadsheets/d/{SHEET_ID}/gviz/tq?tqx=out:csv"
-READY_PHASES = {"early", "stabilizing", "mature"}
+READY_PHASES = {"anytime", "early", "stabilizing", "mature"}
 HOLD_PHASES = {"premature"}
 STYLE_ALIASES = {
     "Bordeaux red blend": "Bordeaux blend",
@@ -174,6 +174,7 @@ def build_snapshot(csv_text, source):
         "refreshed_label": stamp_label(now),
         "total_bottles": sum(row["qty"] for row in rows),
         "ready_total": sum(row["qty"] for row in ready_rows),
+        "anytime_total": phase_counts.get("anytime", 0),
         "stabilizing_total": phase_counts.get("stabilizing", 0),
         "mature_total": phase_counts.get("mature", 0),
         "early_total": phase_counts.get("early", 0),
@@ -183,6 +184,10 @@ def build_snapshot(csv_text, source):
         "ready_regions": top_rows(region_counts, 5),
         "ready_countries": top_rows(country_counts, 5),
         "drink_now_rows": drink_now_rows(ready_rows, 3),
+        "anytime_rows": sort_bucket(
+            [row for row in ready_rows if row["phase"] == "anytime"],
+            "anytime",
+        ),
         "stabilizing_rows": sort_bucket(
             [row for row in ready_rows if row["phase"] == "stabilizing"],
             "stabilizing",
@@ -236,6 +241,7 @@ def main():
                 "refreshed_label": stamp_label(fallback_now),
                 "total_bottles": 92,
                 "ready_total": 70,
+                "anytime_total": 0,
                 "stabilizing_total": 35,
                 "mature_total": 19,
                 "early_total": 16,
@@ -265,6 +271,7 @@ def main():
                     {"qty": "3x", "name": "Pessac-Leognan Rouge 2016", "kind": "mature"},
                     {"qty": "4x", "name": "Abstract Red", "kind": "mature"},
                 ],
+                "anytime_rows": [],
                 "stabilizing_rows": [
                     {"qty": "3x", "name": "Saint-Julien 2019", "kind": "Bordeaux blend"},
                     {"qty": "3x", "name": "Barolo Ginestra DOCG 2018", "kind": "Nebbiolo"},

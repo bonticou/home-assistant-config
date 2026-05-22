@@ -87,6 +87,7 @@ command_line:
         - refreshed_label
         - total_bottles
         - ready_total
+        - anytime_total
         - stabilizing_total
         - mature_total
         - early_total
@@ -96,6 +97,7 @@ command_line:
         - ready_regions
         - ready_countries
         - drink_now_rows
+        - anytime_rows
         - stabilizing_rows
         - mature_rows
         - early_rows

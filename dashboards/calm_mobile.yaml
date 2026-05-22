@@ -9933,6 +9933,51 @@ views:
         show_icon: true
         show_name: false
         show_state: false
+        icon: mdi:glass-wine
+        custom_fields:
+          header: >-
+            [[[
+              const snapshot = hass.states['sensor.wine_collection_snapshot']?.attributes || {};
+              const total = Number(snapshot.anytime_total);
+              return `<div class="wine-screener-header"><div class="wine-screener-title">Ready anytime</div><div class="wine-screener-meta">${Number.isFinite(total) ? total : 0} bottles</div></div>`;
+            ]]]
+          rows: >-
+            [[[
+              const snapshot = hass.states['sensor.wine_collection_snapshot']?.attributes || {};
+              const rows = snapshot.anytime_rows || [
+                { qty: '1x', name: 'Austin Hope', kind: 'Cabernet Sauvignon' },
+                { qty: '1x', name: 'Orin Swift', kind: 'Red blend' },
+                { qty: '1x', name: 'Herman Story', kind: 'California red' },
+              ];
+              if (!rows.length) {
+                return `<div class="wine-bottle-row"><span class="wine-bottle-qty">--</span><span class="wine-bottle-name">No anytime bottles tagged yet</span><span class="wine-bottle-kind">ready</span></div>`;
+              }
+              return rows.map((row) => `<div class="wine-bottle-row"><span class="wine-bottle-qty">${row.qty}</span><span class="wine-bottle-name">${row.name}</span><span class="wine-bottle-kind">${row.kind}</span></div>`).join('');
+            ]]]
+        tap_action:
+          action: url
+          url_path: https://docs.google.com/spreadsheets/d/1XBYnqfFw7ggvTGqqeNdX6AaFtzQNf_lKnQHAzyPPA58/edit?usp=sharing
+        styles:
+          <<: *wine_screener_card_styles
+          grid:
+            - grid-template-areas: '"i header" "rows rows"'
+            - grid-template-columns: auto minmax(0, 1fr)
+            - grid-template-rows: auto auto
+            - column-gap: 10px
+            - row-gap: 8px
+          icon:
+            - color: '#f472b6'
+            - width: 18px
+            - height: 18px
+            - justify-self: start
+            - align-self: center
+            - margin-top: 2px
+        extra_styles: *wine_screener_card_extra
+
+      - type: custom:button-card
+        show_icon: true
+        show_name: false
+        show_state: false
         icon: mdi:check-decagram-outline
         custom_fields:
           header: >-
