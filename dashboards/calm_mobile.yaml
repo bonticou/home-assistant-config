@@ -9054,7 +9054,7 @@ views:
         show_icon: true
         show_name: false
         show_state: false
-        icon: mdi:glass-wine
+        icon: mdi:clock-outline
         custom_fields:
           header: >-
             [[[
@@ -9212,6 +9212,27 @@ views:
           }
           .wine-bottle-row:last-child {
             padding-bottom: 0;
+          }
+          .wine-bottle-divider {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 10px 0 4px;
+            color: rgba(226, 232, 240, 0.58);
+            font-size: 11px;
+            font-weight: 700;
+            letter-spacing: 0.08em;
+            line-height: 1.2;
+            text-transform: uppercase;
+          }
+          .wine-bottle-divider:first-child {
+            padding-top: 0;
+          }
+          .wine-bottle-divider::after {
+            content: '';
+            flex: 1;
+            height: 1px;
+            background: rgba(148, 163, 184, 0.12);
           }
           .wine-bottle-qty {
             color: rgba(148, 163, 184, 0.92);
@@ -9938,16 +9959,37 @@ views:
           header: >-
             [[[
               const snapshot = hass.states['sensor.wine_collection_snapshot']?.attributes || {};
+              const fallbackRows = [
+                { qty: '3x', name: 'Behrens Family Winery Sainte Fumée 2018', kind: 'Red' },
+                { qty: '2x', name: `Angelica Zapata 'Birth of Cabernet' 2021`, kind: 'Cabernet Sauvignon' },
+                { qty: '3x', name: 'Terre et Sang Kissing Vipers 2021', kind: 'Grenache/Syrah' },
+                { qty: '1x', name: 'Austin Hope 2023', kind: 'Cabernet Sauvignon' },
+                { qty: '1x', name: 'Orin Swift 8 Years in the Desert 2023', kind: 'Zinfandel' },
+                { qty: '2x', name: 'Orin Swift Abstract 2023', kind: 'Red blend' },
+                { qty: '2x', name: 'Orin Swift Papillon 2023', kind: 'Bordeaux blend' },
+                { qty: '1x', name: 'Rombauer Zinfandel 2023', kind: 'Zinfandel' },
+                { qty: '1x', name: 'Treana 2023', kind: 'Cabernet Sauvignon' },
+                { qty: '2x', name: 'Latchkey Pinot Noir', kind: 'Pinot Noir' },
+              ];
+              const rows = Array.isArray(snapshot.anytime_rows) ? snapshot.anytime_rows : fallbackRows;
+              const count = rows.reduce((sum, row) => sum + (Number(String(row.qty || '').replace(/x$/, '')) || 0), 0);
               const total = Number(snapshot.anytime_total);
-              return `<div class="wine-screener-header"><div class="wine-screener-title">Ready anytime</div><div class="wine-screener-meta">${Number.isFinite(total) ? total : 0} bottles</div></div>`;
+              return `<div class="wine-screener-header"><div class="wine-screener-title">Ready anytime</div><div class="wine-screener-meta">${Number.isFinite(total) && total > 0 ? total : count} bottles</div></div>`;
             ]]]
           rows: >-
             [[[
               const snapshot = hass.states['sensor.wine_collection_snapshot']?.attributes || {};
               const rows = snapshot.anytime_rows || [
-                { qty: '1x', name: 'Austin Hope', kind: 'Cabernet Sauvignon' },
-                { qty: '1x', name: 'Orin Swift', kind: 'Red blend' },
-                { qty: '1x', name: 'Herman Story', kind: 'California red' },
+                { qty: '3x', name: 'Behrens Family Winery Sainte Fumée 2018', kind: 'Red' },
+                { qty: '2x', name: `Angelica Zapata 'Birth of Cabernet' 2021`, kind: 'Cabernet Sauvignon' },
+                { qty: '3x', name: 'Terre et Sang Kissing Vipers 2021', kind: 'Grenache/Syrah' },
+                { qty: '1x', name: 'Austin Hope 2023', kind: 'Cabernet Sauvignon' },
+                { qty: '1x', name: 'Orin Swift 8 Years in the Desert 2023', kind: 'Zinfandel' },
+                { qty: '2x', name: 'Orin Swift Abstract 2023', kind: 'Red blend' },
+                { qty: '2x', name: 'Orin Swift Papillon 2023', kind: 'Bordeaux blend' },
+                { qty: '1x', name: 'Rombauer Zinfandel 2023', kind: 'Zinfandel' },
+                { qty: '1x', name: 'Treana 2023', kind: 'Cabernet Sauvignon' },
+                { qty: '2x', name: 'Latchkey Pinot Noir', kind: 'Pinot Noir' },
               ];
               if (!rows.length) {
                 return `<div class="wine-bottle-row"><span class="wine-bottle-qty">--</span><span class="wine-bottle-name">No anytime bottles tagged yet</span><span class="wine-bottle-kind">ready</span></div>`;
@@ -10064,67 +10106,45 @@ views:
         show_icon: true
         show_name: false
         show_state: false
-        icon: mdi:glass-wine
-        custom_fields:
-          header: >-
-            [[[
-              const snapshot = hass.states['sensor.wine_collection_snapshot']?.attributes || {};
-              const total = Number(snapshot.early_total);
-              return `<div class="wine-screener-header"><div class="wine-screener-title">Early but open</div><div class="wine-screener-meta">${Number.isFinite(total) ? total : 16} bottles</div></div>`;
-            ]]]
-          rows: >-
-            [[[
-              const snapshot = hass.states['sensor.wine_collection_snapshot']?.attributes || {};
-              const rows = snapshot.early_rows || [
-                { qty: '3x', name: 'Pessac-Leognan Rouge 2022', kind: 'Bordeaux blend' },
-                { qty: '3x', name: `Tongue 'N Cheek 2022`, kind: 'Pinot Noir' },
-                { qty: '3x', name: 'Tignanello 2022', kind: 'Sangiovese blend' },
-                { qty: '3x', name: 'Cabernet Sauvignon 2023', kind: 'Cabernet Sauvignon' },
-              ];
-              return rows.map((row) => `<div class="wine-bottle-row"><span class="wine-bottle-qty">${row.qty}</span><span class="wine-bottle-name">${row.name}</span><span class="wine-bottle-kind">${row.kind}</span></div>`).join('');
-            ]]]
-        tap_action:
-          action: url
-          url_path: https://docs.google.com/spreadsheets/d/1XBYnqfFw7ggvTGqqeNdX6AaFtzQNf_lKnQHAzyPPA58/edit?usp=sharing
-        styles:
-          <<: *wine_screener_card_styles
-          grid:
-            - grid-template-areas: '"i header" "rows rows"'
-            - grid-template-columns: auto minmax(0, 1fr)
-            - grid-template-rows: auto auto
-            - column-gap: 10px
-            - row-gap: 8px
-          icon:
-            - color: '#f472b6'
-            - width: 18px
-            - height: 18px
-            - justify-self: start
-            - align-self: center
-            - margin-top: 2px
-        extra_styles: *wine_screener_card_extra
-
-      - type: custom:button-card
-        show_icon: true
-        show_name: false
-        show_state: false
         icon: mdi:timer-sand
         custom_fields:
           header: >-
             [[[
               const snapshot = hass.states['sensor.wine_collection_snapshot']?.attributes || {};
-              const total = Number(snapshot.hold_total);
-              return `<div class="wine-screener-header"><div class="wine-screener-title">Hold list</div><div class="wine-screener-meta">${Number.isFinite(total) ? total : 12} bottles</div></div>`;
+              const hold = Number(snapshot.hold_total);
+              const early = Number(snapshot.early_total);
+              const total = (Number.isFinite(hold) ? hold : 21) + (Number.isFinite(early) ? early : 10);
+              return `<div class="wine-screener-header"><div class="wine-screener-title">Hold list</div><div class="wine-screener-meta">${total} bottles</div></div>`;
             ]]]
           rows: >-
             [[[
               const snapshot = hass.states['sensor.wine_collection_snapshot']?.attributes || {};
-              const rows = snapshot.hold_rows || [
-                { qty: '3x', name: 'Barolo Ravera 2021', kind: 'opens 2027' },
-                { qty: '3x', name: 'Sidecar 2021', kind: 'opens 2028' },
-                { qty: '3x', name: 'Margaux 2022', kind: 'opens 2035' },
-                { qty: '3x', name: 'Saint-Emilion Grand Cru 2022', kind: 'opens 2037' },
+              const prematureRows = snapshot.hold_rows || [
+                { qty: '1x', name: 'PdB Asili 2020', kind: 'opens 2029' },
+                { qty: '1x', name: 'PdB Rabajà 2020', kind: 'opens 2030' },
+                { qty: '3x', name: 'G.D. Vajra Barolo Ravera 2021', kind: 'opens 2027' },
+                { qty: '3x', name: 'Terre et Sang Sidecar 2021', kind: 'opens 2028' },
+                { qty: '3x', name: 'Antinori Tignanello 2022', kind: 'opens 2029' },
+                { qty: '3x', name: 'Château Brane-Cantenac Margaux 2022', kind: 'opens 2035' },
+                { qty: '3x', name: 'Ducasse Saint-Émilion Grand Cru 2022', kind: 'opens 2037' },
+                { qty: '2x', name: 'Guado al Tasso Superiore 2022', kind: 'opens 2030' },
+                { qty: '2x', name: 'Guidalberto 2023', kind: 'opens 2027' },
               ];
-              return rows.map((row) => `<div class="wine-bottle-row"><span class="wine-bottle-qty">${row.qty}</span><span class="wine-bottle-name">${row.name}</span><span class="wine-bottle-kind">${row.kind}</span></div>`).join('');
+              const earlyRows = snapshot.early_rows || [
+                { qty: '3x', name: 'Oddero Barolo 2021', kind: 'Red (Nebbiolo/Barolo)' },
+                { qty: '3x', name: `Lingua Franca Tongue 'N Cheek 2022`, kind: 'Pinot Noir' },
+                { qty: '1x', name: 'Martin Woods Bednarik Vineyard 2022', kind: 'Pinot Noir' },
+                { qty: '3x', name: 'Pessac-Léognan Rouge 2022', kind: 'Bordeaux blend' },
+              ];
+              const bottle = (row) => `<div class="wine-bottle-row"><span class="wine-bottle-qty">${row.qty}</span><span class="wine-bottle-name">${row.name}</span><span class="wine-bottle-kind">${row.kind}</span></div>`;
+              const section = (label, rows) => rows.length
+                ? `<div class="wine-bottle-divider">${label}</div>${rows.map(bottle).join('')}`
+                : '';
+              const html = [
+                section('Premature', prematureRows),
+                section('Early but open', earlyRows),
+              ].filter(Boolean).join('');
+              return html || `<div class="wine-bottle-row"><span class="wine-bottle-qty">--</span><span class="wine-bottle-name">No bottles waiting</span><span class="wine-bottle-kind">clear</span></div>`;
             ]]]
         tap_action:
           action: url
