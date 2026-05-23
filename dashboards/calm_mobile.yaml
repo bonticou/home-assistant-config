@@ -9064,9 +9064,10 @@ views:
                 { qty: '3x', name: 'Pessac-Leognan Rouge 2016', kind: 'mature' },
                 { qty: '4x', name: 'Abstract Red', kind: 'mature' },
               ];
-              const drinkRows = Array.isArray(snapshot.drink_now_rows) ? snapshot.drink_now_rows : null;
-              const matureRows = Array.isArray(snapshot.mature_rows) ? snapshot.mature_rows : null;
-              const rows = (drinkRows || matureRows || fallbackRows).slice(0, 3);
+              const safeRows = (value) => Array.isArray(value) ? value.filter((row) => row && typeof row === 'object') : [];
+              const drinkRows = safeRows(snapshot.drink_now_rows);
+              const matureRows = safeRows(snapshot.mature_rows);
+              const rows = (drinkRows.length ? drinkRows : (matureRows.length ? matureRows : fallbackRows)).slice(0, 3);
               const meta = rows.length ? `${rows.length} picks` : 'No mature bottles';
               return `<div class="wine-screener-header"><div class="wine-screener-title">Drink now</div><div class="wine-screener-meta">${meta}</div></div>`;
             ]]]
@@ -9078,13 +9079,15 @@ views:
                 { qty: '3x', name: 'Pessac-Leognan Rouge 2016', kind: 'mature' },
                 { qty: '4x', name: 'Abstract Red', kind: 'mature' },
               ];
-              const drinkRows = Array.isArray(snapshot.drink_now_rows) ? snapshot.drink_now_rows : null;
-              const matureRows = Array.isArray(snapshot.mature_rows) ? snapshot.mature_rows : null;
-              const rows = (drinkRows || matureRows || fallbackRows).slice(0, 3);
+              const safeRows = (value) => Array.isArray(value) ? value.filter((row) => row && typeof row === 'object') : [];
+              const text = (value, fallback = '') => String(value ?? fallback);
+              const drinkRows = safeRows(snapshot.drink_now_rows);
+              const matureRows = safeRows(snapshot.mature_rows);
+              const rows = (drinkRows.length ? drinkRows : (matureRows.length ? matureRows : fallbackRows)).slice(0, 3);
               if (!rows.length) {
                 return `<div class="wine-bottle-row"><span class="wine-bottle-qty">--</span><span class="wine-bottle-name">No mature bottles ready</span><span class="wine-bottle-kind">later</span></div>`;
               }
-              return rows.map((row) => `<div class="wine-bottle-row"><span class="wine-bottle-qty">${row.qty}</span><span class="wine-bottle-name">${row.name}</span><span class="wine-bottle-kind">${row.kind}</span></div>`).join('');
+              return rows.map((row) => `<div class="wine-bottle-row"><span class="wine-bottle-qty">${text(row.qty, '--')}</span><span class="wine-bottle-name">${text(row.name, 'Unnamed bottle')}</span><span class="wine-bottle-kind">${text(row.kind, 'ready')}</span></div>`).join('');
             ]]]
         tap_action:
           action: url
@@ -9890,14 +9893,20 @@ views:
               rows: >-
                 [[[
                   const snapshot = hass.states['sensor.wine_collection_snapshot']?.attributes || {};
-                  const rows = snapshot.ready_styles || [
+                  const fallbackRows = [
                     { label: 'Bordeaux blend', value: 22 },
                     { label: 'Nebbiolo', value: 17 },
                     { label: 'Pinot Noir', value: 7 },
                     { label: 'Super Tuscan', value: 5 },
                     { label: 'Red blend', value: 4 },
                   ];
-                  return rows.map((row) => `<div class="wine-stat-row"><span class="wine-stat-label">${row.label}</span><span class="wine-stat-value">${row.value}</span></div>`).join('');
+                  const safeRows = (value) => {
+                    const rows = Array.isArray(value) ? value.filter((row) => row && typeof row === 'object') : [];
+                    return rows.length ? rows : fallbackRows;
+                  };
+                  const text = (value, fallback = '') => String(value ?? fallback);
+                  const rows = safeRows(snapshot.ready_styles);
+                  return rows.map((row) => `<div class="wine-stat-row"><span class="wine-stat-label">${text(row.label, 'Style')}</span><span class="wine-stat-value">${text(row.value, 0)}</span></div>`).join('');
                 ]]]
             tap_action:
               action: url
@@ -9916,7 +9925,7 @@ views:
               rows: >-
                 [[[
                   const snapshot = hass.states['sensor.wine_collection_snapshot']?.attributes || {};
-                  const rows = snapshot.ready_regions || [
+                  const fallbackRows = [
                     { label: 'Piedmont', value: 17 },
                     { label: 'California', value: 16 },
                     { label: 'Bordeaux', value: 15 },
@@ -9939,9 +9948,16 @@ views:
                     Barossa: '🇦🇺',
                     Stellenbosch: '🇿🇦',
                   };
+                  const safeRows = (value) => {
+                    const rows = Array.isArray(value) ? value.filter((row) => row && typeof row === 'object') : [];
+                    return rows.length ? rows : fallbackRows;
+                  };
+                  const text = (value, fallback = '') => String(value ?? fallback);
+                  const rows = safeRows(snapshot.ready_regions);
                   return rows.map((row) => {
-                    const flag = flags[row.label] || '🍷';
-                    return `<div class="wine-stat-row"><span class="wine-stat-label wine-stat-label--with-flag"><span class="wine-stat-flag">${flag}</span><span class="wine-stat-label-text">${row.label}</span></span><span class="wine-stat-value">${row.value}</span></div>`;
+                    const label = text(row.label, 'Region');
+                    const flag = flags[label] || '🍷';
+                    return `<div class="wine-stat-row"><span class="wine-stat-label wine-stat-label--with-flag"><span class="wine-stat-flag">${flag}</span><span class="wine-stat-label-text">${label}</span></span><span class="wine-stat-value">${text(row.value, 0)}</span></div>`;
                   }).join('');
                 ]]]
             tap_action:
@@ -9971,7 +9987,11 @@ views:
                 { qty: '1x', name: 'Treana 2023', kind: 'Cabernet Sauvignon' },
                 { qty: '2x', name: 'Latchkey Pinot Noir', kind: 'Pinot Noir' },
               ];
-              const rows = Array.isArray(snapshot.anytime_rows) && snapshot.anytime_rows.length ? snapshot.anytime_rows : fallbackRows;
+              const safeRows = (value) => {
+                const rows = Array.isArray(value) ? value.filter((row) => row && typeof row === 'object') : [];
+                return rows.length ? rows : fallbackRows;
+              };
+              const rows = safeRows(snapshot.anytime_rows);
               const count = rows.reduce((sum, row) => sum + (Number(String(row.qty || '').replace(/x$/, '')) || 0), 0);
               const total = Number(snapshot.anytime_total);
               return `<div class="wine-screener-header"><div class="wine-screener-title">Ready anytime</div><div class="wine-screener-meta">${Number.isFinite(total) && total > 0 ? total : count} bottles</div></div>`;
@@ -9991,11 +10011,16 @@ views:
                 { qty: '1x', name: 'Treana 2023', kind: 'Cabernet Sauvignon' },
                 { qty: '2x', name: 'Latchkey Pinot Noir', kind: 'Pinot Noir' },
               ];
-              const rows = Array.isArray(snapshot.anytime_rows) && snapshot.anytime_rows.length ? snapshot.anytime_rows : fallbackRows;
+              const safeRows = (value) => {
+                const rows = Array.isArray(value) ? value.filter((row) => row && typeof row === 'object') : [];
+                return rows.length ? rows : fallbackRows;
+              };
+              const text = (value, fallback = '') => String(value ?? fallback);
+              const rows = safeRows(snapshot.anytime_rows);
               if (!rows.length) {
                 return `<div class="wine-bottle-row"><span class="wine-bottle-qty">--</span><span class="wine-bottle-name">No anytime bottles tagged yet</span><span class="wine-bottle-kind">ready</span></div>`;
               }
-              return rows.map((row) => `<div class="wine-bottle-row"><span class="wine-bottle-qty">${row.qty}</span><span class="wine-bottle-name">${row.name}</span><span class="wine-bottle-kind">${row.kind}</span></div>`).join('');
+              return rows.map((row) => `<div class="wine-bottle-row"><span class="wine-bottle-qty">${text(row.qty, '--')}</span><span class="wine-bottle-name">${text(row.name, 'Unnamed bottle')}</span><span class="wine-bottle-kind">${text(row.kind, 'ready')}</span></div>`).join('');
             ]]]
         tap_action:
           action: url
@@ -10032,13 +10057,19 @@ views:
           rows: >-
             [[[
               const snapshot = hass.states['sensor.wine_collection_snapshot']?.attributes || {};
-              const rows = snapshot.mature_rows || [
+              const fallbackRows = [
                 { qty: '3x', name: 'Pessac-Leognan Rouge 2016', kind: 'Bordeaux blend' },
                 { qty: '4x', name: 'Abstract Red', kind: 'Red blend' },
                 { qty: '2x', name: 'Enrico VI (Villero) 2004', kind: 'Nebbiolo' },
                 { qty: '2x', name: 'Papillon', kind: 'Bordeaux blend' },
               ];
-              return rows.map((row) => `<div class="wine-bottle-row"><span class="wine-bottle-qty">${row.qty}</span><span class="wine-bottle-name">${row.name}</span><span class="wine-bottle-kind">${row.kind}</span></div>`).join('');
+              const safeRows = (value) => {
+                const rows = Array.isArray(value) ? value.filter((row) => row && typeof row === 'object') : [];
+                return rows.length ? rows : fallbackRows;
+              };
+              const text = (value, fallback = '') => String(value ?? fallback);
+              const rows = safeRows(snapshot.mature_rows);
+              return rows.map((row) => `<div class="wine-bottle-row"><span class="wine-bottle-qty">${text(row.qty, '--')}</span><span class="wine-bottle-name">${text(row.name, 'Unnamed bottle')}</span><span class="wine-bottle-kind">${text(row.kind, 'ready')}</span></div>`).join('');
             ]]]
         tap_action:
           action: url
@@ -10075,13 +10106,19 @@ views:
           rows: >-
             [[[
               const snapshot = hass.states['sensor.wine_collection_snapshot']?.attributes || {};
-              const rows = snapshot.stabilizing_rows || [
+              const fallbackRows = [
                 { qty: '3x', name: 'Saint-Julien 2019', kind: 'Bordeaux blend' },
                 { qty: '3x', name: 'Barolo Ginestra DOCG 2018', kind: 'Nebbiolo' },
                 { qty: '3x', name: 'Barolo Ravera 2021', kind: 'Nebbiolo' },
                 { qty: '3x', name: 'Kissing Vipers 2021', kind: 'Grenache/Syrah' },
               ];
-              return rows.map((row) => `<div class="wine-bottle-row"><span class="wine-bottle-qty">${row.qty}</span><span class="wine-bottle-name">${row.name}</span><span class="wine-bottle-kind">${row.kind}</span></div>`).join('');
+              const safeRows = (value) => {
+                const rows = Array.isArray(value) ? value.filter((row) => row && typeof row === 'object') : [];
+                return rows.length ? rows : fallbackRows;
+              };
+              const text = (value, fallback = '') => String(value ?? fallback);
+              const rows = safeRows(snapshot.stabilizing_rows);
+              return rows.map((row) => `<div class="wine-bottle-row"><span class="wine-bottle-qty">${text(row.qty, '--')}</span><span class="wine-bottle-name">${text(row.name, 'Unnamed bottle')}</span><span class="wine-bottle-kind">${text(row.kind, 'ready')}</span></div>`).join('');
             ]]]
         tap_action:
           action: url
@@ -10137,17 +10174,22 @@ views:
                 { qty: '1x', name: 'Martin Woods Bednarik Vineyard 2022', kind: 'Pinot Noir' },
                 { qty: '3x', name: 'Pessac-Léognan Rouge 2022', kind: 'Bordeaux blend' },
               ];
-              const prematureRows = Array.isArray(snapshot.hold_rows) && snapshot.hold_rows.length ? snapshot.hold_rows : fallbackPrematureRows;
-              const earlyRows = Array.isArray(snapshot.early_rows) && snapshot.early_rows.length ? snapshot.early_rows : fallbackEarlyRows;
-              const bottle = (row) => `<div class="wine-bottle-row"><span class="wine-bottle-qty">${row.qty}</span><span class="wine-bottle-name">${row.name}</span><span class="wine-bottle-kind">${row.kind}</span></div>`;
+              const safeRows = (value, fallback) => {
+                const rows = Array.isArray(value) ? value.filter((row) => row && typeof row === 'object') : [];
+                return rows.length ? rows : fallback;
+              };
+              const prematureRows = safeRows(snapshot.hold_rows, fallbackPrematureRows);
+              const earlyRows = safeRows(snapshot.early_rows, fallbackEarlyRows);
+              const text = (value, fallback = '') => String(value ?? fallback);
+              const bottle = (row) => `<div class="wine-bottle-row"><span class="wine-bottle-qty">${text(row.qty, '--')}</span><span class="wine-bottle-name">${text(row.name, 'Unnamed bottle')}</span><span class="wine-bottle-kind">${text(row.kind, 'hold')}</span></div>`;
               const section = (label, rows) => Array.isArray(rows) && rows.length
                 ? `<div class="wine-bottle-divider">${label}</div>${rows.map(bottle).join('')}`
                 : '';
-              const html = [
+              const renderedRows = [
                 section('Premature', prematureRows),
                 section('Early but open', earlyRows),
               ].filter(Boolean).join('');
-              return html || `<div class="wine-bottle-row"><span class="wine-bottle-qty">--</span><span class="wine-bottle-name">No bottles waiting</span><span class="wine-bottle-kind">clear</span></div>`;
+              return renderedRows || `<div class="wine-bottle-row"><span class="wine-bottle-qty">--</span><span class="wine-bottle-name">No bottles waiting</span><span class="wine-bottle-kind">clear</span></div>`;
             ]]]
         tap_action:
           action: url
