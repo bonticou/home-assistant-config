@@ -10120,7 +10120,7 @@ views:
           rows: >-
             [[[
               const snapshot = hass.states['sensor.wine_collection_snapshot']?.attributes || {};
-              const prematureRows = snapshot.hold_rows || [
+              const fallbackPrematureRows = [
                 { qty: '1x', name: 'PdB Asili 2020', kind: 'opens 2029' },
                 { qty: '1x', name: 'PdB Rabajà 2020', kind: 'opens 2030' },
                 { qty: '3x', name: 'G.D. Vajra Barolo Ravera 2021', kind: 'opens 2027' },
@@ -10131,14 +10131,16 @@ views:
                 { qty: '2x', name: 'Guado al Tasso Superiore 2022', kind: 'opens 2030' },
                 { qty: '2x', name: 'Guidalberto 2023', kind: 'opens 2027' },
               ];
-              const earlyRows = snapshot.early_rows || [
+              const fallbackEarlyRows = [
                 { qty: '3x', name: 'Oddero Barolo 2021', kind: 'Red (Nebbiolo/Barolo)' },
                 { qty: '3x', name: `Lingua Franca Tongue 'N Cheek 2022`, kind: 'Pinot Noir' },
                 { qty: '1x', name: 'Martin Woods Bednarik Vineyard 2022', kind: 'Pinot Noir' },
                 { qty: '3x', name: 'Pessac-Léognan Rouge 2022', kind: 'Bordeaux blend' },
               ];
+              const prematureRows = Array.isArray(snapshot.hold_rows) && snapshot.hold_rows.length ? snapshot.hold_rows : fallbackPrematureRows;
+              const earlyRows = Array.isArray(snapshot.early_rows) && snapshot.early_rows.length ? snapshot.early_rows : fallbackEarlyRows;
               const bottle = (row) => `<div class="wine-bottle-row"><span class="wine-bottle-qty">${row.qty}</span><span class="wine-bottle-name">${row.name}</span><span class="wine-bottle-kind">${row.kind}</span></div>`;
-              const section = (label, rows) => rows.length
+              const section = (label, rows) => Array.isArray(rows) && rows.length
                 ? `<div class="wine-bottle-divider">${label}</div>${rows.map(bottle).join('')}`
                 : '';
               const html = [
