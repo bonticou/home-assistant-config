@@ -1080,6 +1080,7 @@
 - id: casey_closet_auto_off
   alias: "Lights — Casey's Closet Auto-Off"
   description: Turn Casey's closet off when it has been left on for more than five minutes.
+  initial_state: true
   triggers:
     - trigger: state
       entity_id: light.master_casey_s_closet
@@ -1097,6 +1098,7 @@
 - id: garage_light_auto_off
   alias: "Lights — Garage Light Auto-Off"
   description: Turn the garage light off after five quiet minutes, unless the garage camera has seen recent activity.
+  initial_state: true
   triggers:
     - trigger: state
       entity_id: switch.garage_garage_lights

@@ -6006,9 +6006,9 @@ views:
                   grey
                 {% endif %}
               tap_action:
-                action: more-info
+                action: none
               hold_action:
-                action: more-info
+                action: none
               card_mod:
                 style: *lights_compact_card_style
             - type: custom:mushroom-template-card
@@ -6049,9 +6049,9 @@ views:
                   grey
                 {% endif %}
               tap_action:
-                action: more-info
+                action: none
               hold_action:
-                action: more-info
+                action: none
               card_mod:
                 style: *lights_compact_card_style
 
@@ -9971,7 +9971,7 @@ views:
                 { qty: '1x', name: 'Treana 2023', kind: 'Cabernet Sauvignon' },
                 { qty: '2x', name: 'Latchkey Pinot Noir', kind: 'Pinot Noir' },
               ];
-              const rows = Array.isArray(snapshot.anytime_rows) ? snapshot.anytime_rows : fallbackRows;
+              const rows = Array.isArray(snapshot.anytime_rows) && snapshot.anytime_rows.length ? snapshot.anytime_rows : fallbackRows;
               const count = rows.reduce((sum, row) => sum + (Number(String(row.qty || '').replace(/x$/, '')) || 0), 0);
               const total = Number(snapshot.anytime_total);
               return `<div class="wine-screener-header"><div class="wine-screener-title">Ready anytime</div><div class="wine-screener-meta">${Number.isFinite(total) && total > 0 ? total : count} bottles</div></div>`;
@@ -9979,7 +9979,7 @@ views:
           rows: >-
             [[[
               const snapshot = hass.states['sensor.wine_collection_snapshot']?.attributes || {};
-              const rows = snapshot.anytime_rows || [
+              const fallbackRows = [
                 { qty: '3x', name: 'Behrens Family Winery Sainte Fumée 2018', kind: 'Red' },
                 { qty: '2x', name: `Angelica Zapata 'Birth of Cabernet' 2021`, kind: 'Cabernet Sauvignon' },
                 { qty: '3x', name: 'Terre et Sang Kissing Vipers 2021', kind: 'Grenache/Syrah' },
@@ -9991,6 +9991,7 @@ views:
                 { qty: '1x', name: 'Treana 2023', kind: 'Cabernet Sauvignon' },
                 { qty: '2x', name: 'Latchkey Pinot Noir', kind: 'Pinot Noir' },
               ];
+              const rows = Array.isArray(snapshot.anytime_rows) && snapshot.anytime_rows.length ? snapshot.anytime_rows : fallbackRows;
               if (!rows.length) {
                 return `<div class="wine-bottle-row"><span class="wine-bottle-qty">--</span><span class="wine-bottle-name">No anytime bottles tagged yet</span><span class="wine-bottle-kind">ready</span></div>`;
               }
