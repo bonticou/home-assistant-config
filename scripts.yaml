@@ -4673,7 +4673,7 @@ open_window_notice_send:
         outdoor_humidity: "{{ state_attr('binary_sensor.open_window_recommendation_active', 'outdoor_humidity') | default(states('sensor.downstairs_outdoor_humidity'), true) }}"
     - action: script.notify_trevor_phone
       data:
-        title: "🪟🌙 Good window air tonight"
+        title: "🌙 Good window air tonight"
         message: >-
           Outside is {{ outdoor_temp }}° with {{ outdoor_humidity }}% humidity,
           and fresh air should help: {{ eligible_rooms }}.
