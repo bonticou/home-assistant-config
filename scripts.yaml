@@ -4661,6 +4661,59 @@ environment_send_alert:
                   priority: high
                   url: /calm-mobile/climate
 
+open_window_notice_send:
+  alias: Open Window Notice Send
+  description: Sends Trevor a soft whole-house open-window recommendation when outdoor air is favorable.
+  icon: mdi:window-open-variant
+  mode: restart
+  sequence:
+    - variables:
+        eligible_rooms: "{{ state_attr('binary_sensor.open_window_recommendation_active', 'eligible_rooms') | default('the lived-in rooms', true) }}"
+        outdoor_temp: "{{ state_attr('binary_sensor.open_window_recommendation_active', 'outdoor_temp') | default(states('sensor.downstairs_outdoor_temp'), true) }}"
+        outdoor_humidity: "{{ state_attr('binary_sensor.open_window_recommendation_active', 'outdoor_humidity') | default(states('sensor.downstairs_outdoor_humidity'), true) }}"
+    - action: script.notify_trevor_phone
+      data:
+        title: "🪟🌙 Good window air tonight"
+        message: >-
+          Outside is {{ outdoor_temp }}° with {{ outdoor_humidity }}% humidity,
+          and fresh air should help: {{ eligible_rooms }}.
+          Consider cracking a few windows.
+        data:
+          group: environment
+          tag: open-window-night
+          sticky: false
+          url: /calm-mobile/climate
+          actions:
+            - action: URI
+              title: Open climate
+              uri: /calm-mobile/climate
+            - action: OPEN_WINDOW_NOTICE_DISMISS_TONIGHT
+              title: Dismiss tonight
+    - action: input_datetime.set_datetime
+      target:
+        entity_id: input_datetime.open_window_notice_last_sent_at
+      data:
+        datetime: "{{ now().strftime('%Y-%m-%d %H:%M:%S') }}"
+
+open_window_notice_dismiss_tonight:
+  alias: Open Window Notice Dismiss Tonight
+  description: Hides the open-window recommendation until the next local 3 AM and clears the active push.
+  icon: mdi:window-closed-variant
+  mode: restart
+  sequence:
+    - action: input_datetime.set_datetime
+      target:
+        entity_id: input_datetime.open_window_notice_dismissed_until
+      data:
+        datetime: >-
+          {% set three_am = today_at('03:00') %}
+          {{ (three_am if now() < three_am else three_am + timedelta(days=1)).strftime('%Y-%m-%d %H:%M:%S') }}
+    - action: script.notify_trevor_phone
+      data:
+        message: clear_notification
+        data:
+          tag: open-window-night
+
 basement_humidity_send_alert:
   alias: Basement Humidity Send Alert
   description: Sends Trevor a basement humidity push using the Airthings-backed basement sensor.

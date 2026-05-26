@@ -336,6 +336,14 @@ input_datetime:
     name: Environment Radon Last Alert
     has_date: true
     has_time: true
+  open_window_notice_last_sent_at:
+    name: Open Window Notice Last Sent At
+    has_date: true
+    has_time: true
+  open_window_notice_dismissed_until:
+    name: Open Window Notice Dismissed Until
+    has_date: true
+    has_time: true
   robison_oil_price_check_last_done:
     name: Robison Oil Price Check Last Done
     has_date: true
@@ -4234,6 +4242,170 @@ template:
         icon: >
           {{ 'mdi:window-open-variant' if is_state('binary_sensor.downstairs_open_window_eligible', 'on') else 'mdi:window-closed-variant' }}
 
+      - name: "Open Window Recommendation Active"
+        unique_id: open_window_recommendation_active
+        state: >
+          {% set season = states('sensor.downstairs_active_season') %}
+          {% set period = states('sensor.downstairs_time_period') %}
+          {% set season_ok = season == 'shoulder' or (season == 'summer' and period == 'night') %}
+          {% set weather_state = states('weather.forecast_home') %}
+          {% set favorable_weather = weather_state not in ['rainy', 'pouring', 'snowy', 'snowy-rainy'] %}
+          {% set outdoor = states('sensor.downstairs_outdoor_temp') %}
+          {% set outdoor_humidity = states('sensor.downstairs_outdoor_humidity') %}
+          {% set wind = states('sensor.downstairs_outdoor_wind_speed') %}
+          {% set required_advantage = states('input_number.downstairs_open_window_advantage') | float(3) %}
+          {% set dismissed_until = states('input_datetime.open_window_notice_dismissed_until') %}
+          {% set dismissed = dismissed_until not in ['unknown', 'unavailable', 'none', '']
+             and as_timestamp(dismissed_until, 0) > as_timestamp(now()) %}
+          {% set rooms = [
+            {'label': 'Kitchen', 'temp': states('sensor.main_floor_temperature'), 'humidity': states('sensor.main_floor_humidity')},
+            {'label': 'Dining Room', 'temp': states('sensor.main_floor_2_temperature'), 'humidity': states('sensor.main_floor_2_humidity')},
+            {'label': 'Primary Bedroom', 'temp': states('sensor.master_temperature'), 'humidity': states('sensor.master_humidity')},
+            {'label': 'Office', 'temp': states('sensor.office_current_temperature'), 'humidity': states('sensor.office_current_humidity')}
+          ] %}
+          {% set ns = namespace(count=0) %}
+          {% if season_ok and favorable_weather and not dismissed
+             and is_number(outdoor) and is_number(outdoor_humidity) and is_number(wind)
+             and (outdoor_humidity | float(100)) <= 75
+             and (wind | float(999)) <= 18 %}
+            {% for room in rooms %}
+              {% set t = room.temp %}
+              {% set h = room.humidity %}
+              {% if is_number(t) and is_number(h) %}
+                {% set humidity_penalty = [0, [((h | float(0)) - 45) * 0.08, 2] | min] | max %}
+                {% set adjusted = (t | float(0)) + humidity_penalty %}
+                {% if adjusted >= 70 and (outdoor | float(999)) <= (adjusted - required_advantage) %}
+                  {% set ns.count = ns.count + 1 %}
+                {% endif %}
+              {% endif %}
+            {% endfor %}
+          {% endif %}
+          {{ ns.count > 0 }}
+        icon: >
+          {{ 'mdi:window-open-variant' if is_state('binary_sensor.open_window_recommendation_active', 'on') else 'mdi:window-closed-variant' }}
+        attributes:
+          best_room: >
+            {% set outdoor = states('sensor.downstairs_outdoor_temp') %}
+            {% set required_advantage = states('input_number.downstairs_open_window_advantage') | float(3) %}
+            {% set rooms = [
+              {'label': 'Kitchen', 'temp': states('sensor.main_floor_temperature'), 'humidity': states('sensor.main_floor_humidity')},
+              {'label': 'Dining Room', 'temp': states('sensor.main_floor_2_temperature'), 'humidity': states('sensor.main_floor_2_humidity')},
+              {'label': 'Primary Bedroom', 'temp': states('sensor.master_temperature'), 'humidity': states('sensor.master_humidity')},
+              {'label': 'Office', 'temp': states('sensor.office_current_temperature'), 'humidity': states('sensor.office_current_humidity')}
+            ] %}
+            {% set ns = namespace(best='None', score=-999) %}
+            {% if is_number(outdoor) %}
+              {% for room in rooms %}
+                {% set t = room.temp %}
+                {% set h = room.humidity %}
+                {% if is_number(t) and is_number(h) %}
+                  {% set humidity_penalty = [0, [((h | float(0)) - 45) * 0.08, 2] | min] | max %}
+                  {% set adjusted = (t | float(0)) + humidity_penalty %}
+                  {% set score = adjusted - (outdoor | float(0)) %}
+                  {% if adjusted >= 70 and score >= required_advantage and score > ns.score %}
+                    {% set ns.best = room.label %}
+                    {% set ns.score = score %}
+                  {% endif %}
+                {% endif %}
+              {% endfor %}
+            {% endif %}
+            {{ ns.best }}
+          eligible_rooms: >
+            {% set outdoor = states('sensor.downstairs_outdoor_temp') %}
+            {% set required_advantage = states('input_number.downstairs_open_window_advantage') | float(3) %}
+            {% set rooms = [
+              {'label': 'Kitchen', 'temp': states('sensor.main_floor_temperature'), 'humidity': states('sensor.main_floor_humidity')},
+              {'label': 'Dining Room', 'temp': states('sensor.main_floor_2_temperature'), 'humidity': states('sensor.main_floor_2_humidity')},
+              {'label': 'Primary Bedroom', 'temp': states('sensor.master_temperature'), 'humidity': states('sensor.master_humidity')},
+              {'label': 'Office', 'temp': states('sensor.office_current_temperature'), 'humidity': states('sensor.office_current_humidity')}
+            ] %}
+            {% set ns = namespace(rooms=[]) %}
+            {% if is_number(outdoor) %}
+              {% for room in rooms %}
+                {% set t = room.temp %}
+                {% set h = room.humidity %}
+                {% if is_number(t) and is_number(h) %}
+                  {% set humidity_penalty = [0, [((h | float(0)) - 45) * 0.08, 2] | min] | max %}
+                  {% set adjusted = (t | float(0)) + humidity_penalty %}
+                  {% if adjusted >= 70 and (outdoor | float(999)) <= (adjusted - required_advantage) %}
+                    {% set ns.rooms = ns.rooms + [room.label] %}
+                  {% endif %}
+                {% endif %}
+              {% endfor %}
+            {% endif %}
+            {{ ns.rooms | join(', ') if ns.rooms else 'None' }}
+          room_summary: >
+            {% set rooms = [
+              {'label': 'Kitchen', 'temp': states('sensor.main_floor_temperature'), 'humidity': states('sensor.main_floor_humidity')},
+              {'label': 'Dining Room', 'temp': states('sensor.main_floor_2_temperature'), 'humidity': states('sensor.main_floor_2_humidity')},
+              {'label': 'Primary Bedroom', 'temp': states('sensor.master_temperature'), 'humidity': states('sensor.master_humidity')},
+              {'label': 'Office', 'temp': states('sensor.office_current_temperature'), 'humidity': states('sensor.office_current_humidity')}
+            ] %}
+            {% set ns = namespace(parts=[]) %}
+            {% for room in rooms %}
+              {% set t = room.temp %}
+              {% set h = room.humidity %}
+              {% if is_number(t) and is_number(h) %}
+                {% set ns.parts = ns.parts + [room.label ~ ' ' ~ (t | float(0) | round(0) | int) ~ '°/' ~ (h | float(0) | round(0) | int) ~ '%'] %}
+              {% else %}
+                {% set ns.parts = ns.parts + [room.label ~ ' unavailable'] %}
+              {% endif %}
+            {% endfor %}
+            {{ ns.parts | join('; ') }}
+          outdoor_temp: "{{ states('sensor.downstairs_outdoor_temp') }}"
+          outdoor_humidity: "{{ states('sensor.downstairs_outdoor_humidity') }}"
+          wind_speed: "{{ states('sensor.downstairs_outdoor_wind_speed') }}"
+          blocked_reason: >
+            {% set season = states('sensor.downstairs_active_season') %}
+            {% set period = states('sensor.downstairs_time_period') %}
+            {% set season_ok = season == 'shoulder' or (season == 'summer' and period == 'night') %}
+            {% set weather_state = states('weather.forecast_home') %}
+            {% set favorable_weather = weather_state not in ['rainy', 'pouring', 'snowy', 'snowy-rainy'] %}
+            {% set outdoor = states('sensor.downstairs_outdoor_temp') %}
+            {% set outdoor_humidity = states('sensor.downstairs_outdoor_humidity') %}
+            {% set wind = states('sensor.downstairs_outdoor_wind_speed') %}
+            {% set required_advantage = states('input_number.downstairs_open_window_advantage') | float(3) %}
+            {% set dismissed_until = states('input_datetime.open_window_notice_dismissed_until') %}
+            {% set dismissed = dismissed_until not in ['unknown', 'unavailable', 'none', '']
+               and as_timestamp(dismissed_until, 0) > as_timestamp(now()) %}
+            {% set rooms = [
+              {'label': 'Kitchen', 'temp': states('sensor.main_floor_temperature'), 'humidity': states('sensor.main_floor_humidity')},
+              {'label': 'Dining Room', 'temp': states('sensor.main_floor_2_temperature'), 'humidity': states('sensor.main_floor_2_humidity')},
+              {'label': 'Primary Bedroom', 'temp': states('sensor.master_temperature'), 'humidity': states('sensor.master_humidity')},
+              {'label': 'Office', 'temp': states('sensor.office_current_temperature'), 'humidity': states('sensor.office_current_humidity')}
+            ] %}
+            {% set ns = namespace(valid=0, warm=0, eligible=0) %}
+            {% if is_number(outdoor) %}
+              {% for room in rooms %}
+                {% set t = room.temp %}
+                {% set h = room.humidity %}
+                {% if is_number(t) and is_number(h) %}
+                  {% set ns.valid = ns.valid + 1 %}
+                  {% set humidity_penalty = [0, [((h | float(0)) - 45) * 0.08, 2] | min] | max %}
+                  {% set adjusted = (t | float(0)) + humidity_penalty %}
+                  {% if adjusted >= 70 %}
+                    {% set ns.warm = ns.warm + 1 %}
+                    {% if (outdoor | float(999)) <= (adjusted - required_advantage) %}
+                      {% set ns.eligible = ns.eligible + 1 %}
+                    {% endif %}
+                  {% endif %}
+                {% endif %}
+              {% endfor %}
+            {% endif %}
+            {% if dismissed %}Dismissed for tonight
+            {% elif not season_ok %}Season or night window is not favorable
+            {% elif not favorable_weather %}Weather is not window-friendly
+            {% elif not is_number(outdoor) or not is_number(outdoor_humidity) or not is_number(wind) %}Outdoor weather data unavailable
+            {% elif (outdoor_humidity | float(100)) > 75 %}Outdoor humidity is too high
+            {% elif (wind | float(999)) > 18 %}Wind is too high
+            {% elif ns.valid == 0 %}Lived-in room readings unavailable
+            {% elif ns.warm == 0 %}Lived-in rooms are not warm enough
+            {% elif ns.eligible == 0 %}Outside is not cool enough versus the lived-in rooms
+            {% else %}Clear{% endif %}
+          primary_readings: "Primary Bedroom {{ states('sensor.master_temperature') }}°F / {{ states('sensor.master_humidity') }}%"
+          office_readings: "Office {{ states('sensor.office_current_temperature') }}°F / {{ states('sensor.office_current_humidity') }}%"
+          main_floor_readings: "Kitchen {{ states('sensor.main_floor_temperature') }}°F / {{ states('sensor.main_floor_humidity') }}%; Dining Room {{ states('sensor.main_floor_2_temperature') }}°F / {{ states('sensor.main_floor_2_humidity') }}%"
+
       - name: "Main Floor Someone Home"
         unique_id: downstairs_someone_home
         state: >
@@ -4261,7 +4433,7 @@ template:
         icon: mdi:map-marker-radius-outline
         attributes:
           main_floor: "Kitchen uses sensor.main_floor_temperature/humidity; Dining Room uses sensor.main_floor_2_temperature/humidity plus Dining Room Ecobee context."
-          second_floor: "Primary Bedroom uses sensor.master_temperature/humidity. Office and Primary Bedroom Ecobee context remain pending until live entity IDs are confirmed."
+          second_floor: "Primary Bedroom uses sensor.master_temperature/humidity with Master Ecobee context; Office uses sensor.office_current_temperature/humidity from Office Ecobee."
           special_zones: "Basement uses mechanical room temperature/humidity and Airthings radon. Garage and Attic use their dedicated temperature/humidity sensors."
           battery_sources: "Primary Bedroom uses sensor.master_sensor_new_battery_2. Basement Airthings uses sensor.basement_air_quality_battery. Other environment battery entities are not exposed yet."
           wine_cave: "Excluded. Wine cave has its own alert stack."
@@ -4392,14 +4564,38 @@ template:
 
       - name: "Environment Office Status"
         unique_id: environment_office_status
-        state: source_pending
+        state: >
+          {% set t = states('sensor.office_current_temperature') %}
+          {% set h = states('sensor.office_current_humidity') %}
+          {% if not is_number(t) or not is_number(h) %}
+            unavailable
+          {% elif (t | float(0)) < 60 or (t | float(0)) > 80 or (h | float(0)) < 28 or (h | float(0)) > 65 %}
+            attention
+          {% elif (t | float(0)) < 64 or (t | float(0)) > 76 or (h | float(0)) < 32 or (h | float(0)) > 60 %}
+            watch
+          {% else %}
+            steady
+          {% endif %}
         icon: mdi:desk
         attributes:
           area: Second Floor
           room: Office
-          primary_source: "Pending live entity discovery"
-          control_context: "Office Ecobee pending live entity discovery"
-          issue: "Office environment source IDs are not present in this repo checkout."
+          primary_source: Office Ecobee
+          control_context: Office Ecobee
+          temperature_entity: sensor.office_current_temperature
+          humidity_entity: sensor.office_current_humidity
+          temperature: "{{ states('sensor.office_current_temperature') }}"
+          humidity: "{{ states('sensor.office_current_humidity') }}"
+          issue: >
+            {% set t = states('sensor.office_current_temperature') %}
+            {% set h = states('sensor.office_current_humidity') %}
+            {% if not is_number(t) or not is_number(h) %}Sensor unavailable
+            {% elif (t | float(0)) < 60 %}Too cool
+            {% elif (t | float(0)) > 80 %}Too warm
+            {% elif (h | float(0)) < 28 %}Very dry
+            {% elif (h | float(0)) > 65 %}Very humid
+            {% elif (t | float(0)) < 64 or (t | float(0)) > 76 or (h | float(0)) < 32 or (h | float(0)) > 60 %}Comfort watch
+            {% else %}Steady{% endif %}
 
       - name: "Environment Basement Status"
         unique_id: environment_basement_status
@@ -4541,9 +4737,10 @@ template:
         unique_id: environment_second_floor_status
         state: >
           {% set primary = states('sensor.environment_primary_bedroom_status') %}
-          {% if primary in ['attention', 'unavailable'] %}
+          {% set office = states('sensor.environment_office_status') %}
+          {% if primary in ['attention', 'unavailable'] or office in ['attention', 'unavailable'] %}
             attention
-          {% elif primary == 'watch' %}
+          {% elif primary == 'watch' or office == 'watch' %}
             watch
           {% else %}
             steady
@@ -4551,10 +4748,10 @@ template:
         icon: mdi:home-floor-2
         attributes:
           rooms: Primary Bedroom, Office
-          source_quality: partial
+          source_quality: live
           summary: >
             Primary Bedroom is {{ states('sensor.environment_primary_bedroom_status') }}.
-            Office source IDs are pending live discovery.
+            Office is {{ states('sensor.environment_office_status') }}.
 
       - name: "Environment House Status"
         unique_id: environment_house_status

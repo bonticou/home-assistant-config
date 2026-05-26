@@ -107,6 +107,113 @@ views:
                   {% endif %} !important;
               }
 
+      - type: conditional
+        conditions:
+          - entity: binary_sensor.open_window_recommendation_active
+            state: "on"
+        card:
+          type: custom:button-card
+          entity: binary_sensor.open_window_recommendation_active
+          name: Good window air
+          label: >-
+            [[[
+              const attrs = entity?.attributes || {};
+              const bestRoom = attrs.best_room && attrs.best_room !== 'None'
+                ? String(attrs.best_room)
+                : 'Lived-in rooms';
+              const roomTempEntities = {
+                'Kitchen': 'sensor.main_floor_temperature',
+                'Dining Room': 'sensor.main_floor_2_temperature',
+                'Primary Bedroom': 'sensor.master_temperature',
+                'Office': 'sensor.office_current_temperature',
+              };
+              const roomTemp = Number(hass.states[roomTempEntities[bestRoom]]?.state);
+              const outdoor = Number(attrs.outdoor_temp);
+              const humidity = Number(attrs.outdoor_humidity);
+              const roomText = Number.isFinite(roomTemp)
+                ? `${bestRoom} ${Math.round(roomTemp)}°`
+                : bestRoom;
+              const outsideText = Number.isFinite(outdoor) ? `${Math.round(outdoor)}°` : '--°';
+              const humidityText = Number.isFinite(humidity) ? `${Math.round(humidity)}%` : '--%';
+              return `${roomText} · outside ${outsideText} / ${humidityText}`;
+            ]]]
+          icon: mdi:window-open-variant
+          show_label: true
+          show_state: false
+          tap_action:
+            action: navigate
+            navigation_path: /calm-mobile/climate
+          hold_action:
+            action: more-info
+          custom_fields:
+            close:
+              card:
+                type: custom:button-card
+                icon: mdi:close
+                show_name: false
+                show_state: false
+                tap_action:
+                  action: call-service
+                  service: script.open_window_notice_dismiss_tonight
+                styles:
+                  card:
+                    - width: 34px
+                    - height: 34px
+                    - padding: 0
+                    - border-radius: 999px
+                    - border: 1px solid rgba(13, 148, 136, 0.16)
+                    - background: rgba(240, 253, 250, 0.72)
+                    - box-shadow: none
+                  icon:
+                    - width: 18px
+                    - color: rgba(15, 118, 110, 0.82)
+          styles:
+            card:
+              - min-height: 58px
+              - padding: 9px 10px 9px 14px
+              - border-radius: 22px
+              - border: 1px solid rgba(13, 148, 136, 0.16)
+              - background: linear-gradient(180deg, rgba(240, 253, 250, 0.94), rgba(236, 253, 245, 0.88))
+              - box-shadow: 0 12px 26px rgba(15, 118, 110, 0.10)
+              - text-align: left
+            grid:
+              - grid-template-areas: '"i n close" "i l close"'
+              - grid-template-columns: 34px minmax(0, 1fr) 38px
+              - grid-template-rows: min-content min-content
+              - column-gap: 10px
+              - align-items: center
+            icon:
+              - width: 23px
+              - color: rgba(13, 148, 136, 0.92)
+            img_cell:
+              - justify-content: center
+              - align-items: center
+              - width: 34px
+              - height: 34px
+              - border-radius: 999px
+              - background: rgba(20, 184, 166, 0.12)
+            name:
+              - justify-self: start
+              - align-self: end
+              - font-size: 14px
+              - font-weight: 650
+              - color: rgba(15, 23, 42, 0.92)
+            label:
+              - justify-self: start
+              - align-self: start
+              - min-width: 0
+              - overflow: hidden
+              - text-overflow: ellipsis
+              - white-space: nowrap
+              - font-size: 12px
+              - font-weight: 500
+              - color: rgba(51, 65, 85, 0.74)
+            custom_fields:
+              close:
+                - grid-area: close
+                - justify-self: end
+                - align-self: center
+
       - type: custom:mushroom-template-card
         entity: weather.forecast_home
         primary: >-
@@ -280,7 +387,7 @@ views:
               {% elif profile == 'sleep' %}mdi:sleep
               {% elif hvac_action == 'heating' %}mdi:radiator
               {% elif hvac_action == 'cooling' %}mdi:snowflake
-              {% elif is_state('binary_sensor.downstairs_open_window_eligible', 'on') %}mdi:window-open-variant
+              {% elif is_state('binary_sensor.open_window_recommendation_active', 'on') %}mdi:window-open-variant
               {% else %}mdi:home-thermometer-outline{% endif %}
             icon_color: >-
               {% set profile = states('select.dining_room_current_mode') %}
@@ -289,7 +396,7 @@ views:
               {% elif profile == 'sleep' %}indigo
               {% elif hvac_action == 'heating' %}orange
               {% elif hvac_action == 'cooling' %}blue
-              {% elif is_state('binary_sensor.downstairs_open_window_eligible', 'on') %}teal
+              {% elif is_state('binary_sensor.open_window_recommendation_active', 'on') %}teal
               {% else %}grey{% endif %}
             # The Dining Room thermostat is governed by the Kitchen/main-floor sensor, but the home chip stays label-light.
             content: >-
@@ -12183,8 +12290,8 @@ views:
             primary: Second Floor
             secondary: >-
               Primary Bedroom {{ states('sensor.master_temperature') | float(0) | round(0) }}° ·
-              {{ states('sensor.master_humidity') | float(0) | round(0) }}% ·
-              Battery {{ states('sensor.master_sensor_new_battery_2') }}%
+              Office {{ states('sensor.office_current_temperature') | float(0) | round(0) }}° ·
+              {{ states('sensor.office_current_humidity') | float(0) | round(0) }}% office
             icon: mdi:home-floor-2
             icon_color: >-
               {% set s = states('sensor.environment_second_floor_status') %}
@@ -12368,13 +12475,13 @@ views:
               {% set action = state_attr('climate.dining_room', 'hvac_action') | default('idle', true) %}
               Dining Ecobee {{ action | replace('_', ' ') | title }}
           - type: template
-            entity: binary_sensor.downstairs_open_window_eligible
+            entity: binary_sensor.open_window_recommendation_active
             icon: >-
-              {{ 'mdi:window-open-variant' if is_state('binary_sensor.downstairs_open_window_eligible', 'on') else 'mdi:window-closed-variant' }}
+              {{ 'mdi:window-open-variant' if is_state('binary_sensor.open_window_recommendation_active', 'on') else 'mdi:window-closed-variant' }}
             icon_color: >-
-              {{ 'teal' if is_state('binary_sensor.downstairs_open_window_eligible', 'on') else 'grey' }}
+              {{ 'teal' if is_state('binary_sensor.open_window_recommendation_active', 'on') else 'grey' }}
             content: >-
-              {{ 'Window night' if is_state('binary_sensor.downstairs_open_window_eligible', 'on') else 'Windows not favored' }}
+              {{ 'Window air' if is_state('binary_sensor.open_window_recommendation_active', 'on') else 'Windows not favored' }}
           - type: template
             entity: sensor.downstairs_away_watch
             icon: >-
@@ -12449,9 +12556,13 @@ views:
           - type: custom:mushroom-template-card
             entity: sensor.environment_office_status
             primary: Office
-            secondary: Source discovery pending
+            secondary: >-
+              {{ states('sensor.office_current_temperature') }}° ·
+              {{ states('sensor.office_current_humidity') }}% · Ecobee
             icon: mdi:desk
-            icon_color: blue-grey
+            icon_color: >-
+              {% set s = states('sensor.environment_office_status') %}
+              {% if s == 'attention' %}red{% elif s == 'watch' %}amber{% elif s == 'unavailable' %}grey{% else %}green{% endif %}
             tap_action:
               action: more-info
 
@@ -12659,6 +12770,7 @@ views:
         hours_to_show: 24
         entities:
           - entity: sensor.downstairs_away_watch
+          - entity: binary_sensor.open_window_recommendation_active
           - entity: binary_sensor.downstairs_open_window_eligible
           - entity: binary_sensor.downstairs_temp_spread_high
           - entity: binary_sensor.house_low_battery_alert
@@ -12711,7 +12823,10 @@ views:
           - entity: sensor.downstairs_ecobee_setpoint
           - entity: sensor.downstairs_climate_status
           - entity: sensor.downstairs_climate_insight
+          - entity: binary_sensor.open_window_recommendation_active
+            name: Whole-house open-window recommendation
           - entity: binary_sensor.downstairs_open_window_eligible
+            name: Main Floor open-window source
           - entity: sensor.downstairs_away_watch
           - entity: sensor.downstairs_away_watch_reason
           - entity: sensor.downstairs_away_minutes

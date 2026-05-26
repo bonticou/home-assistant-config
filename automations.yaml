@@ -2293,6 +2293,7 @@
           - sensor.downstairs_outdoor_wind_speed
           - sensor.downstairs_source_policy
           - binary_sensor.downstairs_open_window_eligible
+          - binary_sensor.open_window_recommendation_active
           - sensor.downstairs_ecobee_setpoint
           - sensor.downstairs_climate_status
           - sensor.downstairs_climate_insight
@@ -2344,6 +2345,19 @@
                 message: clear_notification
                 data:
                   tag: downstairs-window-night
+    - choose:
+        - conditions:
+            - condition: template
+              value_template: >
+                {{ not is_state('input_boolean.environment_alerts_enabled', 'on')
+                   or not is_state('input_boolean.downstairs_mobile_alerts_enabled', 'on')
+                   or not is_state('binary_sensor.open_window_recommendation_active', 'on') }}
+          sequence:
+            - action: script.notify_trevor_phone
+              data:
+                message: clear_notification
+                data:
+                  tag: open-window-night
   mode: single
 
 - id: downstairs_climate_recommendation_notification
@@ -2713,6 +2727,65 @@
         alert_kind: "{{ kind }}"
         clear: true
   mode: parallel
+
+- id: environment_open_window_recommendation
+  alias: "Environment — Open Window Recommendation"
+  description: Sends one soft whole-house open-window recommendation when lived-in rooms would likely benefit from outdoor air.
+  triggers:
+    - trigger: state
+      entity_id: binary_sensor.open_window_recommendation_active
+      to: "on"
+      for:
+        minutes: 20
+  conditions:
+    - condition: state
+      entity_id: binary_sensor.open_window_recommendation_active
+      state: "on"
+    - condition: state
+      entity_id: device_tracker.tk_iphone_16_pro
+      state: home
+    - condition: state
+      entity_id: input_boolean.environment_alerts_enabled
+      state: "on"
+    - condition: state
+      entity_id: input_boolean.downstairs_mobile_alerts_enabled
+      state: "on"
+    - condition: template
+      value_template: >-
+        {% set last_sent = states('input_datetime.open_window_notice_last_sent_at') %}
+        {{ last_sent in ['unknown', 'unavailable', 'none', '']
+           or (as_timestamp(last_sent, 0) | timestamp_custom('%Y-%m-%d', true)) != now().strftime('%Y-%m-%d') }}
+  actions:
+    - action: script.open_window_notice_send
+  mode: single
+
+- id: environment_open_window_recommendation_clear
+  alias: "Environment — Clear Open Window Recommendation"
+  description: Clears the soft open-window push when conditions are no longer favorable.
+  triggers:
+    - trigger: state
+      entity_id: binary_sensor.open_window_recommendation_active
+      to: "off"
+  actions:
+    - action: script.notify_trevor_phone
+      data:
+        message: clear_notification
+        data:
+          tag: open-window-night
+  mode: single
+
+- id: environment_open_window_notification_actions
+  alias: "Environment — Open Window Notification Actions"
+  description: Handles the dismiss action from the whole-house open-window recommendation push.
+  triggers:
+    - trigger: event
+      event_type: mobile_app_notification_action
+  conditions:
+    - condition: template
+      value_template: "{{ trigger.event.data.action == 'OPEN_WINDOW_NOTICE_DISMISS_TONIGHT' }}"
+  actions:
+    - action: script.open_window_notice_dismiss_tonight
+  mode: single
 
 - id: house_low_battery_notification
   alias: "House — Low Battery Notification"
