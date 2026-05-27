@@ -5870,7 +5870,7 @@ template:
       - trigger: homeassistant
         event: start
       - trigger: time_pattern
-        hours: "/3"
+        minutes: "/30"
     actions:
       - action: weather.get_forecasts
         target:
