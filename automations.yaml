@@ -1276,8 +1276,8 @@
       value_template: "{{ state_attr('sensor.irrigation_weather_skip_context', 'rain_skip_possible') in [true, 'true', 'True'] }}"
   actions:
     - variables:
-        max_precip_probability: "{{ state_attr('sensor.irrigation_weather_skip_context', 'max_precip_probability_3_day') | float(0) }}"
-        buffer_hours: "{{ 72 if max_precip_probability | float(0) >= 80 else 36 }}"
+        forecast_precip: "{{ state_attr('sensor.irrigation_weather_skip_context', 'forecast_precip_3_day') | float(0) }}"
+        buffer_hours: "{{ 72 if forecast_precip | float(0) >= 0.3 else 36 }}"
     - action: input_datetime.set_datetime
       target:
         entity_id: input_datetime.irrigation_weather_skip_grace_until
@@ -1354,7 +1354,7 @@
         weather_summary: "{{ states('sensor.irrigation_weather_skip_context') }}"
         weather_reason: "{{ state_attr('binary_sensor.irrigation_weather_skip_buffer_active', 'reason') | default('None', true) }}"
         lowest_low: "{{ state_attr('sensor.irrigation_weather_skip_context', 'lowest_low_3_day') | default('unknown', true) }}"
-        rain_probability: "{{ state_attr('sensor.irrigation_weather_skip_context', 'max_precip_probability_3_day') | default('unknown', true) }}"
+        forecast_precip: "{{ state_attr('sensor.irrigation_weather_skip_context', 'forecast_precip_3_day') | default('unknown', true) }}"
     - choose:
         - conditions:
             - condition: template
@@ -1373,8 +1373,8 @@
             message: >-
               Hydrawise advanced past the scheduled {{ cycle_label }} cycle, but HA did not see
               a zone start within the watch window. HA weather does not currently show a buffered
-              skip reason: {{ weather_summary }}. Three-day low is {{ lowest_low }}°F and max rain
-              chance is {{ rain_probability }}%. Hydrawise may still have used its own station,
+              skip reason: {{ weather_summary }}. Three-day low is {{ lowest_low }}°F and forecast
+              rain signal is {{ forecast_precip }} in. Hydrawise may still have used its own station,
               rainfall history, or forecast source, so this is a warning rather than a critical alert.
         - action: input_text.set_value
           target:

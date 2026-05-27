@@ -6015,7 +6015,7 @@ template:
           {% set forecast_map = garden_daily_forecast if garden_daily_forecast is defined else {} %}
           {% set forecast = forecast_map['weather.forecast_home'].forecast if 'weather.forecast_home' in forecast_map else [] %}
           {% set wet_conditions = ['rainy', 'pouring', 'lightning', 'lightning-rainy', 'snowy', 'snowy-rainy'] %}
-          {% set ns = namespace(lows=[], highs=[], rain_probs=[], wet_days=[]) %}
+          {% set ns = namespace(lows=[], highs=[], precip=[], wet_days=[]) %}
           {% for item in forecast[:3] %}
             {% if is_number(item.templow | default(none)) %}
               {% set ns.lows = ns.lows + [item.templow | float(0)] %}
@@ -6024,17 +6024,17 @@ template:
               {% set ns.highs = ns.highs + [item.temperature | float(0)] %}
             {% endif %}
             {% set condition = item.condition | default('', true) %}
-            {% set precip = item.precipitation_probability | default(none, true) %}
+            {% set precip = item.precipitation | default(none, true) %}
             {% if is_number(precip) %}
-              {% set ns.rain_probs = ns.rain_probs + [precip | float(0)] %}
+              {% set ns.precip = ns.precip + [precip | float(0)] %}
             {% endif %}
-            {% if condition in wet_conditions or (is_number(precip) and precip | float(0) >= 60) %}
+            {% if condition in wet_conditions or (is_number(precip) and precip | float(0) >= 0.1) %}
               {% set day = as_datetime(item.datetime).strftime('%a') if item.datetime is defined else 'Day ' ~ loop.index %}
               {% set ns.wet_days = ns.wet_days + [day] %}
             {% endif %}
           {% endfor %}
           {% set cold = ns.lows | count > 0 and ns.lows | min <= 63 %}
-          {% set rain = (ns.rain_probs | count > 0 and ns.rain_probs | max >= 60) or ns.wet_days | count > 0 %}
+          {% set rain = ns.wet_days | count > 0 or (ns.precip | sum) >= 0.15 %}
           {% set lower_water = ns.lows | count > 0 and ns.lows | min <= 73 %}
           {% set hot = ns.highs | count > 0 and ns.highs | max >= 85 %}
           {% if forecast | count == 0 %}
@@ -6057,22 +6057,22 @@ template:
             {% set forecast_map = garden_daily_forecast if garden_daily_forecast is defined else {} %}
             {% set forecast = forecast_map['weather.forecast_home'].forecast if 'weather.forecast_home' in forecast_map else [] %}
             {% set wet_conditions = ['rainy', 'pouring', 'lightning', 'lightning-rainy', 'snowy', 'snowy-rainy'] %}
-            {% set ns = namespace(lows=[], rain_probs=[], wet=false) %}
+            {% set ns = namespace(lows=[], precip=[], wet=false) %}
             {% for item in forecast[:3] %}
               {% if is_number(item.templow | default(none)) %}
                 {% set ns.lows = ns.lows + [item.templow | float(0)] %}
               {% endif %}
               {% set condition = item.condition | default('', true) %}
-              {% set precip = item.precipitation_probability | default(none, true) %}
+              {% set precip = item.precipitation | default(none, true) %}
               {% if is_number(precip) %}
-                {% set ns.rain_probs = ns.rain_probs + [precip | float(0)] %}
+                {% set ns.precip = ns.precip + [precip | float(0)] %}
               {% endif %}
-              {% if condition in wet_conditions or (is_number(precip) and precip | float(0) >= 60) %}
+              {% if condition in wet_conditions or (is_number(precip) and precip | float(0) >= 0.1) %}
                 {% set ns.wet = true %}
               {% endif %}
             {% endfor %}
             {{ forecast | count > 0 and ((ns.lows | count > 0 and ns.lows | min <= 63)
-               or (ns.rain_probs | count > 0 and ns.rain_probs | max >= 60)
+               or ns.precip | sum >= 0.15
                or ns.wet) }}
           cold_skip_possible: >
             {% set forecast_map = garden_daily_forecast if garden_daily_forecast is defined else {} %}
@@ -6088,18 +6088,18 @@ template:
             {% set forecast_map = garden_daily_forecast if garden_daily_forecast is defined else {} %}
             {% set forecast = forecast_map['weather.forecast_home'].forecast if 'weather.forecast_home' in forecast_map else [] %}
             {% set wet_conditions = ['rainy', 'pouring', 'lightning', 'lightning-rainy', 'snowy', 'snowy-rainy'] %}
-            {% set ns = namespace(rain_probs=[], wet=false) %}
+            {% set ns = namespace(precip=[], wet=false) %}
             {% for item in forecast[:3] %}
               {% set condition = item.condition | default('', true) %}
-              {% set precip = item.precipitation_probability | default(none, true) %}
+              {% set precip = item.precipitation | default(none, true) %}
               {% if is_number(precip) %}
-                {% set ns.rain_probs = ns.rain_probs + [precip | float(0)] %}
+                {% set ns.precip = ns.precip + [precip | float(0)] %}
               {% endif %}
-              {% if condition in wet_conditions or (is_number(precip) and precip | float(0) >= 60) %}
+              {% if condition in wet_conditions or (is_number(precip) and precip | float(0) >= 0.1) %}
                 {% set ns.wet = true %}
               {% endif %}
             {% endfor %}
-            {{ (ns.rain_probs | count > 0 and ns.rain_probs | max >= 60) or ns.wet }}
+            {{ ns.precip | sum >= 0.15 or ns.wet }}
           water_less_possible: >
             {% set forecast_map = garden_daily_forecast if garden_daily_forecast is defined else {} %}
             {% set forecast = forecast_map['weather.forecast_home'].forecast if 'weather.forecast_home' in forecast_map else [] %}
@@ -6140,17 +6140,17 @@ template:
               {% endif %}
             {% endfor %}
             {{ (ns.highs | max | round(0) | int) if ns.highs else 'unknown' }}
-          max_precip_probability_3_day: >
+          forecast_precip_3_day: >
             {% set forecast_map = garden_daily_forecast if garden_daily_forecast is defined else {} %}
             {% set forecast = forecast_map['weather.forecast_home'].forecast if 'weather.forecast_home' in forecast_map else [] %}
-            {% set ns = namespace(rain_probs=[]) %}
+            {% set ns = namespace(precip=[]) %}
             {% for item in forecast[:3] %}
-              {% set precip = item.precipitation_probability | default(none, true) %}
+              {% set precip = item.precipitation | default(none, true) %}
               {% if is_number(precip) %}
-                {% set ns.rain_probs = ns.rain_probs + [precip | float(0)] %}
+                {% set ns.precip = ns.precip + [precip | float(0)] %}
               {% endif %}
             {% endfor %}
-            {{ (ns.rain_probs | max | round(0) | int) if ns.rain_probs else 'unknown' }}
+            {{ (ns.precip | sum | round(2)) if ns.precip else 'unknown' }}
           wet_days: >
             {% set forecast_map = garden_daily_forecast if garden_daily_forecast is defined else {} %}
             {% set forecast = forecast_map['weather.forecast_home'].forecast if 'weather.forecast_home' in forecast_map else [] %}
@@ -6158,8 +6158,8 @@ template:
             {% set ns = namespace(labels=[]) %}
             {% for item in forecast[:3] %}
               {% set condition = item.condition | default('', true) %}
-              {% set precip = item.precipitation_probability | default(none, true) %}
-              {% if condition in wet_conditions or (is_number(precip) and precip | float(0) >= 60) %}
+              {% set precip = item.precipitation | default(none, true) %}
+              {% if condition in wet_conditions or (is_number(precip) and precip | float(0) >= 0.1) %}
                 {% set day = as_datetime(item.datetime).strftime('%a') if item.datetime is defined else 'Day ' ~ loop.index %}
                 {% set ns.labels = ns.labels + [day] %}
               {% endif %}
@@ -6169,22 +6169,22 @@ template:
             {% set forecast_map = garden_daily_forecast if garden_daily_forecast is defined else {} %}
             {% set forecast = forecast_map['weather.forecast_home'].forecast if 'weather.forecast_home' in forecast_map else [] %}
             {% set wet_conditions = ['rainy', 'pouring', 'lightning', 'lightning-rainy', 'snowy', 'snowy-rainy'] %}
-            {% set ns = namespace(lows=[], rain_probs=[], wet=false, reasons=[]) %}
+            {% set ns = namespace(lows=[], precip=[], wet=false, reasons=[]) %}
             {% for item in forecast[:3] %}
               {% if is_number(item.templow | default(none)) %}
                 {% set ns.lows = ns.lows + [item.templow | float(0)] %}
               {% endif %}
               {% set condition = item.condition | default('', true) %}
-              {% set precip = item.precipitation_probability | default(none, true) %}
+              {% set precip = item.precipitation | default(none, true) %}
               {% if is_number(precip) %}
-                {% set ns.rain_probs = ns.rain_probs + [precip | float(0)] %}
+                {% set ns.precip = ns.precip + [precip | float(0)] %}
               {% endif %}
-              {% if condition in wet_conditions or (is_number(precip) and precip | float(0) >= 60) %}
+              {% if condition in wet_conditions or (is_number(precip) and precip | float(0) >= 0.1) %}
                 {% set ns.wet = true %}
               {% endif %}
             {% endfor %}
             {% set cold = ns.lows | count > 0 and ns.lows | min <= 63 %}
-            {% set rain = (ns.rain_probs | count > 0 and ns.rain_probs | max >= 60) or ns.wet %}
+            {% set rain = ns.precip | sum >= 0.15 or ns.wet %}
             {% if cold %}
               {% set ns.reasons = ns.reasons + ['cold forecast buffer'] %}
             {% endif %}
@@ -6192,7 +6192,7 @@ template:
               {% set ns.reasons = ns.reasons + ['rain forecast buffer'] %}
             {% endif %}
             {{ ns.reasons | join('; ') if ns.reasons else 'None' }}
-          thresholds: "Hydrawise screenshot mirrored with buffers: cold <=63F for 60F rule; rain chance >=60% for 70% rule; cool-water adjustment <=73F for 70F rule; hot adjustment >=85F."
+          thresholds: "Hydrawise screenshot mirrored with buffers: cold <=63F for 60F rule; rainy condition or 3-day forecast precip >=0.15in as rain buffer; cool-water adjustment <=73F for 70F rule; hot adjustment >=85F."
 
   - sensor:
       - name: "Garden Spinach Status"
