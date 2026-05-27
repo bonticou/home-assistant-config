@@ -11,6 +11,8 @@
 /.device_inventory_status.json
 /.inventory_salt
 /.inventory_token
+/.irrigation_fingerprints.json
+/.irrigation_fingerprint_status.json
 .wine_collection_snapshot.json
 .house-manager-outbox/
 __pycache__/

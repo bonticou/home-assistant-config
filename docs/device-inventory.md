@@ -4,16 +4,16 @@ A human-readable map of the Home Assistant device model. The full audit dump is 
 
 ## At A Glance
 
-- Snapshot: `2026-05-21T02:43:09.473014+00:00`
-- Scale: 176 devices, 1909 entities, 119 network clients
+- Snapshot: `2026-05-27T01:57:31.418573+00:00`
+- Scale: 204 devices, 2100 entities, 119 network clients
 - Lighting: 28 light entities, 27 Lutron Caséta entities
 
 | Thing | Count |
 | --- | --- |
-| Devices | 176 |
-| Entities | 1909 |
-| Control entities | 643 |
-| Telemetry entities | 855 |
+| Devices | 204 |
+| Entities | 2100 |
+| Control entities | 724 |
+| Telemetry entities | 965 |
 | Network clients | 119 |
 | Areas | 32 |
 
@@ -45,7 +45,7 @@ A human-readable map of the Home Assistant device model. The full audit dump is 
 | Mudroom | 8 | 43 | 2 | 54 | 3 |
 | Office | 2 | 7 | 0 | 4 | 0 |
 | Stairs | 1 | 1 | 1 | 0 | 0 |
-| Unassigned | 102 | 190 | 9 | 280 | 48 |
+| Unassigned | 130 | 271 | 9 | 390 | 48 |
 | Unnamed Room | 6 | 63 | 0 | 6 | 6 |
 | Upstairs Hallway | 1 | 1 | 1 | 0 | 0 |
 | Vestibule | 1 | 1 | 1 | 0 | 0 |
@@ -259,6 +259,33 @@ A human-readable map of the Home Assistant device model. The full audit dump is 
 | Unnamed Room | sonos, unifi | `media_player.unnamed_room_4`; Balance (`number.unnamed_room_balance_9`); Bass (`number.unnamed_room_bass_9`); Treble (`number.unnamed_room_treble_9`); Crossfade (`switch.unnamed_room_crossfade_9`); +3 more |  |
 | Unnamed Room | sonos, unifi | `media_player.unnamed_room_3`; Balance (`number.unnamed_room_balance_8`); Bass (`number.unnamed_room_bass_8`); Treble (`number.unnamed_room_treble_8`); Crossfade (`switch.unnamed_room_crossfade_8`); +3 more |  |
 | Unnamed Room | sonos, unifi | `media_player.unnamed_room_2`; Audio delay (`number.unnamed_room_audio_delay_2`); Balance (`number.unnamed_room_balance_7`); Bass (`number.unnamed_room_bass_7`); Music surround level (`number.unnamed_room_music_surround_level_2`); +11 more |  |
+| Zone 1 | hydrawise | Zone 1 Automatic watering (`switch.zone_1_automatic_watering`); Zone 1 Manual watering (`switch.zone_1_manual_watering`); Zone 1 (`valve.zone_1`) |  |
+| Zone 10 | hydrawise | Zone 10 Automatic watering (`switch.zone_10_automatic_watering`); Zone 10 Manual watering (`switch.zone_10_manual_watering`); Zone 10 (`valve.zone_10`) |  |
+| Zone 11 | hydrawise | Zone 11 Automatic watering (`switch.zone_11_automatic_watering`); Zone 11 Manual watering (`switch.zone_11_manual_watering`); Zone 11 (`valve.zone_11`) |  |
+| Zone 12 | hydrawise | Zone 12 Automatic watering (`switch.zone_12_automatic_watering`); Zone 12 Manual watering (`switch.zone_12_manual_watering`); Zone 12 (`valve.zone_12`) |  |
+| Zone 13 | hydrawise | Zone 13 Automatic watering (`switch.zone_13_automatic_watering`); Zone 13 Manual watering (`switch.zone_13_manual_watering`); Zone 13 (`valve.zone_13`) |  |
+| Zone 14 | hydrawise | Zone 14 Automatic watering (`switch.zone_14_automatic_watering`); Zone 14 Manual watering (`switch.zone_14_manual_watering`); Zone 14 (`valve.zone_14`) |  |
+| Zone 15 | hydrawise | Zone 15 Automatic watering (`switch.zone_15_automatic_watering`); Zone 15 Manual watering (`switch.zone_15_manual_watering`); Zone 15 (`valve.zone_15`) |  |
+| Zone 16 | hydrawise | Zone 16 Automatic watering (`switch.zone_16_automatic_watering`); Zone 16 Manual watering (`switch.zone_16_manual_watering`); Zone 16 (`valve.zone_16`) |  |
+| Zone 17 | hydrawise | Zone 17 Automatic watering (`switch.zone_17_automatic_watering`); Zone 17 Manual watering (`switch.zone_17_manual_watering`); Zone 17 (`valve.zone_17`) |  |
+| Zone 18 | hydrawise | Zone 18 Automatic watering (`switch.zone_18_automatic_watering`); Zone 18 Manual watering (`switch.zone_18_manual_watering`); Zone 18 (`valve.zone_18`) |  |
+| Zone 19 | hydrawise | Zone 19 Automatic watering (`switch.zone_19_automatic_watering`); Zone 19 Manual watering (`switch.zone_19_manual_watering`); Zone 19 (`valve.zone_19`) |  |
+| Zone 2 | hydrawise | Zone 2 Automatic watering (`switch.zone_2_automatic_watering`); Zone 2 Manual watering (`switch.zone_2_manual_watering`); Zone 2 (`valve.zone_2`) |  |
+| Zone 20 | hydrawise | Zone 20 Automatic watering (`switch.zone_20_automatic_watering`); Zone 20 Manual watering (`switch.zone_20_manual_watering`); Zone 20 (`valve.zone_20`) |  |
+| Zone 21 | hydrawise | Zone 21 Automatic watering (`switch.zone_21_automatic_watering`); Zone 21 Manual watering (`switch.zone_21_manual_watering`); Zone 21 (`valve.zone_21`) |  |
+| Zone 22 | hydrawise | Zone 22 Automatic watering (`switch.zone_22_automatic_watering`); Zone 22 Manual watering (`switch.zone_22_manual_watering`); Zone 22 (`valve.zone_22`) |  |
+| Zone 23 | hydrawise | Zone 23 Automatic watering (`switch.zone_23_automatic_watering`); Zone 23 Manual watering (`switch.zone_23_manual_watering`); Zone 23 (`valve.zone_23`) |  |
+| Zone 24 | hydrawise | Zone 24 Automatic watering (`switch.zone_24_automatic_watering`); Zone 24 Manual watering (`switch.zone_24_manual_watering`); Zone 24 (`valve.zone_24`) |  |
+| Zone 25 | hydrawise | Zone 25 Automatic watering (`switch.zone_25_automatic_watering`); Zone 25 Manual watering (`switch.zone_25_manual_watering`); Zone 25 (`valve.zone_25`) |  |
+| Zone 26 | hydrawise | Zone 26 Automatic watering (`switch.zone_26_automatic_watering`); Zone 26 Manual watering (`switch.zone_26_manual_watering`); Zone 26 (`valve.zone_26`) |  |
+| Zone 27 | hydrawise | Zone 27 Automatic watering (`switch.zone_27_automatic_watering`); Zone 27 Manual watering (`switch.zone_27_manual_watering`); Zone 27 (`valve.zone_27`) |  |
+| Zone 3 | hydrawise | Zone 3 Automatic watering (`switch.zone_3_automatic_watering`); Zone 3 Manual watering (`switch.zone_3_manual_watering`); Zone 3 (`valve.zone_3`) |  |
+| Zone 4 | hydrawise | Zone 4 Automatic watering (`switch.zone_4_automatic_watering`); Zone 4 Manual watering (`switch.zone_4_manual_watering`); Zone 4 (`valve.zone_4`) |  |
+| Zone 5 | hydrawise | Zone 5 Automatic watering (`switch.zone_5_automatic_watering`); Zone 5 Manual watering (`switch.zone_5_manual_watering`); Zone 5 (`valve.zone_5`) |  |
+| Zone 6 | hydrawise | Zone 6 Automatic watering (`switch.zone_6_automatic_watering`); Zone 6 Manual watering (`switch.zone_6_manual_watering`); Zone 6 (`valve.zone_6`) |  |
+| Zone 7 | hydrawise | Zone 7 Automatic watering (`switch.zone_7_automatic_watering`); Zone 7 Manual watering (`switch.zone_7_manual_watering`); Zone 7 (`valve.zone_7`) |  |
+| Zone 8 | hydrawise | Zone 8 Automatic watering (`switch.zone_8_automatic_watering`); Zone 8 Manual watering (`switch.zone_8_manual_watering`); Zone 8 (`valve.zone_8`) |  |
+| Zone 9 | hydrawise | Zone 9 Automatic watering (`switch.zone_9_automatic_watering`); Zone 9 Manual watering (`switch.zone_9_manual_watering`); Zone 9 (`valve.zone_9`) |  |
 | apexcharts-card | hacs | Pre-release (`switch.apexcharts_card_pre_release`) |  |
 | browser_mod | hacs | Pre-release (`switch.browser_mod_pre_release`) |  |
 | button-card | hacs | Pre-release (`switch.button_card_pre_release`) |  |

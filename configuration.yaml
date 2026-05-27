@@ -170,6 +170,27 @@ command_line:
         - pending_count
         - summary_message
         - items
+  - sensor:
+      name: Irrigation Fingerprint Status
+      unique_id: irrigation_fingerprint_status
+      command: >-
+        python3 /config/tools/irrigation_fingerprints.py
+        --data-file /config/.irrigation_fingerprints.json
+        --status-file /config/.irrigation_fingerprint_status.json
+        --status
+      command_timeout: 15
+      scan_interval: 300
+      value_template: >
+        {{ value_json.learned_zone_count if value_json.learned_zone_count is defined else 0 }}
+      json_attributes:
+        - updated_at
+        - learned_zone_count
+        - active_zone_count
+        - zones
+        - latest_sample
+        - latest_anomaly
+        - latest_anomaly_zone
+        - latest_anomaly_reason
 
 shell_command:
   refresh_device_inventory: >-
@@ -196,6 +217,38 @@ shell_command:
     --completed-at "{{ completed_at }}"
     --source "{{ source }}"
     --note "{{ note }}"
+  irrigation_fingerprint_start: >-
+    python3 /config/tools/irrigation_fingerprints.py
+    --data-file /config/.irrigation_fingerprints.json
+    --status-file /config/.irrigation_fingerprint_status.json
+    start
+    --zone "{{ zone }}"
+    --at "{{ at }}"
+    --gallons "{{ gallons }}"
+    --pressure "{{ pressure }}"
+    --flow "{{ flow }}"
+    --active-count "{{ active_count }}"
+  irrigation_fingerprint_touch: >-
+    python3 /config/tools/irrigation_fingerprints.py
+    --data-file /config/.irrigation_fingerprints.json
+    --status-file /config/.irrigation_fingerprint_status.json
+    touch
+    --zone "{{ zone }}"
+    --at "{{ at }}"
+    --pressure "{{ pressure }}"
+    --flow "{{ flow }}"
+    --active-count "{{ active_count }}"
+  irrigation_fingerprint_finish: >-
+    python3 /config/tools/irrigation_fingerprints.py
+    --data-file /config/.irrigation_fingerprints.json
+    --status-file /config/.irrigation_fingerprint_status.json
+    finish
+    --zone "{{ zone }}"
+    --at "{{ at }}"
+    --gallons "{{ gallons }}"
+    --pressure "{{ pressure }}"
+    --flow "{{ flow }}"
+    --active-count "{{ active_count }}"
 
 input_datetime:
   away_security_snooze_until:
@@ -244,6 +297,22 @@ input_datetime:
     has_time: true
   water_latest_alert_at:
     name: Water Latest Alert At
+    has_date: true
+    has_time: true
+  irrigation_session_started_at:
+    name: Irrigation Session Started At
+    has_date: true
+    has_time: true
+  irrigation_session_ended_at:
+    name: Irrigation Session Ended At
+    has_date: true
+    has_time: true
+  irrigation_zone_started_at:
+    name: Irrigation Zone Started At
+    has_date: true
+    has_time: true
+  irrigation_expected_water_use_until:
+    name: Irrigation Expected Water Use Until
     has_date: true
     has_time: true
   espresso_last_water_backflush:
@@ -497,6 +566,21 @@ input_text:
   water_latest_alert_label:
     name: Water Latest Alert Label
     max: 120
+  irrigation_session_id:
+    name: Irrigation Session ID
+    max: 40
+  irrigation_session_start_zone:
+    name: Irrigation Session Start Zone
+    max: 120
+  irrigation_current_zone:
+    name: Irrigation Current Zone
+    max: 120
+  irrigation_active_alert_kind:
+    name: Irrigation Active Alert Kind
+    max: 80
+  irrigation_latest_fingerprint_anomaly_key:
+    name: Irrigation Latest Fingerprint Anomaly Key
+    max: 255
   latest_camera_motion_label:
     name: Latest Camera Motion Label
     max: 100
@@ -582,6 +666,13 @@ input_boolean:
   water_usage_alert_active:
     name: Water Usage Alert Active
     icon: mdi:water-sync
+  water_irrigation_alert_active:
+    name: Water Irrigation Alert Active
+    icon: mdi:sprinkler-variant
+  irrigation_notifications_enabled:
+    name: Irrigation Notifications Enabled
+    icon: mdi:sprinkler-variant
+    initial: true
   espresso_maintenance_enabled:
     name: Espresso Maintenance Enabled
     icon: mdi:coffee-maker-outline
@@ -784,6 +875,54 @@ input_select:
     icon: mdi:pumpkin
 
 input_number:
+  irrigation_session_start_pressure:
+    name: Irrigation Session Start Pressure
+    min: 0
+    max: 150
+    step: 0.1
+    mode: box
+    unit_of_measurement: "psi"
+    icon: mdi:gauge
+  irrigation_session_start_gallons:
+    name: Irrigation Session Start Gallons
+    min: 0
+    max: 100000
+    step: 0.1
+    mode: box
+    unit_of_measurement: "gal"
+    icon: mdi:water
+  irrigation_session_min_pressure:
+    name: Irrigation Session Min Pressure
+    min: 0
+    max: 150
+    step: 0.1
+    mode: box
+    unit_of_measurement: "psi"
+    icon: mdi:gauge-low
+  irrigation_session_max_flow:
+    name: Irrigation Session Max Flow
+    min: 0
+    max: 60
+    step: 0.01
+    mode: box
+    unit_of_measurement: "gal/min"
+    icon: mdi:waves-arrow-right
+  irrigation_zone_start_pressure:
+    name: Irrigation Zone Start Pressure
+    min: 0
+    max: 150
+    step: 0.1
+    mode: box
+    unit_of_measurement: "psi"
+    icon: mdi:gauge
+  irrigation_zone_start_gallons:
+    name: Irrigation Zone Start Gallons
+    min: 0
+    max: 100000
+    step: 0.1
+    mode: box
+    unit_of_measurement: "gal"
+    icon: mdi:water
   downstairs_aux_cutover_temp:
     name: Main Floor Aux Max Outdoor Temp
     min: 20
@@ -2212,7 +2351,8 @@ template:
             is_state('input_boolean.water_pressure_alert_active', 'on'),
             is_state('input_boolean.water_leak_alert_active', 'on'),
             is_state('input_boolean.water_valve_alert_active', 'on'),
-            is_state('input_boolean.water_usage_alert_active', 'on')
+            is_state('input_boolean.water_usage_alert_active', 'on'),
+            is_state('input_boolean.water_irrigation_alert_active', 'on')
           ] | select('eq', true) | list | count %}
           {% if active == 0 %}
             Quiet
@@ -2232,7 +2372,8 @@ template:
               is_state('input_boolean.water_pressure_alert_active', 'on'),
               is_state('input_boolean.water_leak_alert_active', 'on'),
               is_state('input_boolean.water_valve_alert_active', 'on'),
-              is_state('input_boolean.water_usage_alert_active', 'on')
+              is_state('input_boolean.water_usage_alert_active', 'on'),
+              is_state('input_boolean.water_irrigation_alert_active', 'on')
             ] | select('eq', true) | list | count }}
           active_alerts: >
             {% set ns = namespace(items=[]) %}
@@ -2251,6 +2392,9 @@ template:
             {% if is_state('input_boolean.water_usage_alert_active', 'on') %}
               {% set ns.items = ns.items + ['Usage'] %}
             {% endif %}
+            {% if is_state('input_boolean.water_irrigation_alert_active', 'on') %}
+              {% set ns.items = ns.items + ['Irrigation'] %}
+            {% endif %}
             {{ ns.items | join(', ') if ns.items else 'None' }}
           latest_alert: "{{ states('input_text.water_latest_alert_label') }}"
           latest_alert_kind: "{{ states('input_text.water_latest_alert_kind') }}"
@@ -2259,6 +2403,249 @@ template:
             {% set snooze = states('input_datetime.water_pressure_snooze_until') %}
             {{ snooze not in ['unknown', 'unavailable', 'none', '']
                and as_timestamp(snooze, 0) > as_timestamp(now()) }}
+
+      - name: "Irrigation Active Zone Count"
+        unique_id: irrigation_active_zone_count
+        state: >
+          {% set zones = expand([
+            'binary_sensor.zone_1_watering',
+            'binary_sensor.zone_2_watering',
+            'binary_sensor.zone_3_watering',
+            'binary_sensor.zone_4_watering',
+            'binary_sensor.zone_5_watering',
+            'binary_sensor.zone_6_watering',
+            'binary_sensor.zone_7_watering',
+            'binary_sensor.zone_8_watering',
+            'binary_sensor.zone_9_watering',
+            'binary_sensor.zone_10_watering',
+            'binary_sensor.zone_11_watering',
+            'binary_sensor.zone_12_watering',
+            'binary_sensor.zone_13_watering',
+            'binary_sensor.zone_14_watering',
+            'binary_sensor.zone_15_watering',
+            'binary_sensor.zone_16_watering',
+            'binary_sensor.zone_17_watering',
+            'binary_sensor.zone_18_watering',
+            'binary_sensor.zone_19_watering',
+            'binary_sensor.zone_20_watering',
+            'binary_sensor.zone_21_watering',
+            'binary_sensor.zone_22_watering',
+            'binary_sensor.zone_23_watering',
+            'binary_sensor.zone_24_watering',
+            'binary_sensor.zone_25_watering',
+            'binary_sensor.zone_26_watering',
+            'binary_sensor.zone_27_watering'
+          ]) %}
+          {{ zones | selectattr('state', 'eq', 'on') | list | count }}
+        icon: mdi:sprinkler-variant
+
+      - name: "Irrigation Active Zone"
+        unique_id: irrigation_active_zone
+        state: >
+          {% set watering = expand([
+            'binary_sensor.zone_1_watering',
+            'binary_sensor.zone_2_watering',
+            'binary_sensor.zone_3_watering',
+            'binary_sensor.zone_4_watering',
+            'binary_sensor.zone_5_watering',
+            'binary_sensor.zone_6_watering',
+            'binary_sensor.zone_7_watering',
+            'binary_sensor.zone_8_watering',
+            'binary_sensor.zone_9_watering',
+            'binary_sensor.zone_10_watering',
+            'binary_sensor.zone_11_watering',
+            'binary_sensor.zone_12_watering',
+            'binary_sensor.zone_13_watering',
+            'binary_sensor.zone_14_watering',
+            'binary_sensor.zone_15_watering',
+            'binary_sensor.zone_16_watering',
+            'binary_sensor.zone_17_watering',
+            'binary_sensor.zone_18_watering',
+            'binary_sensor.zone_19_watering',
+            'binary_sensor.zone_20_watering',
+            'binary_sensor.zone_21_watering',
+            'binary_sensor.zone_22_watering',
+            'binary_sensor.zone_23_watering',
+            'binary_sensor.zone_24_watering',
+            'binary_sensor.zone_25_watering',
+            'binary_sensor.zone_26_watering',
+            'binary_sensor.zone_27_watering'
+          ]) | selectattr('state', 'eq', 'on') | list %}
+          {% set valves = expand([
+            'valve.zone_1',
+            'valve.zone_2',
+            'valve.zone_3',
+            'valve.zone_4',
+            'valve.zone_5',
+            'valve.zone_6',
+            'valve.zone_7',
+            'valve.zone_8',
+            'valve.zone_9',
+            'valve.zone_10',
+            'valve.zone_11',
+            'valve.zone_12',
+            'valve.zone_13',
+            'valve.zone_14',
+            'valve.zone_15',
+            'valve.zone_16',
+            'valve.zone_17',
+            'valve.zone_18',
+            'valve.zone_19',
+            'valve.zone_20',
+            'valve.zone_21',
+            'valve.zone_22',
+            'valve.zone_23',
+            'valve.zone_24',
+            'valve.zone_25',
+            'valve.zone_26',
+            'valve.zone_27'
+          ]) | selectattr('state', 'eq', 'open') | list %}
+          {% if watering | count > 0 %}
+            {{ watering[0].name | regex_replace(' Watering$', '') }}
+          {% elif valves | count > 0 %}
+            {{ valves[0].name }}
+          {% else %}
+            None
+          {% endif %}
+        icon: mdi:sprinkler
+        attributes:
+          entity_id: >
+            {% set watering = expand([
+              'binary_sensor.zone_1_watering',
+              'binary_sensor.zone_2_watering',
+              'binary_sensor.zone_3_watering',
+              'binary_sensor.zone_4_watering',
+              'binary_sensor.zone_5_watering',
+              'binary_sensor.zone_6_watering',
+              'binary_sensor.zone_7_watering',
+              'binary_sensor.zone_8_watering',
+              'binary_sensor.zone_9_watering',
+              'binary_sensor.zone_10_watering',
+              'binary_sensor.zone_11_watering',
+              'binary_sensor.zone_12_watering',
+              'binary_sensor.zone_13_watering',
+              'binary_sensor.zone_14_watering',
+              'binary_sensor.zone_15_watering',
+              'binary_sensor.zone_16_watering',
+              'binary_sensor.zone_17_watering',
+              'binary_sensor.zone_18_watering',
+              'binary_sensor.zone_19_watering',
+              'binary_sensor.zone_20_watering',
+              'binary_sensor.zone_21_watering',
+              'binary_sensor.zone_22_watering',
+              'binary_sensor.zone_23_watering',
+              'binary_sensor.zone_24_watering',
+              'binary_sensor.zone_25_watering',
+              'binary_sensor.zone_26_watering',
+              'binary_sensor.zone_27_watering'
+            ]) | selectattr('state', 'eq', 'on') | list %}
+            {% set valves = expand([
+              'valve.zone_1',
+              'valve.zone_2',
+              'valve.zone_3',
+              'valve.zone_4',
+              'valve.zone_5',
+              'valve.zone_6',
+              'valve.zone_7',
+              'valve.zone_8',
+              'valve.zone_9',
+              'valve.zone_10',
+              'valve.zone_11',
+              'valve.zone_12',
+              'valve.zone_13',
+              'valve.zone_14',
+              'valve.zone_15',
+              'valve.zone_16',
+              'valve.zone_17',
+              'valve.zone_18',
+              'valve.zone_19',
+              'valve.zone_20',
+              'valve.zone_21',
+              'valve.zone_22',
+              'valve.zone_23',
+              'valve.zone_24',
+              'valve.zone_25',
+              'valve.zone_26',
+              'valve.zone_27'
+            ]) | selectattr('state', 'eq', 'open') | list %}
+            {% if watering | count > 0 %}
+              {{ watering[0].entity_id }}
+            {% elif valves | count > 0 %}
+              {{ valves[0].entity_id }}
+            {% else %}
+              {{ '' }}
+            {% endif %}
+          active_zones: >
+            {{ expand([
+              'binary_sensor.zone_1_watering',
+              'binary_sensor.zone_2_watering',
+              'binary_sensor.zone_3_watering',
+              'binary_sensor.zone_4_watering',
+              'binary_sensor.zone_5_watering',
+              'binary_sensor.zone_6_watering',
+              'binary_sensor.zone_7_watering',
+              'binary_sensor.zone_8_watering',
+              'binary_sensor.zone_9_watering',
+              'binary_sensor.zone_10_watering',
+              'binary_sensor.zone_11_watering',
+              'binary_sensor.zone_12_watering',
+              'binary_sensor.zone_13_watering',
+              'binary_sensor.zone_14_watering',
+              'binary_sensor.zone_15_watering',
+              'binary_sensor.zone_16_watering',
+              'binary_sensor.zone_17_watering',
+              'binary_sensor.zone_18_watering',
+              'binary_sensor.zone_19_watering',
+              'binary_sensor.zone_20_watering',
+              'binary_sensor.zone_21_watering',
+              'binary_sensor.zone_22_watering',
+              'binary_sensor.zone_23_watering',
+              'binary_sensor.zone_24_watering',
+              'binary_sensor.zone_25_watering',
+              'binary_sensor.zone_26_watering',
+              'binary_sensor.zone_27_watering'
+            ]) | selectattr('state', 'eq', 'on') | map(attribute='name') | list | join(', ') }}
+
+      - name: "Irrigation Next Cycle"
+        unique_id: irrigation_next_cycle
+        device_class: timestamp
+        state: >
+          {% set ns = namespace(next=none) %}
+          {% for entity in [
+            'sensor.zone_1_next_cycle',
+            'sensor.zone_2_next_cycle',
+            'sensor.zone_3_next_cycle',
+            'sensor.zone_4_next_cycle',
+            'sensor.zone_5_next_cycle',
+            'sensor.zone_6_next_cycle',
+            'sensor.zone_7_next_cycle',
+            'sensor.zone_8_next_cycle',
+            'sensor.zone_9_next_cycle',
+            'sensor.zone_10_next_cycle',
+            'sensor.zone_11_next_cycle',
+            'sensor.zone_12_next_cycle',
+            'sensor.zone_13_next_cycle',
+            'sensor.zone_14_next_cycle',
+            'sensor.zone_15_next_cycle',
+            'sensor.zone_16_next_cycle',
+            'sensor.zone_17_next_cycle',
+            'sensor.zone_18_next_cycle',
+            'sensor.zone_19_next_cycle',
+            'sensor.zone_20_next_cycle',
+            'sensor.zone_21_next_cycle',
+            'sensor.zone_22_next_cycle',
+            'sensor.zone_23_next_cycle',
+            'sensor.zone_24_next_cycle',
+            'sensor.zone_25_next_cycle',
+            'sensor.zone_26_next_cycle',
+            'sensor.zone_27_next_cycle'
+          ] %}
+            {% set ts = as_timestamp(states(entity), 0) %}
+            {% if ts > as_timestamp(now()) and (ns.next is none or ts < ns.next) %}
+              {% set ns.next = ts %}
+            {% endif %}
+          {% endfor %}
+          {{ ns.next | timestamp_local if ns.next is not none else 'unknown' }}
 
       - name: "Ting Notification Status"
         unique_id: ting_notification_status
@@ -3298,17 +3685,98 @@ template:
              or is_state('input_boolean.water_pressure_alert_active', 'on')
              or is_state('input_boolean.water_leak_alert_active', 'on')
              or is_state('input_boolean.water_valve_alert_active', 'on')
-             or is_state('input_boolean.water_usage_alert_active', 'on') }}
+             or is_state('input_boolean.water_usage_alert_active', 'on')
+             or is_state('input_boolean.water_irrigation_alert_active', 'on') }}
         icon: >
           {% if is_state('input_boolean.water_flow_alert_active', 'on')
              or is_state('input_boolean.water_pressure_alert_active', 'on')
              or is_state('input_boolean.water_leak_alert_active', 'on')
              or is_state('input_boolean.water_valve_alert_active', 'on')
-             or is_state('input_boolean.water_usage_alert_active', 'on') %}
+             or is_state('input_boolean.water_usage_alert_active', 'on')
+             or is_state('input_boolean.water_irrigation_alert_active', 'on') %}
             mdi:bell-alert-outline
           {% else %}
             mdi:bell-check-outline
           {% endif %}
+
+      - name: "Hydrawise Controller Online"
+        unique_id: hydrawise_controller_online
+        device_class: connectivity
+        state: >
+          {{ is_state('binary_sensor.45_chesnut_ridge_rd_armonk_connectivity', 'on') }}
+
+      - name: "Irrigation Active"
+        unique_id: irrigation_active
+        device_class: running
+        state: >
+          {% set watering = expand([
+            'binary_sensor.zone_1_watering',
+            'binary_sensor.zone_2_watering',
+            'binary_sensor.zone_3_watering',
+            'binary_sensor.zone_4_watering',
+            'binary_sensor.zone_5_watering',
+            'binary_sensor.zone_6_watering',
+            'binary_sensor.zone_7_watering',
+            'binary_sensor.zone_8_watering',
+            'binary_sensor.zone_9_watering',
+            'binary_sensor.zone_10_watering',
+            'binary_sensor.zone_11_watering',
+            'binary_sensor.zone_12_watering',
+            'binary_sensor.zone_13_watering',
+            'binary_sensor.zone_14_watering',
+            'binary_sensor.zone_15_watering',
+            'binary_sensor.zone_16_watering',
+            'binary_sensor.zone_17_watering',
+            'binary_sensor.zone_18_watering',
+            'binary_sensor.zone_19_watering',
+            'binary_sensor.zone_20_watering',
+            'binary_sensor.zone_21_watering',
+            'binary_sensor.zone_22_watering',
+            'binary_sensor.zone_23_watering',
+            'binary_sensor.zone_24_watering',
+            'binary_sensor.zone_25_watering',
+            'binary_sensor.zone_26_watering',
+            'binary_sensor.zone_27_watering'
+          ]) | selectattr('state', 'eq', 'on') | list | count %}
+          {% set valves = expand([
+            'valve.zone_1',
+            'valve.zone_2',
+            'valve.zone_3',
+            'valve.zone_4',
+            'valve.zone_5',
+            'valve.zone_6',
+            'valve.zone_7',
+            'valve.zone_8',
+            'valve.zone_9',
+            'valve.zone_10',
+            'valve.zone_11',
+            'valve.zone_12',
+            'valve.zone_13',
+            'valve.zone_14',
+            'valve.zone_15',
+            'valve.zone_16',
+            'valve.zone_17',
+            'valve.zone_18',
+            'valve.zone_19',
+            'valve.zone_20',
+            'valve.zone_21',
+            'valve.zone_22',
+            'valve.zone_23',
+            'valve.zone_24',
+            'valve.zone_25',
+            'valve.zone_26',
+            'valve.zone_27'
+          ]) | selectattr('state', 'eq', 'open') | list | count %}
+          {{ watering > 0 or valves > 0 }}
+
+      - name: "Irrigation Expected Water Use"
+        unique_id: irrigation_expected_water_use
+        state: >
+          {% set expected_until = states('input_datetime.irrigation_expected_water_use_until') %}
+          {{ is_state('binary_sensor.irrigation_active', 'on')
+             or (expected_until not in ['unknown', 'unavailable', 'none', '']
+                 and as_timestamp(expected_until, 0) > as_timestamp(now())) }}
+        icon: mdi:sprinkler-variant
 
       - name: "Ting Confirmed Hazard Active"
         unique_id: ting_confirmed_hazard_active

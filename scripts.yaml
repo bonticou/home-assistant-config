@@ -2903,6 +2903,30 @@ water_send_alert:
             Valve closed
           {% elif kind == 'flo_system' %}
             Flo system alert
+          {% elif kind == 'irrigation_started' %}
+            Irrigation started
+          {% elif kind == 'irrigation_finished' %}
+            Irrigation finished
+          {% elif kind == 'irrigation_flow_after_stop' %}
+            Irrigation flow after stop
+          {% elif kind == 'irrigation_pressure_collapse' %}
+            Irrigation pressure collapse
+          {% elif kind == 'irrigation_recovery_slow' %}
+            Irrigation recovery slow
+          {% elif kind == 'irrigation_recovery_failed' %}
+            Irrigation recovery failed
+          {% elif kind == 'irrigation_no_flow' %}
+            Irrigation no flow
+          {% elif kind == 'irrigation_break_suspected' %}
+            Irrigation break suspected
+          {% elif kind == 'irrigation_multiple_zones' %}
+            Multiple irrigation zones
+          {% elif kind == 'irrigation_clog_possible' %}
+            Possible clogged irrigation zone
+          {% elif kind == 'irrigation_controller_offline' %}
+            Hydrawise offline
+          {% elif kind == 'irrigation_blind_watering' %}
+            Hydrawise blind watering
           {% else %}
             Water update
           {% endif %}
@@ -2915,8 +2939,22 @@ water_send_alert:
         resolved_severity: >-
           {% if severity is defined and severity | default('', true) != '' %}
             {{ severity }}
-          {% elif kind in ['burst_day', 'burst_night', 'leak', 'valve_closed', 'low_pressure_urgent'] %}
+          {% elif kind in [
+            'burst_day',
+            'burst_night',
+            'leak',
+            'valve_closed',
+            'low_pressure_urgent',
+            'irrigation_flow_after_stop',
+            'irrigation_pressure_collapse',
+            'irrigation_recovery_failed',
+            'irrigation_break_suspected',
+            'irrigation_multiple_zones',
+            'irrigation_blind_watering'
+          ] %}
             critical
+          {% elif kind in ['irrigation_started', 'irrigation_finished'] %}
+            info
           {% else %}
             warning
           {% endif %}
@@ -2949,6 +2987,30 @@ water_send_alert:
             🛑 Water shutoff valve closed
           {% elif kind == 'flo_system' %}
             ⚠️ Flo system alert
+          {% elif kind == 'irrigation_started' %}
+            💦 Sprinklers started
+          {% elif kind == 'irrigation_finished' %}
+            ✅ Sprinklers finished
+          {% elif kind == 'irrigation_flow_after_stop' %}
+            🚨 Irrigation flow did not stop
+          {% elif kind == 'irrigation_pressure_collapse' %}
+            🚨 Irrigation pressure collapse
+          {% elif kind == 'irrigation_recovery_slow' %}
+            ⚠️ Well recovery is slow
+          {% elif kind == 'irrigation_recovery_failed' %}
+            🚨 Well did not recover
+          {% elif kind == 'irrigation_no_flow' %}
+            ⚠️ Irrigation zone may not have opened
+          {% elif kind == 'irrigation_break_suspected' %}
+            🚨 Irrigation break suspected
+          {% elif kind == 'irrigation_multiple_zones' %}
+            🚨 Multiple irrigation zones active
+          {% elif kind == 'irrigation_clog_possible' %}
+            💧 Irrigation zone may be clogged
+          {% elif kind == 'irrigation_controller_offline' %}
+            ⚠️ Hydrawise offline before watering
+          {% elif kind == 'irrigation_blind_watering' %}
+            🚨 Hydrawise blind watering
           {% else %}
             💧 Water update
           {% endif %}
@@ -2964,6 +3026,8 @@ water_send_alert:
             valve
           {% elif kind == 'usage_high' %}
             usage
+          {% elif kind[:11] == 'irrigation_' %}
+            irrigation
           {% else %}
             water
           {% endif %}
@@ -3005,6 +3069,8 @@ water_send_alert:
             Valve is {{ valve_label }}; flow {{ current_flow }} gal/min and pressure {{ current_pressure }} psi.
           {% elif domain == 'usage' %}
             {{ current_usage }} gal used today at alert time; current flow {{ current_flow }} gal/min.
+          {% elif domain == 'irrigation' %}
+            {{ notification_message | regex_replace('\s+', ' ') | trim }}
           {% else %}
             {{ notification_message | regex_replace('\s+', ' ') | trim }}
           {% endif %}
@@ -3067,10 +3133,63 @@ water_send_alert:
             - action: input_boolean.turn_on
               target:
                 entity_id: input_boolean.water_valve_alert_active
+        - conditions:
+            - condition: template
+              value_template: >-
+                {{ kind in [
+                  'irrigation_flow_after_stop',
+                  'irrigation_pressure_collapse',
+                  'irrigation_recovery_slow',
+                  'irrigation_recovery_failed',
+                  'irrigation_no_flow',
+                  'irrigation_break_suspected',
+                  'irrigation_multiple_zones',
+                  'irrigation_clog_possible',
+                  'irrigation_controller_offline',
+                  'irrigation_blind_watering'
+                ] }}
+          sequence:
+            - action: input_boolean.turn_on
+              target:
+                entity_id: input_boolean.water_irrigation_alert_active
+            - action: input_text.set_value
+              target:
+                entity_id: input_text.irrigation_active_alert_kind
+              data:
+                value: "{{ kind }}"
     - choose:
         - conditions:
             - condition: template
               value_template: "{{ kind == 'leak' }}"
+          sequence:
+            - action: script.notify_trevor_phone
+              data:
+                title: "{{ notification_title }}"
+                message: "{{ notification_message }}"
+                data:
+                  group: water
+                  tag: "water-{{ kind }}"
+                  url: /calm-mobile/water
+                  sticky: true
+                  ttl: 0
+                  priority: high
+                  critical: true
+                  push:
+                    sound:
+                      name: default
+                      critical: 1
+                      volume: 1.0
+        - conditions:
+            - condition: template
+              value_template: >-
+                {{ kind in [
+                  'irrigation_flow_after_stop',
+                  'irrigation_pressure_collapse',
+                  'irrigation_recovery_failed',
+                  'irrigation_break_suspected',
+                  'irrigation_multiple_zones',
+                  'irrigation_blind_watering'
+                ] }}
           sequence:
             - action: script.notify_trevor_phone
               data:

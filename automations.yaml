@@ -186,6 +186,9 @@
     - condition: time
       after: "00:00:00"
       before: "06:00:00"
+    - condition: state
+      entity_id: binary_sensor.irrigation_expected_water_use
+      state: "off"
   actions:
     - action: script.water_send_alert
       data:
@@ -211,6 +214,9 @@
     - condition: time
       after: "06:00:00"
       before: "23:59:59"
+    - condition: state
+      entity_id: binary_sensor.irrigation_expected_water_use
+      state: "off"
   actions:
     - action: script.water_send_alert
       data:
@@ -235,6 +241,9 @@
     - condition: time
       after: "06:00:00"
       before: "23:59:59"
+    - condition: state
+      entity_id: binary_sensor.irrigation_expected_water_use
+      state: "off"
   actions:
     - action: script.water_send_alert
       data:
@@ -259,6 +268,9 @@
     - condition: time
       after: "00:00:00"
       before: "06:00:00"
+    - condition: state
+      entity_id: binary_sensor.irrigation_expected_water_use
+      state: "off"
   actions:
     - action: script.water_send_alert
       data:
@@ -283,6 +295,9 @@
     - condition: state
       entity_id: switch.flo_shutoff_shutoff_valve
       state: "on"
+    - condition: state
+      entity_id: binary_sensor.irrigation_expected_water_use
+      state: "off"
     - condition: template
       value_template: >-
         {% set previous_pressure = trigger.from_state.state | float(0) if trigger.from_state is not none else 0 %}
@@ -320,6 +335,9 @@
     - condition: state
       entity_id: switch.flo_shutoff_shutoff_valve
       state: "on"
+    - condition: state
+      entity_id: binary_sensor.irrigation_expected_water_use
+      state: "off"
     - condition: template
       value_template: >-
         {% set snooze = states('input_datetime.water_pressure_snooze_until') %}
@@ -351,6 +369,9 @@
     - condition: state
       entity_id: switch.flo_shutoff_shutoff_valve
       state: "on"
+    - condition: state
+      entity_id: binary_sensor.irrigation_expected_water_use
+      state: "off"
     - condition: template
       value_template: >-
         {% set snooze = states('input_datetime.water_pressure_snooze_until') %}
@@ -382,6 +403,9 @@
     - condition: state
       entity_id: switch.flo_shutoff_shutoff_valve
       state: "on"
+    - condition: state
+      entity_id: binary_sensor.irrigation_expected_water_use
+      state: "off"
   actions:
     - variables:
         current_pressure: "{{ states('sensor.flo_shutoff_water_pressure') | float(0) | round(0) }}"
@@ -417,6 +441,9 @@
     - condition: state
       entity_id: switch.flo_shutoff_shutoff_valve
       state: "on"
+    - condition: state
+      entity_id: binary_sensor.irrigation_expected_water_use
+      state: "off"
   actions:
     - variables:
         current_pressure: "{{ states('sensor.flo_shutoff_water_pressure') | float(0) | round(0) }}"
@@ -614,6 +641,721 @@
           data:
             alert_kind: flo_system
             message: Flo has flagged a system alert. Check the Flo app for details.
+  mode: single
+
+- id: irrigation_session_started
+  alias: "Irrigation — Session Started Notification"
+  description: Sends one calm sprinkler-start notice per Hydrawise session and starts expected water-use context.
+  triggers:
+    - trigger: state
+      entity_id: binary_sensor.irrigation_active
+      to: "on"
+  conditions:
+    - condition: template
+      value_template: >-
+        {% set started = states('input_datetime.irrigation_session_started_at') %}
+        {% set ended = states('input_datetime.irrigation_session_ended_at') %}
+        {% set expected_until = states('input_datetime.irrigation_expected_water_use_until') %}
+        {% set no_prior_start = started in ['unknown', 'unavailable', 'none', ''] %}
+        {% set prior_session_closed = ended not in ['unknown', 'unavailable', 'none', '']
+           and as_timestamp(ended, 0) >= as_timestamp(started, 0) %}
+        {% set expected_expired = expected_until in ['unknown', 'unavailable', 'none', '']
+           or as_timestamp(expected_until, 0) <= as_timestamp(now()) %}
+        {{ no_prior_start or prior_session_closed or expected_expired }}
+  actions:
+    - variables:
+        session_id: "{{ now().strftime('%Y%m%d%H%M%S') }}"
+        active_zone: "{{ states('sensor.irrigation_active_zone') }}"
+        current_flow: "{{ states('sensor.flo_shutoff_water_flow_rate') | float(0) | round(2) }}"
+        current_pressure: "{{ states('sensor.flo_shutoff_water_pressure') | float(0) | round(1) }}"
+        current_gallons: "{{ states('sensor.flo_shutoff_today_s_water_usage') | float(0) | round(1) }}"
+        next_cycle: "{{ states('sensor.irrigation_next_cycle') }}"
+    - action: input_text.set_value
+      target:
+        entity_id: input_text.irrigation_session_id
+      data:
+        value: "{{ session_id }}"
+    - action: input_text.set_value
+      target:
+        entity_id: input_text.irrigation_session_start_zone
+      data:
+        value: "{{ active_zone if active_zone not in ['unknown', 'unavailable', 'none', '', 'None'] else 'Unknown' }}"
+    - action: input_datetime.set_datetime
+      target:
+        entity_id: input_datetime.irrigation_session_started_at
+      data:
+        datetime: "{{ now().strftime('%Y-%m-%d %H:%M:%S') }}"
+    - action: input_datetime.set_datetime
+      target:
+        entity_id: input_datetime.irrigation_expected_water_use_until
+      data:
+        datetime: "{{ (now() + timedelta(minutes=15)).strftime('%Y-%m-%d %H:%M:%S') }}"
+    - action: input_number.set_value
+      target:
+        entity_id:
+          - input_number.irrigation_session_start_pressure
+          - input_number.irrigation_session_min_pressure
+      data:
+        value: "{{ current_pressure }}"
+    - action: input_number.set_value
+      target:
+        entity_id: input_number.irrigation_session_start_gallons
+      data:
+        value: "{{ current_gallons }}"
+    - action: input_number.set_value
+      target:
+        entity_id: input_number.irrigation_session_max_flow
+      data:
+        value: "{{ current_flow }}"
+    - if:
+        - condition: state
+          entity_id: input_boolean.irrigation_notifications_enabled
+          state: "on"
+      then:
+        - action: script.water_send_alert
+          data:
+            alert_kind: irrigation_started
+            severity: info
+            message: >-
+              Sprinklers started on {{ active_zone }}.
+              Flow is {{ current_flow }} gal/min and well pressure is {{ current_pressure }} psi.
+              {% if next_cycle not in ['unknown', 'unavailable', 'none', ''] %}
+                Next scheduled Hydrawise cycle is {{ as_timestamp(next_cycle, 0) | timestamp_custom('%a %-I:%M %p', true) }}.
+              {% endif %}
+  mode: single
+
+- id: irrigation_zone_fingerprint_tracking
+  alias: "Irrigation — Zone Fingerprint Tracking"
+  description: Starts and finishes per-zone Flo/Hydrawise samples whenever the active zone changes.
+  triggers:
+    - trigger: state
+      entity_id: sensor.irrigation_active_zone
+  conditions: []
+  actions:
+    - variables:
+        from_zone: "{{ trigger.from_state.state if trigger.from_state is not none else 'None' }}"
+        to_zone: "{{ trigger.to_state.state if trigger.to_state is not none else 'None' }}"
+        now_label: "{{ now().isoformat() }}"
+        current_pressure: "{{ states('sensor.flo_shutoff_water_pressure') | float(0) | round(2) }}"
+        current_flow: "{{ states('sensor.flo_shutoff_water_flow_rate') | float(0) | round(3) }}"
+        current_gallons: "{{ states('sensor.flo_shutoff_today_s_water_usage') | float(0) | round(2) }}"
+        active_count: "{{ states('sensor.irrigation_active_zone_count') | int(0) }}"
+    - if:
+        - condition: template
+          value_template: >-
+            {{ from_zone not in ['unknown', 'unavailable', 'none', '', 'None']
+               and from_zone != to_zone }}
+      then:
+        - action: shell_command.irrigation_fingerprint_finish
+          data:
+            zone: "{{ from_zone }}"
+            at: "{{ now_label }}"
+            gallons: "{{ current_gallons }}"
+            pressure: "{{ current_pressure }}"
+            flow: "{{ current_flow }}"
+            active_count: "{{ active_count }}"
+        - action: homeassistant.update_entity
+          target:
+            entity_id: sensor.irrigation_fingerprint_status
+    - if:
+        - condition: template
+          value_template: >-
+            {{ to_zone not in ['unknown', 'unavailable', 'none', '', 'None']
+               and from_zone != to_zone }}
+      then:
+        - action: input_text.set_value
+          target:
+            entity_id: input_text.irrigation_current_zone
+          data:
+            value: "{{ to_zone }}"
+        - action: input_datetime.set_datetime
+          target:
+            entity_id: input_datetime.irrigation_zone_started_at
+          data:
+            datetime: "{{ now().strftime('%Y-%m-%d %H:%M:%S') }}"
+        - action: input_number.set_value
+          target:
+            entity_id: input_number.irrigation_zone_start_pressure
+          data:
+            value: "{{ current_pressure }}"
+        - action: input_number.set_value
+          target:
+            entity_id: input_number.irrigation_zone_start_gallons
+          data:
+            value: "{{ current_gallons }}"
+        - action: shell_command.irrigation_fingerprint_start
+          data:
+            zone: "{{ to_zone }}"
+            at: "{{ now_label }}"
+            gallons: "{{ current_gallons }}"
+            pressure: "{{ current_pressure }}"
+            flow: "{{ current_flow }}"
+            active_count: "{{ active_count }}"
+    - if:
+        - condition: template
+          value_template: "{{ to_zone in ['unknown', 'unavailable', 'none', '', 'None'] }}"
+      then:
+        - action: input_text.set_value
+          target:
+            entity_id: input_text.irrigation_current_zone
+          data:
+            value: "None"
+  mode: queued
+  max: 10
+
+- id: irrigation_session_telemetry_tracking
+  alias: "Irrigation — Session Telemetry Tracking"
+  description: Keeps session min pressure, max flow, grace window, and active zone samples current while irrigation is running.
+  triggers:
+    - trigger: time_pattern
+      minutes: "/1"
+  conditions:
+    - condition: state
+      entity_id: binary_sensor.irrigation_active
+      state: "on"
+  actions:
+    - variables:
+        active_zone: "{{ states('sensor.irrigation_active_zone') }}"
+        active_count: "{{ states('sensor.irrigation_active_zone_count') | int(0) }}"
+        current_pressure: "{{ states('sensor.flo_shutoff_water_pressure') | float(0) | round(2) }}"
+        current_flow: "{{ states('sensor.flo_shutoff_water_flow_rate') | float(0) | round(3) }}"
+    - action: input_datetime.set_datetime
+      target:
+        entity_id: input_datetime.irrigation_expected_water_use_until
+      data:
+        datetime: "{{ (now() + timedelta(minutes=15)).strftime('%Y-%m-%d %H:%M:%S') }}"
+    - if:
+        - condition: template
+          value_template: "{{ current_pressure | float(0) < states('input_number.irrigation_session_min_pressure') | float(150) }}"
+      then:
+        - action: input_number.set_value
+          target:
+            entity_id: input_number.irrigation_session_min_pressure
+          data:
+            value: "{{ current_pressure }}"
+    - if:
+        - condition: template
+          value_template: "{{ current_flow | float(0) > states('input_number.irrigation_session_max_flow') | float(0) }}"
+      then:
+        - action: input_number.set_value
+          target:
+            entity_id: input_number.irrigation_session_max_flow
+          data:
+            value: "{{ current_flow }}"
+    - if:
+        - condition: template
+          value_template: "{{ active_zone not in ['unknown', 'unavailable', 'none', '', 'None'] }}"
+      then:
+        - action: shell_command.irrigation_fingerprint_touch
+          data:
+            zone: "{{ active_zone }}"
+            at: "{{ now().isoformat() }}"
+            pressure: "{{ current_pressure }}"
+            flow: "{{ current_flow }}"
+            active_count: "{{ active_count }}"
+  mode: single
+
+- id: irrigation_session_finished
+  alias: "Irrigation — Session Finished Notification And Recovery Watch"
+  description: Sends one sprinkler-finished notice, then watches well pressure recovery for the completed session.
+  triggers:
+    - trigger: state
+      entity_id: binary_sensor.irrigation_active
+      from: "on"
+      to: "off"
+      for:
+        minutes: 2
+  conditions:
+    - condition: template
+      value_template: >-
+        {% set started = states('input_datetime.irrigation_session_started_at') %}
+        {% set ended = states('input_datetime.irrigation_session_ended_at') %}
+        {{ started not in ['unknown', 'unavailable', 'none', '']
+           and (ended in ['unknown', 'unavailable', 'none', '']
+                or as_timestamp(started, 0) > as_timestamp(ended, 0)) }}
+  actions:
+    - variables:
+        session_id: "{{ states('input_text.irrigation_session_id') }}"
+        started_at: "{{ states('input_datetime.irrigation_session_started_at') }}"
+        started_ts: "{{ as_timestamp(states('input_datetime.irrigation_session_started_at'), as_timestamp(now())) }}"
+        runtime_minutes: "{{ ((as_timestamp(now()) - (started_ts | float(0))) / 60) | round(0) }}"
+        start_gallons: "{{ states('input_number.irrigation_session_start_gallons') | float(0) }}"
+        current_gallons: "{{ states('sensor.flo_shutoff_today_s_water_usage') | float(0) }}"
+        gallons_used: "{{ (current_gallons | float(0) - start_gallons | float(0)) | round(1) }}"
+        start_pressure: "{{ states('input_number.irrigation_session_start_pressure') | float(0) | round(1) }}"
+        min_pressure: "{{ states('input_number.irrigation_session_min_pressure') | float(0) | round(1) }}"
+        max_flow: "{{ states('input_number.irrigation_session_max_flow') | float(0) | round(2) }}"
+        current_pressure: "{{ states('sensor.flo_shutoff_water_pressure') | float(0) | round(1) }}"
+        start_zone: "{{ states('input_text.irrigation_session_start_zone') }}"
+    - action: input_datetime.set_datetime
+      target:
+        entity_id: input_datetime.irrigation_session_ended_at
+      data:
+        datetime: "{{ now().strftime('%Y-%m-%d %H:%M:%S') }}"
+    - action: input_datetime.set_datetime
+      target:
+        entity_id: input_datetime.irrigation_expected_water_use_until
+      data:
+        datetime: "{{ (now() + timedelta(minutes=15)).strftime('%Y-%m-%d %H:%M:%S') }}"
+    - if:
+        - condition: state
+          entity_id: input_boolean.irrigation_notifications_enabled
+          state: "on"
+      then:
+        - action: script.water_send_alert
+          data:
+            alert_kind: irrigation_finished
+            severity: info
+            message: >-
+              Sprinklers finished after about {{ runtime_minutes }} minutes.
+              Flo estimates {{ gallons_used }} gal used. Lowest pressure was {{ min_pressure }} psi,
+              max flow was {{ max_flow }} gal/min, and pressure is now {{ current_pressure }} psi.
+              Session started on {{ start_zone }}.
+    - delay:
+        minutes: 8
+    - variables:
+        recovery_target: "{{ ([35, (start_pressure | float(0)) - 12]) | max | round(1) }}"
+        pressure_after_10: "{{ states('sensor.flo_shutoff_water_pressure') | float(0) | round(1) }}"
+        flow_after_10: "{{ states('sensor.flo_shutoff_water_flow_rate') | float(0) | round(2) }}"
+    - if:
+        - condition: state
+          entity_id: input_boolean.irrigation_notifications_enabled
+          state: "on"
+        - condition: state
+          entity_id: binary_sensor.irrigation_active
+          state: "off"
+        - condition: template
+          value_template: "{{ states('input_text.irrigation_session_id') == session_id }}"
+        - condition: template
+          value_template: "{{ flow_after_10 | float(0) < 0.05 and pressure_after_10 | float(0) < recovery_target | float(35) }}"
+      then:
+        - action: script.water_send_alert
+          data:
+            alert_kind: irrigation_recovery_slow
+            severity: warning
+            message: >-
+              Ten minutes after sprinklers stopped, flow is quiet but well pressure is only
+              {{ pressure_after_10 }} psi. Expected recovery target is about {{ recovery_target }} psi
+              based on the session start pressure of {{ start_pressure }} psi.
+    - delay:
+        minutes: 10
+    - variables:
+        pressure_after_20: "{{ states('sensor.flo_shutoff_water_pressure') | float(0) | round(1) }}"
+        flow_after_20: "{{ states('sensor.flo_shutoff_water_flow_rate') | float(0) | round(2) }}"
+    - if:
+        - condition: state
+          entity_id: input_boolean.irrigation_notifications_enabled
+          state: "on"
+        - condition: state
+          entity_id: binary_sensor.irrigation_active
+          state: "off"
+        - condition: template
+          value_template: "{{ states('input_text.irrigation_session_id') == session_id }}"
+        - condition: template
+          value_template: "{{ flow_after_20 | float(0) < 0.05 and pressure_after_20 | float(0) < 30 }}"
+      then:
+        - action: script.water_send_alert
+          data:
+            alert_kind: irrigation_recovery_failed
+            severity: critical
+            message: >-
+              Twenty minutes after sprinklers stopped, flow is quiet but well pressure is still
+              {{ pressure_after_20 }} psi. The well system has not recovered to the 30 psi floor.
+  mode: parallel
+  max: 3
+
+- id: irrigation_flow_after_stop
+  alias: "Irrigation — Flow After Stop"
+  description: Critical alert when Flo still sees water after the Hydrawise session and grace period are over.
+  triggers:
+    - trigger: numeric_state
+      entity_id: sensor.flo_shutoff_water_flow_rate
+      above: 0.15
+      for:
+        minutes: 5
+  conditions:
+    - condition: state
+      entity_id: input_boolean.irrigation_notifications_enabled
+      state: "on"
+    - condition: state
+      entity_id: binary_sensor.irrigation_active
+      state: "off"
+    - condition: state
+      entity_id: binary_sensor.irrigation_expected_water_use
+      state: "off"
+  actions:
+    - action: script.water_send_alert
+      data:
+        alert_kind: irrigation_flow_after_stop
+        severity: critical
+        message: >-
+          Hydrawise is no longer watering, the 15-minute grace window has expired,
+          but Flo still sees {{ states('sensor.flo_shutoff_water_flow_rate') | float(0) | round(2) }} gal/min.
+          Check irrigation valves, hose bibs, and the Flo app.
+  mode: single
+
+- id: irrigation_pressure_collapse
+  alias: "Irrigation — Pressure Collapse"
+  description: Critical well-pressure alert during active irrigation.
+  triggers:
+    - trigger: numeric_state
+      entity_id: sensor.flo_shutoff_water_pressure
+      below: 25
+      for:
+        minutes: 3
+      id: below_25
+    - trigger: numeric_state
+      entity_id: sensor.flo_shutoff_water_pressure
+      below: 20
+      for:
+        minutes: 1
+      id: below_20
+  conditions:
+    - condition: state
+      entity_id: input_boolean.irrigation_notifications_enabled
+      state: "on"
+    - condition: state
+      entity_id: binary_sensor.irrigation_active
+      state: "on"
+    - condition: template
+      value_template: "{{ states('input_text.irrigation_active_alert_kind') != 'irrigation_pressure_collapse' }}"
+  actions:
+    - action: script.water_send_alert
+      data:
+        alert_kind: irrigation_pressure_collapse
+        severity: critical
+        message: >-
+          Well pressure is {{ states('sensor.flo_shutoff_water_pressure') | float(0) | round(1) }} psi
+          while {{ states('sensor.irrigation_active_zone') }} is watering.
+          Flow is {{ states('sensor.flo_shutoff_water_flow_rate') | float(0) | round(2) }} gal/min.
+  mode: single
+
+- id: irrigation_zone_no_flow
+  alias: "Irrigation — Zone May Not Have Opened"
+  description: Warning when Hydrawise reports one active zone but Flo sees almost no flow or pressure movement.
+  triggers:
+    - trigger: state
+      entity_id: sensor.irrigation_active_zone
+      for:
+        minutes: 5
+  conditions:
+    - condition: state
+      entity_id: input_boolean.irrigation_notifications_enabled
+      state: "on"
+    - condition: state
+      entity_id: binary_sensor.irrigation_active
+      state: "on"
+    - condition: template
+      value_template: "{{ states('sensor.irrigation_active_zone') not in ['unknown', 'unavailable', 'none', '', 'None'] }}"
+    - condition: template
+      value_template: "{{ states('sensor.irrigation_active_zone_count') | int(0) == 1 }}"
+    - condition: template
+      value_template: "{{ states('sensor.flo_shutoff_water_flow_rate') | float(0) < 0.15 }}"
+    - condition: template
+      value_template: >-
+        {{ (states('input_number.irrigation_zone_start_pressure') | float(0)
+             - states('sensor.flo_shutoff_water_pressure') | float(0)) < 3 }}
+    - condition: template
+      value_template: "{{ states('input_text.irrigation_active_alert_kind') != 'irrigation_no_flow' }}"
+  actions:
+    - action: script.water_send_alert
+      data:
+        alert_kind: irrigation_no_flow
+        severity: warning
+        message: >-
+          {{ states('sensor.irrigation_active_zone') }} has been active for 5 minutes,
+          but Flo sees only {{ states('sensor.flo_shutoff_water_flow_rate') | float(0) | round(2) }} gal/min
+          and pressure has barely moved. The zone may not have opened, or the valve may be restricted.
+  mode: single
+
+- id: irrigation_break_suspected
+  alias: "Irrigation — Break Suspected"
+  description: Critical alert for high-flow and low-pressure irrigation signatures.
+  triggers:
+    - trigger: time_pattern
+      minutes: "/1"
+  conditions:
+    - condition: state
+      entity_id: input_boolean.irrigation_notifications_enabled
+      state: "on"
+    - condition: state
+      entity_id: binary_sensor.irrigation_active
+      state: "on"
+    - condition: template
+      value_template: "{{ states('sensor.irrigation_active_zone_count') | int(0) == 1 }}"
+    - condition: template
+      value_template: "{{ states('input_text.irrigation_active_alert_kind') != 'irrigation_break_suspected' }}"
+    - condition: template
+      value_template: >-
+        {% set flow = states('sensor.flo_shutoff_water_flow_rate') | float(0) %}
+        {% set pressure = states('sensor.flo_shutoff_water_pressure') | float(0) %}
+        {% set start_pressure = states('input_number.irrigation_zone_start_pressure') | float(0) %}
+        {{ (flow > 10 and pressure < 30)
+           or (flow > 4 and start_pressure > 0 and (start_pressure - pressure) > 20) }}
+  actions:
+    - action: script.water_send_alert
+      data:
+        alert_kind: irrigation_break_suspected
+        severity: critical
+        message: >-
+          {{ states('sensor.irrigation_active_zone') }} has a break-like signature:
+          {{ states('sensor.flo_shutoff_water_flow_rate') | float(0) | round(2) }} gal/min,
+          pressure {{ states('sensor.flo_shutoff_water_pressure') | float(0) | round(1) }} psi,
+          zone start pressure {{ states('input_number.irrigation_zone_start_pressure') | float(0) | round(1) }} psi.
+  mode: single
+
+- id: irrigation_multiple_zones_active
+  alias: "Irrigation — Multiple Zones Active"
+  description: Critical alert when Hydrawise reports multiple zones running together.
+  triggers:
+    - trigger: numeric_state
+      entity_id: sensor.irrigation_active_zone_count
+      above: 1
+      for:
+        minutes: 2
+  conditions:
+    - condition: state
+      entity_id: input_boolean.irrigation_notifications_enabled
+      state: "on"
+    - condition: template
+      value_template: "{{ states('input_text.irrigation_active_alert_kind') != 'irrigation_multiple_zones' }}"
+  actions:
+    - action: script.water_send_alert
+      data:
+        alert_kind: irrigation_multiple_zones
+        severity: critical
+        message: >-
+          Hydrawise reports {{ states('sensor.irrigation_active_zone_count') }} zones watering at once:
+          {{ state_attr('sensor.irrigation_active_zone', 'active_zones') }}.
+          Flow is {{ states('sensor.flo_shutoff_water_flow_rate') | float(0) | round(2) }} gal/min
+          and pressure is {{ states('sensor.flo_shutoff_water_pressure') | float(0) | round(1) }} psi.
+  mode: single
+
+- id: irrigation_controller_offline_before_watering
+  alias: "Irrigation — Hydrawise Offline Before Watering"
+  description: Warns when Hydrawise is offline shortly before a scheduled watering window.
+  triggers:
+    - trigger: state
+      entity_id: binary_sensor.hydrawise_controller_online
+      to: "off"
+      for:
+        minutes: 10
+      id: went_offline
+    - trigger: time_pattern
+      minutes: "/15"
+      id: periodic
+  conditions:
+    - condition: state
+      entity_id: input_boolean.irrigation_notifications_enabled
+      state: "on"
+    - condition: state
+      entity_id: binary_sensor.hydrawise_controller_online
+      state: "off"
+    - condition: template
+      value_template: >-
+        {% set next_ts = as_timestamp(states('sensor.irrigation_next_cycle'), 0) %}
+        {{ next_ts > as_timestamp(now()) and next_ts <= as_timestamp(now() + timedelta(hours=2)) }}
+    - condition: template
+      value_template: "{{ states('input_text.irrigation_active_alert_kind') != 'irrigation_controller_offline' }}"
+  actions:
+    - action: script.water_send_alert
+      data:
+        alert_kind: irrigation_controller_offline
+        severity: warning
+        message: >-
+          Hydrawise is offline and the next scheduled zone is within 2 hours
+          ({{ as_timestamp(states('sensor.irrigation_next_cycle'), 0) | timestamp_custom('%a %-I:%M %p', true) }}).
+          If it stays offline, HA may be blind to a scheduled sprinkler run.
+  mode: single
+
+- id: irrigation_blind_watering
+  alias: "Irrigation — Blind Watering"
+  description: Critical alert when Flo sees irrigation-level flow while Hydrawise is offline and no zone state explains it.
+  triggers:
+    - trigger: numeric_state
+      entity_id: sensor.flo_shutoff_water_flow_rate
+      above: 1.5
+      for:
+        minutes: 5
+  conditions:
+    - condition: state
+      entity_id: input_boolean.irrigation_notifications_enabled
+      state: "on"
+    - condition: state
+      entity_id: binary_sensor.hydrawise_controller_online
+      state: "off"
+    - condition: state
+      entity_id: binary_sensor.irrigation_active
+      state: "off"
+    - condition: template
+      value_template: "{{ states('input_text.irrigation_active_alert_kind') != 'irrigation_blind_watering' }}"
+  actions:
+    - action: script.water_send_alert
+      data:
+        alert_kind: irrigation_blind_watering
+        severity: critical
+        message: >-
+          Flo sees {{ states('sensor.flo_shutoff_water_flow_rate') | float(0) | round(2) }} gal/min
+          while Hydrawise is offline and no zone is reported active.
+          This could be a blind scheduled sprinkler run or another unexplained high-flow use.
+  mode: single
+
+- id: irrigation_fingerprint_anomaly_notification
+  alias: "Irrigation — Fingerprint Anomaly Notification"
+  description: Sends learned-zone clogged-head or break-signature notices from the local fingerprint model.
+  triggers:
+    - trigger: state
+      entity_id: sensor.irrigation_fingerprint_status
+      attribute: latest_anomaly
+    - trigger: state
+      entity_id: sensor.irrigation_fingerprint_status
+      attribute: latest_anomaly_zone
+  conditions:
+    - condition: state
+      entity_id: input_boolean.irrigation_notifications_enabled
+      state: "on"
+    - condition: template
+      value_template: "{{ state_attr('sensor.irrigation_fingerprint_status', 'latest_anomaly') in ['clog_possible', 'break_possible'] }}"
+    - condition: template
+      value_template: >-
+        {% set latest = state_attr('sensor.irrigation_fingerprint_status', 'latest_sample') or {} %}
+        {% set key = [
+          state_attr('sensor.irrigation_fingerprint_status', 'latest_anomaly'),
+          state_attr('sensor.irrigation_fingerprint_status', 'latest_anomaly_zone'),
+          latest.get('ended_at', '')
+        ] | join(':') %}
+        {{ key != states('input_text.irrigation_latest_fingerprint_anomaly_key') }}
+  actions:
+    - variables:
+        anomaly: "{{ state_attr('sensor.irrigation_fingerprint_status', 'latest_anomaly') }}"
+        anomaly_zone: "{{ state_attr('sensor.irrigation_fingerprint_status', 'latest_anomaly_zone') }}"
+        anomaly_reason: "{{ state_attr('sensor.irrigation_fingerprint_status', 'latest_anomaly_reason') }}"
+        anomaly_key: >-
+          {% set latest = state_attr('sensor.irrigation_fingerprint_status', 'latest_sample') or {} %}
+          {{ [anomaly, anomaly_zone, latest.get('ended_at', '')] | join(':') }}
+    - choose:
+        - conditions:
+            - condition: template
+              value_template: "{{ anomaly == 'break_possible' }}"
+          sequence:
+            - action: script.water_send_alert
+              data:
+                alert_kind: irrigation_break_suspected
+                severity: critical
+                message: >-
+                  {{ anomaly_zone }} looked much higher-flow and lower-pressure than its learned normal profile.
+                  Fingerprint reason: {{ anomaly_reason }}.
+      default:
+        - action: script.water_send_alert
+          data:
+            alert_kind: irrigation_clog_possible
+            severity: warning
+            message: >-
+              {{ anomaly_zone }} used much less water than its learned normal profile,
+              with a smaller pressure drop. This can point to clogged heads, a blocked filter,
+              a restricted valve, or closed nozzles. Fingerprint reason: {{ anomaly_reason }}.
+    - action: input_text.set_value
+      target:
+        entity_id: input_text.irrigation_latest_fingerprint_anomaly_key
+      data:
+        value: "{{ anomaly_key }}"
+  mode: single
+
+- id: irrigation_transient_alert_clear
+  alias: "Irrigation — Clear Transient Alerts When Normal"
+  description: Clears live irrigation danger state after irrigation is quiet, flow has stopped, and pressure is above the recovery floor.
+  triggers:
+    - trigger: state
+      entity_id: binary_sensor.irrigation_expected_water_use
+      to: "off"
+      for:
+        minutes: 5
+    - trigger: numeric_state
+      entity_id: sensor.flo_shutoff_water_flow_rate
+      below: 0.05
+      for:
+        minutes: 10
+    - trigger: numeric_state
+      entity_id: sensor.flo_shutoff_water_pressure
+      above: 30
+      for:
+        minutes: 5
+  conditions:
+    - condition: state
+      entity_id: binary_sensor.irrigation_active
+      state: "off"
+    - condition: state
+      entity_id: binary_sensor.irrigation_expected_water_use
+      state: "off"
+    - condition: numeric_state
+      entity_id: sensor.flo_shutoff_water_flow_rate
+      below: 0.05
+    - condition: numeric_state
+      entity_id: sensor.flo_shutoff_water_pressure
+      above: 30
+    - condition: template
+      value_template: >-
+        {{ states('input_text.irrigation_active_alert_kind') in [
+          'irrigation_flow_after_stop',
+          'irrigation_pressure_collapse',
+          'irrigation_recovery_slow',
+          'irrigation_recovery_failed',
+          'irrigation_break_suspected',
+          'irrigation_multiple_zones',
+          'irrigation_blind_watering'
+        ] }}
+  actions:
+    - action: input_boolean.turn_off
+      target:
+        entity_id: input_boolean.water_irrigation_alert_active
+    - action: input_text.set_value
+      target:
+        entity_id: input_text.irrigation_active_alert_kind
+      data:
+        value: ""
+    - repeat:
+        for_each:
+          - water-irrigation_flow_after_stop
+          - water-irrigation_pressure_collapse
+          - water-irrigation_recovery_slow
+          - water-irrigation_recovery_failed
+          - water-irrigation_break_suspected
+          - water-irrigation_multiple_zones
+          - water-irrigation_blind_watering
+        sequence:
+          - action: script.notify_trevor_phone
+            data:
+              message: clear_notification
+              data:
+                tag: "{{ repeat.item }}"
+  mode: single
+
+- id: irrigation_controller_online_clear
+  alias: "Irrigation — Clear Hydrawise Offline Alert"
+  description: Clears the Hydrawise offline warning once the controller has been online again for a few minutes.
+  triggers:
+    - trigger: state
+      entity_id: binary_sensor.hydrawise_controller_online
+      to: "on"
+      for:
+        minutes: 5
+  conditions:
+    - condition: template
+      value_template: "{{ states('input_text.irrigation_active_alert_kind') == 'irrigation_controller_offline' }}"
+  actions:
+    - action: input_boolean.turn_off
+      target:
+        entity_id: input_boolean.water_irrigation_alert_active
+    - action: input_text.set_value
+      target:
+        entity_id: input_text.irrigation_active_alert_kind
+      data:
+        value: ""
+    - action: script.notify_trevor_phone
+      data:
+        message: clear_notification
+        data:
+          tag: water-irrigation_controller_offline
   mode: single
 
 - id: house_notice_action_history

@@ -4,28 +4,28 @@ Full generated audit view. For the readable overview, use [device-inventory.md](
 
 ## Last Updated
 
-- Snapshot: `2026-05-21T02:43:09.473014+00:00`
-- Summary: 176 devices, 1909 entities, 119 network clients, 27 Lutron Caséta entities
+- Snapshot: `2026-05-27T01:57:31.418573+00:00`
+- Summary: 204 devices, 2100 entities, 119 network clients, 27 Lutron Caséta entities
 
 ## Summary
 
 | Metric | Count |
 | --- | --- |
-| Devices | 176 |
-| Entities | 1909 |
+| Devices | 204 |
+| Entities | 2100 |
 | Orphan entities | 705 |
 | Network clients | 119 |
 | Areas | 32 |
-| Integrations | 41 |
+| Integrations | 42 |
 
 ### Roles
 
 | Role | Entities |
 | --- | --- |
-| control | 643 |
+| control | 724 |
 | network | 119 |
 | other | 292 |
-| telemetry | 855 |
+| telemetry | 965 |
 
 ### Top Integrations
 
@@ -34,6 +34,7 @@ Full generated audit view. For the readable overview, use [device-inventory.md](
 | unifiprotect | 372 |
 | unifi | 266 |
 | template | 197 |
+| hydrawise | 191 |
 | sonos | 153 |
 | script | 148 |
 | automation | 132 |
@@ -50,7 +51,6 @@ Full generated audit view. For the readable overview, use [device-inventory.md](
 | mobile_app | 26 |
 | matter | 22 |
 | tplink | 21 |
-| hacs | 20 |
 
 ## Devices By Area
 
@@ -1328,6 +1328,18 @@ _No registered entities._
 
 ### Unassigned
 
+#### 45  Chesnut  Ridge Rd, Armonk
+
+- Device ID: `device_64750a31749c`
+- Integration: hydrawise
+- Model: Hydrawise HCC 32 Zones
+- Capability mix: 2 telemetry, 0 control, 0 network, 0 other
+
+| Entity | Name | Role | Integration | Detail | Availability |
+| --- | --- | --- | --- | --- | --- |
+| `binary_sensor.45_chesnut_ridge_rd_armonk_connectivity` | 45  Chesnut  Ridge Rd, Armonk Connectivity | telemetry | hydrawise |  | available |
+| `sensor.45_chesnut_ridge_rd_armonk_daily_active_watering_time` | 45  Chesnut  Ridge Rd, Armonk Daily active watering time | telemetry | hydrawise |  | unavailable |
+
 #### Apple TV (Family Room)
 
 - Device ID: `device_58f8e7ee4387`
@@ -2418,6 +2430,465 @@ _No registered entities._
 - Capability mix: 0 telemetry, 0 control, 0 network, 0 other
 
 _No registered entities._
+
+#### Zone 1
+
+- Device ID: `device_e1d90524caea`
+- Integration: hydrawise
+- Model: Hydrawise Zone
+- Capability mix: 4 telemetry, 3 control, 0 network, 0 other
+
+| Entity | Name | Role | Integration | Detail | Availability |
+| --- | --- | --- | --- | --- | --- |
+| `binary_sensor.zone_1_watering` | Zone 1 Watering | telemetry | hydrawise |  | available |
+| `sensor.zone_1_daily_active_watering_time` | Zone 1 Daily active watering time | telemetry | hydrawise |  | unavailable |
+| `sensor.zone_1_next_cycle` | Zone 1 Next cycle | telemetry | hydrawise |  | available |
+| `sensor.zone_1_remaining_watering_time` | Zone 1 Remaining watering time | telemetry | hydrawise |  | available |
+| `switch.zone_1_automatic_watering` | Zone 1 Automatic watering | control | hydrawise |  | available |
+| `switch.zone_1_manual_watering` | Zone 1 Manual watering | control | hydrawise |  | available |
+| `valve.zone_1` | Zone 1 | control | hydrawise |  | available |
+
+#### Zone 10
+
+- Device ID: `device_8636ed25f669`
+- Integration: hydrawise
+- Model: Hydrawise Zone
+- Capability mix: 4 telemetry, 3 control, 0 network, 0 other
+
+| Entity | Name | Role | Integration | Detail | Availability |
+| --- | --- | --- | --- | --- | --- |
+| `binary_sensor.zone_10_watering` | Zone 10 Watering | telemetry | hydrawise |  | available |
+| `sensor.zone_10_daily_active_watering_time` | Zone 10 Daily active watering time | telemetry | hydrawise |  | unavailable |
+| `sensor.zone_10_next_cycle` | Zone 10 Next cycle | telemetry | hydrawise |  | available |
+| `sensor.zone_10_remaining_watering_time` | Zone 10 Remaining watering time | telemetry | hydrawise |  | available |
+| `switch.zone_10_automatic_watering` | Zone 10 Automatic watering | control | hydrawise |  | available |
+| `switch.zone_10_manual_watering` | Zone 10 Manual watering | control | hydrawise |  | available |
+| `valve.zone_10` | Zone 10 | control | hydrawise |  | available |
+
+#### Zone 11
+
+- Device ID: `device_c97c79cfc0b3`
+- Integration: hydrawise
+- Model: Hydrawise Zone
+- Capability mix: 4 telemetry, 3 control, 0 network, 0 other
+
+| Entity | Name | Role | Integration | Detail | Availability |
+| --- | --- | --- | --- | --- | --- |
+| `binary_sensor.zone_11_watering` | Zone 11 Watering | telemetry | hydrawise |  | available |
+| `sensor.zone_11_daily_active_watering_time` | Zone 11 Daily active watering time | telemetry | hydrawise |  | unavailable |
+| `sensor.zone_11_next_cycle` | Zone 11 Next cycle | telemetry | hydrawise |  | available |
+| `sensor.zone_11_remaining_watering_time` | Zone 11 Remaining watering time | telemetry | hydrawise |  | available |
+| `switch.zone_11_automatic_watering` | Zone 11 Automatic watering | control | hydrawise |  | available |
+| `switch.zone_11_manual_watering` | Zone 11 Manual watering | control | hydrawise |  | available |
+| `valve.zone_11` | Zone 11 | control | hydrawise |  | available |
+
+#### Zone 12
+
+- Device ID: `device_29a8147ca2e1`
+- Integration: hydrawise
+- Model: Hydrawise Zone
+- Capability mix: 4 telemetry, 3 control, 0 network, 0 other
+
+| Entity | Name | Role | Integration | Detail | Availability |
+| --- | --- | --- | --- | --- | --- |
+| `binary_sensor.zone_12_watering` | Zone 12 Watering | telemetry | hydrawise |  | available |
+| `sensor.zone_12_daily_active_watering_time` | Zone 12 Daily active watering time | telemetry | hydrawise |  | unavailable |
+| `sensor.zone_12_next_cycle` | Zone 12 Next cycle | telemetry | hydrawise |  | available |
+| `sensor.zone_12_remaining_watering_time` | Zone 12 Remaining watering time | telemetry | hydrawise |  | available |
+| `switch.zone_12_automatic_watering` | Zone 12 Automatic watering | control | hydrawise |  | available |
+| `switch.zone_12_manual_watering` | Zone 12 Manual watering | control | hydrawise |  | available |
+| `valve.zone_12` | Zone 12 | control | hydrawise |  | available |
+
+#### Zone 13
+
+- Device ID: `device_7ad4e214f781`
+- Integration: hydrawise
+- Model: Hydrawise Zone
+- Capability mix: 4 telemetry, 3 control, 0 network, 0 other
+
+| Entity | Name | Role | Integration | Detail | Availability |
+| --- | --- | --- | --- | --- | --- |
+| `binary_sensor.zone_13_watering` | Zone 13 Watering | telemetry | hydrawise |  | available |
+| `sensor.zone_13_daily_active_watering_time` | Zone 13 Daily active watering time | telemetry | hydrawise |  | unavailable |
+| `sensor.zone_13_next_cycle` | Zone 13 Next cycle | telemetry | hydrawise |  | available |
+| `sensor.zone_13_remaining_watering_time` | Zone 13 Remaining watering time | telemetry | hydrawise |  | available |
+| `switch.zone_13_automatic_watering` | Zone 13 Automatic watering | control | hydrawise |  | available |
+| `switch.zone_13_manual_watering` | Zone 13 Manual watering | control | hydrawise |  | available |
+| `valve.zone_13` | Zone 13 | control | hydrawise |  | available |
+
+#### Zone 14
+
+- Device ID: `device_6e668e5875e0`
+- Integration: hydrawise
+- Model: Hydrawise Zone
+- Capability mix: 4 telemetry, 3 control, 0 network, 0 other
+
+| Entity | Name | Role | Integration | Detail | Availability |
+| --- | --- | --- | --- | --- | --- |
+| `binary_sensor.zone_14_watering` | Zone 14 Watering | telemetry | hydrawise |  | available |
+| `sensor.zone_14_daily_active_watering_time` | Zone 14 Daily active watering time | telemetry | hydrawise |  | unavailable |
+| `sensor.zone_14_next_cycle` | Zone 14 Next cycle | telemetry | hydrawise |  | available |
+| `sensor.zone_14_remaining_watering_time` | Zone 14 Remaining watering time | telemetry | hydrawise |  | available |
+| `switch.zone_14_automatic_watering` | Zone 14 Automatic watering | control | hydrawise |  | available |
+| `switch.zone_14_manual_watering` | Zone 14 Manual watering | control | hydrawise |  | available |
+| `valve.zone_14` | Zone 14 | control | hydrawise |  | available |
+
+#### Zone 15
+
+- Device ID: `device_2377ed062def`
+- Integration: hydrawise
+- Model: Hydrawise Zone
+- Capability mix: 4 telemetry, 3 control, 0 network, 0 other
+
+| Entity | Name | Role | Integration | Detail | Availability |
+| --- | --- | --- | --- | --- | --- |
+| `binary_sensor.zone_15_watering` | Zone 15 Watering | telemetry | hydrawise |  | available |
+| `sensor.zone_15_daily_active_watering_time` | Zone 15 Daily active watering time | telemetry | hydrawise |  | unavailable |
+| `sensor.zone_15_next_cycle` | Zone 15 Next cycle | telemetry | hydrawise |  | available |
+| `sensor.zone_15_remaining_watering_time` | Zone 15 Remaining watering time | telemetry | hydrawise |  | available |
+| `switch.zone_15_automatic_watering` | Zone 15 Automatic watering | control | hydrawise |  | available |
+| `switch.zone_15_manual_watering` | Zone 15 Manual watering | control | hydrawise |  | available |
+| `valve.zone_15` | Zone 15 | control | hydrawise |  | available |
+
+#### Zone 16
+
+- Device ID: `device_4fcd1484e443`
+- Integration: hydrawise
+- Model: Hydrawise Zone
+- Capability mix: 4 telemetry, 3 control, 0 network, 0 other
+
+| Entity | Name | Role | Integration | Detail | Availability |
+| --- | --- | --- | --- | --- | --- |
+| `binary_sensor.zone_16_watering` | Zone 16 Watering | telemetry | hydrawise |  | available |
+| `sensor.zone_16_daily_active_watering_time` | Zone 16 Daily active watering time | telemetry | hydrawise |  | unavailable |
+| `sensor.zone_16_next_cycle` | Zone 16 Next cycle | telemetry | hydrawise |  | available |
+| `sensor.zone_16_remaining_watering_time` | Zone 16 Remaining watering time | telemetry | hydrawise |  | available |
+| `switch.zone_16_automatic_watering` | Zone 16 Automatic watering | control | hydrawise |  | available |
+| `switch.zone_16_manual_watering` | Zone 16 Manual watering | control | hydrawise |  | available |
+| `valve.zone_16` | Zone 16 | control | hydrawise |  | available |
+
+#### Zone 17
+
+- Device ID: `device_0df225e1c1e9`
+- Integration: hydrawise
+- Model: Hydrawise Zone
+- Capability mix: 4 telemetry, 3 control, 0 network, 0 other
+
+| Entity | Name | Role | Integration | Detail | Availability |
+| --- | --- | --- | --- | --- | --- |
+| `binary_sensor.zone_17_watering` | Zone 17 Watering | telemetry | hydrawise |  | available |
+| `sensor.zone_17_daily_active_watering_time` | Zone 17 Daily active watering time | telemetry | hydrawise |  | unavailable |
+| `sensor.zone_17_next_cycle` | Zone 17 Next cycle | telemetry | hydrawise |  | available |
+| `sensor.zone_17_remaining_watering_time` | Zone 17 Remaining watering time | telemetry | hydrawise |  | available |
+| `switch.zone_17_automatic_watering` | Zone 17 Automatic watering | control | hydrawise |  | available |
+| `switch.zone_17_manual_watering` | Zone 17 Manual watering | control | hydrawise |  | available |
+| `valve.zone_17` | Zone 17 | control | hydrawise |  | available |
+
+#### Zone 18
+
+- Device ID: `device_f2f5ecfca3e0`
+- Integration: hydrawise
+- Model: Hydrawise Zone
+- Capability mix: 4 telemetry, 3 control, 0 network, 0 other
+
+| Entity | Name | Role | Integration | Detail | Availability |
+| --- | --- | --- | --- | --- | --- |
+| `binary_sensor.zone_18_watering` | Zone 18 Watering | telemetry | hydrawise |  | available |
+| `sensor.zone_18_daily_active_watering_time` | Zone 18 Daily active watering time | telemetry | hydrawise |  | unavailable |
+| `sensor.zone_18_next_cycle` | Zone 18 Next cycle | telemetry | hydrawise |  | available |
+| `sensor.zone_18_remaining_watering_time` | Zone 18 Remaining watering time | telemetry | hydrawise |  | available |
+| `switch.zone_18_automatic_watering` | Zone 18 Automatic watering | control | hydrawise |  | available |
+| `switch.zone_18_manual_watering` | Zone 18 Manual watering | control | hydrawise |  | available |
+| `valve.zone_18` | Zone 18 | control | hydrawise |  | available |
+
+#### Zone 19
+
+- Device ID: `device_03c18f9acef1`
+- Integration: hydrawise
+- Model: Hydrawise Zone
+- Capability mix: 4 telemetry, 3 control, 0 network, 0 other
+
+| Entity | Name | Role | Integration | Detail | Availability |
+| --- | --- | --- | --- | --- | --- |
+| `binary_sensor.zone_19_watering` | Zone 19 Watering | telemetry | hydrawise |  | available |
+| `sensor.zone_19_daily_active_watering_time` | Zone 19 Daily active watering time | telemetry | hydrawise |  | unavailable |
+| `sensor.zone_19_next_cycle` | Zone 19 Next cycle | telemetry | hydrawise |  | available |
+| `sensor.zone_19_remaining_watering_time` | Zone 19 Remaining watering time | telemetry | hydrawise |  | available |
+| `switch.zone_19_automatic_watering` | Zone 19 Automatic watering | control | hydrawise |  | available |
+| `switch.zone_19_manual_watering` | Zone 19 Manual watering | control | hydrawise |  | available |
+| `valve.zone_19` | Zone 19 | control | hydrawise |  | available |
+
+#### Zone 2
+
+- Device ID: `device_c59f911b797b`
+- Integration: hydrawise
+- Model: Hydrawise Zone
+- Capability mix: 4 telemetry, 3 control, 0 network, 0 other
+
+| Entity | Name | Role | Integration | Detail | Availability |
+| --- | --- | --- | --- | --- | --- |
+| `binary_sensor.zone_2_watering` | Zone 2 Watering | telemetry | hydrawise |  | available |
+| `sensor.zone_2_daily_active_watering_time` | Zone 2 Daily active watering time | telemetry | hydrawise |  | unavailable |
+| `sensor.zone_2_next_cycle` | Zone 2 Next cycle | telemetry | hydrawise |  | available |
+| `sensor.zone_2_remaining_watering_time` | Zone 2 Remaining watering time | telemetry | hydrawise |  | available |
+| `switch.zone_2_automatic_watering` | Zone 2 Automatic watering | control | hydrawise |  | available |
+| `switch.zone_2_manual_watering` | Zone 2 Manual watering | control | hydrawise |  | available |
+| `valve.zone_2` | Zone 2 | control | hydrawise |  | available |
+
+#### Zone 20
+
+- Device ID: `device_13f58e5b13b0`
+- Integration: hydrawise
+- Model: Hydrawise Zone
+- Capability mix: 4 telemetry, 3 control, 0 network, 0 other
+
+| Entity | Name | Role | Integration | Detail | Availability |
+| --- | --- | --- | --- | --- | --- |
+| `binary_sensor.zone_20_watering` | Zone 20 Watering | telemetry | hydrawise |  | available |
+| `sensor.zone_20_daily_active_watering_time` | Zone 20 Daily active watering time | telemetry | hydrawise |  | unavailable |
+| `sensor.zone_20_next_cycle` | Zone 20 Next cycle | telemetry | hydrawise |  | available |
+| `sensor.zone_20_remaining_watering_time` | Zone 20 Remaining watering time | telemetry | hydrawise |  | available |
+| `switch.zone_20_automatic_watering` | Zone 20 Automatic watering | control | hydrawise |  | available |
+| `switch.zone_20_manual_watering` | Zone 20 Manual watering | control | hydrawise |  | available |
+| `valve.zone_20` | Zone 20 | control | hydrawise |  | available |
+
+#### Zone 21
+
+- Device ID: `device_ce5c58ea2265`
+- Integration: hydrawise
+- Model: Hydrawise Zone
+- Capability mix: 4 telemetry, 3 control, 0 network, 0 other
+
+| Entity | Name | Role | Integration | Detail | Availability |
+| --- | --- | --- | --- | --- | --- |
+| `binary_sensor.zone_21_watering` | Zone 21 Watering | telemetry | hydrawise |  | available |
+| `sensor.zone_21_daily_active_watering_time` | Zone 21 Daily active watering time | telemetry | hydrawise |  | unavailable |
+| `sensor.zone_21_next_cycle` | Zone 21 Next cycle | telemetry | hydrawise |  | available |
+| `sensor.zone_21_remaining_watering_time` | Zone 21 Remaining watering time | telemetry | hydrawise |  | available |
+| `switch.zone_21_automatic_watering` | Zone 21 Automatic watering | control | hydrawise |  | available |
+| `switch.zone_21_manual_watering` | Zone 21 Manual watering | control | hydrawise |  | available |
+| `valve.zone_21` | Zone 21 | control | hydrawise |  | available |
+
+#### Zone 22
+
+- Device ID: `device_a028e08b08a4`
+- Integration: hydrawise
+- Model: Hydrawise Zone
+- Capability mix: 4 telemetry, 3 control, 0 network, 0 other
+
+| Entity | Name | Role | Integration | Detail | Availability |
+| --- | --- | --- | --- | --- | --- |
+| `binary_sensor.zone_22_watering` | Zone 22 Watering | telemetry | hydrawise |  | available |
+| `sensor.zone_22_daily_active_watering_time` | Zone 22 Daily active watering time | telemetry | hydrawise |  | unavailable |
+| `sensor.zone_22_next_cycle` | Zone 22 Next cycle | telemetry | hydrawise |  | available |
+| `sensor.zone_22_remaining_watering_time` | Zone 22 Remaining watering time | telemetry | hydrawise |  | available |
+| `switch.zone_22_automatic_watering` | Zone 22 Automatic watering | control | hydrawise |  | available |
+| `switch.zone_22_manual_watering` | Zone 22 Manual watering | control | hydrawise |  | available |
+| `valve.zone_22` | Zone 22 | control | hydrawise |  | available |
+
+#### Zone 23
+
+- Device ID: `device_706e4c03d904`
+- Integration: hydrawise
+- Model: Hydrawise Zone
+- Capability mix: 4 telemetry, 3 control, 0 network, 0 other
+
+| Entity | Name | Role | Integration | Detail | Availability |
+| --- | --- | --- | --- | --- | --- |
+| `binary_sensor.zone_23_watering` | Zone 23 Watering | telemetry | hydrawise |  | available |
+| `sensor.zone_23_daily_active_watering_time` | Zone 23 Daily active watering time | telemetry | hydrawise |  | unavailable |
+| `sensor.zone_23_next_cycle` | Zone 23 Next cycle | telemetry | hydrawise |  | available |
+| `sensor.zone_23_remaining_watering_time` | Zone 23 Remaining watering time | telemetry | hydrawise |  | available |
+| `switch.zone_23_automatic_watering` | Zone 23 Automatic watering | control | hydrawise |  | available |
+| `switch.zone_23_manual_watering` | Zone 23 Manual watering | control | hydrawise |  | available |
+| `valve.zone_23` | Zone 23 | control | hydrawise |  | available |
+
+#### Zone 24
+
+- Device ID: `device_1ddfd13c29d4`
+- Integration: hydrawise
+- Model: Hydrawise Zone
+- Capability mix: 4 telemetry, 3 control, 0 network, 0 other
+
+| Entity | Name | Role | Integration | Detail | Availability |
+| --- | --- | --- | --- | --- | --- |
+| `binary_sensor.zone_24_watering` | Zone 24 Watering | telemetry | hydrawise |  | available |
+| `sensor.zone_24_daily_active_watering_time` | Zone 24 Daily active watering time | telemetry | hydrawise |  | unavailable |
+| `sensor.zone_24_next_cycle` | Zone 24 Next cycle | telemetry | hydrawise |  | available |
+| `sensor.zone_24_remaining_watering_time` | Zone 24 Remaining watering time | telemetry | hydrawise |  | available |
+| `switch.zone_24_automatic_watering` | Zone 24 Automatic watering | control | hydrawise |  | available |
+| `switch.zone_24_manual_watering` | Zone 24 Manual watering | control | hydrawise |  | available |
+| `valve.zone_24` | Zone 24 | control | hydrawise |  | available |
+
+#### Zone 25
+
+- Device ID: `device_6d0dbc34e5b5`
+- Integration: hydrawise
+- Model: Hydrawise Zone
+- Capability mix: 4 telemetry, 3 control, 0 network, 0 other
+
+| Entity | Name | Role | Integration | Detail | Availability |
+| --- | --- | --- | --- | --- | --- |
+| `binary_sensor.zone_25_watering` | Zone 25 Watering | telemetry | hydrawise |  | available |
+| `sensor.zone_25_daily_active_watering_time` | Zone 25 Daily active watering time | telemetry | hydrawise |  | unavailable |
+| `sensor.zone_25_next_cycle` | Zone 25 Next cycle | telemetry | hydrawise |  | available |
+| `sensor.zone_25_remaining_watering_time` | Zone 25 Remaining watering time | telemetry | hydrawise |  | available |
+| `switch.zone_25_automatic_watering` | Zone 25 Automatic watering | control | hydrawise |  | available |
+| `switch.zone_25_manual_watering` | Zone 25 Manual watering | control | hydrawise |  | available |
+| `valve.zone_25` | Zone 25 | control | hydrawise |  | available |
+
+#### Zone 26
+
+- Device ID: `device_82355cba4b2a`
+- Integration: hydrawise
+- Model: Hydrawise Zone
+- Capability mix: 4 telemetry, 3 control, 0 network, 0 other
+
+| Entity | Name | Role | Integration | Detail | Availability |
+| --- | --- | --- | --- | --- | --- |
+| `binary_sensor.zone_26_watering` | Zone 26 Watering | telemetry | hydrawise |  | available |
+| `sensor.zone_26_daily_active_watering_time` | Zone 26 Daily active watering time | telemetry | hydrawise |  | unavailable |
+| `sensor.zone_26_next_cycle` | Zone 26 Next cycle | telemetry | hydrawise |  | available |
+| `sensor.zone_26_remaining_watering_time` | Zone 26 Remaining watering time | telemetry | hydrawise |  | available |
+| `switch.zone_26_automatic_watering` | Zone 26 Automatic watering | control | hydrawise |  | available |
+| `switch.zone_26_manual_watering` | Zone 26 Manual watering | control | hydrawise |  | available |
+| `valve.zone_26` | Zone 26 | control | hydrawise |  | available |
+
+#### Zone 27
+
+- Device ID: `device_745e6ddd1b9d`
+- Integration: hydrawise
+- Model: Hydrawise Zone
+- Capability mix: 4 telemetry, 3 control, 0 network, 0 other
+
+| Entity | Name | Role | Integration | Detail | Availability |
+| --- | --- | --- | --- | --- | --- |
+| `binary_sensor.zone_27_watering` | Zone 27 Watering | telemetry | hydrawise |  | available |
+| `sensor.zone_27_daily_active_watering_time` | Zone 27 Daily active watering time | telemetry | hydrawise |  | unavailable |
+| `sensor.zone_27_next_cycle` | Zone 27 Next cycle | telemetry | hydrawise |  | available |
+| `sensor.zone_27_remaining_watering_time` | Zone 27 Remaining watering time | telemetry | hydrawise |  | available |
+| `switch.zone_27_automatic_watering` | Zone 27 Automatic watering | control | hydrawise |  | available |
+| `switch.zone_27_manual_watering` | Zone 27 Manual watering | control | hydrawise |  | available |
+| `valve.zone_27` | Zone 27 | control | hydrawise |  | available |
+
+#### Zone 3
+
+- Device ID: `device_da6ec5312c61`
+- Integration: hydrawise
+- Model: Hydrawise Zone
+- Capability mix: 4 telemetry, 3 control, 0 network, 0 other
+
+| Entity | Name | Role | Integration | Detail | Availability |
+| --- | --- | --- | --- | --- | --- |
+| `binary_sensor.zone_3_watering` | Zone 3 Watering | telemetry | hydrawise |  | available |
+| `sensor.zone_3_daily_active_watering_time` | Zone 3 Daily active watering time | telemetry | hydrawise |  | unavailable |
+| `sensor.zone_3_next_cycle` | Zone 3 Next cycle | telemetry | hydrawise |  | available |
+| `sensor.zone_3_remaining_watering_time` | Zone 3 Remaining watering time | telemetry | hydrawise |  | available |
+| `switch.zone_3_automatic_watering` | Zone 3 Automatic watering | control | hydrawise |  | available |
+| `switch.zone_3_manual_watering` | Zone 3 Manual watering | control | hydrawise |  | available |
+| `valve.zone_3` | Zone 3 | control | hydrawise |  | available |
+
+#### Zone 4
+
+- Device ID: `device_719fe0d1fc0f`
+- Integration: hydrawise
+- Model: Hydrawise Zone
+- Capability mix: 4 telemetry, 3 control, 0 network, 0 other
+
+| Entity | Name | Role | Integration | Detail | Availability |
+| --- | --- | --- | --- | --- | --- |
+| `binary_sensor.zone_4_watering` | Zone 4 Watering | telemetry | hydrawise |  | available |
+| `sensor.zone_4_daily_active_watering_time` | Zone 4 Daily active watering time | telemetry | hydrawise |  | unavailable |
+| `sensor.zone_4_next_cycle` | Zone 4 Next cycle | telemetry | hydrawise |  | available |
+| `sensor.zone_4_remaining_watering_time` | Zone 4 Remaining watering time | telemetry | hydrawise |  | available |
+| `switch.zone_4_automatic_watering` | Zone 4 Automatic watering | control | hydrawise |  | available |
+| `switch.zone_4_manual_watering` | Zone 4 Manual watering | control | hydrawise |  | available |
+| `valve.zone_4` | Zone 4 | control | hydrawise |  | available |
+
+#### Zone 5
+
+- Device ID: `device_9f4d8191f894`
+- Integration: hydrawise
+- Model: Hydrawise Zone
+- Capability mix: 4 telemetry, 3 control, 0 network, 0 other
+
+| Entity | Name | Role | Integration | Detail | Availability |
+| --- | --- | --- | --- | --- | --- |
+| `binary_sensor.zone_5_watering` | Zone 5 Watering | telemetry | hydrawise |  | available |
+| `sensor.zone_5_daily_active_watering_time` | Zone 5 Daily active watering time | telemetry | hydrawise |  | unavailable |
+| `sensor.zone_5_next_cycle` | Zone 5 Next cycle | telemetry | hydrawise |  | available |
+| `sensor.zone_5_remaining_watering_time` | Zone 5 Remaining watering time | telemetry | hydrawise |  | available |
+| `switch.zone_5_automatic_watering` | Zone 5 Automatic watering | control | hydrawise |  | available |
+| `switch.zone_5_manual_watering` | Zone 5 Manual watering | control | hydrawise |  | available |
+| `valve.zone_5` | Zone 5 | control | hydrawise |  | available |
+
+#### Zone 6
+
+- Device ID: `device_5c1d4b1d9c80`
+- Integration: hydrawise
+- Model: Hydrawise Zone
+- Capability mix: 4 telemetry, 3 control, 0 network, 0 other
+
+| Entity | Name | Role | Integration | Detail | Availability |
+| --- | --- | --- | --- | --- | --- |
+| `binary_sensor.zone_6_watering` | Zone 6 Watering | telemetry | hydrawise |  | available |
+| `sensor.zone_6_daily_active_watering_time` | Zone 6 Daily active watering time | telemetry | hydrawise |  | unavailable |
+| `sensor.zone_6_next_cycle` | Zone 6 Next cycle | telemetry | hydrawise |  | available |
+| `sensor.zone_6_remaining_watering_time` | Zone 6 Remaining watering time | telemetry | hydrawise |  | available |
+| `switch.zone_6_automatic_watering` | Zone 6 Automatic watering | control | hydrawise |  | available |
+| `switch.zone_6_manual_watering` | Zone 6 Manual watering | control | hydrawise |  | available |
+| `valve.zone_6` | Zone 6 | control | hydrawise |  | available |
+
+#### Zone 7
+
+- Device ID: `device_55d1a20ddb5a`
+- Integration: hydrawise
+- Model: Hydrawise Zone
+- Capability mix: 4 telemetry, 3 control, 0 network, 0 other
+
+| Entity | Name | Role | Integration | Detail | Availability |
+| --- | --- | --- | --- | --- | --- |
+| `binary_sensor.zone_7_watering` | Zone 7 Watering | telemetry | hydrawise |  | available |
+| `sensor.zone_7_daily_active_watering_time` | Zone 7 Daily active watering time | telemetry | hydrawise |  | unavailable |
+| `sensor.zone_7_next_cycle` | Zone 7 Next cycle | telemetry | hydrawise |  | available |
+| `sensor.zone_7_remaining_watering_time` | Zone 7 Remaining watering time | telemetry | hydrawise |  | available |
+| `switch.zone_7_automatic_watering` | Zone 7 Automatic watering | control | hydrawise |  | available |
+| `switch.zone_7_manual_watering` | Zone 7 Manual watering | control | hydrawise |  | available |
+| `valve.zone_7` | Zone 7 | control | hydrawise |  | available |
+
+#### Zone 8
+
+- Device ID: `device_15ebbdda2507`
+- Integration: hydrawise
+- Model: Hydrawise Zone
+- Capability mix: 4 telemetry, 3 control, 0 network, 0 other
+
+| Entity | Name | Role | Integration | Detail | Availability |
+| --- | --- | --- | --- | --- | --- |
+| `binary_sensor.zone_8_watering` | Zone 8 Watering | telemetry | hydrawise |  | available |
+| `sensor.zone_8_daily_active_watering_time` | Zone 8 Daily active watering time | telemetry | hydrawise |  | unavailable |
+| `sensor.zone_8_next_cycle` | Zone 8 Next cycle | telemetry | hydrawise |  | available |
+| `sensor.zone_8_remaining_watering_time` | Zone 8 Remaining watering time | telemetry | hydrawise |  | available |
+| `switch.zone_8_automatic_watering` | Zone 8 Automatic watering | control | hydrawise |  | available |
+| `switch.zone_8_manual_watering` | Zone 8 Manual watering | control | hydrawise |  | available |
+| `valve.zone_8` | Zone 8 | control | hydrawise |  | available |
+
+#### Zone 9
+
+- Device ID: `device_e510c2e8c474`
+- Integration: hydrawise
+- Model: Hydrawise Zone
+- Capability mix: 4 telemetry, 3 control, 0 network, 0 other
+
+| Entity | Name | Role | Integration | Detail | Availability |
+| --- | --- | --- | --- | --- | --- |
+| `binary_sensor.zone_9_watering` | Zone 9 Watering | telemetry | hydrawise |  | available |
+| `sensor.zone_9_daily_active_watering_time` | Zone 9 Daily active watering time | telemetry | hydrawise |  | unavailable |
+| `sensor.zone_9_next_cycle` | Zone 9 Next cycle | telemetry | hydrawise |  | available |
+| `sensor.zone_9_remaining_watering_time` | Zone 9 Remaining watering time | telemetry | hydrawise |  | available |
+| `switch.zone_9_automatic_watering` | Zone 9 Automatic watering | control | hydrawise |  | available |
+| `switch.zone_9_manual_watering` | Zone 9 Manual watering | control | hydrawise |  | available |
+| `valve.zone_9` | Zone 9 | control | hydrawise |  | available |
 
 #### apexcharts-card
 
