@@ -417,6 +417,18 @@ input_datetime:
     name: Latest Camera Motion At
     has_date: true
     has_time: true
+  home_assistant_remote_ui_last_recovery_attempt:
+    name: HA Remote UI Last Recovery Attempt
+    has_date: true
+    has_time: true
+  home_assistant_remote_ui_last_degraded_at:
+    name: HA Remote UI Last Degraded At
+    has_date: true
+    has_time: true
+  home_assistant_remote_ui_last_restored_at:
+    name: HA Remote UI Last Restored At
+    has_date: true
+    has_time: true
   environment_radon_last_alert:
     name: Environment Radon Last Alert
     has_date: true
@@ -606,6 +618,9 @@ input_text:
   latest_camera_motion_entity:
     name: Latest Camera Motion Entity
     max: 255
+  home_assistant_remote_ui_watchdog_last_status:
+    name: HA Remote UI Watchdog Last Status
+    max: 255
   garbage_recycling_last_taken_out_pickup:
     name: Garbage Recycling Last Taken Out Pickup
     max: 10
@@ -648,6 +663,9 @@ input_boolean:
     name: House Battery Alerts Enabled
     icon: mdi:battery-heart-variant
     initial: true
+  home_assistant_remote_ui_degraded_notice_active:
+    name: HA Remote UI Degraded Notice Active
+    icon: mdi:cloud-alert-outline
   ting_watch_notifications_enabled:
     name: Ting Watch Notifications Enabled
     icon: mdi:flash-alert-outline
@@ -1006,6 +1024,41 @@ template:
           {% else %}Poor
           {% endif %}
         icon: mdi:radioactive
+
+      - name: "Home Assistant Remote Access Status"
+        unique_id: home_assistant_remote_access_status
+        state: >
+          {% set remote = states('binary_sensor.remote_ui') %}
+          {% if remote == 'on' %}
+            online
+          {% elif remote in ['off', 'unavailable'] %}
+            remote_disconnected
+          {% else %}
+            unknown
+          {% endif %}
+        icon: >
+          {% set remote = states('binary_sensor.remote_ui') %}
+          {% if remote == 'on' %}
+            mdi:cloud-check-outline
+          {% elif remote in ['off', 'unavailable'] %}
+            mdi:cloud-alert-outline
+          {% else %}
+            mdi:cloud-question-outline
+          {% endif %}
+        attributes:
+          remote_ui_state: "{{ states('binary_sensor.remote_ui') }}"
+          last_recovery_attempt: "{{ states('input_datetime.home_assistant_remote_ui_last_recovery_attempt') }}"
+          last_degraded_at: "{{ states('input_datetime.home_assistant_remote_ui_last_degraded_at') }}"
+          last_restored_at: "{{ states('input_datetime.home_assistant_remote_ui_last_restored_at') }}"
+          watchdog_last_status: "{{ states('input_text.home_assistant_remote_ui_watchdog_last_status') }}"
+          degraded_notice_active: "{{ states('input_boolean.home_assistant_remote_ui_degraded_notice_active') }}"
+          core_update_state: "{{ states('update.home_assistant_core_update') }}"
+          supervisor_update_state: "{{ states('update.home_assistant_supervisor_update') }}"
+          operating_system_update_state: "{{ states('update.home_assistant_operating_system_update') }}"
+          gateway_state: "{{ states('sensor.bonticou_gateway_state') }}"
+          wan_status: "{{ states('binary_sensor.fios_router_wan_status') }}"
+          gateway_uptime: "{{ states('sensor.bonticou_gateway_uptime_2') }}"
+          host_disk_free: "{{ states('sensor.home_assistant_host_disk_free') }}"
 
       # ── Dew Point °F ─────────────────────────────────────
       # Why it matters: if dew point approaches your cave wall

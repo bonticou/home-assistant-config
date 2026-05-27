@@ -171,6 +171,126 @@
                 entity_id: sensor.device_inventory_pending_digest
   mode: single
 
+- id: home_assistant_remote_ui_watchdog
+  alias: "Home Assistant — Remote UI Watchdog"
+  description: Attempts a rate-limited HA Cloud Remote UI reconnect and records outage evidence when the cloud tunnel drops.
+  triggers:
+    - trigger: homeassistant
+      event: start
+      id: reconnect_check
+    - trigger: time_pattern
+      minutes: "/15"
+      id: reconnect_check
+    - trigger: state
+      entity_id: binary_sensor.remote_ui
+      to: "off"
+      for:
+        minutes: 1
+      id: reconnect_check
+    - trigger: state
+      entity_id: binary_sensor.remote_ui
+      to: "unavailable"
+      for:
+        minutes: 1
+      id: reconnect_check
+    - trigger: state
+      entity_id: binary_sensor.remote_ui
+      to: "off"
+      for:
+        minutes: 5
+      id: degraded_notice
+    - trigger: state
+      entity_id: binary_sensor.remote_ui
+      to: "unavailable"
+      for:
+        minutes: 5
+      id: degraded_notice
+    - trigger: state
+      entity_id: binary_sensor.remote_ui
+      to: "on"
+      id: restored
+  conditions: []
+  actions:
+    - variables:
+        remote_state: "{{ states('binary_sensor.remote_ui') }}"
+        remote_bad: "{{ remote_state in ['off', 'unavailable', 'unknown'] }}"
+        last_attempt_ts: "{{ as_timestamp(states('input_datetime.home_assistant_remote_ui_last_recovery_attempt'), 0) }}"
+        attempt_age_seconds: >-
+          {% set ts = last_attempt_ts | float(0) %}
+          {{ 999999 if ts == 0 else (as_timestamp(now()) - ts) }}
+    - choose:
+        - conditions:
+            - condition: template
+              value_template: "{{ trigger.id == 'restored' }}"
+          sequence:
+            - action: input_datetime.set_datetime
+              target:
+                entity_id: input_datetime.home_assistant_remote_ui_last_restored_at
+              data:
+                datetime: "{{ now().strftime('%Y-%m-%d %H:%M:%S') }}"
+            - action: input_text.set_value
+              target:
+                entity_id: input_text.home_assistant_remote_ui_watchdog_last_status
+              data:
+                value: "Remote UI restored at {{ now().strftime('%Y-%m-%d %H:%M:%S') }}"
+            - action: input_boolean.turn_off
+              target:
+                entity_id: input_boolean.home_assistant_remote_ui_degraded_notice_active
+            - action: persistent_notification.dismiss
+              continue_on_error: true
+              data:
+                notification_id: home_assistant_remote_ui_degraded
+        - conditions:
+            - condition: template
+              value_template: "{{ trigger.id == 'degraded_notice' and remote_bad | bool }}"
+          sequence:
+            - action: input_datetime.set_datetime
+              target:
+                entity_id: input_datetime.home_assistant_remote_ui_last_degraded_at
+              data:
+                datetime: "{{ now().strftime('%Y-%m-%d %H:%M:%S') }}"
+            - action: input_text.set_value
+              target:
+                entity_id: input_text.home_assistant_remote_ui_watchdog_last_status
+              data:
+                value: "Remote UI degraded for 5+ minutes; latest state {{ remote_state }}"
+            - action: input_boolean.turn_on
+              target:
+                entity_id: input_boolean.home_assistant_remote_ui_degraded_notice_active
+            - action: persistent_notification.create
+              data:
+                notification_id: home_assistant_remote_ui_degraded
+                title: "Home Assistant Remote UI disconnected"
+                message: >-
+                  Nabu Casa Remote UI has been {{ remote_state }} for at least
+                  5 minutes. The watchdog will call cloud.remote_connect at most
+                  once every 15 minutes. If mobile and Safari are both showing
+                  the Nabu Casa fallback page, check the Nabu Casa account page,
+                  HA Cloud settings, host uptime, and WAN status.
+        - conditions:
+            - condition: template
+              value_template: "{{ remote_bad | bool and (attempt_age_seconds | float(999999)) >= 900 }}"
+          sequence:
+            - action: input_datetime.set_datetime
+              target:
+                entity_id: input_datetime.home_assistant_remote_ui_last_recovery_attempt
+              data:
+                datetime: "{{ now().strftime('%Y-%m-%d %H:%M:%S') }}"
+            - action: input_text.set_value
+              target:
+                entity_id: input_text.home_assistant_remote_ui_watchdog_last_status
+              data:
+                value: "Called cloud.remote_connect because Remote UI was {{ remote_state }}"
+            - action: cloud.remote_connect
+              continue_on_error: true
+            - action: logbook.log
+              continue_on_error: true
+              data:
+                name: "HA Remote UI watchdog"
+                message: "Called cloud.remote_connect while binary_sensor.remote_ui was {{ remote_state }}"
+                entity_id: binary_sensor.remote_ui
+  mode: single
+
 - id: water_overnight_continuous_flow
   alias: "Water — Overnight Continuous Flow (Running Toilet)"
   description: >

@@ -50,6 +50,21 @@ At roughly the same window, public status pages showed no broad cloud outage:
 Current lead: Trevor's HA instance, home internet path, or HA Cloud connection
 is offline or disconnected from Nabu Casa during the incident window.
 
+### Reliability fix added: 2026-05-27
+
+Follow-up implementation now adds a first safety layer for this failure mode:
+
+- `Home Assistant — Remote UI Watchdog` watches `binary_sensor.remote_ui`, calls
+  `cloud.remote_connect` at most once every 15 minutes while Remote UI is down,
+  and records degraded/restored/recovery-attempt timestamps.
+- `sensor.home_assistant_remote_access_status` summarizes Remote UI state and
+  nearby HA/WAN context for the next incident.
+- `tools/ha_remote_health_probe.py` provides an outside-HA probe that detects
+  the Nabu Casa fallback page and treats a websocket `auth_required` greeting as
+  proof that the request reached HA.
+- `docs/home-assistant-remote-access-runbook.md` documents the manual recovery
+  path and evidence to capture next time.
+
 ### User-visible symptom
 
 - Screenshot at 10:05 AM on 2026-05-26 shows a blank dark Home Assistant app
