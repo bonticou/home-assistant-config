@@ -315,6 +315,14 @@ input_datetime:
     name: Irrigation Expected Water Use Until
     has_date: true
     has_time: true
+  irrigation_recovery_slow_check_at:
+    name: Irrigation Recovery Slow Check At
+    has_date: true
+    has_time: true
+  irrigation_recovery_failed_check_at:
+    name: Irrigation Recovery Failed Check At
+    has_date: true
+    has_time: true
   espresso_last_water_backflush:
     name: Espresso Last Water Backflush
     has_date: true
@@ -3777,6 +3785,76 @@ template:
              or (expected_until not in ['unknown', 'unavailable', 'none', '']
                  and as_timestamp(expected_until, 0) > as_timestamp(now())) }}
         icon: mdi:sprinkler-variant
+
+      - name: "Irrigation Break Signature Active"
+        unique_id: irrigation_break_signature_active
+        device_class: problem
+        state: >
+          {% set flow = states('sensor.flo_shutoff_water_flow_rate') | float(0) %}
+          {% set pressure = states('sensor.flo_shutoff_water_pressure') | float(0) %}
+          {% set start_pressure = states('input_number.irrigation_zone_start_pressure') | float(0) %}
+          {{ is_state('binary_sensor.irrigation_active', 'on')
+             and states('sensor.irrigation_active_zone_count') | int(0) == 1
+             and ((flow > 10 and pressure < 30)
+                  or (flow > 4 and start_pressure > 0 and (start_pressure - pressure) > 20)) }}
+        icon: mdi:pipe-leak
+
+      - name: "Irrigation Zone Running Too Long"
+        unique_id: irrigation_zone_running_too_long
+        device_class: problem
+        state: >
+          {% set zone = states('sensor.irrigation_active_zone') %}
+          {% set started = states('input_datetime.irrigation_zone_started_at') %}
+          {{ is_state('binary_sensor.irrigation_active', 'on')
+             and states('sensor.irrigation_active_zone_count') | int(0) == 1
+             and zone not in ['unknown', 'unavailable', 'none', '', 'None']
+             and started not in ['unknown', 'unavailable', 'none', '']
+             and (as_timestamp(now()) - as_timestamp(started, as_timestamp(now()))) > 2700 }}
+        icon: mdi:timer-alert-outline
+
+      - name: "Irrigation Valve State Mismatch"
+        unique_id: irrigation_valve_state_mismatch
+        device_class: problem
+        state: >
+          {% set ns = namespace(mismatches=[]) %}
+          {% for zone in range(1, 28) %}
+            {% set watering_entity = 'binary_sensor.zone_' ~ zone ~ '_watering' %}
+            {% set valve_entity = 'valve' ~ '.zone_' ~ zone %}
+            {% set watering = states(watering_entity) %}
+            {% set valve = states(valve_entity) %}
+            {% set label = (state_attr(watering_entity, 'friendly_name') or ('Zone ' ~ zone)) | regex_replace(' Watering$', '') %}
+            {% if watering == 'on' and valve not in ['open', 'opening', 'unknown', 'unavailable'] %}
+              {% set ns.mismatches = ns.mismatches + [label ~ ' watering, valve ' ~ valve] %}
+            {% elif valve == 'open' and watering != 'on' %}
+              {% set ns.mismatches = ns.mismatches + [label ~ ' valve open, watering ' ~ watering] %}
+            {% endif %}
+          {% endfor %}
+          {{ ns.mismatches | count > 0 }}
+        icon: mdi:valve-open
+        attributes:
+          mismatches: >
+            {% set ns = namespace(mismatches=[]) %}
+            {% for zone in range(1, 28) %}
+              {% set watering_entity = 'binary_sensor.zone_' ~ zone ~ '_watering' %}
+              {% set valve_entity = 'valve' ~ '.zone_' ~ zone %}
+              {% set watering = states(watering_entity) %}
+              {% set valve = states(valve_entity) %}
+              {% set label = (state_attr(watering_entity, 'friendly_name') or ('Zone ' ~ zone)) | regex_replace(' Watering$', '') %}
+              {% if watering == 'on' and valve not in ['open', 'opening', 'unknown', 'unavailable'] %}
+                {% set ns.mismatches = ns.mismatches + [label ~ ' watering, valve ' ~ valve] %}
+              {% elif valve == 'open' and watering != 'on' %}
+                {% set ns.mismatches = ns.mismatches + [label ~ ' valve open, watering ' ~ watering] %}
+              {% endif %}
+            {% endfor %}
+            {{ ns.mismatches | join('; ') }}
+
+      - name: "Irrigation Flo Telemetry Available"
+        unique_id: irrigation_flo_telemetry_available
+        device_class: connectivity
+        state: >
+          {{ states('sensor.flo_shutoff_water_flow_rate') not in ['unknown', 'unavailable', 'none', '']
+             and states('sensor.flo_shutoff_water_pressure') not in ['unknown', 'unavailable', 'none', ''] }}
+        icon: mdi:gauge
 
       - name: "Ting Confirmed Hazard Active"
         unique_id: ting_confirmed_hazard_active

@@ -654,14 +654,11 @@
     - condition: template
       value_template: >-
         {% set started = states('input_datetime.irrigation_session_started_at') %}
-        {% set ended = states('input_datetime.irrigation_session_ended_at') %}
         {% set expected_until = states('input_datetime.irrigation_expected_water_use_until') %}
         {% set no_prior_start = started in ['unknown', 'unavailable', 'none', ''] %}
-        {% set prior_session_closed = ended not in ['unknown', 'unavailable', 'none', '']
-           and as_timestamp(ended, 0) >= as_timestamp(started, 0) %}
         {% set expected_expired = expected_until in ['unknown', 'unavailable', 'none', '']
            or as_timestamp(expected_until, 0) <= as_timestamp(now()) %}
-        {{ no_prior_start or prior_session_closed or expected_expired }}
+        {{ no_prior_start or expected_expired }}
   actions:
     - variables:
         session_id: "{{ now().strftime('%Y%m%d%H%M%S') }}"
@@ -864,7 +861,7 @@
       from: "on"
       to: "off"
       for:
-        minutes: 2
+        minutes: 5
   conditions:
     - condition: template
       value_template: >-
@@ -897,6 +894,16 @@
         entity_id: input_datetime.irrigation_expected_water_use_until
       data:
         datetime: "{{ (now() + timedelta(minutes=15)).strftime('%Y-%m-%d %H:%M:%S') }}"
+    - action: input_datetime.set_datetime
+      target:
+        entity_id: input_datetime.irrigation_recovery_slow_check_at
+      data:
+        datetime: "{{ (now() + timedelta(minutes=5)).strftime('%Y-%m-%d %H:%M:%S') }}"
+    - action: input_datetime.set_datetime
+      target:
+        entity_id: input_datetime.irrigation_recovery_failed_check_at
+      data:
+        datetime: "{{ (now() + timedelta(minutes=15)).strftime('%Y-%m-%d %H:%M:%S') }}"
     - if:
         - condition: state
           entity_id: input_boolean.irrigation_notifications_enabled
@@ -911,58 +918,84 @@
               Flo estimates {{ gallons_used }} gal used. Lowest pressure was {{ min_pressure }} psi,
               max flow was {{ max_flow }} gal/min, and pressure is now {{ current_pressure }} psi.
               Session started on {{ start_zone }}.
-    - delay:
-        minutes: 8
+  mode: single
+
+- id: irrigation_recovery_slow_followup
+  alias: "Irrigation — Well Recovery Slow Follow-Up"
+  description: Timestamp-based slow-recovery warning so a Home Assistant restart does not lose the check.
+  triggers:
+    - trigger: time_pattern
+      minutes: "/1"
+  conditions:
+    - condition: state
+      entity_id: input_boolean.irrigation_notifications_enabled
+      state: "on"
+    - condition: state
+      entity_id: binary_sensor.irrigation_active
+      state: "off"
+    - condition: template
+      value_template: >-
+        {% set check = states('input_datetime.irrigation_recovery_slow_check_at') %}
+        {% set check_ts = as_timestamp(check, 0) %}
+        {% set now_ts = as_timestamp(now()) %}
+        {{ check_ts > 0 and now_ts >= check_ts and now_ts <= check_ts + 1800 }}
+    - condition: template
+      value_template: "{{ states('input_text.irrigation_active_alert_kind') not in ['irrigation_recovery_slow', 'irrigation_recovery_failed'] }}"
+    - condition: template
+      value_template: >-
+        {% set recovery_target = ([35, states('input_number.irrigation_session_start_pressure') | float(0) - 12]) | max %}
+        {{ states('sensor.flo_shutoff_water_flow_rate') | float(0) < 0.05
+           and states('sensor.flo_shutoff_water_pressure') | float(0) < recovery_target }}
+  actions:
     - variables:
-        recovery_target: "{{ ([35, (start_pressure | float(0)) - 12]) | max | round(1) }}"
-        pressure_after_10: "{{ states('sensor.flo_shutoff_water_pressure') | float(0) | round(1) }}"
-        flow_after_10: "{{ states('sensor.flo_shutoff_water_flow_rate') | float(0) | round(2) }}"
-    - if:
-        - condition: state
-          entity_id: input_boolean.irrigation_notifications_enabled
-          state: "on"
-        - condition: state
-          entity_id: binary_sensor.irrigation_active
-          state: "off"
-        - condition: template
-          value_template: "{{ states('input_text.irrigation_session_id') == session_id }}"
-        - condition: template
-          value_template: "{{ flow_after_10 | float(0) < 0.05 and pressure_after_10 | float(0) < recovery_target | float(35) }}"
-      then:
-        - action: script.water_send_alert
-          data:
-            alert_kind: irrigation_recovery_slow
-            severity: warning
-            message: >-
-              Ten minutes after sprinklers stopped, flow is quiet but well pressure is only
-              {{ pressure_after_10 }} psi. Expected recovery target is about {{ recovery_target }} psi
-              based on the session start pressure of {{ start_pressure }} psi.
-    - delay:
-        minutes: 10
-    - variables:
-        pressure_after_20: "{{ states('sensor.flo_shutoff_water_pressure') | float(0) | round(1) }}"
-        flow_after_20: "{{ states('sensor.flo_shutoff_water_flow_rate') | float(0) | round(2) }}"
-    - if:
-        - condition: state
-          entity_id: input_boolean.irrigation_notifications_enabled
-          state: "on"
-        - condition: state
-          entity_id: binary_sensor.irrigation_active
-          state: "off"
-        - condition: template
-          value_template: "{{ states('input_text.irrigation_session_id') == session_id }}"
-        - condition: template
-          value_template: "{{ flow_after_20 | float(0) < 0.05 and pressure_after_20 | float(0) < 30 }}"
-      then:
-        - action: script.water_send_alert
-          data:
-            alert_kind: irrigation_recovery_failed
-            severity: critical
-            message: >-
-              Twenty minutes after sprinklers stopped, flow is quiet but well pressure is still
-              {{ pressure_after_20 }} psi. The well system has not recovered to the 30 psi floor.
-  mode: parallel
-  max: 3
+        recovery_target: "{{ ([35, states('input_number.irrigation_session_start_pressure') | float(0) - 12]) | max | round(1) }}"
+        start_pressure: "{{ states('input_number.irrigation_session_start_pressure') | float(0) | round(1) }}"
+        pressure_now: "{{ states('sensor.flo_shutoff_water_pressure') | float(0) | round(1) }}"
+    - action: script.water_send_alert
+      data:
+        alert_kind: irrigation_recovery_slow
+        severity: warning
+        message: >-
+          Ten minutes after sprinklers stopped, flow is quiet but well pressure is only
+          {{ pressure_now }} psi. Expected recovery target is about {{ recovery_target }} psi
+          based on the session start pressure of {{ start_pressure }} psi.
+  mode: single
+
+- id: irrigation_recovery_failed_followup
+  alias: "Irrigation — Well Recovery Failed Follow-Up"
+  description: Timestamp-based failed-recovery alert so a Home Assistant restart does not lose the check.
+  triggers:
+    - trigger: time_pattern
+      minutes: "/1"
+  conditions:
+    - condition: state
+      entity_id: input_boolean.irrigation_notifications_enabled
+      state: "on"
+    - condition: state
+      entity_id: binary_sensor.irrigation_active
+      state: "off"
+    - condition: template
+      value_template: >-
+        {% set check = states('input_datetime.irrigation_recovery_failed_check_at') %}
+        {% set check_ts = as_timestamp(check, 0) %}
+        {% set now_ts = as_timestamp(now()) %}
+        {{ check_ts > 0 and now_ts >= check_ts and now_ts <= check_ts + 1800 }}
+    - condition: template
+      value_template: "{{ states('input_text.irrigation_active_alert_kind') != 'irrigation_recovery_failed' }}"
+    - condition: template
+      value_template: >-
+        {{ states('sensor.flo_shutoff_water_flow_rate') | float(0) < 0.05
+           and states('sensor.flo_shutoff_water_pressure') | float(0) < 30 }}
+  actions:
+    - action: script.water_send_alert
+      data:
+        alert_kind: irrigation_recovery_failed
+        severity: critical
+        message: >-
+          Twenty minutes after sprinklers stopped, flow is quiet but well pressure is still
+          {{ states('sensor.flo_shutoff_water_pressure') | float(0) | round(1) }} psi.
+          The well system has not recovered to the 30 psi floor.
+  mode: single
 
 - id: irrigation_flow_after_stop
   alias: "Irrigation — Flow After Stop"
@@ -1072,8 +1105,11 @@
   alias: "Irrigation — Break Suspected"
   description: Critical alert for high-flow and low-pressure irrigation signatures.
   triggers:
-    - trigger: time_pattern
-      minutes: "/1"
+    - trigger: state
+      entity_id: binary_sensor.irrigation_break_signature_active
+      to: "on"
+      for:
+        minutes: 2
   conditions:
     - condition: state
       entity_id: input_boolean.irrigation_notifications_enabled
@@ -1085,13 +1121,9 @@
       value_template: "{{ states('sensor.irrigation_active_zone_count') | int(0) == 1 }}"
     - condition: template
       value_template: "{{ states('input_text.irrigation_active_alert_kind') != 'irrigation_break_suspected' }}"
-    - condition: template
-      value_template: >-
-        {% set flow = states('sensor.flo_shutoff_water_flow_rate') | float(0) %}
-        {% set pressure = states('sensor.flo_shutoff_water_pressure') | float(0) %}
-        {% set start_pressure = states('input_number.irrigation_zone_start_pressure') | float(0) %}
-        {{ (flow > 10 and pressure < 30)
-           or (flow > 4 and start_pressure > 0 and (start_pressure - pressure) > 20) }}
+    - condition: state
+      entity_id: binary_sensor.irrigation_break_signature_active
+      state: "on"
   actions:
     - action: script.water_send_alert
       data:
@@ -1102,6 +1134,67 @@
           {{ states('sensor.flo_shutoff_water_flow_rate') | float(0) | round(2) }} gal/min,
           pressure {{ states('sensor.flo_shutoff_water_pressure') | float(0) | round(1) }} psi,
           zone start pressure {{ states('input_number.irrigation_zone_start_pressure') | float(0) | round(1) }} psi.
+  mode: single
+
+- id: irrigation_zone_ran_too_long
+  alias: "Irrigation — Zone Ran Too Long"
+  description: Critical alert when one Hydrawise zone stays active longer than a normal fixed run should.
+  triggers:
+    - trigger: state
+      entity_id: binary_sensor.irrigation_zone_running_too_long
+      to: "on"
+      for:
+        minutes: 2
+  conditions:
+    - condition: state
+      entity_id: input_boolean.irrigation_notifications_enabled
+      state: "on"
+    - condition: state
+      entity_id: binary_sensor.irrigation_active
+      state: "on"
+    - condition: template
+      value_template: "{{ states('input_text.irrigation_active_alert_kind') != 'irrigation_zone_ran_too_long' }}"
+  actions:
+    - variables:
+        started: "{{ states('input_datetime.irrigation_zone_started_at') }}"
+        runtime_minutes: "{{ ((as_timestamp(now()) - as_timestamp(started, as_timestamp(now()))) / 60) | round(0) }}"
+    - action: script.water_send_alert
+      data:
+        alert_kind: irrigation_zone_ran_too_long
+        severity: critical
+        message: >-
+          {{ states('sensor.irrigation_active_zone') }} has reported watering for about
+          {{ runtime_minutes }} minutes. Flow is
+          {{ states('sensor.flo_shutoff_water_flow_rate') | float(0) | round(2) }} gal/min
+          and pressure is {{ states('sensor.flo_shutoff_water_pressure') | float(0) | round(1) }} psi.
+          Check Hydrawise and the valve; the zone may not have advanced or may be stuck open.
+  mode: single
+
+- id: irrigation_valve_state_mismatch
+  alias: "Irrigation — Valve State Mismatch"
+  description: Critical alert when Hydrawise watering sensors and valve entities disagree for more than a short lag window.
+  triggers:
+    - trigger: state
+      entity_id: binary_sensor.irrigation_valve_state_mismatch
+      to: "on"
+      for:
+        minutes: 2
+  conditions:
+    - condition: state
+      entity_id: input_boolean.irrigation_notifications_enabled
+      state: "on"
+    - condition: template
+      value_template: "{{ states('input_text.irrigation_active_alert_kind') != 'irrigation_valve_mismatch' }}"
+  actions:
+    - action: script.water_send_alert
+      data:
+        alert_kind: irrigation_valve_mismatch
+        severity: critical
+        message: >-
+          Hydrawise watering sensors and valve states disagree:
+          {{ state_attr('binary_sensor.irrigation_valve_state_mismatch', 'mismatches') }}.
+          Flow is {{ states('sensor.flo_shutoff_water_flow_rate') | float(0) | round(2) }} gal/min
+          and pressure is {{ states('sensor.flo_shutoff_water_pressure') | float(0) | round(1) }} psi.
   mode: single
 
 - id: irrigation_multiple_zones_active
@@ -1168,13 +1261,72 @@
           If it stays offline, HA may be blind to a scheduled sprinkler run.
   mode: single
 
+- id: irrigation_controller_offline_during_watering
+  alias: "Irrigation — Hydrawise Offline During Watering"
+  description: Warns when Hydrawise connectivity drops while an irrigation session or grace window is active.
+  triggers:
+    - trigger: state
+      entity_id: binary_sensor.hydrawise_controller_online
+      to: "off"
+      for:
+        minutes: 2
+  conditions:
+    - condition: state
+      entity_id: input_boolean.irrigation_notifications_enabled
+      state: "on"
+    - condition: state
+      entity_id: binary_sensor.irrigation_expected_water_use
+      state: "on"
+    - condition: template
+      value_template: "{{ states('input_text.irrigation_active_alert_kind') != 'irrigation_controller_offline_during_watering' }}"
+  actions:
+    - action: script.water_send_alert
+      data:
+        alert_kind: irrigation_controller_offline_during_watering
+        severity: warning
+        message: >-
+          Hydrawise went offline while irrigation was active or still inside the watering grace window.
+          HA may be blind to zone transitions until the controller reconnects. Flo shows
+          {{ states('sensor.flo_shutoff_water_flow_rate') | float(0) | round(2) }} gal/min
+          and {{ states('sensor.flo_shutoff_water_pressure') | float(0) | round(1) }} psi.
+  mode: single
+
+- id: irrigation_flo_unavailable_during_watering
+  alias: "Irrigation — Flo Telemetry Unavailable During Watering"
+  description: Warns when Flo flow or pressure telemetry is unavailable during irrigation.
+  triggers:
+    - trigger: state
+      entity_id: binary_sensor.irrigation_flo_telemetry_available
+      to: "off"
+      for:
+        minutes: 2
+  conditions:
+    - condition: state
+      entity_id: input_boolean.irrigation_notifications_enabled
+      state: "on"
+    - condition: state
+      entity_id: binary_sensor.irrigation_active
+      state: "on"
+    - condition: template
+      value_template: "{{ states('input_text.irrigation_active_alert_kind') != 'irrigation_flo_unavailable' }}"
+  actions:
+    - action: script.water_send_alert
+      data:
+        alert_kind: irrigation_flo_unavailable
+        severity: warning
+        message: >-
+          Flo flow or pressure telemetry became unavailable while
+          {{ states('sensor.irrigation_active_zone') }} was watering.
+          Hydrawise still shows irrigation active, but HA cannot cross-check well pressure or flow.
+  mode: single
+
 - id: irrigation_blind_watering
   alias: "Irrigation — Blind Watering"
   description: Critical alert when Flo sees irrigation-level flow while Hydrawise is offline and no zone state explains it.
   triggers:
     - trigger: numeric_state
       entity_id: sensor.flo_shutoff_water_flow_rate
-      above: 1.5
+      above: 4
       for:
         minutes: 5
   conditions:
@@ -1197,7 +1349,7 @@
         message: >-
           Flo sees {{ states('sensor.flo_shutoff_water_flow_rate') | float(0) | round(2) }} gal/min
           while Hydrawise is offline and no zone is reported active.
-          This could be a blind scheduled sprinkler run or another unexplained high-flow use.
+          This looks like irrigation-level flow that HA cannot explain from controller state.
   mode: single
 
 - id: irrigation_fingerprint_anomaly_notification
@@ -1300,7 +1452,10 @@
           'irrigation_pressure_collapse',
           'irrigation_recovery_slow',
           'irrigation_recovery_failed',
+          'irrigation_no_flow',
           'irrigation_break_suspected',
+          'irrigation_zone_ran_too_long',
+          'irrigation_valve_mismatch',
           'irrigation_multiple_zones',
           'irrigation_blind_watering'
         ] }}
@@ -1319,7 +1474,10 @@
           - water-irrigation_pressure_collapse
           - water-irrigation_recovery_slow
           - water-irrigation_recovery_failed
+          - water-irrigation_no_flow
           - water-irrigation_break_suspected
+          - water-irrigation_zone_ran_too_long
+          - water-irrigation_valve_mismatch
           - water-irrigation_multiple_zones
           - water-irrigation_blind_watering
         sequence:
@@ -1341,7 +1499,40 @@
         minutes: 5
   conditions:
     - condition: template
-      value_template: "{{ states('input_text.irrigation_active_alert_kind') == 'irrigation_controller_offline' }}"
+      value_template: "{{ states('input_text.irrigation_active_alert_kind') in ['irrigation_controller_offline', 'irrigation_controller_offline_during_watering'] }}"
+  actions:
+    - action: input_boolean.turn_off
+      target:
+        entity_id: input_boolean.water_irrigation_alert_active
+    - action: input_text.set_value
+      target:
+        entity_id: input_text.irrigation_active_alert_kind
+      data:
+        value: ""
+    - repeat:
+        for_each:
+          - water-irrigation_controller_offline
+          - water-irrigation_controller_offline_during_watering
+        sequence:
+          - action: script.notify_trevor_phone
+            data:
+              message: clear_notification
+              data:
+                tag: "{{ repeat.item }}"
+  mode: single
+
+- id: irrigation_flo_telemetry_restored_clear
+  alias: "Irrigation — Clear Flo Telemetry Warning"
+  description: Clears the irrigation Flo telemetry warning once flow and pressure readings are available again.
+  triggers:
+    - trigger: state
+      entity_id: binary_sensor.irrigation_flo_telemetry_available
+      to: "on"
+      for:
+        minutes: 2
+  conditions:
+    - condition: template
+      value_template: "{{ states('input_text.irrigation_active_alert_kind') == 'irrigation_flo_unavailable' }}"
   actions:
     - action: input_boolean.turn_off
       target:
@@ -1355,7 +1546,7 @@
       data:
         message: clear_notification
         data:
-          tag: water-irrigation_controller_offline
+          tag: water-irrigation_flo_unavailable
   mode: single
 
 - id: house_notice_action_history
