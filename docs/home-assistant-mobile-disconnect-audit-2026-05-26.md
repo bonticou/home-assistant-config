@@ -25,6 +25,31 @@ risk.
 
 ## Evidence Collected
 
+### Live incident update: 2026-05-27 08:53 EDT
+
+Trevor reproduced the failure while remote and then opened the same remote path
+in iPhone Safari. Safari showed the Nabu Casa/Home Assistant fallback page:
+
+- "Unable to connect to Home Assistant."
+- "Retrying in 54 seconds..."
+- "It is possible that you are seeing this screen because your Home Assistant is
+  not currently connected."
+
+This is decisive new evidence: the incident is not limited to the Home
+Assistant iOS app, a stale app WebView, or the custom dashboard. The remote
+Nabu Casa page is reachable, but Nabu Casa cannot connect through to Trevor's
+Home Assistant instance.
+
+At roughly the same window, public status pages showed no broad cloud outage:
+
+- [Nabu Casa status](https://status.nabucasa.com/) showed America Remote Access
+  operational and no May 27 incident.
+- [Home Assistant status](https://status.home-assistant.io/) showed Home
+  Assistant Cloud and Remote UI operational and no May 27 incident.
+
+Current lead: Trevor's HA instance, home internet path, or HA Cloud connection
+is offline or disconnected from Nabu Casa during the incident window.
+
 ### User-visible symptom
 
 - Screenshot at 10:05 AM on 2026-05-26 shows a blank dark Home Assistant app
@@ -150,7 +175,30 @@ does not yet explain a multi-minute app disconnect by itself.
 
 ## Ranked Findings
 
-### 1. Highest-confidence current finding: the audit Mac's HA traffic is being reset through a tunnel
+### 1. Highest-confidence incident finding: Nabu Casa can be reached, but Trevor's instance is not connected
+
+Confidence: high.
+
+The 2026-05-27 Safari reproduction reaches the remote Home Assistant/Nabu Casa
+fallback page and reports that Home Assistant is not connected. That moves the
+incident away from "mobile app cache" and "dashboard render" and toward one of:
+
+- Home Assistant Core/host is down or restarting.
+- The home internet path is down or blocking the cloud tunnel.
+- HA Cloud inside the instance is disconnected, stuck, or unable to maintain
+  its websocket/tunnel to Nabu Casa.
+- Account/server-side Remote UI state for this instance needs to be nudged from
+  the Nabu Casa account page.
+
+Why it matters: the fastest useful fix is to restore the instance's connection
+to Nabu Casa or bring HA back online, not to edit dashboard YAML.
+
+Smallest safe next fix: from the Nabu Casa account page, use the offered action
+to ask the instance to come online; if that does not recover within a minute or
+two, get a home-side check of HA host power/network or restart Home Assistant
+Core/host when safe.
+
+### 2. Highest-confidence environment finding: the audit Mac's HA traffic is being reset through a tunnel
 
 Confidence: high for the Mac, medium for the iPhone incident.
 
@@ -172,9 +220,9 @@ Smallest safe next fix: retest from a clean path before changing HA config:
 - Another device on the same home Wi-Fi, using Safari against the HA local URL
   and the Nabu Casa URL.
 
-### 2. Unproven but most important hypothesis: HA/backend unavailable during the failure window
+### 3. Still important: HA/backend unavailable during the failure window
 
-Confidence: medium.
+Confidence: medium-high after the Safari reproduction.
 
 The "wait minutes" recovery pattern fits HA restart, host overload, recorder
 startup, supervisor/container instability, or network path recovery better than
@@ -193,17 +241,17 @@ Smallest safe next fix: collect live logs and uptime around the next failure:
 - Any `homeassistant_started`, websocket disconnect, auth, cloud, or mobile_app
   errors.
 
-### 3. Companion-app URL/session selection remains a likely contributor
+### 4. Companion-app URL/session selection is no longer the primary suspect
 
-Confidence: medium.
+Confidence: low to medium.
 
 The repo does not define internal or external URLs. If the iOS companion app has
 a stale internal URL, stale external URL, bad SSID match, or cached WebView
 session, it can land on the blank shell or disconnected screen even when HA is
 otherwise healthy.
 
-Why it matters: the issue happens on both local and remote paths, so the app's
-server selection and cache are part of the incident surface.
+Why it matters: this can still make recovery flaky, but the 2026-05-27 Safari
+test proves the remote browser path fails too.
 
 Smallest safe next fix: inspect the iOS companion app settings directly:
 
@@ -214,7 +262,7 @@ Smallest safe next fix: inspect the iOS companion app settings directly:
 - If HA is reachable in iPhone Safari while the app is disconnected, clear the
   companion-app frontend cache or re-add the server.
 
-### 4. Frontend first-render fragility is real, but currently secondary
+### 5. Frontend first-render fragility is real, but currently secondary
 
 Confidence: medium.
 
@@ -234,7 +282,7 @@ Smallest safe next fix after reachability is proven:
 - Retest first render before editing dashboard YAML.
 - Lazy-load radon history and move heavy popup detail surfaces off first render.
 
-### 5. Whisker Ting can add startup delay, but is not yet the main suspect
+### 6. Whisker Ting can add startup delay, but is not yet the main suspect
 
 Confidence: low to medium.
 
