@@ -2927,6 +2927,8 @@ water_send_alert:
             Multiple irrigation zones
           {% elif kind == 'irrigation_clog_possible' %}
             Possible clogged irrigation zone
+          {% elif kind == 'irrigation_scheduled_not_started' %}
+            Scheduled irrigation did not start
           {% elif kind == 'irrigation_controller_offline' %}
             Hydrawise offline
           {% elif kind == 'irrigation_controller_offline_during_watering' %}
@@ -3021,6 +3023,8 @@ water_send_alert:
             🚨 Multiple irrigation zones active
           {% elif kind == 'irrigation_clog_possible' %}
             💧 Irrigation zone may be clogged
+          {% elif kind == 'irrigation_scheduled_not_started' %}
+            ⚠️ Scheduled watering did not start
           {% elif kind == 'irrigation_controller_offline' %}
             ⚠️ Hydrawise offline before watering
           {% elif kind == 'irrigation_controller_offline_during_watering' %}

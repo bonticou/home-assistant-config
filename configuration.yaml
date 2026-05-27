@@ -323,6 +323,14 @@ input_datetime:
     name: Irrigation Recovery Failed Check At
     has_date: true
     has_time: true
+  irrigation_weather_skip_grace_until:
+    name: Irrigation Weather Skip Grace Until
+    has_date: true
+    has_time: true
+  irrigation_schedule_candidate_at:
+    name: Irrigation Schedule Candidate At
+    has_date: true
+    has_time: true
   espresso_last_water_backflush:
     name: Espresso Last Water Backflush
     has_date: true
@@ -589,6 +597,9 @@ input_text:
   irrigation_latest_fingerprint_anomaly_key:
     name: Irrigation Latest Fingerprint Anomaly Key
     max: 255
+  irrigation_last_schedule_miss_key:
+    name: Irrigation Last Schedule Miss Key
+    max: 80
   latest_camera_motion_label:
     name: Latest Camera Motion Label
     max: 100
@@ -3856,6 +3867,29 @@ template:
              and states('sensor.flo_shutoff_water_pressure') not in ['unknown', 'unavailable', 'none', ''] }}
         icon: mdi:gauge
 
+      - name: "Irrigation Weather Skip Buffer Active"
+        unique_id: irrigation_weather_skip_buffer_active
+        state: >
+          {% set grace = states('input_datetime.irrigation_weather_skip_grace_until') %}
+          {% set recent_wet = grace not in ['unknown', 'unavailable', 'none', '']
+             and as_timestamp(grace, 0) > as_timestamp(now()) %}
+          {% set current_weather = state_attr('sensor.irrigation_weather_skip_context', 'plausible_weather_skip') in [true, 'true', 'True'] %}
+          {{ recent_wet or current_weather }}
+        icon: mdi:weather-rainy
+        attributes:
+          reason: >
+            {% set grace = states('input_datetime.irrigation_weather_skip_grace_until') %}
+            {% set recent_wet = grace not in ['unknown', 'unavailable', 'none', '']
+               and as_timestamp(grace, 0) > as_timestamp(now()) %}
+            {% set reasons = state_attr('sensor.irrigation_weather_skip_context', 'skip_reasons') | default('', true) %}
+            {% if recent_wet and reasons not in ['unknown', 'unavailable', 'none', ''] %}
+              {{ reasons }}; recent wet-weather buffer until {{ as_timestamp(grace, 0) | timestamp_custom('%a %-I:%M %p', true) }}
+            {% elif recent_wet %}
+              Recent wet-weather buffer until {{ as_timestamp(grace, 0) | timestamp_custom('%a %-I:%M %p', true) }}
+            {% else %}
+              {{ reasons }}
+            {% endif %}
+
       - name: "Ting Confirmed Hazard Active"
         unique_id: ting_confirmed_hazard_active
         device_class: problem
@@ -5973,6 +6007,192 @@ template:
               {% endif %}
             {% endfor %}
             {{ ns.lows | count >= 4 and ns.lows | min >= 55 and not ns.wet }}
+
+      - name: "Irrigation Weather Skip Context"
+        unique_id: irrigation_weather_skip_context
+        icon: mdi:weather-pouring
+        state: >
+          {% set forecast_map = garden_daily_forecast if garden_daily_forecast is defined else {} %}
+          {% set forecast = forecast_map['weather.forecast_home'].forecast if 'weather.forecast_home' in forecast_map else [] %}
+          {% set wet_conditions = ['rainy', 'pouring', 'lightning', 'lightning-rainy', 'snowy', 'snowy-rainy'] %}
+          {% set ns = namespace(lows=[], highs=[], rain_probs=[], wet_days=[]) %}
+          {% for item in forecast[:3] %}
+            {% if is_number(item.templow | default(none)) %}
+              {% set ns.lows = ns.lows + [item.templow | float(0)] %}
+            {% endif %}
+            {% if is_number(item.temperature | default(none)) %}
+              {% set ns.highs = ns.highs + [item.temperature | float(0)] %}
+            {% endif %}
+            {% set condition = item.condition | default('', true) %}
+            {% set precip = item.precipitation_probability | default(none, true) %}
+            {% if is_number(precip) %}
+              {% set ns.rain_probs = ns.rain_probs + [precip | float(0)] %}
+            {% endif %}
+            {% if condition in wet_conditions or (is_number(precip) and precip | float(0) >= 60) %}
+              {% set day = as_datetime(item.datetime).strftime('%a') if item.datetime is defined else 'Day ' ~ loop.index %}
+              {% set ns.wet_days = ns.wet_days + [day] %}
+            {% endif %}
+          {% endfor %}
+          {% set cold = ns.lows | count > 0 and ns.lows | min <= 63 %}
+          {% set rain = (ns.rain_probs | count > 0 and ns.rain_probs | max >= 60) or ns.wet_days | count > 0 %}
+          {% set lower_water = ns.lows | count > 0 and ns.lows | min <= 73 %}
+          {% set hot = ns.highs | count > 0 and ns.highs | max >= 85 %}
+          {% if forecast | count == 0 %}
+            Forecast unavailable
+          {% elif cold or rain %}
+            Weather skip plausible
+          {% elif lower_water %}
+            Weather reduction plausible
+          {% elif hot %}
+            Hot-weather adjustment plausible
+          {% else %}
+            Weather skip unlikely
+          {% endif %}
+        attributes:
+          forecast_available: >
+            {% set forecast_map = garden_daily_forecast if garden_daily_forecast is defined else {} %}
+            {% set forecast = forecast_map['weather.forecast_home'].forecast if 'weather.forecast_home' in forecast_map else [] %}
+            {{ forecast | count > 0 }}
+          plausible_weather_skip: >
+            {% set forecast_map = garden_daily_forecast if garden_daily_forecast is defined else {} %}
+            {% set forecast = forecast_map['weather.forecast_home'].forecast if 'weather.forecast_home' in forecast_map else [] %}
+            {% set wet_conditions = ['rainy', 'pouring', 'lightning', 'lightning-rainy', 'snowy', 'snowy-rainy'] %}
+            {% set ns = namespace(lows=[], rain_probs=[], wet=false) %}
+            {% for item in forecast[:3] %}
+              {% if is_number(item.templow | default(none)) %}
+                {% set ns.lows = ns.lows + [item.templow | float(0)] %}
+              {% endif %}
+              {% set condition = item.condition | default('', true) %}
+              {% set precip = item.precipitation_probability | default(none, true) %}
+              {% if is_number(precip) %}
+                {% set ns.rain_probs = ns.rain_probs + [precip | float(0)] %}
+              {% endif %}
+              {% if condition in wet_conditions or (is_number(precip) and precip | float(0) >= 60) %}
+                {% set ns.wet = true %}
+              {% endif %}
+            {% endfor %}
+            {{ forecast | count > 0 and ((ns.lows | count > 0 and ns.lows | min <= 63)
+               or (ns.rain_probs | count > 0 and ns.rain_probs | max >= 60)
+               or ns.wet) }}
+          cold_skip_possible: >
+            {% set forecast_map = garden_daily_forecast if garden_daily_forecast is defined else {} %}
+            {% set forecast = forecast_map['weather.forecast_home'].forecast if 'weather.forecast_home' in forecast_map else [] %}
+            {% set ns = namespace(lows=[]) %}
+            {% for item in forecast[:3] %}
+              {% if is_number(item.templow | default(none)) %}
+                {% set ns.lows = ns.lows + [item.templow | float(0)] %}
+              {% endif %}
+            {% endfor %}
+            {{ ns.lows | count > 0 and ns.lows | min <= 63 }}
+          rain_skip_possible: >
+            {% set forecast_map = garden_daily_forecast if garden_daily_forecast is defined else {} %}
+            {% set forecast = forecast_map['weather.forecast_home'].forecast if 'weather.forecast_home' in forecast_map else [] %}
+            {% set wet_conditions = ['rainy', 'pouring', 'lightning', 'lightning-rainy', 'snowy', 'snowy-rainy'] %}
+            {% set ns = namespace(rain_probs=[], wet=false) %}
+            {% for item in forecast[:3] %}
+              {% set condition = item.condition | default('', true) %}
+              {% set precip = item.precipitation_probability | default(none, true) %}
+              {% if is_number(precip) %}
+                {% set ns.rain_probs = ns.rain_probs + [precip | float(0)] %}
+              {% endif %}
+              {% if condition in wet_conditions or (is_number(precip) and precip | float(0) >= 60) %}
+                {% set ns.wet = true %}
+              {% endif %}
+            {% endfor %}
+            {{ (ns.rain_probs | count > 0 and ns.rain_probs | max >= 60) or ns.wet }}
+          water_less_possible: >
+            {% set forecast_map = garden_daily_forecast if garden_daily_forecast is defined else {} %}
+            {% set forecast = forecast_map['weather.forecast_home'].forecast if 'weather.forecast_home' in forecast_map else [] %}
+            {% set ns = namespace(lows=[]) %}
+            {% for item in forecast[:3] %}
+              {% if is_number(item.templow | default(none)) %}
+                {% set ns.lows = ns.lows + [item.templow | float(0)] %}
+              {% endif %}
+            {% endfor %}
+            {{ ns.lows | count > 0 and ns.lows | min <= 73 }}
+          water_longer_possible: >
+            {% set forecast_map = garden_daily_forecast if garden_daily_forecast is defined else {} %}
+            {% set forecast = forecast_map['weather.forecast_home'].forecast if 'weather.forecast_home' in forecast_map else [] %}
+            {% set ns = namespace(highs=[]) %}
+            {% for item in forecast[:3] %}
+              {% if is_number(item.temperature | default(none)) %}
+                {% set ns.highs = ns.highs + [item.temperature | float(0)] %}
+              {% endif %}
+            {% endfor %}
+            {{ ns.highs | count > 0 and ns.highs | max >= 85 }}
+          lowest_low_3_day: >
+            {% set forecast_map = garden_daily_forecast if garden_daily_forecast is defined else {} %}
+            {% set forecast = forecast_map['weather.forecast_home'].forecast if 'weather.forecast_home' in forecast_map else [] %}
+            {% set ns = namespace(lows=[]) %}
+            {% for item in forecast[:3] %}
+              {% if is_number(item.templow | default(none)) %}
+                {% set ns.lows = ns.lows + [item.templow | float(0)] %}
+              {% endif %}
+            {% endfor %}
+            {{ (ns.lows | min | round(0) | int) if ns.lows else 'unknown' }}
+          highest_high_3_day: >
+            {% set forecast_map = garden_daily_forecast if garden_daily_forecast is defined else {} %}
+            {% set forecast = forecast_map['weather.forecast_home'].forecast if 'weather.forecast_home' in forecast_map else [] %}
+            {% set ns = namespace(highs=[]) %}
+            {% for item in forecast[:3] %}
+              {% if is_number(item.temperature | default(none)) %}
+                {% set ns.highs = ns.highs + [item.temperature | float(0)] %}
+              {% endif %}
+            {% endfor %}
+            {{ (ns.highs | max | round(0) | int) if ns.highs else 'unknown' }}
+          max_precip_probability_3_day: >
+            {% set forecast_map = garden_daily_forecast if garden_daily_forecast is defined else {} %}
+            {% set forecast = forecast_map['weather.forecast_home'].forecast if 'weather.forecast_home' in forecast_map else [] %}
+            {% set ns = namespace(rain_probs=[]) %}
+            {% for item in forecast[:3] %}
+              {% set precip = item.precipitation_probability | default(none, true) %}
+              {% if is_number(precip) %}
+                {% set ns.rain_probs = ns.rain_probs + [precip | float(0)] %}
+              {% endif %}
+            {% endfor %}
+            {{ (ns.rain_probs | max | round(0) | int) if ns.rain_probs else 'unknown' }}
+          wet_days: >
+            {% set forecast_map = garden_daily_forecast if garden_daily_forecast is defined else {} %}
+            {% set forecast = forecast_map['weather.forecast_home'].forecast if 'weather.forecast_home' in forecast_map else [] %}
+            {% set wet_conditions = ['rainy', 'pouring', 'lightning', 'lightning-rainy', 'snowy', 'snowy-rainy'] %}
+            {% set ns = namespace(labels=[]) %}
+            {% for item in forecast[:3] %}
+              {% set condition = item.condition | default('', true) %}
+              {% set precip = item.precipitation_probability | default(none, true) %}
+              {% if condition in wet_conditions or (is_number(precip) and precip | float(0) >= 60) %}
+                {% set day = as_datetime(item.datetime).strftime('%a') if item.datetime is defined else 'Day ' ~ loop.index %}
+                {% set ns.labels = ns.labels + [day] %}
+              {% endif %}
+            {% endfor %}
+            {{ ns.labels | join(' · ') if ns.labels else 'None flagged' }}
+          skip_reasons: >
+            {% set forecast_map = garden_daily_forecast if garden_daily_forecast is defined else {} %}
+            {% set forecast = forecast_map['weather.forecast_home'].forecast if 'weather.forecast_home' in forecast_map else [] %}
+            {% set wet_conditions = ['rainy', 'pouring', 'lightning', 'lightning-rainy', 'snowy', 'snowy-rainy'] %}
+            {% set ns = namespace(lows=[], rain_probs=[], wet=false, reasons=[]) %}
+            {% for item in forecast[:3] %}
+              {% if is_number(item.templow | default(none)) %}
+                {% set ns.lows = ns.lows + [item.templow | float(0)] %}
+              {% endif %}
+              {% set condition = item.condition | default('', true) %}
+              {% set precip = item.precipitation_probability | default(none, true) %}
+              {% if is_number(precip) %}
+                {% set ns.rain_probs = ns.rain_probs + [precip | float(0)] %}
+              {% endif %}
+              {% if condition in wet_conditions or (is_number(precip) and precip | float(0) >= 60) %}
+                {% set ns.wet = true %}
+              {% endif %}
+            {% endfor %}
+            {% set cold = ns.lows | count > 0 and ns.lows | min <= 63 %}
+            {% set rain = (ns.rain_probs | count > 0 and ns.rain_probs | max >= 60) or ns.wet %}
+            {% if cold %}
+              {% set ns.reasons = ns.reasons + ['cold forecast buffer'] %}
+            {% endif %}
+            {% if rain %}
+              {% set ns.reasons = ns.reasons + ['rain forecast buffer'] %}
+            {% endif %}
+            {{ ns.reasons | join('; ') if ns.reasons else 'None' }}
+          thresholds: "Hydrawise screenshot mirrored with buffers: cold <=63F for 60F rule; rain chance >=60% for 70% rule; cool-water adjustment <=73F for 70F rule; hot adjustment >=85F."
 
   - sensor:
       - name: "Garden Spinach Status"

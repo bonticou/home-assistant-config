@@ -1261,6 +1261,128 @@
           If it stays offline, HA may be blind to a scheduled sprinkler run.
   mode: single
 
+- id: irrigation_weather_skip_buffer_tracking
+  alias: "Irrigation — Weather Skip Buffer Tracking"
+  description: Extends a conservative wet-weather grace window when HA weather makes a Hydrawise rain skip plausible.
+  triggers:
+    - trigger: homeassistant
+      event: start
+    - trigger: state
+      entity_id: sensor.irrigation_weather_skip_context
+    - trigger: time_pattern
+      minutes: "/30"
+  conditions:
+    - condition: template
+      value_template: "{{ state_attr('sensor.irrigation_weather_skip_context', 'rain_skip_possible') in [true, 'true', 'True'] }}"
+  actions:
+    - variables:
+        max_precip_probability: "{{ state_attr('sensor.irrigation_weather_skip_context', 'max_precip_probability_3_day') | float(0) }}"
+        buffer_hours: "{{ 72 if max_precip_probability | float(0) >= 80 else 36 }}"
+    - action: input_datetime.set_datetime
+      target:
+        entity_id: input_datetime.irrigation_weather_skip_grace_until
+      data:
+        datetime: "{{ (now() + timedelta(hours=buffer_hours | int(36))).strftime('%Y-%m-%d %H:%M:%S') }}"
+  mode: single
+
+- id: irrigation_schedule_candidate_capture
+  alias: "Irrigation — Capture Advanced Schedule Candidate"
+  description: Remembers a Hydrawise next-cycle time when it advances near its due time so HA can later decide whether it likely skipped for weather.
+  triggers:
+    - trigger: state
+      entity_id: sensor.irrigation_next_cycle
+  conditions:
+    - condition: template
+      value_template: >-
+        {% set old = trigger.from_state.state if trigger.from_state is not none else '' %}
+        {% set new = trigger.to_state.state if trigger.to_state is not none else '' %}
+        {% set old_ts = as_timestamp(old, 0) %}
+        {% set new_ts = as_timestamp(new, 0) %}
+        {% set now_ts = as_timestamp(now()) %}
+        {{ old_ts > 0
+           and old_ts <= now_ts + 900
+           and old_ts >= now_ts - 7200
+           and (new_ts == 0 or new_ts > old_ts + 900) }}
+  actions:
+    - variables:
+        old_cycle_ts: "{{ as_timestamp(trigger.from_state.state, 0) }}"
+    - action: input_datetime.set_datetime
+      target:
+        entity_id: input_datetime.irrigation_schedule_candidate_at
+      data:
+        datetime: "{{ (old_cycle_ts | float(0)) | timestamp_custom('%Y-%m-%d %H:%M:%S', true) }}"
+  mode: single
+
+- id: irrigation_scheduled_cycle_not_started_watch
+  alias: "Irrigation — Scheduled Cycle Did Not Start Watch"
+  description: Sends a soft warning only when Hydrawise advanced past a scheduled cycle and HA weather does not plausibly explain a weather skip.
+  triggers:
+    - trigger: time_pattern
+      minutes: "/5"
+  conditions:
+    - condition: state
+      entity_id: input_boolean.irrigation_notifications_enabled
+      state: "on"
+    - condition: state
+      entity_id: binary_sensor.hydrawise_controller_online
+      state: "on"
+    - condition: state
+      entity_id: binary_sensor.irrigation_active
+      state: "off"
+    - condition: template
+      value_template: >-
+        {% set cycle = states('input_datetime.irrigation_schedule_candidate_at') %}
+        {% set cycle_ts = as_timestamp(cycle, 0) %}
+        {% set now_ts = as_timestamp(now()) %}
+        {{ cycle_ts > 0 and now_ts >= cycle_ts + 1500 and now_ts <= cycle_ts + 21600 }}
+    - condition: template
+      value_template: >-
+        {% set cycle_ts = as_timestamp(states('input_datetime.irrigation_schedule_candidate_at'), 0) %}
+        {{ states('input_text.irrigation_last_schedule_miss_key') != (cycle_ts | int(0) | string) }}
+    - condition: template
+      value_template: >-
+        {% set cycle_ts = as_timestamp(states('input_datetime.irrigation_schedule_candidate_at'), 0) %}
+        {% set started_ts = as_timestamp(states('input_datetime.irrigation_session_started_at'), 0) %}
+        {{ not (started_ts >= cycle_ts - 900 and started_ts <= cycle_ts + 2700) }}
+  actions:
+    - variables:
+        cycle_ts: "{{ as_timestamp(states('input_datetime.irrigation_schedule_candidate_at'), 0) }}"
+        cycle_key: "{{ cycle_ts | int(0) | string }}"
+        cycle_label: "{{ (cycle_ts | float(0)) | timestamp_custom('%a %-I:%M %p', true) }}"
+        forecast_available: "{{ state_attr('sensor.irrigation_weather_skip_context', 'forecast_available') in [true, 'true', 'True'] }}"
+        weather_explained: "{{ is_state('binary_sensor.irrigation_weather_skip_buffer_active', 'on') }}"
+        weather_summary: "{{ states('sensor.irrigation_weather_skip_context') }}"
+        weather_reason: "{{ state_attr('binary_sensor.irrigation_weather_skip_buffer_active', 'reason') | default('None', true) }}"
+        lowest_low: "{{ state_attr('sensor.irrigation_weather_skip_context', 'lowest_low_3_day') | default('unknown', true) }}"
+        rain_probability: "{{ state_attr('sensor.irrigation_weather_skip_context', 'max_precip_probability_3_day') | default('unknown', true) }}"
+    - choose:
+        - conditions:
+            - condition: template
+              value_template: "{{ (not forecast_available) or weather_explained }}"
+          sequence:
+            - action: input_text.set_value
+              target:
+                entity_id: input_text.irrigation_last_schedule_miss_key
+              data:
+                value: "{{ cycle_key }}"
+      default:
+        - action: script.water_send_alert
+          data:
+            alert_kind: irrigation_scheduled_not_started
+            severity: warning
+            message: >-
+              Hydrawise advanced past the scheduled {{ cycle_label }} cycle, but HA did not see
+              a zone start within the watch window. HA weather does not currently show a buffered
+              skip reason: {{ weather_summary }}. Three-day low is {{ lowest_low }}°F and max rain
+              chance is {{ rain_probability }}%. Hydrawise may still have used its own station,
+              rainfall history, or forecast source, so this is a warning rather than a critical alert.
+        - action: input_text.set_value
+          target:
+            entity_id: input_text.irrigation_last_schedule_miss_key
+          data:
+            value: "{{ cycle_key }}"
+  mode: single
+
 - id: irrigation_controller_offline_during_watering
   alias: "Irrigation — Hydrawise Offline During Watering"
   description: Warns when Hydrawise connectivity drops while an irrigation session or grace window is active.
