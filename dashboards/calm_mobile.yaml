@@ -6574,6 +6574,49 @@ views:
       - type: custom:mushroom-title-card
         title: Water
 
+      - type: custom:mushroom-template-card
+        entity: sensor.irrigation_dashboard_status
+        primary: Irrigation
+        secondary: >-
+          {{ states('sensor.irrigation_dashboard_status') }} ·
+          {{ states('sensor.irrigation_active_zone') if is_state('binary_sensor.irrigation_active', 'on')
+             else states('sensor.irrigation_up_next_zone') ~ ' next' }}
+        icon: mdi:sprinkler-variant
+        icon_color: >-
+          {% set severity = state_attr('sensor.irrigation_dashboard_status', 'severity') %}
+          {% if severity == 'critical' %}red
+          {% elif severity == 'warning' %}orange
+          {% elif states('sensor.irrigation_dashboard_status') == 'Running' %}blue
+          {% elif states('sensor.irrigation_dashboard_status') == 'Weather skip likely' %}amber
+          {% else %}teal{% endif %}
+        multiline_secondary: true
+        fill_container: true
+        tap_action:
+          action: navigate
+          navigation_path: /calm-mobile/irrigation
+        card_mod:
+          style: |
+            ha-card {
+              border: 1px solid rgba(148, 163, 184, 0.16);
+              border-radius: 22px;
+              box-shadow: none;
+              padding: 8px 10px;
+              background: linear-gradient(180deg, rgba(15, 23, 42, 0.78), rgba(15, 23, 42, 0.56));
+            }
+            mushroom-shape-icon {
+              --shape-color: rgba(255, 255, 255, 0.06) !important;
+            }
+            .primary {
+              font-size: 17px !important;
+              font-weight: 620 !important;
+              letter-spacing: 0;
+            }
+            .secondary {
+              color: rgba(226, 232, 240, 0.82) !important;
+              font-size: 13px !important;
+              letter-spacing: 0;
+            }
+
       - type: grid
         columns: 2
         square: false
@@ -9148,6 +9191,766 @@ views:
                     action: none
               card_mod:
                 style: *calm_popup_chip_style
+
+  - title: Irrigation
+    path: irrigation
+    icon: mdi:sprinkler-variant
+    type: masonry
+    cards:
+      - type: vertical-stack
+        cards:
+          - type: custom:mushroom-title-card
+            title: Irrigation
+            subtitle: Hydrawise schedule, Flo well truth, and zone learning
+
+          - type: custom:mushroom-template-card
+            entity: sensor.irrigation_dashboard_status
+            primary: >-
+              {{ states('sensor.irrigation_dashboard_status') }}
+            secondary: >-
+              {{ state_attr('sensor.irrigation_dashboard_status', 'reason') }}
+            icon: >-
+              {{ state_attr('sensor.irrigation_dashboard_status', 'icon') | default('mdi:sprinkler-variant', true) }}
+            icon_color: >-
+              {% set severity = state_attr('sensor.irrigation_dashboard_status', 'severity') %}
+              {% if severity == 'critical' %}red
+              {% elif severity == 'warning' %}orange
+              {% elif states('sensor.irrigation_dashboard_status') == 'Running' %}blue
+              {% elif states('sensor.irrigation_dashboard_status') == 'Weather skip likely' %}amber
+              {% else %}teal{% endif %}
+            multiline_secondary: true
+            fill_container: true
+            tap_action:
+              action: more-info
+            card_mod:
+              style: |
+                ha-card {
+                  border: none;
+                  box-shadow: 0 14px 28px rgba(2, 8, 23, 0.16);
+                  border-radius: 24px;
+                  padding: 12px 8px;
+                  border: 1px solid rgba(148, 163, 184, 0.12);
+                  background: linear-gradient(180deg, rgba(15, 23, 42, 0.88), rgba(15, 23, 42, 0.76));
+                }
+                .primary {
+                  font-size: 26px !important;
+                  font-weight: 620 !important;
+                  letter-spacing: 0;
+                }
+                .secondary {
+                  line-height: 1.42 !important;
+                  opacity: 0.88 !important;
+                }
+                mushroom-shape-icon {
+                  --shape-color: rgba(255, 255, 255, 0.06) !important;
+                }
+
+      - type: grid
+        columns: 2
+        square: false
+        cards:
+          - type: custom:mushroom-template-card
+            entity: sensor.irrigation_active_zone
+            primary: Running
+            secondary: >-
+              {% if is_state('binary_sensor.irrigation_active', 'on') %}
+                {{ states('sensor.irrigation_active_zone') }} · {{ state_attr('sensor.irrigation_running_context', 'elapsed_minutes') }} min
+              {% else %}
+                Quiet
+              {% endif %}
+            icon: mdi:sprinkler
+            icon_color: "{{ 'blue' if is_state('binary_sensor.irrigation_active', 'on') else 'grey' }}"
+            tap_action:
+              action: more-info
+            card_mod:
+              style: *water_status_card_style
+          - type: custom:mushroom-template-card
+            entity: sensor.irrigation_up_next_zone
+            primary: Up next
+            secondary: >-
+              {{ states('sensor.irrigation_up_next_zone') }}
+              {% set next = state_attr('sensor.irrigation_up_next_zone', 'next_cycle') %}
+              {% if next not in ['unknown', 'unavailable', 'none', ''] %}
+                · {{ as_timestamp(next, 0) | timestamp_custom('%a %-I:%M %p', true) }}
+              {% endif %}
+            icon: mdi:calendar-clock-outline
+            icon_color: teal
+            tap_action:
+              action: more-info
+            card_mod:
+              style: *water_status_card_style
+          - type: custom:mushroom-template-card
+            entity: sensor.flo_shutoff_water_flow_rate
+            primary: Flow
+            secondary: >-
+              {{ states('sensor.flo_shutoff_water_flow_rate') | float(0) | round(2) }} gal/min
+            icon: mdi:waves-arrow-right
+            icon_color: >-
+              {% set flow = states('sensor.flo_shutoff_water_flow_rate') | float(0) %}
+              {% if flow > 10 %}red
+              {% elif flow > 4 %}blue
+              {% else %}teal{% endif %}
+            tap_action:
+              action: more-info
+            card_mod:
+              style: *water_status_card_style
+          - type: custom:mushroom-template-card
+            entity: sensor.flo_shutoff_water_pressure
+            primary: Pressure
+            secondary: >-
+              {{ states('sensor.flo_shutoff_water_pressure') | float(0) | round(0) }} psi
+            icon: mdi:gauge
+            icon_color: >-
+              {% set pressure = states('sensor.flo_shutoff_water_pressure') | float(0) %}
+              {% if pressure < 25 %}red
+              {% elif pressure < 35 %}orange
+              {% else %}blue{% endif %}
+            tap_action:
+              action: more-info
+            card_mod:
+              style: *water_status_card_style
+
+      - type: custom:button-card
+        entity: sensor.irrigation_history_status
+        name: Most recent
+        show_icon: false
+        show_state: false
+        tap_action:
+          action: more-info
+        custom_fields:
+          log: >-
+            [[[
+              const events = Array.isArray(entity?.attributes?.events) ? entity.attributes.events.slice(0, 5) : [];
+              const escapeHtml = (value) => String(value ?? '').replace(/[&<>"']/g, (char) => ({
+                '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;'
+              }[char]));
+              const parseDate = (value) => {
+                const parsed = new Date(String(value || '').replace(' ', 'T'));
+                return Number.isNaN(parsed.getTime()) ? null : parsed;
+              };
+              const relative = (date) => {
+                if (!date) return '';
+                const minutes = Math.max(0, Math.round((Date.now() - date.getTime()) / 60000));
+                if (minutes < 1) return 'just now';
+                if (minutes < 60) return `${minutes}m ago`;
+                const hours = Math.round(minutes / 60);
+                if (hours < 24) return `${hours}h ago`;
+                return `${Math.round(hours / 24)}d ago`;
+              };
+              const rows = events.map((event) => {
+                const severity = event.severity === 'critical' ? 'critical' : event.severity === 'warning' ? 'warning' : 'info';
+                const when = relative(parseDate(event.at));
+                return `<div class="ir-row">
+                  <span class="ir-dot ${severity}"></span>
+                  <div class="ir-body">
+                    <div class="ir-top"><b>${escapeHtml(event.title || 'Irrigation event')}</b><span>${escapeHtml(when)}</span></div>
+                    <div class="ir-note">${escapeHtml(event.note || event.kind || '')}</div>
+                  </div>
+                </div>`;
+              }).join('');
+              return `<div class="ir-card"><div class="ir-title">Most recent <span>History</span></div>${rows || '<div class="ir-empty">No irrigation history yet.</div>'}</div>`;
+            ]]]
+        styles:
+          card:
+            - padding: 14px
+            - border-radius: 20px
+            - box-shadow: none
+            - border: 1px solid rgba(148, 163, 184, 0.14)
+            - background: linear-gradient(180deg, rgba(15, 23, 42, 0.76), rgba(15, 23, 42, 0.56))
+          grid:
+            - grid-template-areas: '"log"'
+            - grid-template-columns: minmax(0, 1fr)
+          custom_fields:
+            log:
+              - grid-area: log
+        extra_styles: |
+          .ir-title {
+            color: rgba(248,250,252,0.94);
+            display: flex;
+            justify-content: space-between;
+            font-size: 14px;
+            font-weight: 680;
+            letter-spacing: 0;
+            margin-bottom: 10px;
+          }
+          .ir-title span {
+            color: rgba(148,163,184,0.86);
+            font-size: 12px;
+            font-weight: 560;
+          }
+          .ir-row {
+            align-items: flex-start;
+            display: grid;
+            gap: 10px;
+            grid-template-columns: 10px minmax(0, 1fr);
+            padding: 8px 0;
+            border-top: 1px solid rgba(148,163,184,0.12);
+            text-align: left;
+          }
+          .ir-row:first-of-type { border-top: none; }
+          .ir-dot {
+            border-radius: 999px;
+            height: 9px;
+            margin-top: 5px;
+            width: 9px;
+            background: #2dd4bf;
+          }
+          .ir-dot.warning { background: #f59e0b; }
+          .ir-dot.critical { background: #ef4444; }
+          .ir-top {
+            display: flex;
+            gap: 8px;
+            justify-content: space-between;
+            min-width: 0;
+          }
+          .ir-top b {
+            color: rgba(248,250,252,0.95);
+            font-size: 13px;
+            font-weight: 650;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+          }
+          .ir-top span {
+            color: rgba(148,163,184,0.86);
+            flex: 0 0 auto;
+            font-size: 12px;
+          }
+          .ir-note {
+            color: rgba(203,213,225,0.82);
+            font-size: 12px;
+            line-height: 1.35;
+            margin-top: 2px;
+          }
+          .ir-empty {
+            color: rgba(203,213,225,0.76);
+            font-size: 13px;
+            text-align: left;
+          }
+
+      - type: grid
+        columns: 2
+        square: false
+        cards:
+          - type: custom:mushroom-template-card
+            entity: sensor.irrigation_schedule_summary
+            primary: Schedule
+            secondary: >-
+              {{ states('sensor.irrigation_schedule_summary') }} · tap for 27 zones
+            icon: mdi:calendar-month-outline
+            icon_color: teal
+            tap_action:
+              action: more-info
+            card_mod:
+              style: *water_status_card_style
+          - type: custom:mushroom-template-card
+            entity: sensor.irrigation_zone_attention_summary
+            primary: Zones
+            secondary: >-
+              {{ states('sensor.irrigation_zone_attention_summary') }}
+            icon: mdi:map-marker-radius-outline
+            icon_color: >-
+              {{ 'orange' if state_attr('sensor.irrigation_fingerprint_status', 'latest_anomaly') not in ['', none, 'unknown', 'unavailable'] else 'teal' }}
+            tap_action:
+              action: more-info
+            card_mod:
+              style: *water_status_card_style
+          - type: custom:mushroom-template-card
+            entity: binary_sensor.irrigation_flo_telemetry_available
+            primary: Well safety
+            secondary: >-
+              Min {{ states('input_number.irrigation_session_min_pressure') | float(0) | round(0) }} psi ·
+              max {{ states('input_number.irrigation_session_max_flow') | float(0) | round(1) }} gpm
+            icon: mdi:shield-water-outline
+            icon_color: "{{ 'teal' if is_state('binary_sensor.irrigation_flo_telemetry_available', 'on') else 'orange' }}"
+            tap_action:
+              action: more-info
+            card_mod:
+              style: *water_status_card_style
+          - type: custom:mushroom-template-card
+            entity: sensor.irrigation_weather_skip_context
+            primary: Weather
+            secondary: >-
+              {{ states('sensor.irrigation_weather_skip_context') }}
+            icon: mdi:weather-pouring
+            icon_color: "{{ 'amber' if is_state('binary_sensor.irrigation_weather_skip_buffer_active', 'on') else 'blue-grey' }}"
+            tap_action:
+              action: more-info
+            card_mod:
+              style: *water_status_card_style
+
+      - type: custom:apexcharts-card
+        graph_span: 24h
+        header:
+          show: true
+          title: Flow and Pressure · 24h
+          show_states: true
+        apex_config:
+          chart:
+            height: 220
+            toolbar:
+              show: false
+          legend:
+            show: true
+        yaxis:
+          - id: pressure
+            min: 0
+            decimals: 0
+          - id: flow
+            opposite: true
+            min: 0
+            decimals: 1
+        series:
+          - entity: sensor.flo_shutoff_water_pressure
+            name: Pressure
+            color: '#60a5fa'
+            yaxis_id: pressure
+            stroke_width: 2
+          - entity: sensor.flo_shutoff_water_flow_rate
+            name: Flow
+            color: '#2dd4bf'
+            yaxis_id: flow
+            stroke_width: 2
+        card_mod:
+          style: |
+            ha-card {
+              border: 1px solid rgba(148, 163, 184, 0.14);
+              border-radius: 20px;
+              box-shadow: none;
+              background: rgba(15, 23, 42, 0.54);
+            }
+
+      - type: custom:popup-card
+        target:
+          entity_id: sensor.irrigation_history_status
+        title: Irrigation History
+        dismiss_icon: mdi:close
+        initial_style: wide
+        popup_styles: *calm_popup_styles
+        card:
+          type: vertical-stack
+          cards:
+            - type: custom:mushroom-template-card
+              entity: sensor.irrigation_history_status
+              primary: Recent irrigation
+              secondary: >-
+                {{ state_attr('sensor.irrigation_history_status', 'session_count') }} sessions ·
+                {{ state_attr('sensor.irrigation_history_status', 'zone_run_count') }} zone runs ·
+                {{ state_attr('sensor.irrigation_history_status', 'event_count') }} events
+              icon: mdi:history
+              icon_color: teal
+              tap_action:
+                action: none
+              card_mod:
+                style: *calm_popup_hero_style
+            - type: custom:button-card
+              entity: sensor.irrigation_history_status
+              show_icon: false
+              show_name: false
+              show_state: false
+              tap_action:
+                action: none
+              custom_fields:
+                log: >-
+                  [[[
+                    const events = Array.isArray(entity?.attributes?.events) ? entity.attributes.events.slice(0, 16) : [];
+                    const sessions = Array.isArray(entity?.attributes?.sessions) ? entity.attributes.sessions.slice(0, 4) : [];
+                    const escapeHtml = (value) => String(value ?? '').replace(/[&<>"']/g, (char) => ({
+                      '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;'
+                    }[char]));
+                    const when = (value) => {
+                      const date = new Date(String(value || '').replace(' ', 'T'));
+                      return Number.isNaN(date.getTime()) ? 'Unknown time' : date.toLocaleString(undefined, { weekday: 'short', hour: 'numeric', minute: '2-digit' });
+                    };
+                    const sessionRows = sessions.map((session) => `<div class="popup-row">
+                      <b>${escapeHtml(when(session.started_at))}</b>
+                      <span>${escapeHtml(session.runtime_minutes || 0)} min · ${escapeHtml(session.gallons || 0)} gal · low ${escapeHtml(session.min_pressure || 0)} psi</span>
+                    </div>`).join('');
+                    const eventRows = events.map((event) => `<div class="popup-row">
+                      <b>${escapeHtml(event.title || event.kind || 'Irrigation event')}</b>
+                      <span>${escapeHtml(when(event.at))} · ${escapeHtml(event.note || '')}</span>
+                    </div>`).join('');
+                    return `<div class="popup-list">
+                      <div class="popup-heading">Sessions</div>
+                      ${sessionRows || '<div class="popup-empty">No completed sessions yet.</div>'}
+                      <div class="popup-heading second">Timeline</div>
+                      ${eventRows || '<div class="popup-empty">No timeline events yet.</div>'}
+                    </div>`;
+                  ]]]
+              styles:
+                card:
+                  - padding: 14px
+                  - border-radius: 16px
+                  - box-shadow: none
+                  - background: rgba(15, 23, 42, 0.48)
+                  - border: 1px solid rgba(148, 163, 184, 0.14)
+                grid:
+                  - grid-template-areas: '"log"'
+              extra_styles: |
+                .popup-heading {
+                  color: rgba(248,250,252,0.94);
+                  font-size: 13px;
+                  font-weight: 680;
+                  margin-bottom: 8px;
+                  text-align: left;
+                }
+                .popup-heading.second { margin-top: 16px; }
+                .popup-row {
+                  border-top: 1px solid rgba(148,163,184,0.12);
+                  display: grid;
+                  gap: 3px;
+                  padding: 9px 0;
+                  text-align: left;
+                }
+                .popup-row b {
+                  color: rgba(248,250,252,0.94);
+                  font-size: 13px;
+                  font-weight: 650;
+                }
+                .popup-row span, .popup-empty {
+                  color: rgba(203,213,225,0.82);
+                  font-size: 12px;
+                  line-height: 1.35;
+                }
+
+      - type: custom:popup-card
+        target:
+          entity_id: sensor.irrigation_schedule_summary
+        title: Irrigation Schedule
+        dismiss_icon: mdi:close
+        initial_style: wide
+        popup_styles: *calm_popup_styles
+        card:
+          type: vertical-stack
+          cards:
+            - type: custom:mushroom-template-card
+              entity: sensor.irrigation_schedule_summary
+              primary: Zone schedule
+              secondary: Hydrawise next-cycle data, live state, and learned duration context.
+              icon: mdi:calendar-month-outline
+              icon_color: teal
+              multiline_secondary: true
+              tap_action:
+                action: none
+              card_mod:
+                style: *calm_popup_hero_style
+            - type: custom:button-card
+              entity: sensor.irrigation_schedule_summary
+              show_icon: false
+              show_name: false
+              show_state: false
+              tap_action:
+                action: none
+              custom_fields:
+                zones: >-
+                  [[[
+                    let zones = [];
+                    const raw = entity?.attributes?.zones_json || [];
+                    if (Array.isArray(raw)) zones = raw;
+                    else {
+                      try { zones = JSON.parse(raw); } catch (e) { zones = []; }
+                    }
+                    const escapeHtml = (value) => String(value ?? '').replace(/[&<>"']/g, (char) => ({
+                      '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;'
+                    }[char]));
+                    const when = (value) => {
+                      const date = new Date(String(value || '').replace(' ', 'T'));
+                      return Number.isNaN(date.getTime()) ? 'Unknown' : date.toLocaleString(undefined, { weekday: 'short', hour: 'numeric', minute: '2-digit' });
+                    };
+                    return `<div class="zone-table">${zones.map((zone) => {
+                      const active = zone.watering === 'on';
+                      const warning = active && !['open', 'opening'].includes(zone.valve);
+                      return `<div class="zone-row ${active ? 'active' : ''}">
+                        <div class="zone-name"><b>${escapeHtml(zone.zone)}</b><span>${escapeHtml(zone.name)}</span></div>
+                        <div class="zone-meta">${escapeHtml(when(zone.next_cycle))}</div>
+                        <div class="zone-meta">${escapeHtml(zone.duration_context || 'Not learned yet')}</div>
+                        <div class="zone-pill ${warning ? 'warn' : active ? 'active' : ''}">${escapeHtml(active ? 'Running' : zone.automatic === 'on' ? 'Auto' : 'Auto off')}</div>
+                      </div>`;
+                    }).join('')}</div>`;
+                  ]]]
+              styles:
+                card:
+                  - padding: 12px
+                  - border-radius: 16px
+                  - box-shadow: none
+                  - background: rgba(15, 23, 42, 0.48)
+                  - border: 1px solid rgba(148, 163, 184, 0.14)
+                grid:
+                  - grid-template-areas: '"zones"'
+              extra_styles: |
+                .zone-table {
+                  display: grid;
+                  gap: 6px;
+                }
+                .zone-row {
+                  align-items: center;
+                  border: 1px solid rgba(148,163,184,0.12);
+                  border-radius: 12px;
+                  display: grid;
+                  gap: 8px;
+                  grid-template-columns: minmax(104px, 1.2fr) minmax(72px, 0.8fr) minmax(72px, 0.8fr) 66px;
+                  min-height: 44px;
+                  padding: 8px 10px;
+                  text-align: left;
+                }
+                .zone-row.active {
+                  border-color: rgba(96,165,250,0.38);
+                  background: rgba(30,64,175,0.18);
+                }
+                .zone-name {
+                  display: grid;
+                  min-width: 0;
+                }
+                .zone-name b {
+                  color: rgba(248,250,252,0.94);
+                  font-size: 13px;
+                  font-weight: 670;
+                }
+                .zone-name span, .zone-meta {
+                  color: rgba(203,213,225,0.78);
+                  font-size: 11px;
+                  overflow: hidden;
+                  text-overflow: ellipsis;
+                  white-space: nowrap;
+                }
+                .zone-pill {
+                  border-radius: 999px;
+                  color: rgba(203,213,225,0.9);
+                  font-size: 11px;
+                  font-weight: 650;
+                  padding: 5px 7px;
+                  text-align: center;
+                  background: rgba(148,163,184,0.12);
+                }
+                .zone-pill.active { background: rgba(37,99,235,0.26); color: #bfdbfe; }
+                .zone-pill.warn { background: rgba(245,158,11,0.22); color: #fde68a; }
+                @media (max-width: 560px) {
+                  .zone-row {
+                    grid-template-columns: minmax(88px, 1fr) minmax(64px, 0.7fr) 58px;
+                  }
+                  .zone-row .zone-meta:nth-of-type(2) { display: none; }
+                }
+
+      - type: custom:popup-card
+        target:
+          entity_id: sensor.irrigation_zone_attention_summary
+        title: Zone Detail
+        dismiss_icon: mdi:close
+        initial_style: wide
+        popup_styles: *calm_popup_styles
+        card:
+          type: vertical-stack
+          cards:
+            - type: entities
+              title: Focus zone
+              show_header_toggle: false
+              entities:
+                - entity: input_select.irrigation_dashboard_zone_focus
+                  name: Zone
+              card_mod:
+                style: *calm_popup_panel_style
+            - type: custom:mushroom-template-card
+              entity: sensor.irrigation_focus_zone_detail
+              primary: >-
+                {{ state_attr('sensor.irrigation_focus_zone_detail', 'zone_name') }}
+              secondary: >-
+                Watering {{ state_attr('sensor.irrigation_focus_zone_detail', 'watering') }} ·
+                valve {{ state_attr('sensor.irrigation_focus_zone_detail', 'valve') }} ·
+                next {{ state_attr('sensor.irrigation_focus_zone_detail', 'next_cycle') }} ·
+                {{ state_attr('sensor.irrigation_focus_zone_detail', 'duration_context') }}
+              icon: mdi:map-marker-radius-outline
+              icon_color: >-
+                {{ 'blue' if state_attr('sensor.irrigation_focus_zone_detail', 'watering') == 'on' else 'teal' }}
+              multiline_secondary: true
+              tap_action:
+                action: none
+              card_mod:
+                style: *calm_popup_hero_style
+            - type: custom:button-card
+              entity: sensor.irrigation_focus_zone_detail
+              show_icon: false
+              show_name: false
+              show_state: false
+              tap_action:
+                action: none
+              custom_fields:
+                detail: >-
+                  [[[
+                    const attrs = entity?.attributes || {};
+                    let runs = [];
+                    const raw = attrs.recent_runs_json || [];
+                    if (Array.isArray(raw)) runs = raw;
+                    else {
+                      try { runs = JSON.parse(raw); } catch (e) { runs = []; }
+                    }
+                    const fp = attrs.fingerprint || {};
+                    const escapeHtml = (value) => String(value ?? '').replace(/[&<>"']/g, (char) => ({
+                      '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;'
+                    }[char]));
+                    const rows = runs.slice(0, 6).map((run) => `<div class="popup-row">
+                      <b>${escapeHtml(run.duration_minutes || 0)} min · ${escapeHtml(run.gallons || 0)} gal</b>
+                      <span>${escapeHtml(run.ended_at || 'Unknown time')} · avg ${escapeHtml(run.avg_flow || 0)} gpm · drop ${escapeHtml(run.pressure_drop || 0)} psi${run.contaminated ? ' · contaminated sample' : ''}</span>
+                    </div>`).join('');
+                    return `<div class="popup-list">
+                      <div class="popup-heading">Learning</div>
+                      <div class="popup-row"><b>${fp.learned ? 'Learned' : 'Learning'}</b><span>${escapeHtml(fp.sample_count || 0)} clean samples · normal ${escapeHtml(fp.median_duration_minutes || 0)} min · ${escapeHtml(fp.median_avg_flow || 0)} gpm</span></div>
+                      <div class="popup-heading second">Recent runs</div>
+                      ${rows || '<div class="popup-empty">No runs recorded for this zone yet.</div>'}
+                    </div>`;
+                  ]]]
+              styles:
+                card:
+                  - padding: 14px
+                  - border-radius: 16px
+                  - box-shadow: none
+                  - background: rgba(15, 23, 42, 0.48)
+                  - border: 1px solid rgba(148, 163, 184, 0.14)
+                grid:
+                  - grid-template-areas: '"detail"'
+              extra_styles: |
+                .popup-heading {
+                  color: rgba(248,250,252,0.94);
+                  font-size: 13px;
+                  font-weight: 680;
+                  margin-bottom: 8px;
+                  text-align: left;
+                }
+                .popup-heading.second { margin-top: 16px; }
+                .popup-row {
+                  border-top: 1px solid rgba(148,163,184,0.12);
+                  display: grid;
+                  gap: 3px;
+                  padding: 9px 0;
+                  text-align: left;
+                }
+                .popup-row b {
+                  color: rgba(248,250,252,0.94);
+                  font-size: 13px;
+                  font-weight: 650;
+                }
+                .popup-row span, .popup-empty {
+                  color: rgba(203,213,225,0.82);
+                  font-size: 12px;
+                  line-height: 1.35;
+                }
+
+      - type: custom:popup-card
+        target:
+          entity_id: binary_sensor.irrigation_flo_telemetry_available
+        title: Well Safety
+        dismiss_icon: mdi:close
+        initial_style: wide
+        popup_styles: *calm_popup_styles
+        card:
+          type: vertical-stack
+          cards:
+            - type: custom:mushroom-template-card
+              entity: binary_sensor.irrigation_flo_telemetry_available
+              primary: >-
+                {{ 'Flo telemetry available' if is_state('binary_sensor.irrigation_flo_telemetry_available', 'on') else 'Flo telemetry unavailable' }}
+              secondary: >-
+                Flow {{ states('sensor.flo_shutoff_water_flow_rate') }} gpm ·
+                pressure {{ states('sensor.flo_shutoff_water_pressure') }} psi ·
+                session low {{ states('input_number.irrigation_session_min_pressure') }} psi ·
+                max {{ states('input_number.irrigation_session_max_flow') }} gpm
+              icon: mdi:shield-water-outline
+              icon_color: "{{ 'teal' if is_state('binary_sensor.irrigation_flo_telemetry_available', 'on') else 'orange' }}"
+              multiline_secondary: true
+              tap_action:
+                action: none
+              card_mod:
+                style: *calm_popup_hero_style
+            - type: history-graph
+              title: Irrigation Safety Signals · 24h
+              hours_to_show: 24
+              entities:
+                - entity: binary_sensor.irrigation_active
+                  name: Irrigation active
+                - entity: binary_sensor.irrigation_expected_water_use
+                  name: Expected water use
+                - entity: binary_sensor.irrigation_flo_telemetry_available
+                  name: Flo telemetry
+              card_mod:
+                style: *calm_popup_panel_style
+
+      - type: custom:popup-card
+        target:
+          entity_id: sensor.irrigation_weather_skip_context
+        title: Weather Inference
+        dismiss_icon: mdi:close
+        initial_style: wide
+        popup_styles: *calm_popup_styles
+        card:
+          type: vertical-stack
+          cards:
+            - type: custom:mushroom-template-card
+              entity: sensor.irrigation_weather_skip_context
+              primary: >-
+                {{ states('sensor.irrigation_weather_skip_context') }}
+              secondary: >-
+                HA is inferring Hydrawise behavior from Home Assistant weather with buffers.
+                It is not reading Hydrawise's private skip reason unless Hydrawise exposes one.
+              icon: mdi:weather-pouring
+              icon_color: "{{ 'amber' if is_state('binary_sensor.irrigation_weather_skip_buffer_active', 'on') else 'blue-grey' }}"
+              multiline_secondary: true
+              tap_action:
+                action: none
+              card_mod:
+                style: *calm_popup_hero_style
+            - type: entities
+              title: Inference inputs
+              show_header_toggle: false
+              entities:
+                - entity: sensor.irrigation_weather_skip_context
+                  name: Context
+                - entity: binary_sensor.irrigation_weather_skip_buffer_active
+                  name: Buffered skip plausible
+                - entity: input_datetime.irrigation_weather_skip_grace_until
+                  name: Weather buffer until
+                - entity: input_datetime.irrigation_schedule_candidate_at
+                  name: Last schedule candidate
+              card_mod:
+                style: *calm_popup_panel_style
+
+      - type: custom:popup-card
+        target:
+          entity_id: sensor.irrigation_dashboard_status
+        title: Irrigation Status
+        dismiss_icon: mdi:close
+        initial_style: wide
+        popup_styles: *calm_popup_styles
+        card:
+          type: vertical-stack
+          cards:
+            - type: custom:mushroom-template-card
+              entity: sensor.irrigation_dashboard_status
+              primary: "{{ states('sensor.irrigation_dashboard_status') }}"
+              secondary: "{{ state_attr('sensor.irrigation_dashboard_status', 'reason') }}"
+              icon: mdi:sprinkler-variant
+              icon_color: teal
+              multiline_secondary: true
+              tap_action:
+                action: none
+              card_mod:
+                style: *calm_popup_hero_style
+            - type: entities
+              title: Live context
+              show_header_toggle: false
+              entities:
+                - entity: binary_sensor.irrigation_active
+                  name: Irrigation active
+                - entity: sensor.irrigation_active_zone
+                  name: Active zone
+                - entity: sensor.irrigation_up_next_zone
+                  name: Up next
+                - entity: sensor.irrigation_active_zone_count
+                  name: Active zone count
+                - entity: input_text.irrigation_active_alert_kind
+                  name: Active alert
+                - entity: binary_sensor.hydrawise_controller_online
+                  name: Controller online
+              card_mod:
+                style: *calm_popup_panel_style
 
   - title: Wine
     path: wine

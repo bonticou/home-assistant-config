@@ -783,6 +783,14 @@
     - variables:
         session_id: "{{ now().strftime('%Y%m%d%H%M%S') }}"
         active_zone: "{{ states('sensor.irrigation_active_zone') }}"
+        active_zone_entity: "{{ state_attr('sensor.irrigation_active_zone', 'entity_id') | default('', true) }}"
+        active_zone_stable: >-
+          {% set entity = state_attr('sensor.irrigation_active_zone', 'entity_id') | default('', true) %}
+          {% if entity.startswith('binary_sensor.zone_') and entity.endswith('_watering') %}
+            {{ 'Zone ' ~ (entity | regex_replace('^binary_sensor.zone_(\\d+)_watering$', '\\1')) }}
+          {% else %}
+            {{ states('sensor.irrigation_active_zone') }}
+          {% endif %}
         current_flow: "{{ states('sensor.flo_shutoff_water_flow_rate') | float(0) | round(2) }}"
         current_pressure: "{{ states('sensor.flo_shutoff_water_pressure') | float(0) | round(1) }}"
         current_gallons: "{{ states('sensor.flo_shutoff_today_s_water_usage') | float(0) | round(1) }}"
@@ -824,6 +832,22 @@
         entity_id: input_number.irrigation_session_max_flow
       data:
         value: "{{ current_flow }}"
+    - action: shell_command.irrigation_history_session_start
+      data:
+        session_id: "{{ session_id }}"
+        at: "{{ now().isoformat() }}"
+        zone: "{{ active_zone_stable }}"
+        zone_name: "{{ active_zone }}"
+        pressure: "{{ current_pressure }}"
+        flow: "{{ current_flow }}"
+        gallons: "{{ current_gallons }}"
+        next_cycle: "{{ next_cycle }}"
+        note: >-
+          {{ active_zone }} started. Flow {{ current_flow }} gpm,
+          pressure {{ current_pressure }} psi.
+    - action: homeassistant.update_entity
+      target:
+        entity_id: sensor.irrigation_history_status
     - if:
         - condition: state
           entity_id: input_boolean.irrigation_notifications_enabled
@@ -852,6 +876,22 @@
     - variables:
         from_zone: "{{ trigger.from_state.state if trigger.from_state is not none else 'None' }}"
         to_zone: "{{ trigger.to_state.state if trigger.to_state is not none else 'None' }}"
+        from_zone_entity: "{{ trigger.from_state.attributes.entity_id if trigger.from_state is not none else '' }}"
+        to_zone_entity: "{{ trigger.to_state.attributes.entity_id if trigger.to_state is not none else '' }}"
+        from_zone_stable: >-
+          {% set entity = trigger.from_state.attributes.entity_id if trigger.from_state is not none else '' %}
+          {% if entity.startswith('binary_sensor.zone_') and entity.endswith('_watering') %}
+            {{ 'Zone ' ~ (entity | regex_replace('^binary_sensor.zone_(\\d+)_watering$', '\\1')) }}
+          {% else %}
+            {{ trigger.from_state.state if trigger.from_state is not none else 'None' }}
+          {% endif %}
+        to_zone_stable: >-
+          {% set entity = trigger.to_state.attributes.entity_id if trigger.to_state is not none else '' %}
+          {% if entity.startswith('binary_sensor.zone_') and entity.endswith('_watering') %}
+            {{ 'Zone ' ~ (entity | regex_replace('^binary_sensor.zone_(\\d+)_watering$', '\\1')) }}
+          {% else %}
+            {{ trigger.to_state.state if trigger.to_state is not none else 'None' }}
+          {% endif %}
         now_label: "{{ now().isoformat() }}"
         current_pressure: "{{ states('sensor.flo_shutoff_water_pressure') | float(0) | round(2) }}"
         current_flow: "{{ states('sensor.flo_shutoff_water_flow_rate') | float(0) | round(3) }}"
@@ -865,7 +905,7 @@
       then:
         - action: shell_command.irrigation_fingerprint_finish
           data:
-            zone: "{{ from_zone }}"
+            zone: "{{ from_zone_stable }}"
             at: "{{ now_label }}"
             gallons: "{{ current_gallons }}"
             pressure: "{{ current_pressure }}"
@@ -874,6 +914,22 @@
         - action: homeassistant.update_entity
           target:
             entity_id: sensor.irrigation_fingerprint_status
+        - action: shell_command.irrigation_history_zone_finish
+          data:
+            zone: "{{ from_zone_stable }}"
+            zone_name: "{{ from_zone }}"
+            session_id: "{{ states('input_text.irrigation_session_id') }}"
+            at: "{{ now_label }}"
+            max_flow: "{{ current_flow }}"
+            min_pressure: "{{ current_pressure }}"
+            anomaly: "{{ state_attr('sensor.irrigation_fingerprint_status', 'latest_anomaly') | default('', true) }}"
+            anomaly_reason: "{{ state_attr('sensor.irrigation_fingerprint_status', 'latest_anomaly_reason') | default('', true) }}"
+            note: >-
+              {{ from_zone }} finished or handed off. Flow {{ current_flow }} gpm,
+              pressure {{ current_pressure }} psi.
+        - action: homeassistant.update_entity
+          target:
+            entity_id: sensor.irrigation_history_status
     - if:
         - condition: template
           value_template: >-
@@ -902,12 +958,28 @@
             value: "{{ current_gallons }}"
         - action: shell_command.irrigation_fingerprint_start
           data:
-            zone: "{{ to_zone }}"
+            zone: "{{ to_zone_stable }}"
             at: "{{ now_label }}"
             gallons: "{{ current_gallons }}"
             pressure: "{{ current_pressure }}"
             flow: "{{ current_flow }}"
             active_count: "{{ active_count }}"
+        - action: shell_command.irrigation_history_zone_start
+          data:
+            zone: "{{ to_zone_stable }}"
+            zone_name: "{{ to_zone }}"
+            session_id: "{{ states('input_text.irrigation_session_id') }}"
+            at: "{{ now_label }}"
+            gallons: "{{ current_gallons }}"
+            pressure: "{{ current_pressure }}"
+            flow: "{{ current_flow }}"
+            active_count: "{{ active_count }}"
+            note: >-
+              {{ to_zone }} started. Flow {{ current_flow }} gpm,
+              pressure {{ current_pressure }} psi.
+        - action: homeassistant.update_entity
+          target:
+            entity_id: sensor.irrigation_history_status
     - if:
         - condition: template
           value_template: "{{ to_zone in ['unknown', 'unavailable', 'none', '', 'None'] }}"
@@ -1024,6 +1096,26 @@
         entity_id: input_datetime.irrigation_recovery_failed_check_at
       data:
         datetime: "{{ (now() + timedelta(minutes=15)).strftime('%Y-%m-%d %H:%M:%S') }}"
+    - action: shell_command.irrigation_history_session_finish
+      data:
+        session_id: "{{ session_id }}"
+        at: "{{ now().isoformat() }}"
+        started_at: "{{ started_at }}"
+        runtime_minutes: "{{ runtime_minutes }}"
+        gallons: "{{ gallons_used }}"
+        start_zone: "{{ start_zone }}"
+        start_zone_name: "{{ start_zone }}"
+        min_pressure: "{{ min_pressure }}"
+        max_flow: "{{ max_flow }}"
+        current_pressure: "{{ current_pressure }}"
+        recovery_status: "watching"
+        alert_outcome: "{{ states('input_text.irrigation_active_alert_kind') }}"
+        note: >-
+          Sprinklers finished after about {{ runtime_minutes }} minutes.
+          Flo estimates {{ gallons_used }} gal used; lowest pressure {{ min_pressure }} psi.
+    - action: homeassistant.update_entity
+      target:
+        entity_id: sensor.irrigation_history_status
     - if:
         - condition: state
           entity_id: input_boolean.irrigation_notifications_enabled
@@ -1485,6 +1577,21 @@
                 entity_id: input_text.irrigation_last_schedule_miss_key
               data:
                 value: "{{ cycle_key }}"
+            - action: shell_command.irrigation_history_event
+              data:
+                kind: weather_skip_likely
+                at: "{{ now().isoformat() }}"
+                severity: info
+                title: "Weather skip likely"
+                note: >-
+                  Hydrawise advanced past the scheduled {{ cycle_label }} cycle.
+                  HA weather context makes a skip plausible: {{ weather_reason }}.
+                session_id: ""
+                zone: ""
+                zone_name: ""
+            - action: homeassistant.update_entity
+              target:
+                entity_id: sensor.irrigation_history_status
       default:
         - action: script.water_send_alert
           data:
@@ -1502,6 +1609,36 @@
           data:
             value: "{{ cycle_key }}"
   mode: single
+
+- id: irrigation_history_alert_events
+  alias: "Irrigation — Record Alert History Events"
+  description: Adds irrigation warning/critical notices to the dashboard history ledger.
+  triggers:
+    - trigger: event
+      event_type: water_alert_recorded
+  conditions:
+    - condition: template
+      value_template: "{{ trigger.event.data.domain | default('', true) == 'irrigation' }}"
+    - condition: template
+      value_template: >-
+        {{ trigger.event.data.kind | default('', true)
+           not in ['irrigation_started', 'irrigation_finished'] }}
+  actions:
+    - action: shell_command.irrigation_history_event
+      data:
+        kind: "alert_{{ trigger.event.data.kind | default('irrigation', true) }}"
+        at: "{{ trigger.event.data.at | default(now().isoformat(), true) }}"
+        severity: "{{ trigger.event.data.severity | default('warning', true) }}"
+        title: "{{ trigger.event.data.label | default('Irrigation alert', true) }}"
+        note: "{{ trigger.event.data.note | default('', true) }}"
+        session_id: "{{ states('input_text.irrigation_session_id') }}"
+        zone: "{{ states('sensor.irrigation_active_zone') }}"
+        zone_name: "{{ states('sensor.irrigation_active_zone') }}"
+    - action: homeassistant.update_entity
+      target:
+        entity_id: sensor.irrigation_history_status
+  mode: queued
+  max: 10
 
 - id: irrigation_controller_offline_during_watering
   alias: "Irrigation — Hydrawise Offline During Watering"

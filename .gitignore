@@ -13,6 +13,8 @@
 /.inventory_token
 /.irrigation_fingerprints.json
 /.irrigation_fingerprint_status.json
+/.irrigation_history.json
+/.irrigation_history_status.json
 .wine_collection_snapshot.json
 .house-manager-outbox/
 __pycache__/

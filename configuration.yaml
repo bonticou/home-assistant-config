@@ -191,6 +191,34 @@ command_line:
         - latest_anomaly
         - latest_anomaly_zone
         - latest_anomaly_reason
+  - sensor:
+      name: Irrigation History Status
+      unique_id: irrigation_history_status
+      command: >-
+        python3 /config/tools/irrigation_history.py
+        --data-file /config/.irrigation_history.json
+        --status-file /config/.irrigation_history_status.json
+        --status
+      command_timeout: 15
+      scan_interval: 300
+      value_template: >
+        {{ value_json.latest_event.title
+           if value_json.latest_event is defined and value_json.latest_event.title is defined
+           else 'No irrigation history yet' }}
+      json_attributes:
+        - updated_at
+        - active_session
+        - active_zone_count
+        - active_zones
+        - session_count
+        - zone_run_count
+        - event_count
+        - latest_session
+        - latest_zone_run
+        - latest_event
+        - sessions
+        - zone_runs
+        - events
 
 shell_command:
   refresh_device_inventory: >-
@@ -249,6 +277,87 @@ shell_command:
     --pressure "{{ pressure }}"
     --flow "{{ flow }}"
     --active-count "{{ active_count }}"
+  irrigation_history_event: >-
+    python3 /config/tools/irrigation_history.py
+    --data-file /config/.irrigation_history.json
+    --status-file /config/.irrigation_history_status.json
+    event
+    --kind "{{ kind | default('', true) | replace('"', "'") | replace('\n', ' ') }}"
+    --at "{{ at | default('', true) }}"
+    --severity "{{ severity | default('info', true) | replace('"', "'") | replace('\n', ' ') }}"
+    --title "{{ title | default('', true) | replace('"', "'") | replace('\n', ' ') }}"
+    --note "{{ note | default('', true) | replace('"', "'") | replace('\n', ' ') }}"
+    --session-id "{{ session_id | default('', true) | replace('"', "'") | replace('\n', ' ') }}"
+    --zone "{{ zone | default('', true) | replace('"', "'") | replace('\n', ' ') }}"
+    --zone-name "{{ zone_name | default('', true) | replace('"', "'") | replace('\n', ' ') }}"
+  irrigation_history_session_start: >-
+    python3 /config/tools/irrigation_history.py
+    --data-file /config/.irrigation_history.json
+    --status-file /config/.irrigation_history_status.json
+    session-start
+    --session-id "{{ session_id | default('', true) | replace('"', "'") | replace('\n', ' ') }}"
+    --at "{{ at | default('', true) }}"
+    --zone "{{ zone | default('', true) | replace('"', "'") | replace('\n', ' ') }}"
+    --zone-name "{{ zone_name | default('', true) | replace('"', "'") | replace('\n', ' ') }}"
+    --pressure "{{ pressure | default(0, true) }}"
+    --flow "{{ flow | default(0, true) }}"
+    --gallons "{{ gallons | default(0, true) }}"
+    --next-cycle "{{ next_cycle | default('', true) | replace('"', "'") | replace('\n', ' ') }}"
+    --note "{{ note | default('', true) | replace('"', "'") | replace('\n', ' ') }}"
+  irrigation_history_session_finish: >-
+    python3 /config/tools/irrigation_history.py
+    --data-file /config/.irrigation_history.json
+    --status-file /config/.irrigation_history_status.json
+    session-finish
+    --session-id "{{ session_id | default('', true) | replace('"', "'") | replace('\n', ' ') }}"
+    --at "{{ at | default('', true) }}"
+    --started-at "{{ started_at | default('', true) }}"
+    --runtime-minutes "{{ runtime_minutes | default(0, true) }}"
+    --gallons "{{ gallons | default(0, true) }}"
+    --start-zone "{{ start_zone | default('', true) | replace('"', "'") | replace('\n', ' ') }}"
+    --start-zone-name "{{ start_zone_name | default('', true) | replace('"', "'") | replace('\n', ' ') }}"
+    --min-pressure "{{ min_pressure | default(0, true) }}"
+    --max-flow "{{ max_flow | default(0, true) }}"
+    --current-pressure "{{ current_pressure | default(0, true) }}"
+    --recovery-status "{{ recovery_status | default('', true) | replace('"', "'") | replace('\n', ' ') }}"
+    --alert-outcome "{{ alert_outcome | default('', true) | replace('"', "'") | replace('\n', ' ') }}"
+    --note "{{ note | default('', true) | replace('"', "'") | replace('\n', ' ') }}"
+  irrigation_history_zone_start: >-
+    python3 /config/tools/irrigation_history.py
+    --data-file /config/.irrigation_history.json
+    --status-file /config/.irrigation_history_status.json
+    zone-start
+    --zone "{{ zone | default('', true) | replace('"', "'") | replace('\n', ' ') }}"
+    --zone-name "{{ zone_name | default('', true) | replace('"', "'") | replace('\n', ' ') }}"
+    --session-id "{{ session_id | default('', true) | replace('"', "'") | replace('\n', ' ') }}"
+    --at "{{ at | default('', true) }}"
+    --pressure "{{ pressure | default(0, true) }}"
+    --flow "{{ flow | default(0, true) }}"
+    --gallons "{{ gallons | default(0, true) }}"
+    --active-count "{{ active_count | default(1, true) }}"
+    --note "{{ note | default('', true) | replace('"', "'") | replace('\n', ' ') }}"
+  irrigation_history_zone_finish: >-
+    python3 /config/tools/irrigation_history.py
+    --data-file /config/.irrigation_history.json
+    --status-file /config/.irrigation_history_status.json
+    --fingerprint-status-file /config/.irrigation_fingerprint_status.json
+    zone-finish
+    --zone "{{ zone | default('', true) | replace('"', "'") | replace('\n', ' ') }}"
+    --zone-name "{{ zone_name | default('', true) | replace('"', "'") | replace('\n', ' ') }}"
+    --session-id "{{ session_id | default('', true) | replace('"', "'") | replace('\n', ' ') }}"
+    --at "{{ at | default('', true) }}"
+    --started-at "{{ started_at | default('', true) }}"
+    --duration-minutes "{{ duration_minutes | default(0, true) }}"
+    --gallons "{{ gallons | default(0, true) }}"
+    --avg-flow "{{ avg_flow | default(0, true) }}"
+    --max-flow "{{ max_flow | default(0, true) }}"
+    --pressure-drop "{{ pressure_drop | default(0, true) }}"
+    --min-pressure "{{ min_pressure | default(0, true) }}"
+    --contaminated "{{ contaminated | default(false, true) }}"
+    --contamination-reasons "{{ contamination_reasons | default('', true) | replace('"', "'") | replace('\n', ' ') }}"
+    --anomaly "{{ anomaly | default('', true) | replace('"', "'") | replace('\n', ' ') }}"
+    --anomaly-reason "{{ anomaly_reason | default('', true) | replace('"', "'") | replace('\n', ' ') }}"
+    --note "{{ note | default('', true) | replace('"', "'") | replace('\n', ' ') }}"
 
 input_datetime:
   away_security_snooze_until:
@@ -805,6 +914,38 @@ input_select:
       - Bedtime
     initial: None
     icon: mdi:palette-outline
+  irrigation_dashboard_zone_focus:
+    name: Irrigation Dashboard Zone Focus
+    options:
+      - Zone 1
+      - Zone 2
+      - Zone 3
+      - Zone 4
+      - Zone 5
+      - Zone 6
+      - Zone 7
+      - Zone 8
+      - Zone 9
+      - Zone 10
+      - Zone 11
+      - Zone 12
+      - Zone 13
+      - Zone 14
+      - Zone 15
+      - Zone 16
+      - Zone 17
+      - Zone 18
+      - Zone 19
+      - Zone 20
+      - Zone 21
+      - Zone 22
+      - Zone 23
+      - Zone 24
+      - Zone 25
+      - Zone 26
+      - Zone 27
+    initial: Zone 1
+    icon: mdi:map-marker-radius-outline
   downstairs_season_mode:
     name: Main Floor Season Mode
     options:
@@ -2718,6 +2859,329 @@ template:
             {% endif %}
           {% endfor %}
           {{ ns.next | timestamp_local if ns.next is not none else 'unknown' }}
+
+      - name: "Irrigation Up Next Zone"
+        unique_id: irrigation_up_next_zone
+        state: >
+          {% set ns = namespace(ts=none, name='Unknown') %}
+          {% for zone in range(1, 28) %}
+            {% set next_entity = 'sensor.zone_' ~ zone ~ '_next_cycle' %}
+            {% set watering_entity = 'binary_sensor.zone_' ~ zone ~ '_watering' %}
+            {% set ts = as_timestamp(states(next_entity), 0) %}
+            {% if ts > as_timestamp(now()) and not is_state(watering_entity, 'on') and (ns.ts is none or ts < ns.ts) %}
+              {% set ns.ts = ts %}
+              {% set ns.name = (state_attr(watering_entity, 'friendly_name') or ('Zone ' ~ zone)) | regex_replace(' Watering$', '') %}
+            {% endif %}
+          {% endfor %}
+          {{ ns.name }}
+        icon: mdi:sprinkler
+        attributes:
+          zone_number: >
+            {% set ns = namespace(ts=none, zone='') %}
+            {% for zone in range(1, 28) %}
+              {% set ts = as_timestamp(states('sensor.zone_' ~ zone ~ '_next_cycle'), 0) %}
+              {% if ts > as_timestamp(now()) and not is_state('binary_sensor.zone_' ~ zone ~ '_watering', 'on') and (ns.ts is none or ts < ns.ts) %}
+                {% set ns.ts = ts %}
+                {% set ns.zone = zone %}
+              {% endif %}
+            {% endfor %}
+            {{ ns.zone }}
+          next_cycle: >
+            {% set ns = namespace(ts=none) %}
+            {% for zone in range(1, 28) %}
+              {% set ts = as_timestamp(states('sensor.zone_' ~ zone ~ '_next_cycle'), 0) %}
+              {% if ts > as_timestamp(now()) and not is_state('binary_sensor.zone_' ~ zone ~ '_watering', 'on') and (ns.ts is none or ts < ns.ts) %}
+                {% set ns.ts = ts %}
+              {% endif %}
+            {% endfor %}
+            {{ ns.ts | timestamp_local if ns.ts is not none else 'unknown' }}
+          entity_id: >
+            {% set ns = namespace(ts=none, entity='') %}
+            {% for zone in range(1, 28) %}
+              {% set entity = 'sensor.zone_' ~ zone ~ '_next_cycle' %}
+              {% set ts = as_timestamp(states(entity), 0) %}
+              {% if ts > as_timestamp(now()) and not is_state('binary_sensor.zone_' ~ zone ~ '_watering', 'on') and (ns.ts is none or ts < ns.ts) %}
+                {% set ns.ts = ts %}
+                {% set ns.entity = entity %}
+              {% endif %}
+            {% endfor %}
+            {{ ns.entity }}
+
+      - name: "Irrigation Running Context"
+        unique_id: irrigation_running_context
+        state: >
+          {% if is_state('binary_sensor.irrigation_active', 'on') %}
+            {{ states('sensor.irrigation_active_zone') }} running
+          {% elif is_state('binary_sensor.irrigation_expected_water_use', 'on') %}
+            Recovering
+          {% else %}
+            Quiet
+          {% endif %}
+        icon: >
+          {{ 'mdi:sprinkler-variant'
+             if is_state('binary_sensor.irrigation_active', 'on')
+             else 'mdi:sprinkler-variant-off' }}
+        attributes:
+          active_zone: "{{ states('sensor.irrigation_active_zone') }}"
+          active_zone_entity: "{{ state_attr('sensor.irrigation_active_zone', 'entity_id') }}"
+          active_zone_count: "{{ states('sensor.irrigation_active_zone_count') }}"
+          up_next_zone: "{{ states('sensor.irrigation_up_next_zone') }}"
+          up_next_at: "{{ state_attr('sensor.irrigation_up_next_zone', 'next_cycle') }}"
+          elapsed_minutes: >
+            {% set started = states('input_datetime.irrigation_zone_started_at') %}
+            {% if is_state('binary_sensor.irrigation_active', 'on') and as_timestamp(started, 0) > 0 %}
+              {{ ((as_timestamp(now()) - as_timestamp(started, 0)) / 60) | round(0) }}
+            {% else %}
+              0
+            {% endif %}
+          remaining_time: >
+            {% set entity = state_attr('sensor.irrigation_active_zone', 'entity_id') | default('', true) %}
+            {% set zone = entity | regex_replace('^binary_sensor.zone_(\\d+)_watering$', '\\1') %}
+            {% if zone | string | int(0) > 0 %}
+              {{ states('sensor.zone_' ~ zone ~ '_remaining_watering_time') }}
+            {% else %}
+              unknown
+            {% endif %}
+          current_flow: "{{ states('sensor.flo_shutoff_water_flow_rate') }}"
+          current_pressure: "{{ states('sensor.flo_shutoff_water_pressure') }}"
+          session_gallons: >
+            {% set current = states('sensor.flo_shutoff_today_s_water_usage') | float(0) %}
+            {% set start = states('input_number.irrigation_session_start_gallons') | float(0) %}
+            {{ (current - start) | round(1) if current >= start else 0 }}
+          session_min_pressure: "{{ states('input_number.irrigation_session_min_pressure') }}"
+          session_max_flow: "{{ states('input_number.irrigation_session_max_flow') }}"
+          expected_water_use_until: "{{ states('input_datetime.irrigation_expected_water_use_until') }}"
+          flo_telemetry_available: "{{ states('binary_sensor.irrigation_flo_telemetry_available') }}"
+
+      - name: "Irrigation Dashboard Status"
+        unique_id: irrigation_dashboard_status
+        state: >
+          {% if is_state('binary_sensor.irrigation_flo_telemetry_available', 'off')
+             and is_state('binary_sensor.irrigation_expected_water_use', 'on') %}
+            Telemetry unavailable
+          {% elif is_state('input_boolean.water_irrigation_alert_active', 'on') %}
+            Needs attention
+          {% elif is_state('binary_sensor.irrigation_active', 'on') %}
+            Running
+          {% elif is_state('binary_sensor.irrigation_expected_water_use', 'on') %}
+            Recovering
+          {% elif is_state('binary_sensor.irrigation_weather_skip_buffer_active', 'on') %}
+            Weather skip likely
+          {% elif is_state('binary_sensor.hydrawise_controller_online', 'off') %}
+            Controller offline
+          {% else %}
+            Quiet
+          {% endif %}
+        icon: >
+          {% if is_state('input_boolean.water_irrigation_alert_active', 'on') %}mdi:sprinkler-fire
+          {% elif is_state('binary_sensor.irrigation_active', 'on') %}mdi:sprinkler-variant
+          {% elif is_state('binary_sensor.irrigation_weather_skip_buffer_active', 'on') %}mdi:weather-pouring
+          {% elif is_state('binary_sensor.hydrawise_controller_online', 'off') %}mdi:cloud-off-outline
+          {% else %}mdi:sprinkler-variant-off{% endif %}
+        attributes:
+          severity: >
+            {% if is_state('input_boolean.water_irrigation_alert_active', 'on') %}
+              critical
+            {% elif is_state('binary_sensor.irrigation_flo_telemetry_available', 'off')
+               and is_state('binary_sensor.irrigation_expected_water_use', 'on') %}
+              warning
+            {% elif is_state('binary_sensor.hydrawise_controller_online', 'off')
+               or is_state('binary_sensor.irrigation_weather_skip_buffer_active', 'on') %}
+              watch
+            {% else %}
+              info
+            {% endif %}
+          reason: >
+            {% if is_state('input_boolean.water_irrigation_alert_active', 'on') %}
+              {{ states('input_text.irrigation_active_alert_kind') or states('input_text.water_latest_alert_label') }}
+            {% elif is_state('binary_sensor.irrigation_active', 'on') %}
+              {{ states('sensor.irrigation_active_zone') }} is watering now.
+            {% elif is_state('binary_sensor.irrigation_expected_water_use', 'on') %}
+              Irrigation ended recently; well recovery and lingering flow are still being watched.
+            {% elif is_state('binary_sensor.irrigation_weather_skip_buffer_active', 'on') %}
+              {{ state_attr('binary_sensor.irrigation_weather_skip_buffer_active', 'reason') | default(states('sensor.irrigation_weather_skip_context'), true) }}
+            {% elif is_state('binary_sensor.hydrawise_controller_online', 'off') %}
+              Hydrawise controller connectivity is offline.
+            {% else %}
+              No active irrigation issue.
+            {% endif %}
+          latest_event: "{{ state_attr('sensor.irrigation_history_status', 'latest_event') }}"
+          active_zone: "{{ states('sensor.irrigation_active_zone') }}"
+          up_next_zone: "{{ states('sensor.irrigation_up_next_zone') }}"
+          next_cycle: "{{ states('sensor.irrigation_next_cycle') }}"
+          flow: "{{ states('sensor.flo_shutoff_water_flow_rate') }}"
+          pressure: "{{ states('sensor.flo_shutoff_water_pressure') }}"
+
+      - name: "Irrigation Schedule Summary"
+        unique_id: irrigation_schedule_summary
+        state: >
+          {% if states('sensor.irrigation_up_next_zone') not in ['unknown', 'unavailable', 'Unknown', ''] %}
+            {{ states('sensor.irrigation_up_next_zone') }} next
+          {% elif states('sensor.irrigation_next_cycle') not in ['unknown', 'unavailable', 'none', ''] %}
+            Next cycle scheduled
+          {% else %}
+            No schedule found
+          {% endif %}
+        icon: mdi:calendar-clock-outline
+        attributes:
+          next_zone: "{{ states('sensor.irrigation_up_next_zone') }}"
+          next_cycle: "{{ state_attr('sensor.irrigation_up_next_zone', 'next_cycle') }}"
+          zones_json: >
+            {% set fingerprints = state_attr('sensor.irrigation_fingerprint_status', 'zones') or {} %}
+            {% set zone_runs = state_attr('sensor.irrigation_history_status', 'zone_runs') or [] %}
+            {% set ns = namespace(items=[]) %}
+            {% for zone in range(1, 28) %}
+              {% set key = 'Zone ' ~ zone %}
+              {% set watering_entity = 'binary_sensor.zone_' ~ zone ~ '_watering' %}
+              {% set next_entity = 'sensor.zone_' ~ zone ~ '_next_cycle' %}
+              {% set remaining_entity = 'sensor.zone_' ~ zone ~ '_remaining_watering_time' %}
+              {% set daily_entity = 'sensor.zone_' ~ zone ~ '_daily_active_watering_time' %}
+              {% set valve_entity = 'valve.' ~ 'zone_' ~ zone %}
+              {% set automatic_entity = 'switch.' ~ 'zone_' ~ zone ~ '_automatic_watering' %}
+              {% set label = (state_attr(watering_entity, 'friendly_name') or key) | regex_replace(' Watering$', '') %}
+              {% set run = namespace(item={}) %}
+              {% for item in zone_runs %}
+                {% if run.item == {} and item.zone | default('', true) == key %}
+                  {% set run.item = item %}
+                {% endif %}
+              {% endfor %}
+              {% set fp = fingerprints.get(key, {}) if fingerprints is mapping else {} %}
+              {% set duration = namespace(value='Not learned yet', source='none') %}
+              {% set hydrawise_duration = state_attr(next_entity, 'duration')
+                 or state_attr(next_entity, 'watering_duration')
+                 or state_attr(next_entity, 'watering_duration_minutes')
+                 or state_attr(remaining_entity, 'duration') %}
+              {% if hydrawise_duration not in [none, '', 'unknown', 'unavailable'] %}
+                {% set duration.value = hydrawise_duration %}
+                {% set duration.source = 'hydrawise' %}
+              {% elif fp.get('median_duration_minutes', 0) | float(0) > 0 %}
+                {% set duration.value = (fp.get('median_duration_minutes') | float(0) | round(1)) ~ ' min learned' %}
+                {% set duration.source = 'learned' %}
+              {% elif run.item.get('duration_minutes', 0) | float(0) > 0 %}
+                {% set duration.value = (run.item.get('duration_minutes') | float(0) | round(1)) ~ ' min observed' %}
+                {% set duration.source = 'observed' %}
+              {% endif %}
+              {% set ns.items = ns.items + [{
+                'zone': key,
+                'zone_number': zone,
+                'name': label,
+                'watering': states(watering_entity),
+                'valve': states(valve_entity),
+                'automatic': states(automatic_entity),
+                'next_cycle': states(next_entity),
+                'remaining_time': states(remaining_entity),
+                'daily_active_time': states(daily_entity),
+                'duration_context': duration.value,
+                'duration_source': duration.source
+              }] %}
+            {% endfor %}
+            {{ ns.items | to_json }}
+
+      - name: "Irrigation Zone Attention Summary"
+        unique_id: irrigation_zone_attention_summary
+        state: >
+          {% set learned = states('sensor.irrigation_fingerprint_status') | int(0) %}
+          {% if is_state('binary_sensor.irrigation_active', 'on') %}
+            {{ states('sensor.irrigation_active_zone') }} running
+          {% elif state_attr('sensor.irrigation_fingerprint_status', 'latest_anomaly') not in ['', none, 'unknown', 'unavailable'] %}
+            Fingerprint anomaly
+          {% else %}
+            {{ learned }} learned zones
+          {% endif %}
+        icon: mdi:map-marker-radius-outline
+        attributes:
+          learned_zone_count: "{{ states('sensor.irrigation_fingerprint_status') }}"
+          learning_zone_count: "{{ 27 - (states('sensor.irrigation_fingerprint_status') | int(0)) }}"
+          active_zone: "{{ states('sensor.irrigation_active_zone') }}"
+          up_next_zone: "{{ states('sensor.irrigation_up_next_zone') }}"
+          latest_anomaly: "{{ state_attr('sensor.irrigation_fingerprint_status', 'latest_anomaly') }}"
+          latest_anomaly_zone: "{{ state_attr('sensor.irrigation_fingerprint_status', 'latest_anomaly_zone') }}"
+          latest_zone_run: "{{ state_attr('sensor.irrigation_history_status', 'latest_zone_run') }}"
+          attention_json: >
+            {% set items = namespace(value=[]) %}
+            {% if is_state('binary_sensor.irrigation_active', 'on') %}
+              {% set items.value = items.value + [{
+                'kind': 'active',
+                'title': states('sensor.irrigation_active_zone') ~ ' running',
+                'note': 'Flow ' ~ states('sensor.flo_shutoff_water_flow_rate') ~ ' gpm, pressure ' ~ states('sensor.flo_shutoff_water_pressure') ~ ' psi.'
+              }] %}
+            {% endif %}
+            {% if states('sensor.irrigation_up_next_zone') not in ['unknown', 'unavailable', 'Unknown', ''] %}
+              {% set items.value = items.value + [{
+                'kind': 'up_next',
+                'title': states('sensor.irrigation_up_next_zone') ~ ' up next',
+                'note': state_attr('sensor.irrigation_up_next_zone', 'next_cycle') | default('Unknown time', true)
+              }] %}
+            {% endif %}
+            {% if state_attr('sensor.irrigation_fingerprint_status', 'latest_anomaly') not in ['', none, 'unknown', 'unavailable'] %}
+              {% set items.value = items.value + [{
+                'kind': 'anomaly',
+                'title': state_attr('sensor.irrigation_fingerprint_status', 'latest_anomaly_zone') | default('Zone anomaly', true),
+                'note': state_attr('sensor.irrigation_fingerprint_status', 'latest_anomaly_reason') | default('Fingerprint anomaly', true)
+              }] %}
+            {% endif %}
+            {% set latest = state_attr('sensor.irrigation_history_status', 'latest_zone_run') or {} %}
+            {% if latest.get('zone_name', '') %}
+              {% set items.value = items.value + [{
+                'kind': 'recent',
+                'title': latest.get('zone_name') ~ ' finished',
+                'note': (latest.get('duration_minutes', 0) | round(1) | string) ~ ' min, ' ~ (latest.get('gallons', 0) | round(1) | string) ~ ' gal.'
+              }] %}
+            {% endif %}
+            {{ items.value | to_json }}
+
+      - name: "Irrigation Focus Zone Detail"
+        unique_id: irrigation_focus_zone_detail
+        state: "{{ states('input_select.irrigation_dashboard_zone_focus') }}"
+        icon: mdi:map-marker-radius-outline
+        attributes:
+          zone_number: >
+            {{ states('input_select.irrigation_dashboard_zone_focus') | regex_replace('^Zone ', '') | int(1) }}
+          zone_name: >
+            {% set zone = states('input_select.irrigation_dashboard_zone_focus') | regex_replace('^Zone ', '') | int(1) %}
+            {{ (state_attr('binary_sensor.zone_' ~ zone ~ '_watering', 'friendly_name') or ('Zone ' ~ zone)) | regex_replace(' Watering$', '') }}
+          watering: >
+            {% set zone = states('input_select.irrigation_dashboard_zone_focus') | regex_replace('^Zone ', '') | int(1) %}
+            {{ states('binary_sensor.zone_' ~ zone ~ '_watering') }}
+          valve: >
+            {% set zone = states('input_select.irrigation_dashboard_zone_focus') | regex_replace('^Zone ', '') | int(1) %}
+            {{ states('valve.' ~ 'zone_' ~ zone) }}
+          automatic: >
+            {% set zone = states('input_select.irrigation_dashboard_zone_focus') | regex_replace('^Zone ', '') | int(1) %}
+            {{ states('switch.' ~ 'zone_' ~ zone ~ '_automatic_watering') }}
+          next_cycle: >
+            {% set zone = states('input_select.irrigation_dashboard_zone_focus') | regex_replace('^Zone ', '') | int(1) %}
+            {{ states('sensor.zone_' ~ zone ~ '_next_cycle') }}
+          remaining_time: >
+            {% set zone = states('input_select.irrigation_dashboard_zone_focus') | regex_replace('^Zone ', '') | int(1) %}
+            {{ states('sensor.zone_' ~ zone ~ '_remaining_watering_time') }}
+          daily_active_time: >
+            {% set zone = states('input_select.irrigation_dashboard_zone_focus') | regex_replace('^Zone ', '') | int(1) %}
+            {{ states('sensor.zone_' ~ zone ~ '_daily_active_watering_time') }}
+          duration_context: >
+            {% set selected = states('input_select.irrigation_dashboard_zone_focus') %}
+            {% set zones = state_attr('sensor.irrigation_schedule_summary', 'zones_json') | default('[]', true) | from_json %}
+            {% set ns = namespace(value='Not learned yet') %}
+            {% for item in zones %}
+              {% if item.zone | default('', true) == selected %}
+                {% set ns.value = item.duration_context | default('Not learned yet', true) %}
+              {% endif %}
+            {% endfor %}
+            {{ ns.value }}
+          fingerprint: >
+            {% set selected = states('input_select.irrigation_dashboard_zone_focus') %}
+            {% set fingerprints = state_attr('sensor.irrigation_fingerprint_status', 'zones') or {} %}
+            {{ fingerprints.get(selected, {}) if fingerprints is mapping else {} }}
+          recent_runs_json: >
+            {% set selected = states('input_select.irrigation_dashboard_zone_focus') %}
+            {% set runs = state_attr('sensor.irrigation_history_status', 'zone_runs') or [] %}
+            {% set ns = namespace(items=[]) %}
+            {% for run in runs %}
+              {% if run.zone | default('', true) == selected %}
+                {% set ns.items = ns.items + [run] %}
+              {% endif %}
+            {% endfor %}
+            {{ ns.items[:8] | to_json }}
 
       - name: "Ting Notification Status"
         unique_id: ting_notification_status
