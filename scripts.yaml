@@ -1893,12 +1893,12 @@ robison_oil_mark_price_check_done:
 
 garbage_recycling_send_reminder:
   alias: Garbage Recycling Send Reminder
-  description: Sends Zone 4 garbage and recycling reminders the night before and morning of pickup.
+  description: Sends Zone 4 garbage and recycling reminders, including early holiday-delay warnings.
   icon: mdi:trash-can-outline
   mode: restart
   fields:
     stage:
-      description: Reminder stage, either evening or morning
+      description: Reminder stage, either delay_notice, evening, or morning
       example: evening
     pickup_date:
       description: Actual pickup date from the Zone 4 schedule
@@ -1911,6 +1911,13 @@ garbage_recycling_send_reminder:
           {{ provided if provided not in ['unknown', 'unavailable', 'none', ''] else states('sensor.garbage_recycling_next_pickup') }}
         pickup_label: "{{ strptime(pickup | trim, '%Y-%m-%d').strftime('%A, %B %-d') }}"
         pickup_day: "{{ strptime(pickup | trim, '%Y-%m-%d').strftime('%A') }}"
+        scheduled_thursday: "{{ state_attr('sensor.garbage_recycling_next_pickup', 'scheduled_thursday') | default('', true) }}"
+        scheduled_day: >-
+          {% if scheduled_thursday not in ['unknown', 'unavailable', 'none', ''] %}
+            {{ strptime(scheduled_thursday | trim, '%Y-%m-%d').strftime('%A') }}
+          {% else %}
+            Thursday
+          {% endif %}
         recycling_stream: "{{ state_attr('sensor.garbage_recycling_next_pickup', 'recycling') | default('', true) }}"
         recycling_label: "{{ state_attr('sensor.garbage_recycling_next_pickup', 'recycling_label') | default(recycling_stream, true) }}"
         title_stream: "{{ 'paper recycling' if recycling_stream == 'paper recycling' else 'non-paper recycling' }}"
@@ -1918,7 +1925,9 @@ garbage_recycling_send_reminder:
         exception: "{{ state_attr('sensor.garbage_recycling_next_pickup', 'exception') | default('', true) }}"
         notification_tag: "{{ 'garbage-recycling-' ~ (pickup | trim) }}"
         notification_title: >-
-          {% if exception | length > 0 %}
+          {% if reminder_stage == 'delay_notice' %}
+            {{ notification_emoji }} No {{ scheduled_day | trim }} garbage pickup
+          {% elif exception | length > 0 %}
             {{ notification_emoji }} Garbage + {{ title_stream }} moved to {{ pickup_day }}
           {% elif reminder_stage == 'morning' %}
             {{ notification_emoji }} Garbage + {{ title_stream }} this morning
@@ -1926,7 +1935,12 @@ garbage_recycling_send_reminder:
             {{ notification_emoji }} Garbage + {{ title_stream }} tomorrow
           {% endif %}
         notification_message: >-
-          {% if exception | length > 0 %}
+          {% if reminder_stage == 'delay_notice' %}
+            {{ exception }}.
+            Do not put bins out tonight for the usual {{ scheduled_day | trim }} pickup.
+            Actual pickup is {{ pickup_label }}.
+            Put out household garbage plus {{ recycling_label }} after 4:00 PM the day before pickup.
+          {% elif exception | length > 0 %}
             {{ exception }}.
             Actual pickup is {{ pickup_label }}.
           {% else %}
@@ -1939,17 +1953,31 @@ garbage_recycling_send_reminder:
       value_template: >-
         {{ pickup | trim not in ['unknown', 'unavailable', 'none', '']
            and states('input_text.garbage_recycling_last_taken_out_pickup') != (pickup | trim) }}
-    - action: script.notify_trevor_phone
-      data:
-        title: "{{ notification_title | trim }}"
-        message: "{{ notification_message | regex_replace('\\s+', ' ') | trim }}"
-        data:
-          group: house-care
-          tag: "{{ notification_tag }}"
-          url: /calm-mobile/notices
-          actions:
-            - action: GARBAGE_RECYCLING_TAKEN_OUT
-              title: Taken out
+    - choose:
+        - conditions:
+            - condition: template
+              value_template: "{{ reminder_stage == 'delay_notice' }}"
+          sequence:
+            - action: script.notify_trevor_phone
+              data:
+                title: "{{ notification_title | trim }}"
+                message: "{{ notification_message | regex_replace('\\s+', ' ') | trim }}"
+                data:
+                  group: house-care
+                  tag: "{{ notification_tag }}"
+                  url: /calm-mobile/notices
+      default:
+        - action: script.notify_trevor_phone
+          data:
+            title: "{{ notification_title | trim }}"
+            message: "{{ notification_message | regex_replace('\\s+', ' ') | trim }}"
+            data:
+              group: house-care
+              tag: "{{ notification_tag }}"
+              url: /calm-mobile/notices
+              actions:
+                - action: GARBAGE_RECYCLING_TAKEN_OUT
+                  title: Taken out
 
 garbage_recycling_mark_taken_out:
   alias: Garbage Recycling Mark Taken Out
@@ -4810,7 +4838,7 @@ environment_send_alert:
 
 open_window_notice_send:
   alias: Open Window Notice Send
-  description: Sends Trevor a soft whole-house open-window recommendation when outdoor air is favorable.
+  description: Sends Trevor a soft whole-house open-window recommendation during awake hours when outdoor air is favorable.
   icon: mdi:window-open-variant
   mode: restart
   sequence:
@@ -4820,7 +4848,7 @@ open_window_notice_send:
         outdoor_humidity: "{{ state_attr('binary_sensor.open_window_recommendation_active', 'outdoor_humidity') | default(states('sensor.downstairs_outdoor_humidity'), true) }}"
     - action: script.notify_trevor_phone
       data:
-        title: "🌙 Good window air tonight"
+        title: "🌬️ Good window air now"
         message: >-
           Outside is {{ outdoor_temp }}° with {{ outdoor_humidity }}% humidity,
           and fresh air should help: {{ eligible_rooms }}.
@@ -4835,7 +4863,7 @@ open_window_notice_send:
               title: Open climate
               uri: /calm-mobile/climate
             - action: OPEN_WINDOW_NOTICE_DISMISS_TONIGHT
-              title: Dismiss tonight
+              title: Dismiss today
     - action: input_datetime.set_datetime
       target:
         entity_id: input_datetime.open_window_notice_last_sent_at
@@ -4843,8 +4871,8 @@ open_window_notice_send:
         datetime: "{{ now().strftime('%Y-%m-%d %H:%M:%S') }}"
 
 open_window_notice_dismiss_tonight:
-  alias: Open Window Notice Dismiss Tonight
-  description: Hides the open-window recommendation until the next local 3 AM and clears the active push.
+  alias: Open Window Notice Dismiss Current Opportunity
+  description: Hides the open-window recommendation until the next local 6:30 AM and clears the active push.
   icon: mdi:window-closed-variant
   mode: restart
   sequence:
@@ -4853,8 +4881,8 @@ open_window_notice_dismiss_tonight:
         entity_id: input_datetime.open_window_notice_dismissed_until
       data:
         datetime: >-
-          {% set three_am = today_at('03:00') %}
-          {{ (three_am if now() < three_am else three_am + timedelta(days=1)).strftime('%Y-%m-%d %H:%M:%S') }}
+          {% set next_awake = today_at('06:30') %}
+          {{ (next_awake if now() < next_awake else next_awake + timedelta(days=1)).strftime('%Y-%m-%d %H:%M:%S') }}
     - action: script.notify_trevor_phone
       data:
         message: clear_notification

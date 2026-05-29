@@ -4086,6 +4086,25 @@
           tag: open-window-night
   mode: single
 
+- id: environment_open_window_recommendation_morning_expiry
+  alias: "Environment — Clear Open Window Recommendation During Sleep Hours"
+  description: Clears open-window nudges once the awake-hours window closes, with a 3 AM safety clear for stale mobile banners.
+  triggers:
+    - trigger: time
+      at: "22:30:00"
+    - trigger: time
+      at: "03:00:00"
+  actions:
+    - action: script.notify_trevor_phone
+      data:
+        message: clear_notification
+        data:
+          tag: open-window-night
+    - action: homeassistant.update_entity
+      target:
+        entity_id: binary_sensor.open_window_recommendation_active
+  mode: single
+
 - id: environment_open_window_notification_actions
   alias: "Environment — Open Window Notification Actions"
   description: Handles the dismiss action from the whole-house open-window recommendation push.
@@ -5058,8 +5077,11 @@
 
 - id: garbage_recycling_reminders
   alias: "Garbage Recycling - Night Before And Morning Reminders"
-  description: Sends North Castle Zone 4 garbage and recycling reminders until the current pickup is marked taken out.
+  description: Sends North Castle Zone 4 garbage and recycling reminders until the current pickup is marked taken out, with early warnings for holiday-delayed Thursday pickups.
   triggers:
+    - trigger: time
+      at: "16:30:00"
+      id: afternoon
     - trigger: time
       at: "19:00:00"
       id: evening
@@ -5073,21 +5095,37 @@
   actions:
     - variables:
         pickup: "{{ states('sensor.garbage_recycling_next_pickup') }}"
+        scheduled_thursday: "{{ state_attr('sensor.garbage_recycling_next_pickup', 'scheduled_thursday') | default('', true) }}"
+        exception: "{{ state_attr('sensor.garbage_recycling_next_pickup', 'exception') | default('', true) }}"
         today: "{{ now().strftime('%Y-%m-%d') }}"
         tomorrow: "{{ (now() + timedelta(days=1)).strftime('%Y-%m-%d') }}"
         taken: "{{ states('input_text.garbage_recycling_last_taken_out_pickup') }}"
+        shifted_week_warning: >-
+          {{ exception | length > 0
+             and scheduled_thursday not in ['unknown', 'unavailable', 'none', '']
+             and scheduled_thursday == tomorrow
+             and pickup != scheduled_thursday }}
+        reminder_stage: >-
+          {% if shifted_week_warning | bool and trigger.id == 'afternoon' %}
+            delay_notice
+          {% elif trigger.id == 'morning' %}
+            morning
+          {% else %}
+            evening
+          {% endif %}
         should_send: >-
           {{ pickup not in ['unknown', 'unavailable', 'none', '']
              and taken != pickup
              and (
-               (trigger.id == 'evening' and pickup == tomorrow)
+               (trigger.id == 'afternoon' and (pickup == tomorrow or (shifted_week_warning | bool)))
+               or (trigger.id == 'evening' and pickup == tomorrow)
                or (trigger.id == 'morning' and pickup == today)
              ) }}
     - condition: template
       value_template: "{{ should_send }}"
     - action: script.garbage_recycling_send_reminder
       data:
-        stage: "{{ trigger.id }}"
+        stage: "{{ reminder_stage | trim }}"
         pickup_date: "{{ pickup }}"
   mode: single
 

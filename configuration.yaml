@@ -4993,7 +4993,7 @@ template:
           Main Floor averages {{ avg_temp }}°F and {{ humidity }}% humidity.
           Dining Room Ecobee is {{ action }} in {{ profile }} with a setpoint of {{ setpoint }}°F.
           Sensor spread is {{ spread }}°F and outdoor air is {{ outdoor }}°F.
-          {% if open_window %}Tonight looks favorable for opening windows and coasting.{% endif %}
+          {% if open_window %}Outdoor air looks favorable for opening windows and coasting.{% endif %}
 
       - name: "Main Floor Away Watch"
         unique_id: downstairs_away_watch
@@ -5318,7 +5318,8 @@ template:
           {% set required_advantage = states('input_number.downstairs_open_window_advantage') | float(3) %}
           {% set weather_state = states('weather.forecast_home') %}
           {% set favorable_weather = weather_state not in ['rainy', 'pouring', 'snowy', 'snowy-rainy'] %}
-          {% set season_ok = season == 'shoulder' or (season == 'summer' and period == 'night') %}
+          {% set awake_window_ok = period == 'day' %}
+          {% set season_ok = season in ['shoulder', 'summer'] %}
           {% if is_number(avg_temp) and is_number(avg_humidity) %}
             {% set humidity_penalty = [0, [((avg_humidity | float(0)) - 45) * 0.08, 2] | min] | max %}
             {% set indoor = (avg_temp | float(0)) + humidity_penalty %}
@@ -5326,7 +5327,8 @@ template:
             {% set indoor = none %}
           {% endif %}
           {{
-            season_ok
+            awake_window_ok
+            and season_ok
             and favorable_weather
             and indoor is number
             and is_number(outdoor)
@@ -5344,7 +5346,8 @@ template:
         state: >
           {% set season = states('sensor.downstairs_active_season') %}
           {% set period = states('sensor.downstairs_time_period') %}
-          {% set season_ok = season == 'shoulder' or (season == 'summer' and period == 'night') %}
+          {% set awake_window_ok = period == 'day' %}
+          {% set season_ok = season in ['shoulder', 'summer'] %}
           {% set weather_state = states('weather.forecast_home') %}
           {% set favorable_weather = weather_state not in ['rainy', 'pouring', 'snowy', 'snowy-rainy'] %}
           {% set outdoor = states('sensor.downstairs_outdoor_temp') %}
@@ -5361,7 +5364,7 @@ template:
             {'label': 'Office', 'temp': states('sensor.office_current_temperature'), 'humidity': states('sensor.office_current_humidity')}
           ] %}
           {% set ns = namespace(count=0) %}
-          {% if season_ok and favorable_weather and not dismissed
+          {% if awake_window_ok and season_ok and favorable_weather and not dismissed
              and is_number(outdoor) and is_number(outdoor_humidity) and is_number(wind)
              and (outdoor_humidity | float(100)) <= 75
              and (wind | float(999)) <= 18 %}
@@ -5455,7 +5458,8 @@ template:
           blocked_reason: >
             {% set season = states('sensor.downstairs_active_season') %}
             {% set period = states('sensor.downstairs_time_period') %}
-            {% set season_ok = season == 'shoulder' or (season == 'summer' and period == 'night') %}
+            {% set awake_window_ok = period == 'day' %}
+            {% set season_ok = season in ['shoulder', 'summer'] %}
             {% set weather_state = states('weather.forecast_home') %}
             {% set favorable_weather = weather_state not in ['rainy', 'pouring', 'snowy', 'snowy-rainy'] %}
             {% set outdoor = states('sensor.downstairs_outdoor_temp') %}
@@ -5489,8 +5493,9 @@ template:
                 {% endif %}
               {% endfor %}
             {% endif %}
-            {% if dismissed %}Dismissed for tonight
-            {% elif not season_ok %}Season or night window is not favorable
+            {% if dismissed %}Dismissed for this window-air opportunity
+            {% elif not awake_window_ok %}Outside the awake-hours window
+            {% elif not season_ok %}Season is not favorable
             {% elif not favorable_weather %}Weather is not window-friendly
             {% elif not is_number(outdoor) or not is_number(outdoor_humidity) or not is_number(wind) %}Outdoor weather data unavailable
             {% elif (outdoor_humidity | float(100)) > 75 %}Outdoor humidity is too high

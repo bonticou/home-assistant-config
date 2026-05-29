@@ -17,6 +17,78 @@ views:
 
       - type: conditional
         conditions:
+          - entity: input_boolean.vacation_mode
+            state: "on"
+        card:
+          type: custom:button-card
+          entity: input_boolean.vacation_mode
+          name: Vacation mode active
+          label: >-
+            [[[
+              const windowState = hass.states['sensor.vacation_activity_window']?.state || 'off';
+              const phase = hass.states['sensor.vacation_activity_window']?.attributes?.detail_phase || 'quiet';
+              const labels = {
+                evening: 'Evening presence glow',
+                pre_sunrise: 'Pre-sunrise presence glow',
+                off: 'Quiet watch'
+              };
+              return `${labels[windowState] || 'Quiet watch'} · ${String(phase).replaceAll('_', ' ')}`;
+            ]]]
+          icon: mdi:island
+          show_label: true
+          show_state: false
+          tap_action:
+            action: fire-dom-event
+            browser_mod:
+              service: browser_mod.popup
+              data:
+                popup_card_id: vacation-mode-popup
+          hold_action:
+            action: more-info
+          styles:
+            card:
+              - min-height: 44px
+              - padding: 8px 10px
+              - border-radius: 18px
+              - border: 1px solid rgba(59, 130, 246, 0.16)
+              - background: linear-gradient(180deg, rgba(239, 246, 255, 0.94), rgba(219, 234, 254, 0.78))
+              - box-shadow: none
+              - text-align: left
+            grid:
+              - grid-template-areas: '"i n" "i l"'
+              - grid-template-columns: 32px minmax(0, 1fr)
+              - grid-template-rows: min-content min-content
+              - column-gap: 9px
+              - align-items: center
+            icon:
+              - width: 21px
+              - color: rgba(37, 99, 235, 0.92)
+            img_cell:
+              - justify-content: center
+              - align-items: center
+              - width: 32px
+              - height: 32px
+              - border-radius: 999px
+              - background: rgba(59, 130, 246, 0.12)
+            name:
+              - justify-self: start
+              - align-self: end
+              - font-size: 13px
+              - font-weight: 650
+              - color: rgba(15, 23, 42, 0.9)
+            label:
+              - justify-self: start
+              - align-self: start
+              - min-width: 0
+              - overflow: hidden
+              - text-overflow: ellipsis
+              - white-space: nowrap
+              - font-size: 12px
+              - font-weight: 500
+              - color: rgba(51, 65, 85, 0.72)
+
+      - type: conditional
+        conditions:
           - entity: binary_sensor.main_dashboard_sleep_hero_active
             state: "on"
         card:
@@ -445,6 +517,17 @@ views:
                 service: browser_mod.popup
                 data:
                   popup_card_id: master-climate-quick-popup
+            hold_action:
+              action: more-info
+          - type: template
+            entity: binary_sensor.irrigation_active
+            icon: >-
+              {{ 'mdi:sprinkler-variant' if is_state('binary_sensor.irrigation_active', 'on') else 'mdi:sprinkler-variant-off' }}
+            icon_color: >-
+              {{ 'blue' if is_state('binary_sensor.irrigation_active', 'on') else 'grey' }}
+            tap_action:
+              action: navigate
+              navigation_path: /calm-mobile/irrigation
             hold_action:
               action: more-info
           - type: template
