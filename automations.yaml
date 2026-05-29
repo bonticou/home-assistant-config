@@ -106,70 +106,7 @@
         entity_id:
           - sensor.device_inventory_status
           - sensor.device_inventory_pending_digest
-    - delay: "00:00:02"
-    - choose:
-        - conditions:
-            - condition: template
-              value_template: "{{ state_attr('sensor.device_inventory_status', 'severity') == 'security' }}"
-          sequence:
-            - variables:
-                reasons: "{{ state_attr('sensor.device_inventory_status', 'security_reasons') | default([], true) }}"
-            - action: script.notify_trevor_phone
-              data:
-                title: "⚠️ Home inventory security change"
-                message: >-
-                  {% set summary = states('sensor.device_inventory_status') %}
-                  {% if reasons | count > 0 %}
-                    {{ reasons[:3] | join('\n') }}
-                  {% else %}
-                    {{ summary }}
-                  {% endif %}
-                data:
-                  group: security
-                  tag: device-inventory-security
-                  sticky: true
-                  ttl: 0
-                  priority: high
   mode: restart
-
-- id: inventory_daily_change_digest
-  alias: "Inventory — Daily Change Digest"
-  description: Sends a calm morning summary when ordinary device inventory changes are waiting for review.
-  triggers:
-    - trigger: time
-      at: "08:30:00"
-  conditions: []
-  actions:
-    - action: homeassistant.update_entity
-      target:
-        entity_id: sensor.device_inventory_pending_digest
-    - delay: "00:00:02"
-    - variables:
-        pending_count: "{{ states('sensor.device_inventory_pending_digest') | int(0) }}"
-        summary: "{{ state_attr('sensor.device_inventory_pending_digest', 'summary_message') | default('', true) }}"
-        items: "{{ state_attr('sensor.device_inventory_pending_digest', 'items') | default([], true) }}"
-    - choose:
-        - conditions:
-            - condition: template
-              value_template: "{{ pending_count | int(0) > 0 }}"
-          sequence:
-            - action: script.notify_trevor_phone
-              data:
-                title: "🧭 Home inventory changed"
-                message: >-
-                  {{ summary if summary else pending_count ~ ' inventory change(s) pending review' }}
-                  {% if items | count > 0 %}
-                    Recent: {{ items[:3] | map(attribute='summary') | join('; ') }}
-                  {% endif %}
-                data:
-                  group: inventory
-                  tag: device-inventory-digest
-            - action: shell_command.clear_device_inventory_digest
-            - delay: "00:00:02"
-            - action: homeassistant.update_entity
-              target:
-                entity_id: sensor.device_inventory_pending_digest
-  mode: single
 
 - id: home_assistant_remote_ui_watchdog
   alias: "Home Assistant — Remote UI Watchdog"
@@ -5667,6 +5604,56 @@
             - action: script.driver_license_snooze_renewal
               data:
                 days: 30
+  mode: parallel
+  max: 5
+
+- id: nwp_parking_pass_expiration_reminder
+  alias: "NWP Parking Pass — Expiration Reminder"
+  description: Sends the NWP parking pass reminder the day before expiration and on expiration day.
+  triggers:
+    - trigger: time
+      at: "09:13:00"
+    - trigger: time
+      at: input_datetime.nwp_parking_pass_snooze_until
+  conditions:
+    - condition: state
+      entity_id: input_boolean.nwp_parking_pass_reminders_enabled
+      state: "on"
+    - condition: state
+      entity_id: binary_sensor.nwp_parking_pass_due
+      state: "on"
+  actions:
+    - action: script.nwp_parking_pass_send_reminder
+  mode: single
+
+- id: nwp_parking_pass_notification_actions
+  alias: "NWP Parking Pass — Notification Actions"
+  description: Handles quick actions from NWP parking pass reminders.
+  triggers:
+    - trigger: event
+      event_type: mobile_app_notification_action
+  conditions:
+    - condition: template
+      value_template: >
+        {{ trigger.event.data.action in [
+          'NWP_PARKING_PASS_REPLACED',
+          'NWP_PARKING_PASS_SNOOZE_1'
+        ] }}
+  actions:
+    - choose:
+        - conditions:
+            - condition: template
+              value_template: "{{ trigger.event.data.action == 'NWP_PARKING_PASS_REPLACED' }}"
+          sequence:
+            - action: script.nwp_parking_pass_mark_replaced
+
+        - conditions:
+            - condition: template
+              value_template: "{{ trigger.event.data.action == 'NWP_PARKING_PASS_SNOOZE_1' }}"
+          sequence:
+            - action: script.nwp_parking_pass_snooze
+              data:
+                days: 1
   mode: parallel
   max: 5
 

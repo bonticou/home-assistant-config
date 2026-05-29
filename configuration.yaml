@@ -695,6 +695,21 @@ input_datetime:
     name: Casey Driver License Renewed At
     has_date: true
     has_time: true
+  # NWP parking pass expiration. When Trevor gets a new pass, update only the
+  # expiration date; the one-day reminder and Upcoming date stay derived from it.
+  nwp_parking_pass_expiration_date:
+    name: NWP Parking Pass Expiration Date
+    has_date: true
+    has_time: false
+    initial: "2026-06-30"
+  nwp_parking_pass_snooze_until:
+    name: NWP Parking Pass Snooze Until
+    has_date: true
+    has_time: true
+  nwp_parking_pass_replaced_at:
+    name: NWP Parking Pass Replaced At
+    has_date: true
+    has_time: true
 
 input_text:
   water_latest_alert_kind:
@@ -846,6 +861,10 @@ input_boolean:
   casey_driver_license_renewal_enabled:
     name: Casey Driver License Renewal Enabled
     icon: mdi:card-account-details-outline
+    initial: true
+  nwp_parking_pass_reminders_enabled:
+    name: NWP Parking Pass Reminders Enabled
+    icon: mdi:parking
     initial: true
   metro_north_commute_notified_today:
     name: Metro-North Commute Notified Today
@@ -1933,6 +1952,56 @@ template:
               Renew now
             {% else %}
               Opens {{ renewal_opens.strftime('%b %d, %Y') }}
+            {% endif %}
+          {% endif %}
+
+      - name: "NWP Parking Pass Reminder Opens"
+        unique_id: nwp_parking_pass_reminder_opens
+        device_class: date
+        icon: mdi:parking
+        state: >
+          {% set expires = states('input_datetime.nwp_parking_pass_expiration_date') %}
+          {% if expires not in ['unknown', 'unavailable', ''] %}
+            {{ (strptime(expires, '%Y-%m-%d') - timedelta(days=1)).strftime('%Y-%m-%d') }}
+          {% else %}
+            unknown
+          {% endif %}
+
+      - name: "NWP Parking Pass Status"
+        unique_id: nwp_parking_pass_status
+        icon: >
+          {% if is_state('binary_sensor.nwp_parking_pass_due', 'on') %}
+            mdi:parking
+          {% else %}
+            mdi:parking
+          {% endif %}
+        state: >
+          {% set expires = states('input_datetime.nwp_parking_pass_expiration_date') %}
+          {% set replaced = states('input_datetime.nwp_parking_pass_replaced_at') %}
+          {% set snooze = states('input_datetime.nwp_parking_pass_snooze_until') %}
+          {% set snoozed = snooze not in ['unknown', 'unavailable', 'none', '']
+             and as_timestamp(snooze, 0) > as_timestamp(now()) %}
+          {% if not is_state('input_boolean.nwp_parking_pass_reminders_enabled', 'on') %}
+            Off
+          {% elif expires in ['unknown', 'unavailable', ''] %}
+            Missing expiry
+          {% else %}
+            {% set reminder_opens = strptime(expires, '%Y-%m-%d') - timedelta(days=1) %}
+            {% set replaced_after_open = replaced not in ['unknown', 'unavailable', 'none', '']
+               and replaced[:10] >= reminder_opens.strftime('%Y-%m-%d') %}
+            {% set days_until = ((strptime(expires, '%Y-%m-%d')).date() - now().date()).days %}
+            {% if replaced_after_open %}
+              Replaced
+            {% elif snoozed %}
+              Snoozed
+            {% elif days_until < 0 %}
+              Expired
+            {% elif days_until == 0 %}
+              Expires today
+            {% elif days_until == 1 %}
+              Expires tomorrow
+            {% else %}
+              Expires {{ strptime(expires, '%Y-%m-%d').strftime('%b %d, %Y') }}
             {% endif %}
           {% endif %}
 
@@ -3377,6 +3446,7 @@ template:
             is_state('binary_sensor.driver_license_renewal_due', 'on'),
             is_state('binary_sensor.casey_passport_renewal_due', 'on'),
             is_state('binary_sensor.casey_driver_license_renewal_due', 'on'),
+            is_state('binary_sensor.nwp_parking_pass_due', 'on'),
             is_state('binary_sensor.bonticou_llc_de_franchise_tax_due', 'on'),
             is_state('binary_sensor.garbage_recycling_takeout_due', 'on'),
             is_state('binary_sensor.wine_cave_maintenance_due', 'on')
@@ -3435,6 +3505,7 @@ template:
               is_state('binary_sensor.driver_license_renewal_due', 'on'),
               is_state('binary_sensor.casey_passport_renewal_due', 'on'),
               is_state('binary_sensor.casey_driver_license_renewal_due', 'on'),
+              is_state('binary_sensor.nwp_parking_pass_due', 'on'),
               is_state('binary_sensor.bonticou_llc_de_franchise_tax_due', 'on'),
               is_state('binary_sensor.garbage_recycling_takeout_due', 'on'),
               is_state('binary_sensor.wine_cave_maintenance_due', 'on')
@@ -3471,6 +3542,7 @@ template:
               states('input_datetime.driver_license_expiration_date'),
               states('input_datetime.casey_passport_expiration_date'),
               states('input_datetime.casey_driver_license_expiration_date'),
+              states('input_datetime.nwp_parking_pass_expiration_date'),
               states('sensor.bonticou_llc_de_franchise_tax_due_date'),
               states('sensor.garbage_recycling_next_pickup'),
               robison_tune if robison_tune >= today else (now().year + 1) ~ '-03-25',
@@ -3526,6 +3598,7 @@ template:
               states('input_datetime.driver_license_expiration_date'),
               states('input_datetime.casey_passport_expiration_date'),
               states('input_datetime.casey_driver_license_expiration_date'),
+              states('input_datetime.nwp_parking_pass_expiration_date'),
               states('sensor.bonticou_llc_de_franchise_tax_due_date'),
               states('sensor.garbage_recycling_next_pickup'),
               robison_tune if robison_tune >= today else (now().year + 1) ~ '-03-25',
@@ -4005,6 +4078,51 @@ template:
                 }] %}
               {% endif %}
             {% endfor %}
+            {% set nwp_expires = states('input_datetime.nwp_parking_pass_expiration_date') %}
+            {% if is_state('input_boolean.nwp_parking_pass_reminders_enabled', 'on')
+               and nwp_expires not in ['unknown', 'unavailable', 'none', ''] %}
+              {% set nwp_reminder = states('sensor.nwp_parking_pass_reminder_opens') %}
+              {% set nwp_replaced = states('input_datetime.nwp_parking_pass_replaced_at') %}
+              {% set nwp_replaced_after_open = nwp_replaced not in ['unknown', 'unavailable', 'none', '']
+                 and nwp_reminder not in ['unknown', 'unavailable', 'none', '']
+                 and nwp_replaced[:10] >= nwp_reminder %}
+              {% set nwp_active = is_state('binary_sensor.nwp_parking_pass_due', 'on') %}
+              {% if not nwp_replaced_after_open and (nwp_active or (nwp_expires >= today and nwp_expires <= horizon)) %}
+                {% set nwp_days_until = ((strptime(nwp_expires, '%Y-%m-%d')).date() - now().date()).days %}
+                {% set ns.items = ns.items + [{
+                  'id': 'nwp-parking-pass-' ~ nwp_expires,
+                  'title': 'NWP parking pass',
+                  'emoji': '🅿️',
+                  'icon': 'mdi:parking',
+                  'group': 'Personal admin',
+                  'state': 'due' if nwp_active else 'upcoming',
+                  'severity': 'watch' if nwp_active else 'info',
+                  'date': nwp_expires,
+                  'due_prefix': 'Expires',
+                  'badge': 'expires tomorrow' if nwp_days_until == 1 else 'expires today' if nwp_days_until == 0 else 'expired' if nwp_days_until < 0 else '',
+                  'badge_class': 'due' if nwp_active else '',
+                  'show_in_upcoming': true,
+                  'basis_date': nwp_reminder,
+                  'basis_prefix': 'reminder opens',
+                  'narrative': states('sensor.nwp_parking_pass_status'),
+                  'url': '/calm-mobile/notices',
+                  'entity_id': 'sensor.nwp_parking_pass_status',
+                  'details': {
+                    'summary': 'The NWP parking pass expires on ' ~ strptime(nwp_expires, '%Y-%m-%d').strftime('%B %d, %Y') ~ '.',
+                    'facts': [
+                      'Pass: NWP parking pass',
+                      'Expiration: ' ~ strptime(nwp_expires, '%Y-%m-%d').strftime('%B %d, %Y'),
+                      'Reminder opens: ' ~ (strptime(nwp_reminder, '%Y-%m-%d').strftime('%B %d, %Y') if nwp_reminder not in ['unknown', 'unavailable', 'none', ''] else 'unknown'),
+                      'Current status: ' ~ states('sensor.nwp_parking_pass_status')
+                    ],
+                    'after_action': 'After you mark it replaced, Home Assistant stamps this pass cycle as handled and clears the push notification. When a new pass has a new expiration date, update the saved expiration and the same pattern repeats.',
+                    'tracking': 'Upcoming uses the real expiration date. Needs Attention opens one day before expiration, so June 29 says expires tomorrow while the Upcoming timeline still points at June 30.'
+                  },
+                  'actions': ([{'label': 'Replaced', 'service': 'script.nwp_parking_pass_mark_replaced', 'confirm': true, 'inline': false},
+                    {'label': 'Snooze 1d', 'service': 'script.nwp_parking_pass_snooze', 'data': {'days': 1}, 'inline': false}] if nwp_active else [])
+                }] %}
+              {% endif %}
+            {% endif %}
             {% set north_castle_tax_url = 'https://northcastle.municipaltaxpayments.com/' %}
             {% set delaware_llc_tax_url = 'https://icis.corp.delaware.gov/ecorp/logintax.aspx?FilingType=FranchiseTax' %}
             {% set tax_items = [
@@ -4767,6 +4885,28 @@ template:
           {% endif %}
         icon: >
           {{ 'mdi:calendar-alert' if is_state('binary_sensor.casey_driver_license_renewal_due', 'on') else 'mdi:card-account-details-outline' }}
+
+      - name: "NWP Parking Pass Due"
+        unique_id: nwp_parking_pass_due
+        state: >
+          {% set expires = states('input_datetime.nwp_parking_pass_expiration_date') %}
+          {% set replaced = states('input_datetime.nwp_parking_pass_replaced_at') %}
+          {% set snooze = states('input_datetime.nwp_parking_pass_snooze_until') %}
+          {% set snoozed = snooze not in ['unknown', 'unavailable', 'none', '']
+             and as_timestamp(snooze, 0) > as_timestamp(now()) %}
+          {% if not is_state('input_boolean.nwp_parking_pass_reminders_enabled', 'on')
+             or expires in ['unknown', 'unavailable', 'none', ''] %}
+            false
+          {% else %}
+            {% set reminder_opens = strptime(expires, '%Y-%m-%d') - timedelta(days=1) %}
+            {% set replaced_after_open = replaced not in ['unknown', 'unavailable', 'none', '']
+               and replaced[:10] >= reminder_opens.strftime('%Y-%m-%d') %}
+            {{ not snoozed
+               and not replaced_after_open
+               and now().strftime('%Y-%m-%d') >= reminder_opens.strftime('%Y-%m-%d') }}
+          {% endif %}
+        icon: >
+          {{ 'mdi:parking' if is_state('binary_sensor.nwp_parking_pass_due', 'on') else 'mdi:parking' }}
 
       - name: "Bonticou LLC DE Franchise Tax Due"
         unique_id: bonticou_llc_de_franchise_tax_due

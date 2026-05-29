@@ -2694,6 +2694,117 @@ driver_license_clear_renewal_notification:
         data:
           tag: driver-license-renewal
 
+nwp_parking_pass_send_reminder:
+  alias: NWP Parking Pass Send Reminder
+  description: Sends the NWP parking pass expiration reminder one day before and on expiration.
+  icon: mdi:parking
+  mode: restart
+  sequence:
+    - variables:
+        expires: "{{ states('input_datetime.nwp_parking_pass_expiration_date') }}"
+        expires_label: >-
+          {% if expires not in ['unknown', 'unavailable', ''] %}
+            {{ strptime(expires, '%Y-%m-%d').strftime('%B %d, %Y') }}
+          {% else %}
+            the saved expiration date
+          {% endif %}
+        days_until: >-
+          {% if expires not in ['unknown', 'unavailable', ''] %}
+            {{ ((strptime(expires, '%Y-%m-%d')).date() - now().date()).days }}
+          {% else %}
+            999
+          {% endif %}
+        reminder_phrase: >-
+          {% set days = days_until | int(999) %}
+          {% if days < 0 %}
+            expired on {{ expires_label | trim }}
+          {% elif days == 0 %}
+            expires today
+          {% elif days == 1 %}
+            expires tomorrow
+          {% else %}
+            expires {{ expires_label | trim }}
+          {% endif %}
+    - action: script.notify_trevor_phone
+      data:
+        title: >-
+          {% set days = days_until | int(999) %}
+          {% if days == 1 %}
+            🅿️ NWP parking pass expires tomorrow
+          {% elif days == 0 %}
+            🅿️ NWP parking pass expires today
+          {% elif days < 0 %}
+            🅿️ NWP parking pass expired
+          {% else %}
+            🅿️ NWP parking pass expires
+          {% endif %}
+        message: >-
+          The NWP parking pass {{ reminder_phrase | trim }}.
+          Expiration date: {{ expires_label | trim }}.
+          Replace or renew it before relying on the lot, then tap Replaced.
+        data:
+          group: personal-admin
+          tag: nwp-parking-pass
+          url: /calm-mobile/notices
+          actions:
+            - action: NWP_PARKING_PASS_REPLACED
+              title: Replaced
+            - action: NWP_PARKING_PASS_SNOOZE_1
+              title: Snooze 1d
+    - action: input_datetime.set_datetime
+      target:
+        entity_id: input_datetime.nwp_parking_pass_snooze_until
+      data:
+        datetime: "{{ (today_at('09:00:00') + timedelta(days=1)).strftime('%Y-%m-%d %H:%M:%S') }}"
+
+nwp_parking_pass_mark_replaced:
+  alias: NWP Parking Pass Mark Replaced
+  description: Stamps the current NWP parking pass cycle as handled and clears the reminder.
+  icon: mdi:parking
+  mode: restart
+  sequence:
+    - variables:
+        pass_now: "{{ now().strftime('%Y-%m-%d %H:%M:%S') }}"
+    - action: input_datetime.set_datetime
+      target:
+        entity_id:
+          - input_datetime.nwp_parking_pass_replaced_at
+          - input_datetime.nwp_parking_pass_snooze_until
+      data:
+        datetime: "{{ pass_now }}"
+    - action: script.nwp_parking_pass_clear_notification
+
+nwp_parking_pass_snooze:
+  alias: NWP Parking Pass Snooze
+  description: Snoozes the NWP parking pass expiration reminder.
+  icon: mdi:alarm-snooze
+  mode: restart
+  fields:
+    days:
+      description: Days to snooze the NWP parking pass reminder
+      example: 1
+  sequence:
+    - variables:
+        snooze_days: "{{ days | default(1) | int(1) }}"
+    - action: input_datetime.set_datetime
+      target:
+        entity_id: input_datetime.nwp_parking_pass_snooze_until
+      data:
+        datetime: "{{ (today_at('09:00:00') + timedelta(days=snooze_days)).strftime('%Y-%m-%d %H:%M:%S') }}"
+    - action: script.nwp_parking_pass_clear_notification
+
+nwp_parking_pass_clear_notification:
+  alias: NWP Parking Pass Clear Notification
+  description: Clears the active NWP parking pass notification tag.
+  icon: mdi:parking
+  mode: restart
+  sequence:
+    - action: script.notify_trevor_phone
+      data:
+        message: clear_notification
+        data:
+          tag: nwp-parking-pass
+
 casey_passport_send_renewal_reminder:
   alias: Casey Passport Send Renewal Reminder
   description: Sends Casey's passport renewal reminder with applied and snooze actions.
