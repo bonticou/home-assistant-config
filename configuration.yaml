@@ -5354,6 +5354,7 @@ template:
           {% set outdoor_humidity = states('sensor.downstairs_outdoor_humidity') %}
           {% set wind = states('sensor.downstairs_outdoor_wind_speed') %}
           {% set required_advantage = states('input_number.downstairs_open_window_advantage') | float(3) %}
+          {% set someone_home = is_state('binary_sensor.downstairs_someone_home', 'on') %}
           {% set dismissed_until = states('input_datetime.open_window_notice_dismissed_until') %}
           {% set dismissed = dismissed_until not in ['unknown', 'unavailable', 'none', '']
              and as_timestamp(dismissed_until, 0) > as_timestamp(now()) %}
@@ -5364,7 +5365,7 @@ template:
             {'label': 'Office', 'temp': states('sensor.office_current_temperature'), 'humidity': states('sensor.office_current_humidity')}
           ] %}
           {% set ns = namespace(count=0) %}
-          {% if awake_window_ok and season_ok and favorable_weather and not dismissed
+          {% if someone_home and awake_window_ok and season_ok and favorable_weather and not dismissed
              and is_number(outdoor) and is_number(outdoor_humidity) and is_number(wind)
              and (outdoor_humidity | float(100)) <= 75
              and (wind | float(999)) <= 18 %}
@@ -5466,6 +5467,7 @@ template:
             {% set outdoor_humidity = states('sensor.downstairs_outdoor_humidity') %}
             {% set wind = states('sensor.downstairs_outdoor_wind_speed') %}
             {% set required_advantage = states('input_number.downstairs_open_window_advantage') | float(3) %}
+            {% set someone_home = is_state('binary_sensor.downstairs_someone_home', 'on') %}
             {% set dismissed_until = states('input_datetime.open_window_notice_dismissed_until') %}
             {% set dismissed = dismissed_until not in ['unknown', 'unavailable', 'none', '']
                and as_timestamp(dismissed_until, 0) > as_timestamp(now()) %}
@@ -5493,7 +5495,8 @@ template:
                 {% endif %}
               {% endfor %}
             {% endif %}
-            {% if dismissed %}Dismissed for this window-air opportunity
+            {% if not someone_home %}Nobody home
+            {% elif dismissed %}Dismissed for this window-air opportunity
             {% elif not awake_window_ok %}Outside the awake-hours window
             {% elif not season_ok %}Season is not favorable
             {% elif not favorable_weather %}Weather is not window-friendly
