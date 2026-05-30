@@ -939,18 +939,35 @@ vacation_activity_apply:
         morning_progress: >-
           {% set raw = ((elevation | float(0)) + 14) / 18 %}
           {{ [0, [1, raw] | min] | max }}
-        evening_family_pct: "{{ (12 + (6 * (darkness | float(0)))) | round(0) | int }}"
-        evening_wynn_chandelier_pct: "{{ (18 + (16 * (darkness | float(0)))) | round(0) | int }}"
-        evening_wynn_ceiling_pct: "{{ (7 + (8 * (darkness | float(0)))) | round(0) | int }}"
-        evening_foyer_pct: "{{ (5 + (3 * (darkness | float(0)))) | round(0) | int }}"
-        evening_mudroom_main_pct: "{{ (8 + (4 * (darkness | float(0)))) | round(0) | int }}"
-        evening_yard_pct: "{{ (22 + (18 * (darkness | float(0)))) | round(0) | int }}"
-        evening_deck_pct: "{{ (15 + (18 * (darkness | float(0)))) | round(0) | int }}"
-        morning_family_pct: "{{ (5 + (4 * (morning_progress | float(0)))) | round(0) | int }}"
-        morning_foyer_pct: "{{ (4 + (2 * (morning_progress | float(0)))) | round(0) | int }}"
-        morning_mudroom_main_pct: "{{ (4 + (3 * (morning_progress | float(0)))) | round(0) | int }}"
-        morning_yard_pct: "{{ (12 + (8 * (morning_progress | float(0)))) | round(0) | int }}"
-        morning_deck_pct: "{{ (10 + (8 * (morning_progress | float(0)))) | round(0) | int }}"
+        late_progress: >-
+          {% set start = as_timestamp(today_at('21:30')) %}
+          {% set end = as_timestamp(today_at('23:45')) %}
+          {% set span = [1, end - start] | max %}
+          {% set raw = (as_timestamp(now()) - start) / span %}
+          {{ [0, [1, raw] | min] | max }}
+        late_remaining: "{{ 1 - (late_progress | float(0)) }}"
+        evening_family_pct: "{{ (24 + (12 * (darkness | float(0)))) | round(0) | int }}"
+        evening_wynn_chandelier_pct: "{{ (30 + (20 * (darkness | float(0)))) | round(0) | int }}"
+        evening_wynn_ceiling_pct: "{{ (14 + (10 * (darkness | float(0)))) | round(0) | int }}"
+        evening_foyer_pct: "{{ (26 + (14 * (darkness | float(0)))) | round(0) | int }}"
+        evening_mudroom_main_pct: "{{ (18 + (10 * (darkness | float(0)))) | round(0) | int }}"
+        evening_mudroom_nook_pct: "{{ (12 + (8 * (darkness | float(0)))) | round(0) | int }}"
+        evening_yard_pct: "{{ (35 + (25 * (darkness | float(0)))) | round(0) | int }}"
+        evening_deck_pct: "{{ (30 + (22 * (darkness | float(0)))) | round(0) | int }}"
+        late_family_pct: "{{ (8 + (18 * (late_remaining | float(0)))) | round(0) | int }}"
+        late_wynn_chandelier_pct: "{{ (6 + (22 * (late_remaining | float(0)))) | round(0) | int }}"
+        late_wynn_ceiling_pct: "{{ (3 + (9 * (late_remaining | float(0)))) | round(0) | int }}"
+        late_foyer_pct: "{{ (24 + (18 * (late_remaining | float(0)))) | round(0) | int }}"
+        late_mudroom_main_pct: "{{ (5 + (16 * (late_remaining | float(0)))) | round(0) | int }}"
+        late_mudroom_nook_pct: "{{ (3 + (11 * (late_remaining | float(0)))) | round(0) | int }}"
+        late_yard_pct: "{{ (40 + (8 * (late_remaining | float(0)))) | round(0) | int }}"
+        late_deck_pct: "{{ (32 + (8 * (late_remaining | float(0)))) | round(0) | int }}"
+        morning_family_pct: "{{ (12 + (8 * (morning_progress | float(0)))) | round(0) | int }}"
+        morning_foyer_pct: "{{ (18 + (10 * (morning_progress | float(0)))) | round(0) | int }}"
+        morning_mudroom_main_pct: "{{ (10 + (6 * (morning_progress | float(0)))) | round(0) | int }}"
+        morning_mudroom_nook_pct: "{{ (6 + (4 * (morning_progress | float(0)))) | round(0) | int }}"
+        morning_yard_pct: "{{ (18 + (14 * (morning_progress | float(0)))) | round(0) | int }}"
+        morning_deck_pct: "{{ (16 + (12 * (morning_progress | float(0)))) | round(0) | int }}"
     - choose:
         - conditions:
             - condition: template
@@ -980,6 +997,11 @@ vacation_activity_apply:
                       data:
                         entity_id: light.mudroom_main_lights
                         brightness_pct: "{{ evening_mudroom_main_pct }}"
+                        transition: 10
+                    - action: light.turn_on
+                      data:
+                        entity_id: light.mudroom_nook_lights
+                        brightness_pct: "{{ evening_mudroom_nook_pct }}"
                         transition: 10
                 - sequence:
                     - action: light.turn_on
@@ -1016,36 +1038,63 @@ vacation_activity_apply:
           sequence:
             - parallel:
                 - sequence:
-                    - action: light.turn_off
+                    - action: light.turn_on
                       data:
                         entity_id:
                           - light.family_room_main_lights_1
                           - light.family_room_main_lights_2
                           - light.family_room_main_lights_3
-                          - light.wynn_s_room_chandelier
-                          - light.wynn_s_room_ceiling_lights
-                          - light.mudroom_main_lights
-                          - light.exterior_yard_lights
-                          - light.deck_deck_lights
-                          - light.back_patio_light
-                        transition: 10
-                    - action: switch.turn_off
+                        brightness_pct: "{{ late_family_pct }}"
+                        transition: 240
+                    - action: switch.turn_on
                       data:
                         entity_id: switch.uplight
-                    - if:
-                        - condition: state
-                          entity_id: binary_sensor.door_lights_schedule_active
-                          state: "off"
-                      then:
-                        - action: switch.turn_off
-                          data:
-                            entity_id: switch.exterior_mud_room_stairs
                 - sequence:
                     - action: light.turn_on
                       data:
                         entity_id: light.front_foyer_chandelier
-                        brightness_pct: 3
-                        transition: 12
+                        brightness_pct: "{{ late_foyer_pct }}"
+                        transition: 240
+                - sequence:
+                    - action: light.turn_on
+                      data:
+                        entity_id: light.wynn_s_room_chandelier
+                        brightness_pct: "{{ late_wynn_chandelier_pct }}"
+                        transition: 240
+                    - action: light.turn_on
+                      data:
+                        entity_id: light.wynn_s_room_ceiling_lights
+                        brightness_pct: "{{ late_wynn_ceiling_pct }}"
+                        transition: 240
+                - sequence:
+                    - action: light.turn_on
+                      data:
+                        entity_id: light.mudroom_main_lights
+                        brightness_pct: "{{ late_mudroom_main_pct }}"
+                        transition: 240
+                    - action: light.turn_on
+                      data:
+                        entity_id: light.mudroom_nook_lights
+                        brightness_pct: "{{ late_mudroom_nook_pct }}"
+                        transition: 240
+                - sequence:
+                    - action: light.turn_on
+                      data:
+                        entity_id: light.exterior_yard_lights
+                        brightness_pct: "{{ late_yard_pct }}"
+                        transition: 60
+                    - action: light.turn_on
+                      data:
+                        entity_id: light.deck_deck_lights
+                        brightness_pct: "{{ late_deck_pct }}"
+                        transition: 60
+                    - action: light.turn_on
+                      data:
+                        entity_id: light.back_patio_light
+                        transition: 3
+                    - action: switch.turn_on
+                      data:
+                        entity_id: switch.exterior_mud_room_stairs
         - conditions:
             - condition: template
               value_template: "{{ window == 'pre_sunrise' }}"
@@ -1081,6 +1130,11 @@ vacation_activity_apply:
                         entity_id: light.mudroom_main_lights
                         brightness_pct: "{{ morning_mudroom_main_pct }}"
                         transition: 10
+                    - action: light.turn_on
+                      data:
+                        entity_id: light.mudroom_nook_lights
+                        brightness_pct: "{{ morning_mudroom_nook_pct }}"
+                        transition: 10
                 - sequence:
                     - action: light.turn_on
                       data:
@@ -1109,6 +1163,7 @@ vacation_activity_apply:
               - light.wynn_s_room_chandelier
               - light.wynn_s_room_ceiling_lights
               - light.mudroom_main_lights
+              - light.mudroom_nook_lights
               - light.exterior_yard_lights
               - light.deck_deck_lights
               - light.back_patio_light

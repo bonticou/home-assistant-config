@@ -522,7 +522,7 @@ views:
           - type: template
             entity: binary_sensor.irrigation_active
             icon: >-
-              {{ 'mdi:sprinkler-variant' if is_state('binary_sensor.irrigation_active', 'on') else 'mdi:sprinkler-variant-off' }}
+              {{ 'mdi:sprinkler-variant' if is_state('binary_sensor.irrigation_active', 'on') else 'mdi:sprinkler' }}
             icon_color: >-
               {{ 'blue' if is_state('binary_sensor.irrigation_active', 'on') else 'grey' }}
             tap_action:
@@ -5651,7 +5651,7 @@ views:
                           <div class="vacation-example-icon blue"><ha-icon icon="mdi:weather-night"></ha-icon></div>
                           <div class="vacation-example-copy">
                             <div class="vacation-example-title">Late night</div>
-                            <div class="vacation-example-text">Most rooms tuck in; the foyer chandelier keeps a low signal before the house quiets down.</div>
+                            <div class="vacation-example-text">Interior rooms fade down gradually while the foyer and exterior markers keep the home visibly occupied.</div>
                           </div>
                         </div>
                         <div class="vacation-example-row">

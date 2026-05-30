@@ -2239,6 +2239,7 @@ template:
               'light.wynn_s_room_chandelier',
               'light.wynn_s_room_ceiling_lights',
               'light.mudroom_main_lights',
+              'light.mudroom_nook_lights',
               'light.deck_deck_lights',
               'light.exterior_yard_lights',
               'light.back_patio_light'
@@ -2283,6 +2284,7 @@ template:
                 'light.wynn_s_room_chandelier',
                 'light.wynn_s_room_ceiling_lights',
                 'light.mudroom_main_lights',
+                'light.mudroom_nook_lights',
                 'light.deck_deck_lights',
                 'light.exterior_yard_lights',
                 'light.back_patio_light'
@@ -2331,6 +2333,7 @@ template:
                 'light.wynn_s_room_chandelier',
                 'light.wynn_s_room_ceiling_lights',
                 'light.mudroom_main_lights',
+                'light.mudroom_nook_lights',
                 'light.deck_deck_lights',
                 'light.exterior_yard_lights',
                 'light.back_patio_light'
@@ -2989,7 +2992,7 @@ template:
         icon: >
           {{ 'mdi:sprinkler-variant'
              if is_state('binary_sensor.irrigation_active', 'on')
-             else 'mdi:sprinkler-variant-off' }}
+             else 'mdi:sprinkler' }}
         attributes:
           active_zone: "{{ states('sensor.irrigation_active_zone') }}"
           active_zone_entity: "{{ state_attr('sensor.irrigation_active_zone', 'entity_id') }}"
@@ -3046,7 +3049,7 @@ template:
           {% elif is_state('binary_sensor.irrigation_active', 'on') %}mdi:sprinkler-variant
           {% elif is_state('binary_sensor.irrigation_weather_skip_buffer_active', 'on') %}mdi:weather-pouring
           {% elif is_state('binary_sensor.hydrawise_controller_online', 'off') %}mdi:cloud-off-outline
-          {% else %}mdi:sprinkler-variant-off{% endif %}
+          {% else %}mdi:sprinkler{% endif %}
         attributes:
           severity: >
             {% if is_state('input_boolean.water_irrigation_alert_active', 'on') %}
