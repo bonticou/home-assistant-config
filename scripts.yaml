@@ -4206,7 +4206,7 @@ away_security_send_alert:
         active_light_count: "{{ states('sensor.away_security_active_lights') | int(0) }}"
         secure_action_title: >-
           {% set garage = garage_door_open | bool %}
-          {% set garage_close = 'Close both' if garage_open_count | int(0) == 2 else 'Close' %}
+          {% set garage_close = garage_close_title %}
           {% set locks = unlocked_entry_count | int(0) > 0 %}
           {% set lights = active_light_count | int(0) > 0 %}
           {% if garage and locks and lights %}{{ garage_close }} + lock + lights off
@@ -4525,7 +4525,7 @@ casey_left_garage_send_alert:
                       title: Open Protect
                       uri: unifi-protect://
                     - action: SECURE_CASEY_LEFT_HOME
-                      title: Close + lock
+                      title: "{{ garage_close_title }} + lock"
                     - action: CLOSE_AWAY_GARAGE
                       title: "{{ garage_close_title }}"
                     - action: LOCK_CASEY_LEFT_ENTRY_DOORS
@@ -4594,14 +4594,15 @@ casey_left_combo_send_alert:
     - variables:
         garage_door_open: "{{ is_state('binary_sensor.away_security_garage_door_open', 'on') }}"
         garage_open_count: "{{ state_attr('binary_sensor.away_security_garage_door_open', 'open_count') | int(0) }}"
+        garage_close_title: "{{ state_attr('binary_sensor.away_security_garage_door_open', 'close_action_title') | default('Close garage', true) }}"
         entry_point_issue: "{{ state_attr('sensor.away_security_entry_point_issues', 'issue') | default('an entry point unsecured', true) }}"
         unlocked_entry_count: "{{ states('sensor.away_security_unlocked_entry_locks') | int(0) }}"
         active_light_names: >
           {% set light_names = state_attr('sensor.away_security_active_lights', 'names') | default('', true) %}
           {{ (light_names.split('||') if light_names else []) | reject('eq', '') | list }}
         secure_action_title: >-
-          {% if garage_door_open | bool and unlocked_entry_count | int(0) > 0 %}{{ 'Close both' if garage_open_count | int(0) == 2 else 'Close' }} + lock + lights off
-          {% elif garage_door_open | bool %}{{ 'Close both' if garage_open_count | int(0) == 2 else 'Close' }} + lights off
+          {% if garage_door_open | bool and unlocked_entry_count | int(0) > 0 %}{{ garage_close_title }} + lock + lights off
+          {% elif garage_door_open | bool %}{{ garage_close_title }} + lights off
           {% else %}Lock + lights off{% endif %}
     - action: script.notify_trevor_phone
       data:
