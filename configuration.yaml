@@ -2656,7 +2656,7 @@ template:
         unique_id: espresso_maintenance_status
         state: >
           {% set snooze = states('input_datetime.espresso_maintenance_snooze_until') %}
-          {% set snoozed = snooze not in ['unknown', 'unavailable', '']
+          {% set snoozed = snooze not in ['unknown', 'unavailable', 'none', '']
              and as_timestamp(snooze, 0) > as_timestamp(now()) %}
           {% if not is_state('input_boolean.espresso_maintenance_enabled', 'on') %}
             Off
@@ -2675,6 +2675,58 @@ template:
           {% else %}
             mdi:coffee-maker-check-outline
           {% endif %}
+        attributes:
+          last_water_backflush_at: >
+            {% set value = states('input_datetime.espresso_last_water_backflush') %}
+            {{ value if value not in ['unknown', 'unavailable', 'none', ''] else '' }}
+          last_water_backflush_date: >
+            {% set ts = as_timestamp(states('input_datetime.espresso_last_water_backflush'), 0) %}
+            {{ ts | timestamp_custom('%Y-%m-%d', true) if ts > 0 else '' }}
+          last_cafiza_clean_at: >
+            {% set value = states('input_datetime.espresso_last_cafiza_clean') %}
+            {{ value if value not in ['unknown', 'unavailable', 'none', ''] else '' }}
+          last_cafiza_clean_date: >
+            {% set ts = as_timestamp(states('input_datetime.espresso_last_cafiza_clean'), 0) %}
+            {{ ts | timestamp_custom('%Y-%m-%d', true) if ts > 0 else '' }}
+          water_ready_date: >
+            {% set ts = as_timestamp(states('input_datetime.espresso_last_water_backflush'), 0) %}
+            {% if ts > 0 %}
+              {% set last_date = ts | timestamp_custom('%Y-%m-%d', true) %}
+              {{ (strptime(last_date, '%Y-%m-%d') + timedelta(days=7)).strftime('%Y-%m-%d') }}
+            {% else %}
+              {{ '' }}
+            {% endif %}
+          cafiza_due_date: >
+            {% set ts = as_timestamp(states('input_datetime.espresso_last_cafiza_clean'), 0) %}
+            {% if ts > 0 %}
+              {% set last_date = ts | timestamp_custom('%Y-%m-%d', true) %}
+              {{ (strptime(last_date, '%Y-%m-%d') + timedelta(days=60)).strftime('%Y-%m-%d') }}
+            {% else %}
+              {{ '' }}
+            {% endif %}
+          next_due_date: >
+            {% set water_ts = as_timestamp(states('input_datetime.espresso_last_water_backflush'), 0) %}
+            {% set cafiza_ts = as_timestamp(states('input_datetime.espresso_last_cafiza_clean'), 0) %}
+            {% set water_date = (strptime(water_ts | timestamp_custom('%Y-%m-%d', true), '%Y-%m-%d') + timedelta(days=7)).strftime('%Y-%m-%d') if water_ts > 0 else '' %}
+            {% set cafiza_date = (strptime(cafiza_ts | timestamp_custom('%Y-%m-%d', true), '%Y-%m-%d') + timedelta(days=60)).strftime('%Y-%m-%d') if cafiza_ts > 0 else '' %}
+            {% set dates = ([water_date, cafiza_date] | reject('eq', '') | list | sort) %}
+            {{ dates[0] if dates | count > 0 else '' }}
+          due_kind: >
+            {% if is_state('binary_sensor.espresso_cafiza_clean_due', 'on') %}
+              cafiza
+            {% elif is_state('binary_sensor.espresso_water_backflush_due', 'on') %}
+              water
+            {% else %}
+              none
+            {% endif %}
+          snooze_until: >
+            {% set value = states('input_datetime.espresso_maintenance_snooze_until') %}
+            {{ value if value not in ['unknown', 'unavailable', 'none', ''] else '' }}
+          last_notified_at: >
+            {% set value = states('input_datetime.espresso_maintenance_last_notified_at') %}
+            {{ value if value not in ['unknown', 'unavailable', 'none', ''] else '' }}
+          notification_window_start: "06:00"
+          notification_window_end: "12:00"
 
       - name: "Water Notification Status"
         unique_id: water_notification_status
@@ -3572,13 +3624,12 @@ template:
             {% set water_last = as_timestamp(states('input_datetime.espresso_last_water_backflush'), 0) %}
             {% set cafiza_last = as_timestamp(states('input_datetime.espresso_last_cafiza_clean'), 0) %}
             {% if water_last > 0 %}
-              {% set water_ready_date = (water_last + 604800) | timestamp_custom('%Y-%m-%d', true) %}
-              {% set water_ready = strptime(water_ready_date, '%Y-%m-%d') %}
-              {% set water_offset = 0 if water_ready.weekday() >= 5 else 5 - water_ready.weekday() %}
-              {% set water_next = (water_ready + timedelta(days=water_offset)).strftime('%Y-%m-%d') %}
+              {% set water_last_date = water_last | timestamp_custom('%Y-%m-%d', true) %}
+              {% set water_next = (strptime(water_last_date, '%Y-%m-%d') + timedelta(days=7)).strftime('%Y-%m-%d') %}
             {% else %}
               {% set water_next = '' %}
             {% endif %}
+            {% set cafiza_next = (strptime(cafiza_last | timestamp_custom('%Y-%m-%d', true), '%Y-%m-%d') + timedelta(days=60)).strftime('%Y-%m-%d') if cafiza_last > 0 else '' %}
             {% set wine_filter = states('sensor.wine_cave_next_charcoal_filter_due') %}
             {% set wine_clean = states('sensor.wine_cave_next_cleaning_due') %}
             {% set robison_tune = now().year ~ '-03-25' %}
@@ -3586,7 +3637,7 @@ template:
             {% set ns = namespace(dates=[]) %}
             {% for date_value in [
               water_next,
-              (cafiza_last + 5184000) | timestamp_custom('%Y-%m-%d', true) if cafiza_last > 0 else '',
+              cafiza_next,
               states('sensor.piano_next_tuning_due'),
               states('sensor.dryer_vent_next_cleaning_due'),
               states('input_datetime.passport_expiration_date'),
@@ -3630,19 +3681,18 @@ template:
             {% set water_last = as_timestamp(states('input_datetime.espresso_last_water_backflush'), 0) %}
             {% set cafiza_last = as_timestamp(states('input_datetime.espresso_last_cafiza_clean'), 0) %}
             {% if water_last > 0 %}
-              {% set water_ready_date = (water_last + 604800) | timestamp_custom('%Y-%m-%d', true) %}
-              {% set water_ready = strptime(water_ready_date, '%Y-%m-%d') %}
-              {% set water_offset = 0 if water_ready.weekday() >= 5 else 5 - water_ready.weekday() %}
-              {% set water_next = (water_ready + timedelta(days=water_offset)).strftime('%Y-%m-%d') %}
+              {% set water_last_date = water_last | timestamp_custom('%Y-%m-%d', true) %}
+              {% set water_next = (strptime(water_last_date, '%Y-%m-%d') + timedelta(days=7)).strftime('%Y-%m-%d') %}
             {% else %}
               {% set water_next = '' %}
             {% endif %}
+            {% set cafiza_next = (strptime(cafiza_last | timestamp_custom('%Y-%m-%d', true), '%Y-%m-%d') + timedelta(days=60)).strftime('%Y-%m-%d') if cafiza_last > 0 else '' %}
             {% set robison_tune = now().year ~ '-03-25' %}
             {% set robison_price = now().year ~ '-08-20' %}
             {% set ns = namespace(dates=[]) %}
             {% for date_value in [
               water_next,
-              (cafiza_last + 5184000) | timestamp_custom('%Y-%m-%d', true) if cafiza_last > 0 else '',
+              cafiza_next,
               states('sensor.piano_next_tuning_due'),
               states('sensor.dryer_vent_next_cleaning_due'),
               states('input_datetime.passport_expiration_date'),
@@ -3978,14 +4028,12 @@ template:
             {% set water_last = as_timestamp(states('input_datetime.espresso_last_water_backflush'), 0) %}
             {% set cafiza_last = as_timestamp(states('input_datetime.espresso_last_cafiza_clean'), 0) %}
             {% if water_last > 0 %}
-              {% set water_ready_date = (water_last + 604800) | timestamp_custom('%Y-%m-%d', true) %}
-              {% set water_ready = strptime(water_ready_date, '%Y-%m-%d') %}
-              {% set water_offset = 0 if water_ready.weekday() >= 5 else 5 - water_ready.weekday() %}
-              {% set water_due = (water_ready + timedelta(days=water_offset)).strftime('%Y-%m-%d') %}
+              {% set water_last_date = water_last | timestamp_custom('%Y-%m-%d', true) %}
+              {% set water_due = (strptime(water_last_date, '%Y-%m-%d') + timedelta(days=7)).strftime('%Y-%m-%d') %}
             {% else %}
               {% set water_due = '' %}
             {% endif %}
-            {% set cafiza_due = (cafiza_last + 5184000) | timestamp_custom('%Y-%m-%d', true) if cafiza_last > 0 else '' %}
+            {% set cafiza_due = (strptime(cafiza_last | timestamp_custom('%Y-%m-%d', true), '%Y-%m-%d') + timedelta(days=60)).strftime('%Y-%m-%d') if cafiza_last > 0 else '' %}
             {% set espresso_dates = ([water_due, cafiza_due] | reject('eq', '') | list | sort) %}
             {% if is_state('input_boolean.espresso_maintenance_enabled', 'on') and espresso_dates | count > 0 %}
               {% set ns.items = ns.items + [{
@@ -4861,11 +4909,9 @@ template:
           {% if last_ts <= 0 %}
             false
           {% else %}
-            {% set ready_date = (last_ts + 604800) | timestamp_custom('%Y-%m-%d', true) %}
-            {% set ready = strptime(ready_date, '%Y-%m-%d') %}
-            {% set offset = 0 if ready.weekday() >= 5 else 5 - ready.weekday() %}
-            {% set ritual_date = (ready + timedelta(days=offset)).strftime('%Y-%m-%d') %}
-            {{ now().strftime('%Y-%m-%d') >= ritual_date }}
+            {% set last_date = last_ts | timestamp_custom('%Y-%m-%d', true) %}
+            {% set ready_date = (strptime(last_date, '%Y-%m-%d') + timedelta(days=7)).strftime('%Y-%m-%d') %}
+            {{ now().strftime('%Y-%m-%d') >= ready_date }}
           {% endif %}
         icon: >
           {{ 'mdi:water-sync' if is_state('binary_sensor.espresso_water_backflush_due', 'on') else 'mdi:water-check-outline' }}
@@ -4875,7 +4921,13 @@ template:
         state: >
           {% set last = states('input_datetime.espresso_last_cafiza_clean') %}
           {% set last_ts = as_timestamp(last, 0) %}
-          {{ last_ts > 0 and (as_timestamp(now()) - last_ts) >= 5184000 }}
+          {% if last_ts <= 0 %}
+            false
+          {% else %}
+            {% set last_date = last_ts | timestamp_custom('%Y-%m-%d', true) %}
+            {% set due_date = (strptime(last_date, '%Y-%m-%d') + timedelta(days=60)).strftime('%Y-%m-%d') %}
+            {{ now().strftime('%Y-%m-%d') >= due_date }}
+          {% endif %}
         icon: >
           {{ 'mdi:coffee-maker-alert-outline' if is_state('binary_sensor.espresso_cafiza_clean_due', 'on') else 'mdi:coffee-maker-check-outline' }}
 

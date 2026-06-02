@@ -1967,61 +1967,16 @@ views:
                   return `<div class="tile-copy"><div class="tile-label">Espresso</div><div class="tile-meta">${status}</div></div>`;
                 ]]]
             tap_action:
+              action: fire-dom-event
+              browser_mod:
+                service: browser_mod.popup
+                data:
+                  popup_card_id: espresso-maintenance-popup
+            hold_action:
               action: more-info
             styles:
               <<: *compact_tile_styles
             extra_styles: *compact_tile_extra
-      - type: conditional
-        conditions:
-          - entity: input_boolean.espresso_maintenance_enabled
-            state: "on"
-          - entity: binary_sensor.espresso_maintenance_due
-            state: "on"
-        card:
-          type: custom:mushroom-chips-card
-          alignment: left
-          chips:
-            - type: template
-              icon: mdi:water-check-outline
-              icon_color: blue
-              content: Water done
-              tap_action:
-                action: call-service
-                service: script.turn_on
-                target:
-                  entity_id: script.espresso_mark_water_backflush_done
-            - type: template
-              icon: mdi:coffee-maker-check-outline
-              icon_color: amber
-              content: Cafiza done
-              tap_action:
-                action: call-service
-                service: script.turn_on
-                target:
-                  entity_id: script.espresso_mark_cafiza_clean_done
-            - type: template
-              icon: mdi:alarm-snooze
-              icon_color: grey
-              content: Snooze
-              tap_action:
-                action: call-service
-                service: script.turn_on
-                target:
-                  entity_id: script.espresso_snooze_maintenance
-          card_mod:
-            style: |
-              ha-card {
-                border: none;
-                box-shadow: none;
-                --chip-spacing: 10px;
-                margin-top: -4px;
-              }
-              mushroom-template-chip {
-                --chip-background: rgba(15, 23, 42, 0.72);
-                --chip-border-width: 1px;
-                --chip-border-color: rgba(148, 163, 184, 0.14);
-              }
-
       - type: conditional
         conditions:
           - entity: input_boolean.piano_care_enabled
@@ -2620,6 +2575,67 @@ views:
               entity: device_tracker.unifi_default_42_15_78_4a_d9_f8
               hours: 24
               limit: 24
+      - type: custom:popup-card
+        popup_card_id: espresso-maintenance-popup
+        target:
+          entity_id: sensor.espresso_maintenance_status
+        title: Profitec GO
+        card:
+          type: vertical-stack
+          cards:
+            - type: custom:mushroom-template-card
+              entity: sensor.espresso_maintenance_status
+              primary: Profitec GO
+              secondary: >-
+                {% set s = 'sensor.espresso_maintenance_status' %}
+                {% set water = state_attr(s, 'last_water_backflush_date') %}
+                {% set cafiza = state_attr(s, 'last_cafiza_clean_date') %}
+                {% set next = state_attr(s, 'next_due_date') %}
+                {% set reminder = state_attr(s, 'last_notified_at') %}
+                {{ states(s) }}
+                Water {{ water or 'No record' }}
+                Cafiza {{ cafiza or 'No record' }}
+                Next {{ next or 'No record' }}
+                Reminder {{ reminder[:10] if reminder else 'No reminder yet' }}
+              icon: mdi:coffee-maker-outline
+              icon_color: >-
+                {% if states('sensor.espresso_maintenance_status') == 'Cafiza due' %}red
+                {% elif states('sensor.espresso_maintenance_status') == 'Water due' %}amber
+                {% elif states('sensor.espresso_maintenance_status') == 'Snoozed' %}grey
+                {% else %}green{% endif %}
+              multiline_secondary: true
+              tap_action:
+                action: none
+            - type: custom:mushroom-chips-card
+              alignment: center
+              chips:
+                - type: template
+                  icon: mdi:water-check-outline
+                  icon_color: blue
+                  content: Water done
+                  tap_action:
+                    action: call-service
+                    service: script.espresso_mark_water_backflush_done
+                    confirmation:
+                      text: Record water flush as done?
+                - type: template
+                  icon: mdi:coffee-maker-check-outline
+                  icon_color: amber
+                  content: Cafiza done
+                  tap_action:
+                    action: call-service
+                    service: script.espresso_mark_cafiza_clean_done
+                    confirmation:
+                      text: Record Cafiza clean as done?
+                - type: template
+                  icon: mdi:alarm-snooze
+                  icon_color: grey
+                  content: Snooze
+                  tap_action:
+                    action: call-service
+                    service: script.espresso_snooze_maintenance
+                    confirmation:
+                      text: Snooze until tomorrow morning?
       - type: custom:popup-card
         target:
           entity_id: weather.forecast_home

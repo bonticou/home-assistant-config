@@ -4818,11 +4818,15 @@
 
 - id: espresso_morning_maintenance_reminder
   alias: "Espresso — Morning Maintenance Reminder"
-  description: Sends the Profitec GO cleaning reminder on the morning ritual cadence when Trevor is home.
+  description: Sends the Profitec GO cleaning reminder on the morning ritual cadence or coffee-window homecoming catch-up.
   triggers:
     - trigger: time
       at: "07:00:00"
       id: morning
+    - trigger: state
+      entity_id: device_tracker.tk_iphone_16_pro
+      to: "home"
+      id: homecoming
     - trigger: homeassistant
       event: start
       id: startup
@@ -4851,30 +4855,16 @@
             minutes: 1
     - variables:
         today: "{{ now().strftime('%Y-%m-%d') }}"
-        morning_window: "{{ now().hour >= 7 and now().hour < 11 }}"
+        coffee_window: "{{ now().hour >= 6 and now().hour < 12 }}"
         cafiza_due: "{{ is_state('binary_sensor.espresso_cafiza_clean_due', 'on') }}"
         water_due: "{{ is_state('binary_sensor.espresso_water_backflush_due', 'on') }}"
-        water_ritual_start: >-
-          {% set last = states('input_datetime.espresso_last_water_backflush') %}
-          {% set last_ts = as_timestamp(last, 0) %}
-          {% if last_ts <= 0 %}
-          {% else %}
-            {% set ready_date = (last_ts + 604800) | timestamp_custom('%Y-%m-%d', true) %}
-            {% set ready = strptime(ready_date, '%Y-%m-%d') %}
-            {% set offset = 0 if ready.weekday() >= 5 else 5 - ready.weekday() %}
-            {{ (ready + timedelta(days=offset)).strftime('%Y-%m-%d') }}
-          {% endif %}
-        water_alert_eligible: >-
-          {{ water_due | bool
-             and water_ritual_start | trim not in ['', 'unknown', 'unavailable', 'none']
-             and today >= water_ritual_start | trim }}
         last_notified: "{{ states('input_datetime.espresso_maintenance_last_notified_at') }}"
         notified_today: >-
           {{ last_notified not in ['unknown', 'unavailable', 'none', '']
              and last_notified[:10] == today }}
         trigger_allowed: >-
           {{ trigger.id == 'morning'
-             or (trigger.id in ['startup', 'automation_reloaded'] and morning_window | bool) }}
+             or (trigger.id in ['homecoming', 'startup', 'automation_reloaded'] and coffee_window | bool) }}
     - condition: state
       entity_id: device_tracker.tk_iphone_16_pro
       state: "home"
@@ -4883,7 +4873,7 @@
     - condition: template
       value_template: "{{ not (notified_today | bool) }}"
     - condition: template
-      value_template: "{{ cafiza_due | bool or water_alert_eligible | bool }}"
+      value_template: "{{ cafiza_due | bool or water_due | bool }}"
     - action: script.espresso_send_maintenance_notification
   mode: single
 
@@ -4984,6 +4974,8 @@
               value_template: "{{ trigger.event.data.action == 'ESPRESSO_SNOOZE_TOMORROW' }}"
           sequence:
             - action: script.espresso_snooze_maintenance
+              data:
+                source: home_assistant_notification_action
   mode: parallel
   max: 10
 

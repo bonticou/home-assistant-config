@@ -193,6 +193,7 @@ class HouseNoticesCard extends HTMLElement {
         openSentTags.delete(tag);
         return;
       }
+      if (this.isRecentOptOut(event)) return;
       if (this.isHousekeepingHistoryEvent(event)) return;
       filtered.push(event);
       if (event.kind === "sent" && tag) openSentTags.add(tag);
@@ -212,6 +213,18 @@ class HouseNoticesCard extends HTMLElement {
       || title === "wine cave guardrail"
       || tag.endsWith("-snooze")
       || message.includes("reminders paused");
+  }
+
+  isRecentOptOut(event) {
+    if (this.keepActionInRecent(event)) return false;
+    const recent = String(event.recent ?? "").toLowerCase();
+    const keepRecent = String(event.keep_recent ?? "").toLowerCase();
+    const history = String(event.history ?? "").toLowerCase();
+    return event.recent === false
+      || event.keep_recent === false
+      || ["false", "off", "0", "no"].includes(recent)
+      || ["false", "off", "0", "no"].includes(keepRecent)
+      || history === "audit";
   }
 
   keepActionInRecent(event) {

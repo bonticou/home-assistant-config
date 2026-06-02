@@ -1230,7 +1230,11 @@ notify_trevor_phone:
           {% else %}
             info
           {% endif %}
+        action: "{{ notification_data.action | default('', true) }}"
         source: notify_trevor_phone
+        recent: "{{ notification_data.recent | default('', true) }}"
+        keep_recent: "{{ notification_data.keep_recent | default('', true) }}"
+        history: "{{ notification_data.history | default('', true) }}"
     - action: notify.mobile_app_tk_iphone_16_pro
       data:
         title: "{{ notification_title }}"
@@ -1768,6 +1772,10 @@ espresso_send_maintenance_notification:
                   group: espresso
                   tag: espresso-maintenance
                   url: /calm-mobile/home
+                  action: espresso_cafiza_clean_reminder_sent
+                  recent: false
+                  keep_recent: false
+                  history: audit
                   actions:
                     - action: ESPRESSO_CAFIZA_CLEAN_DONE
                       title: Cafiza done
@@ -1785,6 +1793,10 @@ espresso_send_maintenance_notification:
               group: espresso
               tag: espresso-maintenance
               url: /calm-mobile/home
+              action: espresso_water_backflush_reminder_sent
+              recent: false
+              keep_recent: false
+              history: audit
               actions:
                 - action: ESPRESSO_WATER_BACKFLUSH_DONE
                   title: Water done
@@ -1821,6 +1833,25 @@ espresso_mark_water_backflush_done:
         completed_at: "{{ espresso_now }}"
         source: "{{ action_source }}"
         note: "{{ action_note }}"
+    - if:
+        - condition: template
+          value_template: "{{ action_source != 'home_assistant_notification_action' }}"
+      then:
+        - event: house_notice_event_recorded
+          event_data:
+            at: "{{ espresso_now }}"
+            kind: action
+            title: Water done
+            message: Profitec GO water backflush recorded
+            group: espresso
+            tag: espresso-maintenance
+            url: /calm-mobile/home
+            severity: info
+            action: water_backflush_done
+            source: "{{ action_source }}"
+            recent: false
+            keep_recent: false
+            history: audit
     - action: input_datetime.set_datetime
       target:
         entity_id:
@@ -1855,6 +1886,25 @@ espresso_mark_cafiza_clean_done:
         completed_at: "{{ espresso_now }}"
         source: "{{ action_source }}"
         note: "{{ action_note }}"
+    - if:
+        - condition: template
+          value_template: "{{ action_source != 'home_assistant_notification_action' }}"
+      then:
+        - event: house_notice_event_recorded
+          event_data:
+            at: "{{ espresso_now }}"
+            kind: action
+            title: Cafiza done
+            message: Profitec GO Cafiza clean recorded
+            group: espresso
+            tag: espresso-maintenance
+            url: /calm-mobile/home
+            severity: info
+            action: cafiza_clean_done
+            source: "{{ action_source }}"
+            recent: false
+            keep_recent: false
+            history: audit
     - action: input_datetime.set_datetime
       target:
         entity_id:
@@ -1870,12 +1920,43 @@ espresso_snooze_maintenance:
   description: Snooze the Profitec GO cleaning reminder until tomorrow morning.
   icon: mdi:alarm-snooze
   mode: restart
+  fields:
+    source:
+      description: Source that requested the snooze.
+      example: home_assistant_dashboard_action
+    note:
+      description: Optional audit note.
+      example: Snoozed from dashboard.
   sequence:
+    - variables:
+        espresso_now: "{{ now().strftime('%Y-%m-%d %H:%M:%S') }}"
+        snooze_until: "{{ (today_at('07:00:00') + timedelta(days=1)).strftime('%Y-%m-%d %H:%M:%S') }}"
+        action_source: "{{ source | default('home_assistant_dashboard_action', true) | regex_replace('[^A-Za-z0-9_.:-]', '') }}"
+        action_note: "{{ note | default('', true) | regex_replace('[^A-Za-z0-9 .,_:/@+-]', '') | truncate(500, true, '') }}"
+    - if:
+        - condition: template
+          value_template: "{{ action_source != 'home_assistant_notification_action' }}"
+      then:
+        - event: house_notice_event_recorded
+          event_data:
+            at: "{{ espresso_now }}"
+            kind: action
+            title: Snoozed
+            message: "Profitec GO cleaning snoozed until {{ snooze_until }}"
+            group: espresso
+            tag: espresso-maintenance
+            url: /calm-mobile/home
+            severity: info
+            action: espresso_snooze_tomorrow
+            source: "{{ action_source }}"
+            recent: false
+            keep_recent: false
+            history: audit
     - action: input_datetime.set_datetime
       target:
         entity_id: input_datetime.espresso_maintenance_snooze_until
       data:
-        datetime: "{{ (today_at('07:00:00') + timedelta(days=1)).strftime('%Y-%m-%d %H:%M:%S') }}"
+        datetime: "{{ snooze_until }}"
     - action: script.espresso_clear_maintenance_notification
 
 espresso_clear_maintenance_notification:
