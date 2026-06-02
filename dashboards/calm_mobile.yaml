@@ -3271,7 +3271,7 @@ views:
                   [[[
                     const active = ['open', 'opening', 'stopped'].includes(entity.state);
                     const icon = active ? 'mdi:garage-open-variant' : 'mdi:garage-variant';
-                    return `<div class="garage-status-icon ${active ? 'open' : 'closed'}"><ha-icon icon="${icon}"></ha-icon></div>`;
+                    return `<div class="garage-status-icon owner-casey ${active ? 'open' : 'closed'}"><ha-icon icon="${icon}"></ha-icon><span class="garage-owner-badge">C</span></div>`;
                   ]]]
                 name: Casey's garage door
                 state: >-
@@ -3350,6 +3350,7 @@ views:
                     - "-webkit-box-orient": vertical
               extra_styles: &garage_status_tile_extra |
                 .garage-status-icon {
+                  position: relative;
                   width: 34px;
                   height: 34px;
                   border-radius: 15px;
@@ -3365,6 +3366,29 @@ views:
                 }
                 .garage-status-icon ha-icon {
                   --mdc-icon-size: 20px;
+                }
+                .garage-owner-badge {
+                  position: absolute;
+                  right: -5px;
+                  bottom: -5px;
+                  width: 16px;
+                  height: 16px;
+                  border-radius: 999px;
+                  display: grid;
+                  place-items: center;
+                  border: 1px solid rgba(15, 23, 42, 0.82);
+                  font-size: 9px;
+                  font-weight: 860;
+                  line-height: 1;
+                  box-shadow: 0 3px 8px rgba(2, 6, 23, 0.26);
+                }
+                .owner-casey .garage-owner-badge {
+                  color: #ecfeff;
+                  background: rgba(20, 184, 166, 0.96);
+                }
+                .owner-trevor .garage-owner-badge {
+                  color: #eff6ff;
+                  background: rgba(59, 130, 246, 0.96);
                 }
                 .garage-status-state {
                   display: inline-flex;
@@ -3421,7 +3445,7 @@ views:
                   [[[
                     const active = ['open', 'opening', 'stopped'].includes(entity.state);
                     const icon = active ? 'mdi:garage-open-variant' : 'mdi:garage-variant';
-                    return `<div class="garage-status-icon ${active ? 'open' : 'closed'}"><ha-icon icon="${icon}"></ha-icon></div>`;
+                    return `<div class="garage-status-icon owner-trevor ${active ? 'open' : 'closed'}"><ha-icon icon="${icon}"></ha-icon><span class="garage-owner-badge">T</span></div>`;
                   ]]]
                 name: Trevor's garage door
                 state: >-
@@ -3477,9 +3501,9 @@ views:
                         const icon = hazard && active
                           ? 'mdi:alert-outline'
                           : entity.state === 'closed'
-                            ? 'mdi:garage-arrow-up'
+                            ? 'mdi:garage-variant'
                             : active
-                              ? 'mdi:garage-arrow-down'
+                              ? 'mdi:garage-open-variant'
                               : 'mdi:garage-variant';
                         const klass = hazard && active
                           ? 'hazard'
@@ -3488,7 +3512,7 @@ views:
                             : active
                               ? 'open'
                               : 'moving';
-                        return `<div class="garage-move-icon ${klass}"><ha-icon icon="${icon}"></ha-icon></div>`;
+                        return `<div class="garage-move-icon owner-casey ${klass}"><ha-icon icon="${icon}"></ha-icon><span class="garage-owner-badge">C</span></div>`;
                       ]]]
                     name: Casey
                     state: >-
@@ -3569,6 +3593,7 @@ views:
                         - line-height: 1
                   extra_styles: &garage_move_tile_extra |
                     .garage-move-icon {
+                      position: relative;
                       width: 36px;
                       height: 36px;
                       border-radius: 15px;
@@ -3592,6 +3617,29 @@ views:
                     }
                     .garage-move-icon ha-icon {
                       --mdc-icon-size: 21px;
+                    }
+                    .garage-owner-badge {
+                      position: absolute;
+                      right: -5px;
+                      bottom: -5px;
+                      width: 16px;
+                      height: 16px;
+                      border-radius: 999px;
+                      display: grid;
+                      place-items: center;
+                      border: 1px solid rgba(15, 23, 42, 0.82);
+                      font-size: 9px;
+                      font-weight: 860;
+                      line-height: 1;
+                      box-shadow: 0 3px 8px rgba(2, 6, 23, 0.26);
+                    }
+                    .owner-casey .garage-owner-badge {
+                      color: #ecfeff;
+                      background: rgba(20, 184, 166, 0.96);
+                    }
+                    .owner-trevor .garage-owner-badge {
+                      color: #eff6ff;
+                      background: rgba(59, 130, 246, 0.96);
                     }
                     .garage-move-state {
                       display: inline-flex;
@@ -3650,9 +3698,9 @@ views:
                         const icon = hazard && active
                           ? 'mdi:alert-outline'
                           : entity.state === 'closed'
-                            ? 'mdi:garage-arrow-up'
+                            ? 'mdi:garage-variant'
                             : active
-                              ? 'mdi:garage-arrow-down'
+                              ? 'mdi:garage-open-variant'
                               : 'mdi:garage-variant';
                         const klass = hazard && active
                           ? 'hazard'
@@ -3661,7 +3709,7 @@ views:
                             : active
                               ? 'open'
                               : 'moving';
-                        return `<div class="garage-move-icon ${klass}"><ha-icon icon="${icon}"></ha-icon></div>`;
+                        return `<div class="garage-move-icon owner-trevor ${klass}"><ha-icon icon="${icon}"></ha-icon><span class="garage-owner-badge">T</span></div>`;
                       ]]]
                     name: Trevor
                     state: >-
