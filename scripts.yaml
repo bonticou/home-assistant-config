@@ -4491,19 +4491,28 @@ casey_left_garage_send_alert:
         garage_close_title: "{{ state_attr('binary_sensor.away_security_garage_door_open', 'close_action_title') | default('Close garage', true) }}"
         entry_point_count: "{{ states('sensor.away_security_entry_point_issues') | int(0) }}"
         entry_point_issue: "{{ state_attr('sensor.away_security_entry_point_issues', 'issue') | default('an entry point unsecured', true) }}"
+        entry_point_issue_sentence: >-
+          {% set issue = entry_point_issue | trim %}
+          {% if issue[:5] == 'Casey' or issue[:6] == 'Trevor' %}
+            {{ issue }}
+          {% elif issue %}
+            {{ issue[:1] | lower ~ issue[1:] }}
+          {% else %}
+            {{ issue }}
+          {% endif %}
         unlocked_entry_count: "{{ states('sensor.away_security_unlocked_entry_locks') | int(0) }}"
         notification_title: >-
           {% if garage_open_count | int(0) == 2 and entry_point_count | int(0) == 2 %}
             🚗 Casey left both garage doors open
           {% elif garage_door_open | bool and entry_point_count | int(0) == garage_open_count | int(0) %}
-            🚗 Casey left {{ entry_point_issue }}
+            🚗 Casey left {{ entry_point_issue_sentence }}
           {% elif entry_point_count | int(0) > 1 %}
             🔐 Casey left entry points unsecured
           {% else %}
-            🔐 Casey left {{ entry_point_issue }}
+            🔐 Casey left {{ entry_point_issue_sentence }}
           {% endif %}
         notification_message: >-
-          Casey just left home and {{ entry_point_issue }}.
+          Casey just left home and {{ entry_point_issue_sentence }}.
           Tap below to {{ 'close it' if garage_door_open | bool and unlocked_entry_count | int(0) == 0 else 'secure it' }}.
     - choose:
         - conditions:
@@ -4596,6 +4605,15 @@ casey_left_combo_send_alert:
         garage_open_count: "{{ state_attr('binary_sensor.away_security_garage_door_open', 'open_count') | int(0) }}"
         garage_close_title: "{{ state_attr('binary_sensor.away_security_garage_door_open', 'close_action_title') | default('Close garage', true) }}"
         entry_point_issue: "{{ state_attr('sensor.away_security_entry_point_issues', 'issue') | default('an entry point unsecured', true) }}"
+        entry_point_issue_sentence: >-
+          {% set issue = entry_point_issue | trim %}
+          {% if issue[:5] == 'Casey' or issue[:6] == 'Trevor' %}
+            {{ issue }}
+          {% elif issue %}
+            {{ issue[:1] | lower ~ issue[1:] }}
+          {% else %}
+            {{ issue }}
+          {% endif %}
         unlocked_entry_count: "{{ states('sensor.away_security_unlocked_entry_locks') | int(0) }}"
         active_light_names: >
           {% set light_names = state_attr('sensor.away_security_active_lights', 'names') | default('', true) %}
@@ -4606,14 +4624,14 @@ casey_left_combo_send_alert:
           {% else %}Lock + lights off{% endif %}
     - action: script.notify_trevor_phone
       data:
-        title: "🏠 Casey left {{ entry_point_issue }} and lights on"
+        title: "🏠 Casey left {{ entry_point_issue_sentence }} and lights on"
         message: >-
           {% if active_light_names | count == 1 %}
-            Casey just left home, {{ entry_point_issue }}, and {{ active_light_names[0] }} is still on.
+            Casey just left home, {{ entry_point_issue_sentence }}, and {{ active_light_names[0] }} is still on.
           {% elif active_light_names | count == 2 %}
-            Casey just left home, {{ entry_point_issue }}, and {{ active_light_names | join(' and ') }} are still on.
+            Casey just left home, {{ entry_point_issue_sentence }}, and {{ active_light_names | join(' and ') }} are still on.
           {% else %}
-            Casey just left home, {{ entry_point_issue }}, and {{ active_light_names | count }} lights are still on.
+            Casey just left home, {{ entry_point_issue_sentence }}, and {{ active_light_names | count }} lights are still on.
           {% endif %}
           Tap below to secure everything.
         data:
