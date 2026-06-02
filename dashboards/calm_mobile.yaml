@@ -2580,32 +2580,32 @@ views:
         target:
           entity_id: sensor.espresso_maintenance_status
         title: Profitec GO
+        dismiss_icon: mdi:close
+        initial_style: wide
+        popup_styles:
+          - style: all
+            styles: |
+              ha-dialog { --vertical-align-dialog: center; --dialog-surface-margin-top: 0px; --ha-dialog-border-radius: 28px; }
+          - style: wide
+            styles: |
+              .content { width: min(342px, calc(100vw - 32px)) !important; margin: 0 auto !important; }
+              .content .container { margin-top: clamp(92px, 20dvh, 210px); padding: 12px !important; border: 1px solid rgba(148,163,184,.22); border-radius: 28px; background: rgba(15,23,42,.88); }
         card:
           type: vertical-stack
           cards:
-            - type: custom:mushroom-template-card
-              entity: sensor.espresso_maintenance_status
-              primary: Profitec GO
-              secondary: >-
+            - type: markdown
+              content: |
                 {% set s = 'sensor.espresso_maintenance_status' %}
-                {% set water = state_attr(s, 'last_water_backflush_date') %}
-                {% set cafiza = state_attr(s, 'last_cafiza_clean_date') %}
-                {% set next = state_attr(s, 'next_due_date') %}
-                {% set reminder = state_attr(s, 'last_notified_at') %}
-                {{ states(s) }}
-                Water {{ water or 'No record' }}
-                Cafiza {{ cafiza or 'No record' }}
-                Next {{ next or 'No record' }}
-                Reminder {{ reminder[:10] if reminder else 'No reminder yet' }}
-              icon: mdi:coffee-maker-outline
-              icon_color: >-
-                {% if states('sensor.espresso_maintenance_status') == 'Cafiza due' %}red
-                {% elif states('sensor.espresso_maintenance_status') == 'Water due' %}amber
-                {% elif states('sensor.espresso_maintenance_status') == 'Snoozed' %}grey
-                {% else %}green{% endif %}
-              multiline_secondary: true
-              tap_action:
-                action: none
+                ### Profitec GO
+                {{ states(s) }}{% if state_attr(s, 'next_due_date') %} · next {{ state_attr(s, 'next_due_date') }}{% endif %}
+
+                | Record | Last | Due |
+                | --- | --- | --- |
+                | Water | {{ state_attr(s, 'last_water_backflush_date') or 'No record' }} | {{ state_attr(s, 'water_ready_date') or 'No record' }} |
+                | Cafiza | {{ state_attr(s, 'last_cafiza_clean_date') or 'No record' }} | {{ state_attr(s, 'cafiza_due_date') or 'No record' }} |
+              card_mod:
+                style: |
+                  ha-card { background: transparent; border: 0; box-shadow: none; }
             - type: custom:mushroom-chips-card
               alignment: center
               chips:
@@ -2636,6 +2636,7 @@ views:
                     service: script.espresso_snooze_maintenance
                     confirmation:
                       text: Snooze until tomorrow morning?
+
       - type: custom:popup-card
         target:
           entity_id: weather.forecast_home
