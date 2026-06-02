@@ -3528,7 +3528,7 @@ views:
                               : 'moving';
                         return `<div class="garage-move-icon owner-casey ${klass}"><ha-icon icon="${icon}"></ha-icon><span class="garage-owner-badge">C</span></div>`;
                       ]]]
-                    name: Casey
+                    name: Casey's garage
                     state: >-
                       [[[
                         const active = ['open', 'opening', 'stopped'].includes(entity.state);
@@ -3725,7 +3725,7 @@ views:
                               : 'moving';
                         return `<div class="garage-move-icon owner-trevor ${klass}"><ha-icon icon="${icon}"></ha-icon><span class="garage-owner-badge">T</span></div>`;
                       ]]]
-                    name: Trevor
+                    name: Trevor's garage
                     state: >-
                       [[[
                         const active = ['open', 'opening', 'stopped'].includes(entity.state);
