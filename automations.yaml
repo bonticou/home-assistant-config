@@ -4956,6 +4956,12 @@
         - conditions:
             - condition: template
               value_template: "{{ trigger.event.data.action == 'ESPRESSO_WATER_BACKFLUSH_DONE' }}"
+            - condition: state
+              entity_id: binary_sensor.espresso_water_backflush_due
+              state: "on"
+            - condition: state
+              entity_id: binary_sensor.espresso_cafiza_clean_due
+              state: "off"
           sequence:
             - action: script.espresso_mark_water_backflush_done
               data:
@@ -4964,6 +4970,9 @@
         - conditions:
             - condition: template
               value_template: "{{ trigger.event.data.action == 'ESPRESSO_CAFIZA_CLEAN_DONE' }}"
+            - condition: state
+              entity_id: binary_sensor.espresso_cafiza_clean_due
+              state: "on"
           sequence:
             - action: script.espresso_mark_cafiza_clean_done
               data:
@@ -4972,6 +4981,9 @@
         - conditions:
             - condition: template
               value_template: "{{ trigger.event.data.action == 'ESPRESSO_SNOOZE_TOMORROW' }}"
+            - condition: state
+              entity_id: binary_sensor.espresso_maintenance_due
+              state: "on"
           sequence:
             - action: script.espresso_snooze_maintenance
               data:

@@ -4036,6 +4036,16 @@ template:
             {% set cafiza_due = (strptime(cafiza_last | timestamp_custom('%Y-%m-%d', true), '%Y-%m-%d') + timedelta(days=60)).strftime('%Y-%m-%d') if cafiza_last > 0 else '' %}
             {% set espresso_dates = ([water_due, cafiza_due] | reject('eq', '') | list | sort) %}
             {% if is_state('input_boolean.espresso_maintenance_enabled', 'on') and espresso_dates | count > 0 %}
+              {% set espresso_actions = [] %}
+              {% if is_state('binary_sensor.espresso_water_backflush_due', 'on') and is_state('binary_sensor.espresso_cafiza_clean_due', 'off') %}
+                {% set espresso_actions = espresso_actions + [{'label': 'Water done', 'service': 'script.espresso_mark_water_backflush_done'}] %}
+              {% endif %}
+              {% if is_state('binary_sensor.espresso_cafiza_clean_due', 'on') %}
+                {% set espresso_actions = espresso_actions + [{'label': 'Cafiza done', 'service': 'script.espresso_mark_cafiza_clean_done'}] %}
+              {% endif %}
+              {% if espresso_actions | count > 0 %}
+                {% set espresso_actions = espresso_actions + [{'label': 'Snooze', 'service': 'script.espresso_snooze_maintenance'}] %}
+              {% endif %}
               {% set ns.items = ns.items + [{
                 'id': 'espresso-maintenance',
                 'title': 'Profitec GO cleaning',
@@ -4051,11 +4061,7 @@ template:
                 'narrative': states('sensor.espresso_maintenance_status'),
                 'url': '/calm-mobile/home',
                 'entity_id': 'sensor.espresso_maintenance_status',
-                'actions': [
-                  {'label': 'Water done', 'service': 'script.espresso_mark_water_backflush_done'},
-                  {'label': 'Cafiza done', 'service': 'script.espresso_mark_cafiza_clean_done'},
-                  {'label': 'Snooze', 'service': 'script.espresso_snooze_maintenance'}
-                ]
+                'actions': espresso_actions
               }] %}
             {% endif %}
             {% if is_state('input_boolean.piano_care_enabled', 'on') and states('sensor.piano_next_tuning_due') not in ['unknown', 'unavailable', 'none', ''] %}

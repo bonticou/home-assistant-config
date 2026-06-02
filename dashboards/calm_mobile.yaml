@@ -2577,65 +2577,57 @@ views:
               limit: 24
       - type: custom:popup-card
         popup_card_id: espresso-maintenance-popup
-        target:
-          entity_id: sensor.espresso_maintenance_status
-        title: Profitec GO
-        dismiss_icon: mdi:close
+        target: {entity_id: sensor.espresso_maintenance_status}
         initial_style: wide
+        card_mod:
+          style:
+            ha-dialog$: "ha-dialog-header{display:none!important}"
         popup_styles:
-          - style: all
-            styles: |
-              ha-dialog { --vertical-align-dialog: center; --dialog-surface-margin-top: 0px; --ha-dialog-border-radius: 28px; }
           - style: wide
-            styles: |
-              .content { width: min(342px, calc(100vw - 32px)) !important; margin: 0 auto !important; }
-              .content .container { margin-top: clamp(92px, 20dvh, 210px); padding: 12px !important; border: 1px solid rgba(148,163,184,.22); border-radius: 28px; background: rgba(15,23,42,.88); }
+            styles: ".content{width:min(318px,calc(100vw - 48px))!important;margin:0 auto!important}.content .container{position:relative;overflow:visible;margin-top:clamp(78px,16dvh,150px);padding:12px 12px 14px!important;border-radius:24px;background:#0f172a;box-shadow:0 18px 60px rgba(0,0,0,.45)}"
         card:
           type: vertical-stack
           cards:
-            - type: markdown
-              content: |
-                {% set s = 'sensor.espresso_maintenance_status' %}
-                ### Profitec GO
-                {{ states(s) }}{% if state_attr(s, 'next_due_date') %} · next {{ state_attr(s, 'next_due_date') }}{% endif %}
-
-                | Record | Last | Due |
-                | --- | --- | --- |
-                | Water | {{ state_attr(s, 'last_water_backflush_date') or 'No record' }} | {{ state_attr(s, 'water_ready_date') or 'No record' }} |
-                | Cafiza | {{ state_attr(s, 'last_cafiza_clean_date') or 'No record' }} | {{ state_attr(s, 'cafiza_due_date') or 'No record' }} |
-              card_mod:
-                style: |
-                  ha-card { background: transparent; border: 0; box-shadow: none; }
+            - type: custom:button-card
+              icon: mdi:close
+              show_name: false
+              tap_action:
+                action: fire-dom-event
+                browser_mod: {service: browser_mod.close_popup}
+              styles:
+                card: [position: absolute, top: -48px, left: 2px, z-index: 5, width: 40px, height: 40px, border-radius: 999px, padding: 0]
+                icon: [width: 20px, color: "#f8fafc"]
+            - type: custom:button-card
+              entity: sensor.espresso_maintenance_status
+              show_icon: false
+              show_name: false
+              custom_fields:
+                b: '[[[const a=entity.attributes||{},v=x=>x||"No record",row=(n,l,d)=>`<div style="display:flex;align-items:center;gap:8px;margin-top:7px;padding:8px 10px;border-radius:12px;background:rgba(15,23,42,.72);border:1px solid rgba(148,163,184,.14);font-size:13px;line-height:1.2"><span style="width:48px;font-weight:700;color:#f8fafc">${n}</span><span style="flex:1;color:#cbd5e1">${v(l)}</span><span style="color:#64748b">-></span><span style="flex:1;color:#e2e8f0;text-align:right">${v(d)}</span></div>`;return `<div style="padding:0 2px 2px;text-align:left"><div style="font-size:19px;line-height:1.15;font-weight:740;color:#f8fafc">Profitec GO</div><div style="margin-top:5px;font-size:14px;line-height:1.25;color:#cbd5e1">${entity.state}${a.next_due_date?` · next ${a.next_due_date}`:""}</div><div style="margin-top:10px">${row("Water",a.last_water_backflush_date,a.water_ready_date)}${row("Cafiza",a.last_cafiza_clean_date,a.cafiza_due_date)}</div></div>`]]]'
+              styles:
+                card: [background: none, border: none, box-shadow: none, min-height: 0, padding: 0, text-align: left]
+                grid: [grid-template-areas: '"b"', grid-template-columns: 1fr]
+                custom_fields: {b: [text-align: left, width: 100%]}
             - type: custom:mushroom-chips-card
               alignment: center
+              card_mod:
+                style: |
+                  ha-card {
+                    --chip-height: 38px;
+                    --chip-font-size: 13px;
+                    margin-top: 10px;
+                  }
               chips:
-                - type: template
-                  icon: mdi:water-check-outline
-                  icon_color: blue
-                  content: Water done
-                  tap_action:
-                    action: call-service
-                    service: script.espresso_mark_water_backflush_done
-                    confirmation:
-                      text: Record water flush as done?
-                - type: template
-                  icon: mdi:coffee-maker-check-outline
-                  icon_color: amber
-                  content: Cafiza done
-                  tap_action:
-                    action: call-service
-                    service: script.espresso_mark_cafiza_clean_done
-                    confirmation:
-                      text: Record Cafiza clean as done?
-                - type: template
-                  icon: mdi:alarm-snooze
-                  icon_color: grey
-                  content: Snooze
-                  tap_action:
-                    action: call-service
-                    service: script.espresso_snooze_maintenance
-                    confirmation:
-                      text: Snooze until tomorrow morning?
+                - type: conditional
+                  conditions:
+                    - {entity: binary_sensor.espresso_water_backflush_due, state: "on"}
+                    - {entity: binary_sensor.espresso_cafiza_clean_due, state: "off"}
+                  chip: {type: template, icon: "mdi:water-check-outline", icon_color: blue, content: "Water done", tap_action: {action: call-service, service: script.espresso_mark_water_backflush_done, confirmation: {text: "Record water?"}}}
+                - type: conditional
+                  conditions: [{entity: binary_sensor.espresso_cafiza_clean_due, state: "on"}]
+                  chip: {type: template, icon: "mdi:coffee-maker-check-outline", icon_color: amber, content: "Cafiza done", tap_action: {action: call-service, service: script.espresso_mark_cafiza_clean_done, confirmation: {text: "Record Cafiza?"}}}
+                - type: conditional
+                  conditions: [{entity: binary_sensor.espresso_maintenance_due, state: "on"}]
+                  chip: {type: template, icon: "mdi:alarm-snooze", icon_color: grey, content: Snooze, tap_action: {action: call-service, service: script.espresso_snooze_maintenance}}
 
       - type: custom:popup-card
         target:
