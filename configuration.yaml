@@ -5,6 +5,10 @@ homeassistant:
   customize:
     light.master_casey_s_closet:
       friendly_name: Casey's closet
+    cover.ratgdo32disco_c26634_door:
+      friendly_name: Casey's garage door
+    cover.ratgdo32_4536e8_door:
+      friendly_name: Trevor's garage door
 
 # Load frontend themes from the themes folder
 frontend:
@@ -2375,14 +2379,20 @@ template:
             mdi:shield-check-outline
           {% endif %}
         state: >
+          {% set garage_doors = {
+            'cover.ratgdo32disco_c26634_door': "Casey's garage door",
+            'cover.ratgdo32_4536e8_door': "Trevor's garage door"
+          } %}
           {% set locks = {
-            'lock.garage_entry_lock': 'Garage door',
+            'lock.garage_entry_lock': 'Garage entry lock',
             'lock.mudroom_door_lock': 'Mudroom door'
           } %}
           {% set ns = namespace(count=0) %}
-          {% if is_state('binary_sensor.away_security_garage_door_open', 'on') %}
-            {% set ns.count = ns.count + 1 %}
-          {% endif %}
+          {% for entity_id, label in garage_doors.items() %}
+            {% if states(entity_id) in ['open', 'opening'] %}
+              {% set ns.count = ns.count + 1 %}
+            {% endif %}
+          {% endfor %}
           {% for entity_id, label in locks.items() %}
             {% if is_state(entity_id, 'unlocked') %}
               {% set ns.count = ns.count + 1 %}
@@ -2391,14 +2401,20 @@ template:
           {{ ns.count }}
         attributes:
           names: >
+            {% set garage_doors = {
+              'cover.ratgdo32disco_c26634_door': "Casey's garage door",
+              'cover.ratgdo32_4536e8_door': "Trevor's garage door"
+            } %}
             {% set locks = {
-              'lock.garage_entry_lock': 'Garage door',
+              'lock.garage_entry_lock': 'Garage entry lock',
               'lock.mudroom_door_lock': 'Mudroom door'
             } %}
             {% set ns = namespace(names=[]) %}
-            {% if is_state('binary_sensor.away_security_garage_door_open', 'on') %}
-              {% set ns.names = ns.names + ['Garage door'] %}
-            {% endif %}
+            {% for entity_id, label in garage_doors.items() %}
+              {% if states(entity_id) in ['open', 'opening'] %}
+                {% set ns.names = ns.names + [label] %}
+              {% endif %}
+            {% endfor %}
             {% for entity_id, label in locks.items() %}
               {% if is_state(entity_id, 'unlocked') %}
                 {% set ns.names = ns.names + [label] %}
@@ -2406,14 +2422,20 @@ template:
             {% endfor %}
             {{ ns.names | join('||') }}
           issues: >
+            {% set garage_doors = {
+              'cover.ratgdo32disco_c26634_door': "Casey's garage door open",
+              'cover.ratgdo32_4536e8_door': "Trevor's garage door open"
+            } %}
             {% set locks = {
-              'lock.garage_entry_lock': 'Garage door unlocked',
+              'lock.garage_entry_lock': 'Garage entry lock unlocked',
               'lock.mudroom_door_lock': 'Mudroom door unlocked'
             } %}
             {% set ns = namespace(issues=[]) %}
-            {% if is_state('binary_sensor.away_security_garage_door_open', 'on') %}
-              {% set ns.issues = ns.issues + ['Garage door open'] %}
-            {% endif %}
+            {% for entity_id, label in garage_doors.items() %}
+              {% if states(entity_id) in ['open', 'opening'] %}
+                {% set ns.issues = ns.issues + [label] %}
+              {% endif %}
+            {% endfor %}
             {% for entity_id, label in locks.items() %}
               {% if is_state(entity_id, 'unlocked') %}
                 {% set ns.issues = ns.issues + [label] %}
@@ -2421,14 +2443,20 @@ template:
             {% endfor %}
             {{ ns.issues | join('||') }}
           entity_ids: >
+            {% set garage_doors = [
+              'cover.ratgdo32disco_c26634_door',
+              'cover.ratgdo32_4536e8_door'
+            ] %}
             {% set locks = [
               'lock.garage_entry_lock',
               'lock.mudroom_door_lock'
             ] %}
             {% set ns = namespace(entity_ids=[]) %}
-            {% if is_state('binary_sensor.away_security_garage_door_open', 'on') %}
-              {% set ns.entity_ids = ns.entity_ids + ['cover.ratgdo32disco_c26634_door'] %}
-            {% endif %}
+            {% for entity_id in garage_doors %}
+              {% if states(entity_id) in ['open', 'opening'] %}
+                {% set ns.entity_ids = ns.entity_ids + [entity_id] %}
+              {% endif %}
+            {% endfor %}
             {% for entity_id in locks %}
               {% if is_state(entity_id, 'unlocked') %}
                 {% set ns.entity_ids = ns.entity_ids + [entity_id] %}
@@ -2436,14 +2464,20 @@ template:
             {% endfor %}
             {{ ns.entity_ids | join('||') }}
           label: >
+            {% set garage_doors = {
+              'cover.ratgdo32disco_c26634_door': "Casey's garage door",
+              'cover.ratgdo32_4536e8_door': "Trevor's garage door"
+            } %}
             {% set locks = {
-              'lock.garage_entry_lock': 'Garage door',
+              'lock.garage_entry_lock': 'Garage entry lock',
               'lock.mudroom_door_lock': 'Mudroom door'
             } %}
             {% set ns = namespace(names=[]) %}
-            {% if is_state('binary_sensor.away_security_garage_door_open', 'on') %}
-              {% set ns.names = ns.names + ['Garage door'] %}
-            {% endif %}
+            {% for entity_id, label in garage_doors.items() %}
+              {% if states(entity_id) in ['open', 'opening'] %}
+                {% set ns.names = ns.names + [label] %}
+              {% endif %}
+            {% endfor %}
             {% for entity_id, label in locks.items() %}
               {% if is_state(entity_id, 'unlocked') %}
                 {% set ns.names = ns.names + [label] %}
@@ -2458,33 +2492,47 @@ template:
               Clear
             {% endif %}
           issue: >
+            {% set garage_doors = {
+              'cover.ratgdo32disco_c26634_door': "Casey's garage door open",
+              'cover.ratgdo32_4536e8_door': "Trevor's garage door open"
+            } %}
             {% set locks = {
-              'lock.garage_entry_lock': 'Garage door unlocked',
+              'lock.garage_entry_lock': 'Garage entry lock unlocked',
               'lock.mudroom_door_lock': 'Mudroom door unlocked'
             } %}
             {% set ns = namespace(issues=[]) %}
-            {% if is_state('binary_sensor.away_security_garage_door_open', 'on') %}
-              {% set ns.issues = ns.issues + ['Garage door open'] %}
-            {% endif %}
+            {% for entity_id, label in garage_doors.items() %}
+              {% if states(entity_id) in ['open', 'opening'] %}
+                {% set ns.issues = ns.issues + [label] %}
+              {% endif %}
+            {% endfor %}
             {% for entity_id, label in locks.items() %}
               {% if is_state(entity_id, 'unlocked') %}
                 {% set ns.issues = ns.issues + [label] %}
               {% endif %}
             {% endfor %}
             {% set issues = ns.issues %}
-            {% if issues | count == 1 %}
+            {% set garage_open_count = state_attr('binary_sensor.away_security_garage_door_open', 'open_count') | int(0) %}
+            {% if garage_open_count == 2 and issues | count == 2 %}
+              Both garage doors open
+            {% elif issues | count == 1 %}
               {{ issues[0] }}
             {% elif issues | count > 1 %}
               {{ issues | count }} entry points unsecured
             {% else %}
               {{ '' }}
             {% endif %}
-          garage_door_state: "{{ states('cover.ratgdo32disco_c26634_door') }}"
+          garage_open_count: "{{ state_attr('binary_sensor.away_security_garage_door_open', 'open_count') | int(0) }}"
+          garage_open_labels: "{{ state_attr('binary_sensor.away_security_garage_door_open', 'open_labels') | default('', true) }}"
+          garage_open_entities: "{{ state_attr('binary_sensor.away_security_garage_door_open', 'open_entities') | default('', true) }}"
+          garage_door_state: "{{ state_attr('binary_sensor.away_security_garage_door_open', 'state_summary') | default('', true) }}"
           garage_door_open: "{{ is_state('binary_sensor.away_security_garage_door_open', 'on') }}"
-          garage_door_entity: cover.ratgdo32disco_c26634_door
-          vehicle_detected: "{{ states('binary_sensor.ratgdo32disco_c26634_vehicle_detected') }}"
-          vehicle_distance_actual: "{{ states('sensor.ratgdo32disco_c26634_vehicle_distance_actual_filtered') }}"
-          vehicle_distance_target: "{{ states('number.ratgdo32disco_c26634_vehicle_distance_target') }}"
+          garage_door_entity: "{{ state_attr('binary_sensor.away_security_garage_door_open', 'primary_open_entity') | default('cover.ratgdo32disco_c26634_door', true) }}"
+          casey_garage_door_state: "{{ states('cover.ratgdo32disco_c26634_door') }}"
+          trevor_garage_door_state: "{{ states('cover.ratgdo32_4536e8_door') }}"
+          casey_vehicle_detected: "{{ states('binary_sensor.ratgdo32disco_c26634_vehicle_detected') }}"
+          casey_vehicle_distance_actual: "{{ states('sensor.ratgdo32disco_c26634_vehicle_distance_actual_filtered') }}"
+          casey_vehicle_distance_target: "{{ states('number.ratgdo32disco_c26634_vehicle_distance_target') }}"
           unlocked_entry_lock_count: "{{ states('sensor.away_security_unlocked_entry_locks') | int(0) }}"
 
       - name: "away_security_issue_summary"
@@ -2518,7 +2566,7 @@ template:
         unique_id: away_security_unlocked_entry_locks
         icon: >
           {% set locks = {
-            'lock.garage_entry_lock': 'Garage door',
+            'lock.garage_entry_lock': 'Garage entry lock',
             'lock.mudroom_door_lock': 'Mudroom door'
           } %}
           {% set ns = namespace(count=0) %}
@@ -2530,7 +2578,7 @@ template:
           {{ 'mdi:lock-open-alert-outline' if ns.count > 0 else 'mdi:lock-check-outline' }}
         state: >
           {% set locks = {
-            'lock.garage_entry_lock': 'Garage door',
+            'lock.garage_entry_lock': 'Garage entry lock',
             'lock.mudroom_door_lock': 'Mudroom door'
           } %}
           {% set ns = namespace(count=0) %}
@@ -2543,7 +2591,7 @@ template:
         attributes:
           names: >
             {% set locks = {
-              'lock.garage_entry_lock': 'Garage door',
+              'lock.garage_entry_lock': 'Garage entry lock',
               'lock.mudroom_door_lock': 'Mudroom door'
             } %}
             {% set ns = namespace(names=[]) %}
@@ -2555,7 +2603,7 @@ template:
             {{ ns.names | join('||') }}
           entity_ids: >
             {% set locks = {
-              'lock.garage_entry_lock': 'Garage door',
+              'lock.garage_entry_lock': 'Garage entry lock',
               'lock.mudroom_door_lock': 'Mudroom door'
             } %}
             {% set ns = namespace(entity_ids=[]) %}
@@ -2567,7 +2615,7 @@ template:
             {{ ns.entity_ids | join('||') }}
           label: >
             {% set locks = {
-              'lock.garage_entry_lock': 'Garage door',
+              'lock.garage_entry_lock': 'Garage entry lock',
               'lock.mudroom_door_lock': 'Mudroom door'
             } %}
             {% set ns = namespace(names=[]) %}
@@ -2586,7 +2634,7 @@ template:
             {% endif %}
           issue: >
             {% set locks = {
-              'lock.garage_entry_lock': 'Garage door',
+              'lock.garage_entry_lock': 'Garage entry lock',
               'lock.mudroom_door_lock': 'Mudroom door'
             } %}
             {% set ns = namespace(names=[]) %}
@@ -3688,22 +3736,27 @@ template:
               {% set entry_count = states('sensor.away_security_entry_point_issues') | int(0) %}
               {% set entry_issue = state_attr('sensor.away_security_entry_point_issues', 'issue') | default('', true) %}
               {% set garage_open = is_state('binary_sensor.away_security_garage_door_open', 'on') %}
+              {% set garage_open_count = state_attr('binary_sensor.away_security_garage_door_open', 'open_count') | int(0) %}
+              {% set garage_close_title = state_attr('binary_sensor.away_security_garage_door_open', 'close_action_title') | default('Close garage', true) %}
               {% set lock_count = states('sensor.away_security_unlocked_entry_locks') | int(0) %}
               {% set lights_count = states('sensor.away_security_active_lights') | int(0) %}
               {% set facts = [
-                'Garage door: ' ~ states('cover.ratgdo32disco_c26634_door'),
-                'Garage door lock: ' ~ states('lock.garage_entry_lock'),
+                "Casey's garage door: " ~ states('cover.ratgdo32disco_c26634_door'),
+                "Trevor's garage door: " ~ states('cover.ratgdo32_4536e8_door'),
+                'Garage entry lock: ' ~ states('lock.garage_entry_lock'),
                 'Mudroom door lock: ' ~ states('lock.mudroom_door_lock'),
                 'Lights on: ' ~ lights_count,
                 'Trevor presence: ' ~ states('device_tracker.tk_iphone_16_pro'),
                 'Casey presence: ' ~ states('device_tracker.unifi_default_42_15_78_4a_d9_f8'),
-                'Vehicle detection: ' ~ states('binary_sensor.ratgdo32disco_c26634_vehicle_detected'),
-                'Vehicle distance: ' ~ states('sensor.ratgdo32disco_c26634_vehicle_distance_actual_filtered')
+                "Casey's vehicle detection: " ~ states('binary_sensor.ratgdo32disco_c26634_vehicle_detected'),
+                "Casey's vehicle distance: " ~ states('sensor.ratgdo32disco_c26634_vehicle_distance_actual_filtered'),
+                "Trevor's ratgdo motion: " ~ states('binary_sensor.ratgdo32_4536e8_motion'),
+                "Trevor's ratgdo obstruction: " ~ states('binary_sensor.ratgdo32_4536e8_obstruction')
               ] %}
               {% set ns.items = ns.items + [{
                 'id': 'away-security',
                 'title': 'Away security',
-                'emoji': '🚗' if garage_open and entry_count == 1 and lights_count == 0 else '🏠',
+                'emoji': '🚗' if garage_open and entry_count == garage_open_count and lights_count == 0 else '🏠',
                 'icon': 'mdi:garage-open-variant' if garage_open else 'mdi:shield-alert-outline',
                 'group': 'Guardrails',
                 'state': 'active',
@@ -3716,10 +3769,10 @@ template:
                 'details': {
                   'summary': states('sensor.away_security_issue_summary') ~ '. Trevor and Casey are both away, so this stays active until the garage, locks, and lights are secure or the reminder is snoozed.',
                   'facts': facts,
-                  'after_action': 'Close garage sends one explicit command only when garage motion and obstruction sensors are clear, then waits for the door to report closed. Lock doors locks only the currently unlocked entry locks. Sleep 30 min pauses away-security repeats without changing the home.',
-                  'tracking': 'Home Assistant watches ratgdo garage state, entry locks, lights, and presence. Vehicle detection is shown for calibration only and does not trigger this alert.'
+                  'after_action': 'Close garage sends explicit commands only for open garage doors, only when the shared garage camera and ratgdo hazard sensors are clear, then waits for each door to report closed. Lock doors locks only the currently unlocked entry locks. Sleep 30 min pauses away-security repeats without changing the home.',
+                  'tracking': 'Home Assistant watches both ratgdo garage states, entry locks, lights, and presence. Casey vehicle detection is shown for calibration only and does not trigger this alert.'
                 },
-                'actions': ([{'label': 'Close garage', 'service': 'script.away_security_close_garage_door', 'inline': false, 'recent': true}] if garage_open else [])
+                'actions': ([{'label': garage_close_title, 'service': 'script.away_security_close_open_garage_doors', 'inline': false}] if garage_open else [])
                   + ([{'label': 'Lock doors' if lock_count > 1 else 'Lock door', 'service': 'script.away_security_lock_unlocked_entry_doors', 'confirm': true, 'inline': false}] if lock_count > 0 else [])
                   + [{'label': 'Sleep 30 min', 'service': 'script.away_security_snooze_30', 'inline': false}]
               }] %}
@@ -4609,22 +4662,122 @@ template:
         unique_id: away_security_garage_door_open
         device_class: garage_door
         state: >
-          {{ states('cover.ratgdo32disco_c26634_door') in ['open', 'opening'] }}
+          {{ states('cover.ratgdo32disco_c26634_door') in ['open', 'opening']
+             or states('cover.ratgdo32_4536e8_door') in ['open', 'opening'] }}
         icon: >
-          {% if states('cover.ratgdo32disco_c26634_door') in ['open', 'opening'] %}
+          {% if states('cover.ratgdo32disco_c26634_door') in ['open', 'opening']
+             or states('cover.ratgdo32_4536e8_door') in ['open', 'opening'] %}
             mdi:garage-open-variant
           {% else %}
             mdi:garage-variant
           {% endif %}
         attributes:
-          cover_entity: cover.ratgdo32disco_c26634_door
-          cover_state: "{{ states('cover.ratgdo32disco_c26634_door') }}"
-          vehicle_detected_entity: binary_sensor.ratgdo32disco_c26634_vehicle_detected
-          vehicle_detected: "{{ states('binary_sensor.ratgdo32disco_c26634_vehicle_detected') }}"
-          vehicle_distance_actual_entity: sensor.ratgdo32disco_c26634_vehicle_distance_actual_filtered
-          vehicle_distance_actual: "{{ states('sensor.ratgdo32disco_c26634_vehicle_distance_actual_filtered') }}"
-          vehicle_distance_target_entity: number.ratgdo32disco_c26634_vehicle_distance_target
-          vehicle_distance_target: "{{ states('number.ratgdo32disco_c26634_vehicle_distance_target') }}"
+          open_count: >
+            {% set doors = [
+              'cover.ratgdo32disco_c26634_door',
+              'cover.ratgdo32_4536e8_door'
+            ] %}
+            {% set ns = namespace(count=0) %}
+            {% for entity_id in doors %}
+              {% if states(entity_id) in ['open', 'opening'] %}
+                {% set ns.count = ns.count + 1 %}
+              {% endif %}
+            {% endfor %}
+            {{ ns.count }}
+          open_labels: >
+            {% set doors = {
+              'cover.ratgdo32disco_c26634_door': "Casey's garage door",
+              'cover.ratgdo32_4536e8_door': "Trevor's garage door"
+            } %}
+            {% set ns = namespace(labels=[]) %}
+            {% for entity_id, label in doors.items() %}
+              {% if states(entity_id) in ['open', 'opening'] %}
+                {% set ns.labels = ns.labels + [label] %}
+              {% endif %}
+            {% endfor %}
+            {{ ns.labels | join('||') }}
+          open_entities: >
+            {% set doors = [
+              'cover.ratgdo32disco_c26634_door',
+              'cover.ratgdo32_4536e8_door'
+            ] %}
+            {% set ns = namespace(entity_ids=[]) %}
+            {% for entity_id in doors %}
+              {% if states(entity_id) in ['open', 'opening'] %}
+                {% set ns.entity_ids = ns.entity_ids + [entity_id] %}
+              {% endif %}
+            {% endfor %}
+            {{ ns.entity_ids | join('||') }}
+          open_label: >
+            {% set doors = {
+              'cover.ratgdo32disco_c26634_door': "Casey's garage door",
+              'cover.ratgdo32_4536e8_door': "Trevor's garage door"
+            } %}
+            {% set ns = namespace(labels=[]) %}
+            {% for entity_id, label in doors.items() %}
+              {% if states(entity_id) in ['open', 'opening'] %}
+                {% set ns.labels = ns.labels + [label] %}
+              {% endif %}
+            {% endfor %}
+            {% set labels = ns.labels %}
+            {% if labels | count == 2 %}
+              Both garage doors
+            {% elif labels | count == 1 %}
+              {{ labels[0] }}
+            {% else %}
+              No garage doors
+            {% endif %}
+          open_issue: >
+            {% set doors = {
+              'cover.ratgdo32disco_c26634_door': "Casey's garage door",
+              'cover.ratgdo32_4536e8_door': "Trevor's garage door"
+            } %}
+            {% set ns = namespace(labels=[]) %}
+            {% for entity_id, label in doors.items() %}
+              {% if states(entity_id) in ['open', 'opening'] %}
+                {% set ns.labels = ns.labels + [label] %}
+              {% endif %}
+            {% endfor %}
+            {% set labels = ns.labels %}
+            {% if labels | count == 2 %}
+              Both garage doors open
+            {% elif labels | count == 1 %}
+              {{ labels[0] }} open
+            {% else %}
+              {{ '' }}
+            {% endif %}
+          primary_open_entity: >
+            {% if states('cover.ratgdo32disco_c26634_door') in ['open', 'opening'] %}
+              cover.ratgdo32disco_c26634_door
+            {% elif states('cover.ratgdo32_4536e8_door') in ['open', 'opening'] %}
+              cover.ratgdo32_4536e8_door
+            {% else %}
+              cover.ratgdo32disco_c26634_door
+            {% endif %}
+          close_action_title: >
+            {% set casey_open = states('cover.ratgdo32disco_c26634_door') in ['open', 'opening'] %}
+            {% set trevor_open = states('cover.ratgdo32_4536e8_door') in ['open', 'opening'] %}
+            {% if casey_open and trevor_open %}
+              Close both
+            {% elif casey_open %}
+              Close Casey's
+            {% elif trevor_open %}
+              Close Trevor's
+            {% else %}
+              Close garage
+            {% endif %}
+          state_summary: >
+            Casey: {{ states('cover.ratgdo32disco_c26634_door') }}; Trevor: {{ states('cover.ratgdo32_4536e8_door') }}
+          casey_cover_entity: cover.ratgdo32disco_c26634_door
+          casey_cover_state: "{{ states('cover.ratgdo32disco_c26634_door') }}"
+          trevor_cover_entity: cover.ratgdo32_4536e8_door
+          trevor_cover_state: "{{ states('cover.ratgdo32_4536e8_door') }}"
+          casey_vehicle_detected_entity: binary_sensor.ratgdo32disco_c26634_vehicle_detected
+          casey_vehicle_detected: "{{ states('binary_sensor.ratgdo32disco_c26634_vehicle_detected') }}"
+          casey_vehicle_distance_actual_entity: sensor.ratgdo32disco_c26634_vehicle_distance_actual_filtered
+          casey_vehicle_distance_actual: "{{ states('sensor.ratgdo32disco_c26634_vehicle_distance_actual_filtered') }}"
+          casey_vehicle_distance_target_entity: number.ratgdo32disco_c26634_vehicle_distance_target
+          casey_vehicle_distance_target: "{{ states('number.ratgdo32disco_c26634_vehicle_distance_target') }}"
 
       - name: "house_unsecured_while_away"
         unique_id: house_unsecured_while_away
@@ -4653,7 +4806,12 @@ template:
           entry_point_issues: >
             {{ state_attr('sensor.away_security_entry_point_issues', 'issues') | default('', true) }}
           garage_door_open: "{{ is_state('binary_sensor.away_security_garage_door_open', 'on') }}"
-          garage_door_state: "{{ states('cover.ratgdo32disco_c26634_door') }}"
+          garage_open_count: "{{ state_attr('binary_sensor.away_security_garage_door_open', 'open_count') | int(0) }}"
+          garage_open_labels: "{{ state_attr('binary_sensor.away_security_garage_door_open', 'open_labels') | default('', true) }}"
+          garage_open_entities: "{{ state_attr('binary_sensor.away_security_garage_door_open', 'open_entities') | default('', true) }}"
+          garage_door_state: "{{ state_attr('binary_sensor.away_security_garage_door_open', 'state_summary') | default('', true) }}"
+          casey_garage_door_state: "{{ states('cover.ratgdo32disco_c26634_door') }}"
+          trevor_garage_door_state: "{{ states('cover.ratgdo32_4536e8_door') }}"
           unlocked_entry_lock_count: >
             {{ states('sensor.away_security_unlocked_entry_locks') | int(0) }}
           unlocked_entry_locks: >
@@ -5223,7 +5381,9 @@ template:
             'binary_sensor.ratgdo32disco_c26634_motion',
             'binary_sensor.ratgdo32disco_c26634_obstruction',
             'binary_sensor.ratgdo32disco_c26634_vehicle_arriving',
-            'binary_sensor.ratgdo32disco_c26634_vehicle_leaving'
+            'binary_sensor.ratgdo32disco_c26634_vehicle_leaving',
+            'binary_sensor.ratgdo32_4536e8_motion',
+            'binary_sensor.ratgdo32_4536e8_obstruction'
           ] %}
           {% set ns = namespace(active=false) %}
           {% for entity_id in hazard_entities %}
@@ -5240,7 +5400,9 @@ template:
             'binary_sensor.ratgdo32disco_c26634_motion',
             'binary_sensor.ratgdo32disco_c26634_obstruction',
             'binary_sensor.ratgdo32disco_c26634_vehicle_arriving',
-            'binary_sensor.ratgdo32disco_c26634_vehicle_leaving'
+            'binary_sensor.ratgdo32disco_c26634_vehicle_leaving',
+            'binary_sensor.ratgdo32_4536e8_motion',
+            'binary_sensor.ratgdo32_4536e8_obstruction'
           ] %}
           {% set ns = namespace(active=false) %}
           {% for entity_id in hazard_entities %}
@@ -5255,10 +5417,12 @@ template:
               'binary_sensor.g6_instant_motion_3': 'Garage camera motion',
               'binary_sensor.garage_person_detected': 'Garage person detected',
               'binary_sensor.garage_vehicle_detected': 'Garage vehicle movement',
-              'binary_sensor.ratgdo32disco_c26634_motion': 'ratgdo motion',
-              'binary_sensor.ratgdo32disco_c26634_obstruction': 'ratgdo obstruction',
-              'binary_sensor.ratgdo32disco_c26634_vehicle_arriving': 'Vehicle arriving',
-              'binary_sensor.ratgdo32disco_c26634_vehicle_leaving': 'Vehicle leaving'
+              'binary_sensor.ratgdo32disco_c26634_motion': "Casey's ratgdo motion",
+              'binary_sensor.ratgdo32disco_c26634_obstruction': "Casey's ratgdo obstruction",
+              'binary_sensor.ratgdo32disco_c26634_vehicle_arriving': "Casey's vehicle arriving",
+              'binary_sensor.ratgdo32disco_c26634_vehicle_leaving': "Casey's vehicle leaving",
+              'binary_sensor.ratgdo32_4536e8_motion': "Trevor's ratgdo motion",
+              'binary_sensor.ratgdo32_4536e8_obstruction': "Trevor's ratgdo obstruction"
             } %}
             {% set ns = namespace(names=[]) %}
             {% for entity_id, label in sources.items() %}
@@ -5275,7 +5439,9 @@ template:
               'binary_sensor.ratgdo32disco_c26634_motion',
               'binary_sensor.ratgdo32disco_c26634_obstruction',
               'binary_sensor.ratgdo32disco_c26634_vehicle_arriving',
-              'binary_sensor.ratgdo32disco_c26634_vehicle_leaving'
+              'binary_sensor.ratgdo32disco_c26634_vehicle_leaving',
+              'binary_sensor.ratgdo32_4536e8_motion',
+              'binary_sensor.ratgdo32_4536e8_obstruction'
             ] %}
             {% set ns = namespace(entity_ids=[]) %}
             {% for entity_id in sources %}
@@ -5287,11 +5453,13 @@ template:
           camera_motion: "{{ states('binary_sensor.g6_instant_motion_3') }}"
           camera_person_detected: "{{ states('binary_sensor.garage_person_detected') }}"
           camera_vehicle_detected: "{{ states('binary_sensor.garage_vehicle_detected') }}"
-          ratgdo_motion: "{{ states('binary_sensor.ratgdo32disco_c26634_motion') }}"
-          ratgdo_obstruction: "{{ states('binary_sensor.ratgdo32disco_c26634_obstruction') }}"
-          ratgdo_vehicle_arriving: "{{ states('binary_sensor.ratgdo32disco_c26634_vehicle_arriving') }}"
-          ratgdo_vehicle_leaving: "{{ states('binary_sensor.ratgdo32disco_c26634_vehicle_leaving') }}"
-          parked_vehicle_detected: "{{ states('binary_sensor.ratgdo32disco_c26634_vehicle_detected') }}"
+          casey_ratgdo_motion: "{{ states('binary_sensor.ratgdo32disco_c26634_motion') }}"
+          casey_ratgdo_obstruction: "{{ states('binary_sensor.ratgdo32disco_c26634_obstruction') }}"
+          casey_ratgdo_vehicle_arriving: "{{ states('binary_sensor.ratgdo32disco_c26634_vehicle_arriving') }}"
+          casey_ratgdo_vehicle_leaving: "{{ states('binary_sensor.ratgdo32disco_c26634_vehicle_leaving') }}"
+          casey_parked_vehicle_detected: "{{ states('binary_sensor.ratgdo32disco_c26634_vehicle_detected') }}"
+          trevor_ratgdo_motion: "{{ states('binary_sensor.ratgdo32_4536e8_motion') }}"
+          trevor_ratgdo_obstruction: "{{ states('binary_sensor.ratgdo32_4536e8_obstruction') }}"
 
       - name: "Wine Cave Sensor Unavailable"
         unique_id: wine_cave_sensor_unavailable

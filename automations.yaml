@@ -1911,13 +1911,10 @@
         action: "{{ action_id }}"
         source: mobile_app_notification_action
         recent: >-
-          {{ action_id == 'CLOSE_AWAY_GARAGE'
-             or action_id == 'CLOSE_GARAGE_SECURITY'
-             or trigger.event.data.recent | default(false, true) }}
+          {{ trigger.event.data.recent | default(false, true) }}
         keep_recent: "{{ trigger.event.data.keep_recent | default(false, true) }}"
         history: >-
-          {{ 'recent' if action_id in ['CLOSE_AWAY_GARAGE', 'CLOSE_GARAGE_SECURITY']
-             else trigger.event.data.history | default('', true) }}
+          {{ trigger.event.data.history | default('', true) }}
   mode: parallel
   max: 20
 
@@ -2493,11 +2490,15 @@
       to: "on"
       id: became_unsecured
     - trigger: state
-      entity_id: cover.ratgdo32disco_c26634_door
+      entity_id:
+        - cover.ratgdo32disco_c26634_door
+        - cover.ratgdo32_4536e8_door
       to: "opening"
       id: garage_opening_away
     - trigger: state
-      entity_id: cover.ratgdo32disco_c26634_door
+      entity_id:
+        - cover.ratgdo32disco_c26634_door
+        - cover.ratgdo32_4536e8_door
       to: "open"
       id: garage_opened_away
     - trigger: homeassistant
@@ -2632,7 +2633,7 @@
                   - action: homeassistant.turn_off
                     target:
                       entity_id: "{{ repeat.item }}"
-            - action: script.away_security_close_garage_door
+            - action: script.away_security_close_open_garage_doors
             - delay:
                 seconds: 2
             - action: script.casey_left_combo_clear_alert
@@ -2667,7 +2668,7 @@
             - condition: template
               value_template: "{{ trigger.event.data.action == 'CLOSE_AWAY_GARAGE' }}"
           sequence:
-            - action: script.away_security_close_garage_door
+            - action: script.away_security_close_open_garage_doors
             - delay:
                 seconds: 2
             - if:
@@ -2802,13 +2803,13 @@
             - condition: template
               value_template: "{{ trigger.event.data.action == 'CLOSE_GARAGE_SECURITY' }}"
           sequence:
-            - action: script.away_security_close_garage_door
+            - action: script.away_security_close_open_garage_doors
             - delay:
                 seconds: 2
             - if:
                 - condition: state
-                  entity_id: cover.ratgdo32disco_c26634_door
-                  state: "closed"
+                  entity_id: binary_sensor.away_security_garage_door_open
+                  state: "off"
               then:
                 - action: script.garage_security_clear_alerts
         - conditions:
@@ -2909,6 +2910,7 @@
         - binary_sensor.ratgdo32disco_c26634_motion
         - binary_sensor.ratgdo32disco_c26634_vehicle_arriving
         - binary_sensor.ratgdo32disco_c26634_vehicle_leaving
+        - binary_sensor.ratgdo32_4536e8_motion
       to: "on"
   conditions:
     - condition: template
@@ -2953,7 +2955,7 @@
 - id: garage_security_open_while_person_away
   alias: "Garage — Open While Person Away"
   description: >
-    Notifies Trevor when the garage door is open while exactly one household
+    Notifies Trevor when either garage door is open while exactly one household
     person is away. Everyone-away cases stay in the away-security guardrail.
   triggers:
     - trigger: state
@@ -3007,7 +3009,7 @@
         trigger_is_garage_or_repeat: "{{ trigger.id in ['garage_opened', 'repeat'] }}"
         repeat_is_due: >
           {{ trigger.id != 'repeat'
-             or (as_timestamp(now()) - as_timestamp(states.cover.ratgdo32disco_c26634_door.last_changed, 0)) >= 900 }}
+             or (as_timestamp(now()) - as_timestamp(states.binary_sensor.away_security_garage_door_open.last_changed, 0)) >= 900 }}
     - condition: template
       value_template: >
         {{ repeat_is_due | bool
@@ -3033,10 +3035,12 @@
 
 - id: garage_security_open_too_long
   alias: "Garage — Open Too Long"
-  description: Low-noise reminder when the ratgdo garage door stays open while someone is home.
+  description: Low-noise reminder when either ratgdo garage door stays open while someone is home.
   triggers:
     - trigger: state
-      entity_id: cover.ratgdo32disco_c26634_door
+      entity_id:
+        - cover.ratgdo32disco_c26634_door
+        - cover.ratgdo32_4536e8_door
       to: "open"
       for:
         minutes: 30
@@ -3064,16 +3068,17 @@
     - condition: template
       value_template: >
         {{ trigger.id != 'repeat'
-           or (as_timestamp(now()) - as_timestamp(states.cover.ratgdo32disco_c26634_door.last_changed, 0)) >= 1800 }}
+           or (as_timestamp(now()) - as_timestamp(states.binary_sensor.away_security_garage_door_open.last_changed, 0)) >= 1800 }}
   actions:
     - action: script.garage_security_send_alert
       data:
         alert_kind: open_too_long
+        garage_cover: "{{ trigger.entity_id if trigger.id == 'open_30' else state_attr('binary_sensor.away_security_garage_door_open', 'primary_open_entity') }}"
   mode: single
 
 - id: garage_security_open_at_night
   alias: "Garage — Open At Night"
-  description: Higher-priority reminder when the ratgdo garage door is open during the overnight window.
+  description: Higher-priority reminder when either ratgdo garage door is open during the overnight window.
   triggers:
     - trigger: time
       at: "22:30:00"
@@ -3156,15 +3161,19 @@
 
 - id: garage_security_opened_overnight
   alias: "Garage — Opened Overnight"
-  description: Immediate alert when the ratgdo garage door opens overnight without a recent arrival home.
+  description: Immediate alert when either ratgdo garage door opens overnight without a recent arrival home.
   triggers:
     - trigger: state
-      entity_id: cover.ratgdo32disco_c26634_door
+      entity_id:
+        - cover.ratgdo32disco_c26634_door
+        - cover.ratgdo32_4536e8_door
       from: "closed"
       to: "opening"
       id: opening
     - trigger: state
-      entity_id: cover.ratgdo32disco_c26634_door
+      entity_id:
+        - cover.ratgdo32disco_c26634_door
+        - cover.ratgdo32_4536e8_door
       from: "closed"
       to: "open"
       id: open
@@ -3190,18 +3199,25 @@
     - action: script.garage_security_send_alert
       data:
         alert_kind: opened_overnight
+        garage_cover: "{{ trigger.entity_id }}"
   mode: single
 
 - id: garage_security_obstruction_detected
   alias: "Garage — Obstruction Detected"
-  description: Pushes only when ratgdo reports an obstruction while the garage door is moving.
+  description: Pushes only when either ratgdo reports an obstruction while that garage door is moving.
   triggers:
     - trigger: state
-      entity_id: binary_sensor.ratgdo32disco_c26634_obstruction
+      entity_id:
+        - binary_sensor.ratgdo32disco_c26634_obstruction
+        - binary_sensor.ratgdo32_4536e8_obstruction
       to: "on"
   conditions:
     - condition: template
-      value_template: "{{ states('cover.ratgdo32disco_c26634_door') in ['opening', 'closing'] }}"
+      value_template: >-
+        {% set cover = 'cover.ratgdo32_4536e8_door'
+           if trigger.entity_id == 'binary_sensor.ratgdo32_4536e8_obstruction'
+           else 'cover.ratgdo32disco_c26634_door' %}
+        {{ states(cover) in ['opening', 'closing'] }}
     - condition: template
       value_template: >
         {% set snooze = states('input_datetime.garage_security_snooze_until') %}
@@ -3211,6 +3227,10 @@
     - action: script.garage_security_send_alert
       data:
         alert_kind: obstruction
+        garage_cover: >-
+          {{ 'cover.ratgdo32_4536e8_door'
+             if trigger.entity_id == 'binary_sensor.ratgdo32_4536e8_obstruction'
+             else 'cover.ratgdo32disco_c26634_door' }}
   mode: single
 
 - id: garage_security_clear_when_resolved
@@ -3218,11 +3238,15 @@
   description: Clears active garage-security pushes when the door closes or obstruction clears.
   triggers:
     - trigger: state
-      entity_id: cover.ratgdo32disco_c26634_door
+      entity_id:
+        - cover.ratgdo32disco_c26634_door
+        - cover.ratgdo32_4536e8_door
       to: "closed"
       id: door_closed
     - trigger: state
-      entity_id: binary_sensor.ratgdo32disco_c26634_obstruction
+      entity_id:
+        - binary_sensor.ratgdo32disco_c26634_obstruction
+        - binary_sensor.ratgdo32_4536e8_obstruction
       to: "off"
       id: obstruction_clear
     - trigger: state
@@ -3238,7 +3262,12 @@
             - condition: template
               value_template: "{{ trigger.id == 'door_closed' }}"
           sequence:
-            - action: script.garage_security_clear_alerts
+            - if:
+                - condition: state
+                  entity_id: binary_sensor.away_security_garage_door_open
+                  state: "off"
+              then:
+                - action: script.garage_security_clear_alerts
         - conditions:
             - condition: template
               value_template: "{{ trigger.id == 'obstruction_clear' }}"
@@ -3314,7 +3343,9 @@
   description: Clears the contextual Casey-left-entry push once it is no longer relevant.
   triggers:
     - trigger: state
-      entity_id: cover.ratgdo32disco_c26634_door
+      entity_id:
+        - cover.ratgdo32disco_c26634_door
+        - cover.ratgdo32_4536e8_door
       to: closed
     - trigger: state
       entity_id:
@@ -3344,7 +3375,9 @@
   description: Clears the contextual Casey-left combo push once it is no longer relevant.
   triggers:
     - trigger: state
-      entity_id: cover.ratgdo32disco_c26634_door
+      entity_id:
+        - cover.ratgdo32disco_c26634_door
+        - cover.ratgdo32_4536e8_door
       to: closed
     - trigger: state
       entity_id:

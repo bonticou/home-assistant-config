@@ -1741,9 +1741,7 @@ views:
                 [[[
                   const stateMap = hass?.states || {};
                   const count = Number(entity?.state ?? 0);
-                  const issue = (entity?.attributes?.issue || entity?.attributes?.label || '')
-                    .replace('Garage entry lock unlocked', 'Garage door unlocked')
-                    .replace('Garage entry lock', 'Garage door');
+                  const issue = entity?.attributes?.issue || entity?.attributes?.label || '';
                   const motionUntil = stateMap['input_datetime.away_motion_security_snooze_until']?.state;
                   const motionUntilDate = motionUntil && !['unknown', 'unavailable', ''].includes(motionUntil)
                     ? new Date(motionUntil.replace(' ', 'T'))
@@ -3275,7 +3273,7 @@ views:
                     const icon = active ? 'mdi:garage-open-variant' : 'mdi:garage-variant';
                     return `<div class="garage-status-icon ${active ? 'open' : 'closed'}"><ha-icon icon="${icon}"></ha-icon></div>`;
                   ]]]
-                name: Garage door
+                name: Casey's garage door
                 state: >-
                   [[[
                     const labels = {
@@ -3306,7 +3304,7 @@ views:
                 action: none
               hold_action:
                 action: more-info
-              styles:
+              styles: &garage_status_tile_styles
                 card:
                   - min-height: 54px
                   - margin: 0 0 12px
@@ -3350,7 +3348,7 @@ views:
                     - display: "-webkit-box"
                     - "-webkit-line-clamp": 2
                     - "-webkit-box-orient": vertical
-              extra_styles: |
+              extra_styles: &garage_status_tile_extra |
                 .garage-status-icon {
                   width: 34px;
                   height: 34px;
@@ -3397,7 +3395,7 @@ views:
                   color: #cbd5e1;
                   background: rgba(148, 163, 184, 0.14);
                 }
-              card_mod:
+              card_mod: &garage_status_tile_card_mod
                 style: |
                   :host {
                     display: block !important;
@@ -3410,6 +3408,58 @@ views:
                   #aspect-ratio {
                     width: 100% !important;
                   }
+            - type: custom:button-card
+              entity: cover.ratgdo32_4536e8_door
+              triggers_update:
+                - binary_sensor.ratgdo32_4536e8_motion
+                - binary_sensor.ratgdo32_4536e8_obstruction
+              show_icon: false
+              show_name: false
+              show_state: false
+              custom_fields:
+                icon: >-
+                  [[[
+                    const active = ['open', 'opening', 'stopped'].includes(entity.state);
+                    const icon = active ? 'mdi:garage-open-variant' : 'mdi:garage-variant';
+                    return `<div class="garage-status-icon ${active ? 'open' : 'closed'}"><ha-icon icon="${icon}"></ha-icon></div>`;
+                  ]]]
+                name: Trevor's garage door
+                state: >-
+                  [[[
+                    const labels = {
+                      open: 'Open',
+                      opening: 'Opening',
+                      stopped: 'Stopped',
+                      closed: 'Closed',
+                      closing: 'Closing',
+                      unavailable: 'Offline',
+                      unknown: 'Unknown',
+                    };
+                    const statusClass = ['open', 'opening', 'stopped'].includes(entity.state)
+                      ? 'open'
+                      : entity.state === 'closed'
+                        ? 'closed'
+                        : entity.state === 'closing'
+                          ? 'moving'
+                          : 'unknown';
+                    return `<span class="garage-status-state ${statusClass}">${labels[entity.state] || entity.state}</span>`;
+                  ]]]
+                meta: >-
+                  [[[
+                    const obstruction = hass.states['binary_sensor.ratgdo32_4536e8_obstruction']?.state || 'unknown';
+                    const motion = hass.states['binary_sensor.ratgdo32_4536e8_motion']?.state || 'unknown';
+                    if (obstruction === 'on') return 'Obstruction detected';
+                    if (motion === 'on') return 'Motion near door';
+                    if (obstruction === 'off' && motion === 'off') return 'Path looks quiet';
+                    return 'Path status unknown';
+                  ]]]
+              tap_action:
+                action: none
+              hold_action:
+                action: more-info
+              styles: *garage_status_tile_styles
+              extra_styles: *garage_status_tile_extra
+              card_mod: *garage_status_tile_card_mod
             - type: horizontal-stack
               cards:
                 - type: custom:button-card
@@ -3440,7 +3490,7 @@ views:
                               : 'moving';
                         return `<div class="garage-move-icon ${klass}"><ha-icon icon="${icon}"></ha-icon></div>`;
                       ]]]
-                    name: Garage
+                    name: Casey
                     state: >-
                       [[[
                         const active = ['open', 'opening', 'stopped'].includes(entity.state);
@@ -3473,8 +3523,10 @@ views:
                         return hazard && active ? 'fire-dom-event' : 'call-service';
                       ]]]
                     service: script.away_security_move_garage_door
+                    service_data:
+                      garage_cover: cover.ratgdo32disco_c26634_door
                     confirmation:
-                      text: Move the garage door?
+                      text: Move Casey's garage door?
                     browser_mod:
                       service: browser_mod.popup
                       data:
@@ -3583,6 +3635,81 @@ views:
                       #aspect-ratio {
                         width: 100% !important;
                       }
+                - type: custom:button-card
+                  entity: cover.ratgdo32_4536e8_door
+                  triggers_update:
+                    - binary_sensor.garage_close_hazard_active
+                  show_icon: false
+                  show_name: false
+                  show_state: false
+                  custom_fields:
+                    icon: >-
+                      [[[
+                        const active = ['open', 'opening', 'stopped'].includes(entity.state);
+                        const hazard = hass.states['binary_sensor.garage_close_hazard_active']?.state === 'on';
+                        const icon = hazard && active
+                          ? 'mdi:alert-outline'
+                          : entity.state === 'closed'
+                            ? 'mdi:garage-arrow-up'
+                            : active
+                              ? 'mdi:garage-arrow-down'
+                              : 'mdi:garage-variant';
+                        const klass = hazard && active
+                          ? 'hazard'
+                          : entity.state === 'closed'
+                            ? 'closed'
+                            : active
+                              ? 'open'
+                              : 'moving';
+                        return `<div class="garage-move-icon ${klass}"><ha-icon icon="${icon}"></ha-icon></div>`;
+                      ]]]
+                    name: Trevor
+                    state: >-
+                      [[[
+                        const active = ['open', 'opening', 'stopped'].includes(entity.state);
+                        const hazard = hass.states['binary_sensor.garage_close_hazard_active']?.state === 'on';
+                        const labels = {
+                          closed: 'Open',
+                          closing: 'Moving',
+                          opening: 'Moving',
+                          open: hazard ? 'Blocked' : 'Close',
+                          stopped: hazard ? 'Blocked' : 'Close',
+                          unavailable: 'Offline',
+                          unknown: 'Unknown',
+                        };
+                        const klass = hazard && active
+                          ? 'hazard'
+                          : entity.state === 'closed'
+                            ? 'closed'
+                            : active
+                              ? 'open'
+                              : ['opening', 'closing'].includes(entity.state)
+                                ? 'moving'
+                                : 'unknown';
+                        return `<span class="garage-move-state ${klass}">${labels[entity.state] || entity.state}</span>`;
+                      ]]]
+                  tap_action:
+                    action: >-
+                      [[[
+                        const active = ['open', 'opening', 'stopped'].includes(entity.state);
+                        const hazard = hass.states['binary_sensor.garage_close_hazard_active']?.state === 'on';
+                        return hazard && active ? 'fire-dom-event' : 'call-service';
+                      ]]]
+                    service: script.away_security_move_garage_door
+                    service_data:
+                      garage_cover: cover.ratgdo32_4536e8_door
+                    confirmation:
+                      text: Move Trevor's garage door?
+                    browser_mod:
+                      service: browser_mod.popup
+                      data:
+                        popup_card_id: garage-close-hazard-popup
+                  hold_action:
+                    action: more-info
+                  styles:
+                    <<: *security_control_tile_styles
+                  extra_styles: *garage_move_tile_extra
+                  card_mod: *security_control_tile_card_mod
                 - type: custom:button-card
                   entity: lock.garage_entry_lock
                   show_icon: false
@@ -3809,7 +3936,7 @@ views:
                   }
                   #root {
                     display: grid !important;
-                    grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
+                    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
                     gap: 8px !important;
                     width: 100% !important;
                   }
@@ -3900,7 +4027,7 @@ views:
               secondary: >-
                 {% set summary = state_attr('binary_sensor.garage_close_hazard_active', 'summary') | default('', true) %}
                 {{ summary if summary else 'Garage motion is active' }}.
-                The close command is blocked until the garage camera and ratgdo path clear.
+                The close command is blocked until the garage camera and both ratgdo paths clear.
               icon: mdi:alert-outline
               icon_color: red
               multiline_secondary: true
@@ -3912,9 +4039,9 @@ views:
               entity: binary_sensor.garage_close_hazard_active
               primary: Watched signals
               secondary: >-
-                Camera motion, person, and vehicle movement; ratgdo motion,
-                obstruction, and arriving/leaving vehicle signals. A parked
-                vehicle alone does not block closing.
+                Camera motion, person, and vehicle movement; Casey and Trevor
+                ratgdo motion and obstruction; Casey arriving/leaving vehicle
+                signals when available. A parked vehicle alone does not block closing.
               icon: mdi:cctv
               icon_color: amber
               multiline_secondary: true

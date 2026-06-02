@@ -3502,58 +3502,77 @@ away_security_lock_unlocked_entry_doors:
 
 away_security_move_garage_door:
   alias: Away Security Move Garage Door
-  description: Opens the garage when closed, or uses the guarded close routine when it is open.
+  description: Opens the selected garage door when closed, or uses the guarded close routine when it is open.
   icon: mdi:garage
   mode: restart
+  fields:
+    garage_cover:
+      description: Garage cover entity to move.
+      example: cover.ratgdo32disco_c26634_door
   sequence:
     - variables:
-        garage_cover: cover.ratgdo32disco_c26634_door
+        requested_cover: "{{ garage_cover | default('cover.ratgdo32disco_c26634_door', true) }}"
+        target_cover: "{{ 'cover.ratgdo32_4536e8_door' if requested_cover in ['trevor', 'cover.ratgdo32_4536e8_door'] else 'cover.ratgdo32disco_c26634_door' }}"
     - choose:
         - conditions:
             - condition: template
-              value_template: "{{ states(garage_cover) == 'closed' }}"
+              value_template: "{{ states(target_cover) == 'closed' }}"
           sequence:
             - action: cover.open_cover
               target:
-                entity_id: cover.ratgdo32disco_c26634_door
+                entity_id: "{{ target_cover }}"
         - conditions:
             - condition: template
-              value_template: "{{ states(garage_cover) in ['open', 'opening', 'stopped'] }}"
+              value_template: "{{ states(target_cover) in ['open', 'opening', 'stopped'] }}"
           sequence:
             - action: script.away_security_close_garage_door
+              data:
+                garage_cover: "{{ target_cover }}"
 
 away_security_close_garage_door:
   alias: Away Security Close Garage Door
-  description: Closes the ratgdo garage door only from an explicit user action when the garage path is clear.
+  description: Closes a selected ratgdo garage door only from an explicit user action when the shared garage path is clear.
   icon: mdi:garage-arrow-down
-  mode: restart
+  mode: parallel
+  max: 4
+  fields:
+    garage_cover:
+      description: Garage cover entity to close.
+      example: cover.ratgdo32disco_c26634_door
   sequence:
     - variables:
-        garage_cover: cover.ratgdo32disco_c26634_door
+        requested_cover: "{{ garage_cover | default('cover.ratgdo32disco_c26634_door', true) }}"
+        target_cover: "{{ 'cover.ratgdo32_4536e8_door' if requested_cover in ['trevor', 'cover.ratgdo32_4536e8_door'] else 'cover.ratgdo32disco_c26634_door' }}"
+        garage_label: "{{ \"Trevor's garage door\" if target_cover == 'cover.ratgdo32_4536e8_door' else \"Casey's garage door\" }}"
         close_hazard_active: "{{ is_state('binary_sensor.garage_close_hazard_active', 'on') }}"
     - choose:
         - conditions:
             - condition: template
-              value_template: "{{ states(garage_cover) == 'closed' }}"
+              value_template: "{{ states(target_cover) == 'closed' }}"
           sequence:
-            - action: script.garage_security_clear_alerts
+            - if:
+                - condition: state
+                  entity_id: binary_sensor.away_security_garage_door_open
+                  state: "off"
+              then:
+                - action: script.garage_security_clear_alerts
         - conditions:
             - condition: template
               value_template: "{{ close_hazard_active }}"
           sequence:
-            - stop: Garage close blocked because garage motion or obstruction is active.
+            - stop: Garage close blocked because garage camera, motion, or obstruction is active.
         - conditions:
             - condition: template
-              value_template: "{{ states(garage_cover) not in ['closed', 'unknown', 'unavailable', ''] }}"
+              value_template: "{{ states(target_cover) not in ['closed', 'unknown', 'unavailable', ''] }}"
           sequence:
             - if:
                 - condition: template
-                  value_template: "{{ states(garage_cover) != 'closing' }}"
+                  value_template: "{{ states(target_cover) != 'closing' }}"
               then:
                 - action: cover.close_cover
                   target:
-                    entity_id: cover.ratgdo32disco_c26634_door
-            - wait_template: "{{ is_state(garage_cover, 'closed') }}"
+                    entity_id: "{{ target_cover }}"
+            - wait_template: "{{ is_state(target_cover, 'closed') }}"
               timeout: "00:01:00"
               continue_on_timeout: true
             - variables:
@@ -3561,20 +3580,25 @@ away_security_close_garage_door:
                 casey_away: "{{ states('device_tracker.unifi_default_42_15_78_4a_d9_f8') not in ['home', 'unknown', 'unavailable', ''] }}"
             - if:
                 - condition: template
-                  value_template: "{{ is_state(garage_cover, 'closed') }}"
+                  value_template: "{{ is_state(target_cover, 'closed') }}"
               then:
-                - action: script.garage_security_clear_alerts
+                - if:
+                    - condition: state
+                      entity_id: binary_sensor.away_security_garage_door_open
+                      state: "off"
+                  then:
+                    - action: script.garage_security_clear_alerts
               else:
                 - action: script.notify_trevor_phone
                   data:
                     title: "🚗 Garage did not close"
                     message: >-
-                      Home Assistant sent the close command, but the garage door reports
-                      {{ states(garage_cover) }}.
+                      Home Assistant sent the close command, but {{ garage_label }} reports
+                      {{ states(target_cover) }}.
                       {% if trevor_away | bool and casey_away | bool %}
                         Casey and Trevor are away, and Home Assistant still sees {{ states('sensor.away_security_issue_summary') }}.
                       {% else %}
-                        Home Assistant will keep watching ratgdo until the door reports closed.
+                        Home Assistant will keep watching ratgdo until {{ garage_label }} reports closed.
                       {% endif %}
                     data:
                       tag: garage-did-not-close
@@ -3591,6 +3615,37 @@ away_security_close_garage_door:
                           title: Try closing again
                         - action: SNOOZE_GARAGE_SECURITY_30
                           title: Sleep 30 min
+
+away_security_close_open_garage_doors:
+  alias: Away Security Close Open Garage Doors
+  description: Closes every currently open garage door when the shared garage path is clear.
+  icon: mdi:garage-alert
+  mode: restart
+  sequence:
+    - variables:
+        open_garage_doors: >-
+          {% set entity_ids = state_attr('binary_sensor.away_security_garage_door_open', 'open_entities') | default('', true) %}
+          {{ (entity_ids.split('||') if entity_ids else []) | reject('eq', '') | list }}
+        close_hazard_active: "{{ is_state('binary_sensor.garage_close_hazard_active', 'on') }}"
+    - choose:
+        - conditions:
+            - condition: template
+              value_template: "{{ close_hazard_active }}"
+          sequence:
+            - stop: Garage close blocked because garage camera, motion, or obstruction is active.
+      default:
+        - repeat:
+            for_each: "{{ open_garage_doors }}"
+            sequence:
+              - action: script.away_security_close_garage_door
+                data:
+                  garage_cover: "{{ repeat.item }}"
+        - if:
+            - condition: state
+              entity_id: binary_sensor.away_security_garage_door_open
+              state: "off"
+          then:
+            - action: script.garage_security_clear_alerts
 
 garage_security_clear_alerts:
   alias: Garage Security Clear Alerts
@@ -3685,26 +3740,38 @@ garage_security_send_alert:
     alert_kind:
       description: Garage alert type
       example: open_too_long
+    garage_cover:
+      description: Garage cover that caused the alert, when known.
+      example: cover.ratgdo32_4536e8_door
   sequence:
     - variables:
         kind: "{{ alert_kind | default('open_too_long', true) }}"
-        garage_cover: cover.ratgdo32disco_c26634_door
-        garage_state: "{{ states('cover.ratgdo32disco_c26634_door') }}"
-        opened_for: "{{ relative_time(states.cover.ratgdo32disco_c26634_door.last_changed) }}"
-        obstruction_state: "{{ states('binary_sensor.ratgdo32disco_c26634_obstruction') }}"
+        requested_cover: "{{ garage_cover | default(state_attr('binary_sensor.away_security_garage_door_open', 'primary_open_entity') | default('cover.ratgdo32disco_c26634_door', true), true) }}"
+        target_cover: "{{ 'cover.ratgdo32_4536e8_door' if requested_cover in ['trevor', 'cover.ratgdo32_4536e8_door'] else 'cover.ratgdo32disco_c26634_door' }}"
+        target_label: "{{ \"Trevor's garage door\" if target_cover == 'cover.ratgdo32_4536e8_door' else \"Casey's garage door\" }}"
+        target_state: "{{ states(target_cover) }}"
+        open_count: "{{ state_attr('binary_sensor.away_security_garage_door_open', 'open_count') | int(0) }}"
+        open_label: "{{ state_attr('binary_sensor.away_security_garage_door_open', 'open_label') | default(target_label, true) }}"
+        open_issue: "{{ state_attr('binary_sensor.away_security_garage_door_open', 'open_issue') | default(target_label ~ ' open', true) }}"
+        close_title: "{{ state_attr('binary_sensor.away_security_garage_door_open', 'close_action_title') | default('Close garage', true) }}"
+        opened_for: >-
+          {% set door = states[target_cover] %}
+          {{ relative_time(door.last_changed) if door is not none else 'a while' }}
+        obstruction_state: >-
+          {{ states('binary_sensor.ratgdo32_4536e8_obstruction') if target_cover == 'cover.ratgdo32_4536e8_door' else states('binary_sensor.ratgdo32disco_c26634_obstruction') }}
         title: >-
           {% if kind == 'open_at_night' %}
-            🚗 Garage open at night
+            {% if open_count | int(0) == 2 %}🚗 Both garage doors open at night{% else %}🚗 {{ open_label }} open at night{% endif %}
           {% elif kind == 'opened_overnight' %}
-            🚗 Garage opened overnight
+            🚗 {{ target_label }} opened overnight
           {% elif kind == 'trevor_away' %}
-            🚗 Garage door open while you're away
+            🚗 {{ open_issue }} while you're away
           {% elif kind == 'casey_away' %}
-            🚗 Casey left the garage open
+            {% if open_count | int(0) == 2 %}🚗 Casey left both garage doors open{% else %}🚗 Casey left {{ open_label }} open{% endif %}
           {% elif kind == 'obstruction' %}
-            🚗 Garage obstruction detected
+            🚗 {{ target_label }} obstruction detected
           {% else %}
-            🚗 Garage open
+            🚗 {{ open_issue }}
           {% endif %}
         tag: >-
           {% if kind == 'open_at_night' %}garage-open-at-night
@@ -3716,17 +3783,19 @@ garage_security_send_alert:
         priority: "{{ 'high' if kind in ['open_at_night', 'opened_overnight', 'obstruction', 'trevor_away', 'casey_away'] else 'normal' }}"
         message: >-
           {% if kind == 'open_at_night' %}
-            The garage door is open during the overnight window. It currently reports {{ garage_state }}.
+            {{ open_issue }} during the overnight window.
+            Casey's door reports {{ states('cover.ratgdo32disco_c26634_door') }};
+            Trevor's door reports {{ states('cover.ratgdo32_4536e8_door') }}.
           {% elif kind == 'opened_overnight' %}
-            The garage door changed from closed to {{ garage_state }} overnight, and I did not see a recent arrival home.
+            {{ target_label }} changed from closed to {{ target_state }} overnight, and I did not see a recent arrival home.
           {% elif kind == 'trevor_away' %}
-            You're away, Casey is home, and the garage door is open. Home Assistant will keep watching until it closes.
+            You're away, Casey is home, and {{ open_issue }}. Home Assistant will keep watching until the garage is closed.
           {% elif kind == 'casey_away' %}
-            Casey is away, you're home, and the garage door is open. Home Assistant will keep watching until it closes.
+            Casey is away, you're home, and {{ open_issue }}. Home Assistant will keep watching until the garage is closed.
           {% elif kind == 'obstruction' %}
-            ratgdo reports an obstruction while the garage door is {{ garage_state }}. Check the door path before closing again.
+            ratgdo reports an obstruction while {{ target_label }} is {{ target_state }}. Check the door path before closing again.
           {% else %}
-            The garage door has been open for {{ opened_for }} while someone is home.
+            {{ open_issue }} for {{ opened_for }} while someone is home.
           {% endif %}
     - choose:
         - conditions:
@@ -3770,7 +3839,7 @@ garage_security_send_alert:
                       title: Open Protect
                       uri: unifi-protect://
                     - action: CLOSE_GARAGE_SECURITY
-                      title: Close garage
+                      title: "{{ close_title }}"
                     - action: SNOOZE_GARAGE_SECURITY_MORNING
                       title: Sleep until morning
       default:
@@ -3790,7 +3859,7 @@ garage_security_send_alert:
                   title: Open Protect
                   uri: unifi-protect://
                 - action: CLOSE_GARAGE_SECURITY
-                  title: Close garage
+                  title: "{{ close_title }}"
                 - action: SNOOZE_GARAGE_SECURITY_30
                   title: Sleep 30 min
 
@@ -4059,9 +4128,10 @@ away_motion_security_send_alert:
             'binary_sensor.g6_instant_motion_3': 'Garage camera motion',
             'binary_sensor.garage_person_detected': 'Garage person detected',
             'binary_sensor.garage_vehicle_detected': 'Garage vehicle detected',
-            'binary_sensor.ratgdo32disco_c26634_motion': 'Garage ratgdo motion',
-            'binary_sensor.ratgdo32disco_c26634_vehicle_arriving': 'Vehicle arriving in garage',
-            'binary_sensor.ratgdo32disco_c26634_vehicle_leaving': 'Vehicle leaving garage'
+            'binary_sensor.ratgdo32disco_c26634_motion': "Casey's garage ratgdo motion",
+            'binary_sensor.ratgdo32disco_c26634_vehicle_arriving': "Casey's vehicle arriving in garage",
+            'binary_sensor.ratgdo32disco_c26634_vehicle_leaving': "Casey's vehicle leaving garage",
+            'binary_sensor.ratgdo32_4536e8_motion': "Trevor's garage ratgdo motion"
           } %}
           {{ labels.get(source_entity, state_attr(source_entity, 'friendly_name') or source_entity) }}
         source_area: >-
@@ -4128,22 +4198,27 @@ away_security_send_alert:
     - variables:
         issue_summary: "{{ states('sensor.away_security_issue_summary') }}"
         garage_door_open: "{{ is_state('binary_sensor.away_security_garage_door_open', 'on') }}"
+        garage_open_count: "{{ state_attr('binary_sensor.away_security_garage_door_open', 'open_count') | int(0) }}"
+        garage_close_title: "{{ state_attr('binary_sensor.away_security_garage_door_open', 'close_action_title') | default('Close garage', true) }}"
         entry_point_count: "{{ states('sensor.away_security_entry_point_issues') | int(0) }}"
         entry_point_issue: "{{ state_attr('sensor.away_security_entry_point_issues', 'issue') | default('', true) }}"
         unlocked_entry_count: "{{ states('sensor.away_security_unlocked_entry_locks') | int(0) }}"
         active_light_count: "{{ states('sensor.away_security_active_lights') | int(0) }}"
         secure_action_title: >-
           {% set garage = garage_door_open | bool %}
+          {% set garage_close = 'Close both' if garage_open_count | int(0) == 2 else 'Close' %}
           {% set locks = unlocked_entry_count | int(0) > 0 %}
           {% set lights = active_light_count | int(0) > 0 %}
-          {% if garage and locks and lights %}Close + lock + lights off
-          {% elif garage and locks %}Close + lock
-          {% elif garage and lights %}Close + lights off
+          {% if garage and locks and lights %}{{ garage_close }} + lock + lights off
+          {% elif garage and locks %}{{ garage_close }} + lock
+          {% elif garage and lights %}{{ garage_close }} + lights off
           {% elif locks and lights %}Lock + lights off
           {% else %}Secure home{% endif %}
         notification_title: >-
-          {% if garage_door_open | bool and entry_point_count | int(0) == 1 and active_light_count | int(0) == 0 %}
-            🚗 Garage door open while away
+          {% if garage_open_count | int(0) == 2 %}
+            🚗 Both garage doors open while away
+          {% elif garage_door_open | bool and entry_point_count | int(0) == garage_open_count | int(0) and active_light_count | int(0) == 0 %}
+            🚗 {{ entry_point_issue }} while away
           {% elif entry_point_count | int(0) > 1 and active_light_count | int(0) == 0 %}
             🔐 Entry points unsecured while away
           {% elif entry_point_count | int(0) == 1 and active_light_count | int(0) == 0 %}
@@ -4152,7 +4227,21 @@ away_security_send_alert:
             🏠 House left unsecured
           {% endif %}
         notification_message: >-
-          Casey and Trevor are away, and {{ issue_summary }}.
+          {% if garage_open_count | int(0) == 2 %}
+            Casey and Trevor are away, and Casey's garage door and Trevor's garage door are open.
+            {% set extras = namespace(items=[]) %}
+            {% if unlocked_entry_count | int(0) > 0 %}
+              {% set extras.items = extras.items + [('entry locks' if unlocked_entry_count | int(0) > 1 else 'an entry lock') ~ ' unlocked'] %}
+            {% endif %}
+            {% if active_light_count | int(0) > 0 %}
+              {% set extras.items = extras.items + [(active_light_count | int(0)) ~ (' lights' if active_light_count | int(0) > 1 else ' light') ~ ' on'] %}
+            {% endif %}
+            {% if extras.items | count > 0 %}
+              Home Assistant is also watching {{ extras.items | join(' and ') }}.
+            {% endif %}
+          {% else %}
+            Casey and Trevor are away, and {{ issue_summary }}.
+          {% endif %}
     - choose:
         - conditions:
             - condition: template
@@ -4179,7 +4268,7 @@ away_security_send_alert:
                     - action: SECURE_AWAY_HOME
                       title: "{{ secure_action_title }}"
                     - action: CLOSE_AWAY_GARAGE
-                      title: Close garage
+                      title: "{{ garage_close_title }}"
                     - action: LOCK_AWAY_ENTRY_DOORS
                       title: >-
                         {{ 'Lock doors' if unlocked_entry_count | int(0) > 1 else 'Lock door' }}
@@ -4211,7 +4300,7 @@ away_security_send_alert:
                     - action: SECURE_AWAY_HOME
                       title: "{{ secure_action_title }}"
                     - action: CLOSE_AWAY_GARAGE
-                      title: Close garage
+                      title: "{{ garage_close_title }}"
                     - action: LOCK_AWAY_ENTRY_DOORS
                       title: >-
                         {{ 'Lock doors' if unlocked_entry_count | int(0) > 1 else 'Lock door' }}
@@ -4241,7 +4330,7 @@ away_security_send_alert:
                     - action: SECURE_AWAY_HOME
                       title: "{{ secure_action_title }}"
                     - action: CLOSE_AWAY_GARAGE
-                      title: Close garage
+                      title: "{{ garage_close_title }}"
                     - action: TURN_OFF_AWAY_LIGHTS
                       title: Turn off lights
                     - action: SNOOZE_AWAY_SECURITY_30
@@ -4298,7 +4387,7 @@ away_security_send_alert:
                       title: Open Protect
                       uri: unifi-protect://
                     - action: CLOSE_AWAY_GARAGE
-                      title: Close garage
+                      title: "{{ garage_close_title }}"
                     - action: SNOOZE_AWAY_SECURITY_30
                       title: Sleep 30 min
                     - action: SNOOZE_AWAY_SECURITY_120
@@ -4398,12 +4487,16 @@ casey_left_garage_send_alert:
     - action: script.casey_left_lights_clear_alert
     - variables:
         garage_door_open: "{{ is_state('binary_sensor.away_security_garage_door_open', 'on') }}"
+        garage_open_count: "{{ state_attr('binary_sensor.away_security_garage_door_open', 'open_count') | int(0) }}"
+        garage_close_title: "{{ state_attr('binary_sensor.away_security_garage_door_open', 'close_action_title') | default('Close garage', true) }}"
         entry_point_count: "{{ states('sensor.away_security_entry_point_issues') | int(0) }}"
         entry_point_issue: "{{ state_attr('sensor.away_security_entry_point_issues', 'issue') | default('an entry point unsecured', true) }}"
         unlocked_entry_count: "{{ states('sensor.away_security_unlocked_entry_locks') | int(0) }}"
         notification_title: >-
-          {% if garage_door_open | bool and entry_point_count | int(0) == 1 %}
-            🚗 Casey left the garage open
+          {% if garage_open_count | int(0) == 2 and entry_point_count | int(0) == 2 %}
+            🚗 Casey left both garage doors open
+          {% elif garage_door_open | bool and entry_point_count | int(0) == garage_open_count | int(0) %}
+            🚗 Casey left {{ entry_point_issue }}
           {% elif entry_point_count | int(0) > 1 %}
             🔐 Casey left entry points unsecured
           {% else %}
@@ -4434,7 +4527,7 @@ casey_left_garage_send_alert:
                     - action: SECURE_CASEY_LEFT_HOME
                       title: Close + lock
                     - action: CLOSE_AWAY_GARAGE
-                      title: Close garage
+                      title: "{{ garage_close_title }}"
                     - action: LOCK_CASEY_LEFT_ENTRY_DOORS
                       title: >-
                         {{ 'Lock doors' if unlocked_entry_count | int(0) > 1 else 'Lock door' }}
@@ -4457,7 +4550,7 @@ casey_left_garage_send_alert:
                       title: Open Protect
                       uri: unifi-protect://
                     - action: CLOSE_AWAY_GARAGE
-                      title: Close garage
+                      title: "{{ garage_close_title }}"
       default:
         - action: script.notify_trevor_phone
           data:
@@ -4500,14 +4593,15 @@ casey_left_combo_send_alert:
     - action: script.casey_left_lights_clear_alert
     - variables:
         garage_door_open: "{{ is_state('binary_sensor.away_security_garage_door_open', 'on') }}"
+        garage_open_count: "{{ state_attr('binary_sensor.away_security_garage_door_open', 'open_count') | int(0) }}"
         entry_point_issue: "{{ state_attr('sensor.away_security_entry_point_issues', 'issue') | default('an entry point unsecured', true) }}"
         unlocked_entry_count: "{{ states('sensor.away_security_unlocked_entry_locks') | int(0) }}"
         active_light_names: >
           {% set light_names = state_attr('sensor.away_security_active_lights', 'names') | default('', true) %}
           {{ (light_names.split('||') if light_names else []) | reject('eq', '') | list }}
         secure_action_title: >-
-          {% if garage_door_open | bool and unlocked_entry_count | int(0) > 0 %}Close + lock + lights off
-          {% elif garage_door_open | bool %}Close + lights off
+          {% if garage_door_open | bool and unlocked_entry_count | int(0) > 0 %}{{ 'Close both' if garage_open_count | int(0) == 2 else 'Close' }} + lock + lights off
+          {% elif garage_door_open | bool %}{{ 'Close both' if garage_open_count | int(0) == 2 else 'Close' }} + lights off
           {% else %}Lock + lights off{% endif %}
     - action: script.notify_trevor_phone
       data:
