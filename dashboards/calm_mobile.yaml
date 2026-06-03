@@ -2601,10 +2601,10 @@ views:
                   ]]]
               styles:
                 card: [background: none, border: 0, box-shadow: none, padding: 0]
-                grid: ["grid-template-areas: 'b'", "justify-items: stretch"]
+                grid: ["grid-template-areas: 'b'"]
                 custom_fields:
-                  b: [justify-self: stretch, text-align: left, width: 100%]
-              extra_styles: "h3{margin:0 0 8px}.t{display:grid;grid-template-columns:58px 1fr 1fr;width:100%;box-sizing:border-box;border:1px solid #334155;border-radius:10px;overflow:hidden;font-size:12px}.t>*{padding:5px 6px;border-top:1px solid #334155}.t em{border-top:0;color:#94a3b8;font-style:normal}.t span{text-align:right}"
+                  b: [justify-self: stretch, width: 100%]
+              extra_styles: "h3{margin:0 0 8px;text-align:center}.t{display:grid;grid-template-columns:58px 1fr 1fr;width:min(100%,286px);margin:0 auto;box-sizing:border-box;border:1px solid #334155;border-radius:10px;overflow:hidden;font-size:12px}.t>*{padding:5px 6px;border-top:1px solid #334155}.t em{border-top:0;color:#94a3b8;font-style:normal}.t span{text-align:right}"
             - type: custom:mushroom-chips-card
               alignment: left
               chips:
