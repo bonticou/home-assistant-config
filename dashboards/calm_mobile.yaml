@@ -2585,7 +2585,7 @@ views:
             ha-dialog$: "ha-dialog-header{position:absolute!important;top:-54px;left:0;width:44px;height:44px;padding:0!important;border-radius:999px;background:#0f172a;overflow:hidden}.content-wrapper{padding:0!important}"
         popup_styles:
           - style: wide
-            styles: ".content{width:318px!important;margin:auto}.content .container{overflow:visible;padding:12px;border-radius:24px;background:#0f172a}"
+            styles: ".content{width:318px!important;margin:auto}.content .container{margin-top:54px;overflow:visible;padding:12px;border-radius:24px;background:#0f172a}"
         card:
           type: vertical-stack
           cards:
@@ -2597,10 +2597,12 @@ views:
                 ### Profitec GO
                 {{states(s)}} · next {{a(s,'next_due_date')or n}}
 
-                <p><b>Water</b><span>{{a(s,'last_water_backflush_date')or n}}</span><i>{{a(s,'water_ready_date')or n}}</i></p>
-                <p><b>Cafiza</b><span>{{a(s,'last_cafiza_clean_date')or n}}</span><i>{{a(s,'cafiza_due_date')or n}}</i></p>
+                <p><b>Water</b> <span>{{a(s,'last_water_backflush_date')or n}}</span> <i>{{a(s,'water_ready_date')or n}}</i></p>
+                <p><b>Cafiza</b> <span>{{a(s,'last_cafiza_clean_date')or n}}</span> <i>{{a(s,'cafiza_due_date')or n}}</i></p>
               card_mod:
-                style: "ha-card{background:none;border:0;box-shadow:none;padding:0!important}ha-markdown{padding:0!important}p{display:grid;grid-template-columns:54px 1fr 1fr;gap:8px;margin:0;padding:5px 0;border-top:1px solid #334155}p span,p i{text-align:right;font-style:normal}"
+                style:
+                  .: "ha-card{background:none;border:0;box-shadow:none;padding:0!important}ha-markdown{padding:0!important}"
+                  ha-markdown$: "p{display:grid;grid-template-columns:54px 1fr 1fr;gap:8px;margin:0;padding:5px 0;border-top:1px solid #334155}p span,p i{text-align:right;font-style:normal}"
             - type: custom:mushroom-chips-card
               alignment: left
               chips:
