@@ -2595,14 +2595,13 @@ views:
                 {%set a=state_attr%}
                 {%set n='No record'%}
                 ### Profitec GO
-                {{states(s)}} · next {{a(s,'next_due_date')or n}}
+                <div class=s>{{states(s)}} · next {{a(s,'next_due_date')or n}}</div>
 
-                <p><b>Water</b> <span>{{a(s,'last_water_backflush_date')or n}}</span> <i>{{a(s,'water_ready_date')or n}}</i></p>
-                <p><b>Cafiza</b> <span>{{a(s,'last_cafiza_clean_date')or n}}</span> <i>{{a(s,'cafiza_due_date')or n}}</i></p>
+                <div class=t><em>Record</em><em>Last</em><em>Due</em><b>Water</b><span>{{a(s,'last_water_backflush_date')or n}}</span><i>{{a(s,'water_ready_date')or n}}</i><b>Cafiza</b><span>{{a(s,'last_cafiza_clean_date')or n}}</span><i>{{a(s,'cafiza_due_date')or n}}</i></div>
               card_mod:
                 style:
                   .: "ha-card{background:none;border:0;box-shadow:none;padding:0!important}ha-markdown{padding:0!important}"
-                  ha-markdown$: "p{display:grid;grid-template-columns:54px 1fr 1fr;gap:8px;margin:0;padding:5px 0;border-top:1px solid #334155}p span,p i{text-align:right;font-style:normal}"
+                  ha-markdown$: ".s{margin:0 0 8px}.t{display:grid;grid-template-columns:58px 1fr 1fr;border:1px solid #334155;border-radius:10px;overflow:hidden;background:#111827}.t>*{padding:5px 6px;border-top:1px solid #334155}.t em{border-top:0;color:#94a3b8;font-size:11px;font-style:normal}.t span,.t i{text-align:right;font-style:normal;color:#cbd5e1}"
             - type: custom:mushroom-chips-card
               alignment: left
               chips:
