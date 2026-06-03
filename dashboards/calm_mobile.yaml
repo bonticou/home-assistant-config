@@ -2593,16 +2593,19 @@ views:
                 ### Profitec GO
                 {{ states(s) }}{% if state_attr(s, 'next_due_date') %} · next {{ state_attr(s, 'next_due_date') }}{% endif %}
 
-                **Water** {{ state_attr(s, 'last_water_backflush_date') or 'No record' }} -> {{ state_attr(s, 'water_ready_date') or 'No record' }}
-
-                **Cafiza** {{ state_attr(s, 'last_cafiza_clean_date') or 'No record' }} -> {{ state_attr(s, 'cafiza_due_date') or 'No record' }}
+                | Record | Last | Due |
+                | --- | ---: | ---: |
+                | Water | {{ state_attr(s, 'last_water_backflush_date') or 'No record' }} | {{ state_attr(s, 'water_ready_date') or 'No record' }} |
+                | Cafiza | {{ state_attr(s, 'last_cafiza_clean_date') or 'No record' }} | {{ state_attr(s, 'cafiza_due_date') or 'No record' }} |
               card_mod:
                 style: |
                   ha-card{background:none;border:0;box-shadow:none;padding:0!important}
-                  ha-markdown{padding:0!important;font-size:13px;line-height:1.35}
+                  ha-markdown{padding:0!important;font-size:13px}
                   h3{font-size:19px!important;margin:0 0 4px!important}
+                  table{width:100%;border-collapse:collapse}
+                  td,th{padding:5px 0;border-top:1px solid #334155}
             - type: custom:mushroom-chips-card
-              alignment: center
+              alignment: left
               chips:
                 - type: conditional
                   conditions:
