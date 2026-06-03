@@ -2597,14 +2597,14 @@ views:
                 b: >-
                   [[[
                     const a=entity.attributes||{},n='No record',v=k=>a[k]||n;
-                    return `<h3>Profitec GO</h3><div class=s>${entity.state} · next ${v('next_due_date')}</div><div class=t><em>Record</em><em>Last</em><em>Due</em><b>Water</b><span>${v('last_water_backflush_date')}</span><span>${v('water_ready_date')}</span><b>Cafiza</b><span>${v('last_cafiza_clean_date')}</span><span>${v('cafiza_due_date')}</span></div>`;
+                    return `<h3>Profitec GO</h3><div class=t><em>Record</em><em>Last</em><em>Due</em><b>Water</b><span>${v('last_water_backflush_date')}</span><span>${v('water_ready_date')}</span><b>Cafiza</b><span>${v('last_cafiza_clean_date')}</span><span>${v('cafiza_due_date')}</span></div>`;
                   ]]]
               styles:
                 card: [background: none, border: 0, box-shadow: none, padding: 0]
-                grid: ["grid-template-areas: 'b'"]
+                grid: ["grid-template-areas: 'b'", "justify-items: stretch"]
                 custom_fields:
-                  b: [justify-self: stretch, text-align: left]
-              extra_styles: "h3{margin:0 0 4px}.s{margin:0 0 8px}.t{display:grid;grid-template-columns:58px 1fr 1fr;border:1px solid #334155;border-radius:10px;overflow:hidden;font-size:12px}.t>*{padding:5px 6px;border-top:1px solid #334155}.t em{border-top:0;color:#94a3b8;font-style:normal}.t span{text-align:right}"
+                  b: [justify-self: stretch, text-align: left, width: 100%]
+              extra_styles: "h3{margin:0 0 8px}.t{display:grid;grid-template-columns:58px 1fr 1fr;width:100%;box-sizing:border-box;border:1px solid #334155;border-radius:10px;overflow:hidden;font-size:12px}.t>*{padding:5px 6px;border-top:1px solid #334155}.t em{border-top:0;color:#94a3b8;font-style:normal}.t span{text-align:right}"
             - type: custom:mushroom-chips-card
               alignment: left
               chips:
