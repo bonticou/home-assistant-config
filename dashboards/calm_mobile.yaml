@@ -2577,33 +2577,30 @@ views:
               limit: 24
       - type: custom:popup-card
         popup_card_id: espresso-maintenance-popup
-        target: {entity_id: sensor.espresso_maintenance_status}
-        title: Profitec GO
+        title: ""
         dismiss_icon: mdi:close
         initial_style: wide
+        card_mod:
+          style:
+            ha-dialog$: "ha-dialog-header{position:absolute!important;top:-54px;left:0;width:44px;height:44px;padding:0!important;border-radius:999px;background:#0f172a;overflow:hidden}.content-wrapper{padding:0!important}"
         popup_styles:
           - style: wide
-            styles: ".content{width:318px!important;margin:auto}.content .container{padding:12px;border-radius:24px;background:#0f172a}"
+            styles: ".content{width:318px!important;margin:auto}.content .container{overflow:visible;padding:12px;border-radius:24px;background:#0f172a}"
         card:
           type: vertical-stack
           cards:
             - type: markdown
               content: |
-                {% set s = 'sensor.espresso_maintenance_status' %}
+                {%set s='sensor.espresso_maintenance_status'%}
+                {%set a=state_attr%}
+                {%set n='No record'%}
                 ### Profitec GO
-                {{ states(s) }}{% if state_attr(s, 'next_due_date') %} · next {{ state_attr(s, 'next_due_date') }}{% endif %}
+                {{states(s)}} · next {{a(s,'next_due_date')or n}}
 
-                | Record | Last | Due |
-                | --- | ---: | ---: |
-                | Water | {{ state_attr(s, 'last_water_backflush_date') or 'No record' }} | {{ state_attr(s, 'water_ready_date') or 'No record' }} |
-                | Cafiza | {{ state_attr(s, 'last_cafiza_clean_date') or 'No record' }} | {{ state_attr(s, 'cafiza_due_date') or 'No record' }} |
+                <p><b>Water</b><span>{{a(s,'last_water_backflush_date')or n}}</span><i>{{a(s,'water_ready_date')or n}}</i></p>
+                <p><b>Cafiza</b><span>{{a(s,'last_cafiza_clean_date')or n}}</span><i>{{a(s,'cafiza_due_date')or n}}</i></p>
               card_mod:
-                style: |
-                  ha-card{background:none;border:0;box-shadow:none;padding:0!important}
-                  ha-markdown{padding:0!important;font-size:13px}
-                  h3{font-size:19px!important;margin:0 0 4px!important}
-                  table{width:100%;border-collapse:collapse}
-                  td,th{padding:5px 0;border-top:1px solid #334155}
+                style: "ha-card{background:none;border:0;box-shadow:none;padding:0!important}ha-markdown{padding:0!important}p{display:grid;grid-template-columns:54px 1fr 1fr;gap:8px;margin:0;padding:5px 0;border-top:1px solid #334155}p span,p i{text-align:right;font-style:normal}"
             - type: custom:mushroom-chips-card
               alignment: left
               chips:
