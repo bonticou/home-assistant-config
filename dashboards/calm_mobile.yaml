@@ -6365,12 +6365,12 @@ views:
               title: Auto-off helpers
             - type: custom:mushroom-template-card
               entity: automation.lights_casey_s_closet_auto_off
-              primary: Casey's closet auto-off
+              primary: Casey's closet motion helper
               secondary: >-
                 {% if is_state('light.master_casey_s_closet', 'on') %}
-                  Casey's closet is on - auto-off at the 5 minute mark.
+                  Motion keeps it active; it turns off after 3 quiet minutes.
                 {% elif is_state('automation.lights_casey_s_closet_auto_off', 'on') %}
-                  If it gets left on, it shuts itself off after 5 minutes.
+                  Motion turns it on, then three quiet minutes turn it off.
                 {% else %}
                   Automation is disabled.
                 {% endif %}

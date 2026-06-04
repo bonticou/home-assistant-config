@@ -2325,7 +2325,7 @@
 
 - id: casey_closet_auto_off
   alias: "Lights — Casey's Closet Auto-Off"
-  description: Turn Casey's closet on with USL Motion and off after three quiet minutes.
+  description: Turn Casey's closet on with closet motion and off after three quiet minutes.
   initial_state: true
   triggers:
     - trigger: state
