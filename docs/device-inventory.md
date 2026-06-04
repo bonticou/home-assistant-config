@@ -6,11 +6,11 @@ A human-readable map of the Home Assistant device model. The full audit dump is 
 
 | Thing | Count |
 | --- | --- |
-| Devices | 207 |
-| Entities | 2258 |
-| Control entities | 781 |
-| Telemetry entities | 1006 |
-| Network clients | 128 |
+| Devices | 209 |
+| Entities | 2287 |
+| Control entities | 793 |
+| Telemetry entities | 1022 |
+| Network clients | 129 |
 | Areas | 32 |
 
 ## Area Index
@@ -41,7 +41,7 @@ A human-readable map of the Home Assistant device model. The full audit dump is 
 | Mudroom | 8 | 43 | 2 | 54 | 3 |
 | Office | 2 | 7 | 0 | 4 | 0 |
 | Stairs | 1 | 1 | 1 | 0 | 0 |
-| Unassigned | 133 | 286 | 10 | 400 | 51 |
+| Unassigned | 135 | 298 | 10 | 416 | 52 |
 | Unnamed Room | 6 | 63 | 0 | 6 | 6 |
 | Upstairs Hallway | 1 | 1 | 1 | 0 | 0 |
 | Vestibule | 1 | 1 | 1 | 0 | 0 |
@@ -253,6 +253,7 @@ A human-readable map of the Home Assistant device model. The full audit dump is 
 | U7 Pro (Mesh) | unifi | U7 Pro (Mesh) Restart (`button.u7_pro_mesh_restart`); U7 Pro (Mesh) LED (`light.u7_pro_mesh_led`) |  |
 | U7 Pro (Mud Room) | unifi | U7 Pro (Mud Room) Restart (`button.u7_pro_mud_room_restart`); U7 Pro (Mud Room) LED (`light.u7_pro_mud_room_led`) |  |
 | U7 Pro Outdoor | unifi | U7 Pro Outdoor Restart (`button.u7_pro_outdoor_restart`) |  |
+| USL Motion | unifiprotect | USL Motion Clear tamper (`button.usl_motion_clear_tamper`); Restart (`button.usl_motion_restart`); Unadopt device (`button.usl_motion_unadopt_device`); USL Motion Motion sensitivity (`number.usl_motion_motion_sensitivity`); USL Motion Mount type (`select.usl_motion_mount_type`); +7 more |  |
 | USW Flex 2.5G 5 | unifi | USW Flex 2.5G 5 Restart (`button.usw_flex_2_5g_5_restart`); Port 1 (`switch.usw_flex_2_5g_5_port_1`); Port 2 (`switch.usw_flex_2_5g_5_port_2`); Port 3 (`switch.usw_flex_2_5g_5_port_3`); Port 4 (`switch.usw_flex_2_5g_5_port_4`); +1 more |  |
 | Unnamed Room | sonos, unifi | `media_player.unnamed_room_4`; Balance (`number.unnamed_room_balance_9`); Bass (`number.unnamed_room_bass_9`); Treble (`number.unnamed_room_treble_9`); Crossfade (`switch.unnamed_room_crossfade_9`); +3 more |  |
 | Unnamed Room | sonos, unifi | `media_player.unnamed_room_3`; Balance (`number.unnamed_room_balance_8`); Bass (`number.unnamed_room_bass_8`); Treble (`number.unnamed_room_treble_8`); Crossfade (`switch.unnamed_room_crossfade_8`); +3 more |  |

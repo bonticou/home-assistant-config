@@ -4,16 +4,16 @@ Full generated audit view. For the readable overview, use [device-inventory.md](
 
 ## Last Updated
 
-- Summary: 207 devices, 2258 entities, 128 network clients
+- Summary: 209 devices, 2287 entities, 129 network clients
 
 ## Summary
 
 | Metric | Count |
 | --- | --- |
-| Devices | 207 |
-| Entities | 2258 |
+| Devices | 209 |
+| Entities | 2287 |
 | Orphan entities | 835 |
-| Network clients | 128 |
+| Network clients | 129 |
 | Areas | 32 |
 | Integrations | 42 |
 
@@ -21,17 +21,17 @@ Full generated audit view. For the readable overview, use [device-inventory.md](
 
 | Role | Entities |
 | --- | --- |
-| control | 781 |
-| network | 128 |
+| control | 793 |
+| network | 129 |
 | other | 343 |
-| telemetry | 1006 |
+| telemetry | 1022 |
 
 ### Top Integrations
 
 | Integration | Entities |
 | --- | --- |
-| unifiprotect | 372 |
-| unifi | 277 |
+| unifiprotect | 399 |
+| unifi | 279 |
 | template | 226 |
 | hydrawise | 191 |
 | automation | 176 |
@@ -2343,6 +2343,43 @@ _No registered entities._
 | `sensor.u7_pro_outdoor_uptime` | U7 Pro Outdoor Uptime | telemetry | unifi | timestamp | available |
 | `update.u7_pro_outdoor` | U7 Pro Outdoor | telemetry | unifi | firmware | available |
 
+#### USL Motion
+
+- Device ID: `device_58c6835cd0cc`
+- Integration: unifiprotect
+- Model: Ubiquiti USL Motion
+- Capability mix: 15 telemetry, 12 control, 0 network, 0 other
+
+| Entity | Name | Role | Integration | Detail | Availability |
+| --- | --- | --- | --- | --- | --- |
+| `binary_sensor.usl_motion_battery` | USL Motion Battery | telemetry | unifiprotect | battery | available |
+| `binary_sensor.usl_motion_contact` | USL Motion Contact | telemetry | unifiprotect | door | unavailable |
+| `binary_sensor.usl_motion_moisture` | USL Motion Moisture | telemetry | unifiprotect | moisture | unavailable |
+| `binary_sensor.usl_motion_motion` | USL Motion Motion | telemetry | unifiprotect | motion | available |
+| `binary_sensor.usl_motion_tamper` | USL Motion Tamper | telemetry | unifiprotect | tamper | available |
+| `button.usl_motion_clear_tamper` | USL Motion Clear tamper | control | unifiprotect |  | unknown |
+| `button.usl_motion_restart` | Restart | control | unifiprotect | restart | disabled |
+| `button.usl_motion_unadopt_device` | Unadopt device | control | unifiprotect |  | disabled |
+| `number.usl_motion_motion_sensitivity` | USL Motion Motion sensitivity | control | unifiprotect | config (%) | available |
+| `select.usl_motion_mount_type` | USL Motion Mount type | control | unifiprotect | config | available |
+| `select.usl_motion_paired_camera` | USL Motion Paired camera | control | unifiprotect | config | available |
+| `sensor.usl_motion_alarm_sound_detected` | USL Motion Alarm sound detected | telemetry | unifiprotect |  | unavailable |
+| `sensor.usl_motion_battery` | USL Motion Battery | telemetry | unifiprotect | battery (%) | available |
+| `sensor.usl_motion_bluetooth_signal_strength` | Bluetooth signal strength | telemetry | unifiprotect | signal_strength (dBm) | disabled |
+| `sensor.usl_motion_humidity` | USL Motion Humidity | telemetry | unifiprotect | humidity (%) | unavailable |
+| `sensor.usl_motion_illuminance` | USL Motion Illuminance | telemetry | unifiprotect | illuminance (lx) | unavailable |
+| `sensor.usl_motion_last_motion_detected` | Last motion detected | telemetry | unifiprotect | timestamp | disabled |
+| `sensor.usl_motion_last_open` | Last open | telemetry | unifiprotect | timestamp | disabled |
+| `sensor.usl_motion_last_tampering_detected` | Last tampering detected | telemetry | unifiprotect | timestamp | disabled |
+| `sensor.usl_motion_temperature` | USL Motion Temperature | telemetry | unifiprotect | temperature (°F) | unavailable |
+| `sensor.usl_motion_uptime` | Uptime | telemetry | unifiprotect | timestamp | disabled |
+| `switch.usl_motion_alarm_sound_detection` | USL Motion Alarm sound detection | control | unifiprotect | config | available |
+| `switch.usl_motion_humidity_sensor` | USL Motion Humidity sensor | control | unifiprotect | config | available |
+| `switch.usl_motion_light_sensor` | USL Motion Light sensor | control | unifiprotect | config | available |
+| `switch.usl_motion_motion_detection` | USL Motion Motion detection | control | unifiprotect | config | available |
+| `switch.usl_motion_status_light` | USL Motion Status light | control | unifiprotect | config | available |
+| `switch.usl_motion_temperature_sensor` | USL Motion Temperature sensor | control | unifiprotect | config | available |
+
 #### USW Flex 2.5G 5
 
 - Device ID: `device_cb39eb41896c`
@@ -3374,6 +3411,18 @@ _No registered entities._
 | `switch.ratgdo32disco_c26634_laser` | ratgdo32disco c26634 LASER | control | esphome | config | available |
 | `switch.ratgdo32disco_c26634_learn` | ratgdo32disco c26634 Learn | control | esphome | config | available |
 | `switch.ratgdo32disco_c26634_led` | ratgdo32disco c26634 LED | control | esphome | config | available |
+
+#### usl-gateway
+
+- Device ID: `device_ac752e92d911`
+- Integration: unifi
+- Model: unknown model
+- Capability mix: 1 telemetry, 0 control, 1 network, 0 other
+
+| Entity | Name | Role | Integration | Detail | Availability |
+| --- | --- | --- | --- | --- | --- |
+| `device_tracker.usl_gateway` | usl-gateway usl-gateway | network | unifi | diagnostic | available |
+| `sensor.usl_gateway_link_speed` | Link speed | telemetry | unifi | data_rate (Mbit/s) | disabled |
 
 #### visionOS & iOS 26 Liquid Glass Theme
 
@@ -4582,3 +4631,4 @@ _No registered entities._
 | `network_fb3eecf6e92b` | entity_registry | wireless |  | `device_tracker.unifi_default_mac_5042130907ce` | Casey's iPhone 17 Pro |
 | `network_fce37b630e1f` | entity_registry |  |  | `device_tracker.sonoszp_11` | SonosZP |
 | `network_ffa11390a315` | entity_registry |  |  | `device_tracker.watch_6` | Watch |
+| `network_ea0e56c4cac6` | entity_registry |  |  | `device_tracker.usl_gateway` | usl-gateway |
