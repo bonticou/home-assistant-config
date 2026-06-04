@@ -1,0 +1,70 @@
+title: HA Safe
+views:
+  - title: Home
+    path: home
+    icon: mdi:lifebuoy
+    type: masonry
+    cards:
+      - type: markdown
+        title: Home Assistant Safe Mode
+        content: >
+          A stock-only diagnostic dashboard for remote access incidents. If this
+          page loads while the main Home dashboard stays blank, the issue is in
+          the custom UI path. If this page does not load, troubleshoot remote
+          access, TLS, or Home Assistant availability first.
+
+      - type: entities
+        title: Remote Access
+        show_header_toggle: false
+        entities:
+          - entity: sensor.home_assistant_remote_access_status
+            name: Access status
+          - entity: binary_sensor.remote_ui
+            name: Nabu Casa Remote UI
+          - entity: input_text.home_assistant_remote_ui_watchdog_last_status
+            name: Watchdog note
+          - entity: input_datetime.home_assistant_remote_ui_last_recovery_attempt
+            name: Last reconnect attempt
+          - entity: input_datetime.home_assistant_remote_ui_last_degraded_at
+            name: Last degraded
+          - entity: input_datetime.home_assistant_remote_ui_last_restored_at
+            name: Last restored
+
+      - type: entities
+        title: Home Assistant Health
+        show_header_toggle: false
+        entities:
+          - entity: update.home_assistant_core_update
+            name: Core update
+          - entity: update.home_assistant_supervisor_update
+            name: Supervisor update
+          - entity: update.home_assistant_operating_system_update
+            name: OS update
+          - entity: sensor.home_assistant_host_disk_free
+            name: Host disk free
+
+      - type: entities
+        title: Network Context
+        show_header_toggle: false
+        entities:
+          - entity: sensor.bonticou_gateway_state
+            name: Gateway state
+          - entity: binary_sensor.fios_router_wan_status
+            name: Fios WAN
+          - entity: sensor.bonticou_gateway_uptime_2
+            name: Gateway uptime
+
+      - type: vertical-stack
+        cards:
+          - type: button
+            name: Main Home Dashboard
+            icon: mdi:home-variant-outline
+            tap_action:
+              action: navigate
+              navigation_path: /calm-mobile/home
+          - type: button
+            name: Reload This Safe Dashboard
+            icon: mdi:reload
+            tap_action:
+              action: navigate
+              navigation_path: /ha-safe/home

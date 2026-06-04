@@ -6,6 +6,8 @@ class CaseyPresenceTimelineCard extends HTMLElement {
     this._history = null;
     this._loading = false;
     this._error = "";
+    this._historyScheduled = false;
+    this._historyTimer = null;
   }
 
   setConfig(config) {
@@ -20,12 +22,36 @@ class CaseyPresenceTimelineCard extends HTMLElement {
   set hass(hass) {
     this._hass = hass;
     this.render();
-    this.ensureHistory();
+    this.scheduleHistoryLoad();
   }
 
   connectedCallback() {
     this.render();
-    this.ensureHistory();
+    this.scheduleHistoryLoad();
+  }
+
+  disconnectedCallback() {
+    if (this._historyTimer) window.clearTimeout(this._historyTimer);
+    this._historyTimer = null;
+    this._historyScheduled = false;
+  }
+
+  scheduleHistoryLoad(force = false) {
+    if (!this.isConnected || !this._hass || !this._config.entity) return;
+    if (!force && this._historyScheduled) return;
+    this._historyScheduled = true;
+    const load = () => {
+      this._historyTimer = window.setTimeout(() => {
+        this._historyScheduled = false;
+        this._historyTimer = null;
+        this.ensureHistory(force);
+      }, force ? 0 : 700);
+    };
+    if (typeof window.requestAnimationFrame === "function") {
+      window.requestAnimationFrame(load);
+    } else {
+      load();
+    }
   }
 
   async ensureHistory(force = false) {

@@ -44,6 +44,61 @@ class HomeAssistantRemoteHealthProbeTests(unittest.TestCase):
 
         self.assertEqual(probe.classify_result(payload), "remote_fallback")
 
+    def test_extracts_startup_resources_from_shell_html(self):
+        html = """
+        <link rel="modulepreload" href="/frontend_latest/core.abc.js">
+        <script>import("/frontend_latest/app.def.js");</script>
+        <script>window.customPanelJS="/frontend_latest/custom-panel.ghi.js"</script>
+        <script>_ls("/frontend_es5/core.legacy.js", true)</script>
+        <script src="/browser_mod.js?2.7.3"></script>
+        """
+
+        self.assertEqual(
+            probe.extract_startup_resources(html),
+            [
+                "/frontend_latest/core.abc.js",
+                "/browser_mod.js?2.7.3",
+                "/frontend_latest/app.def.js",
+                "/frontend_es5/core.legacy.js",
+                "/frontend_latest/custom-panel.ghi.js",
+            ],
+        )
+
+    def test_classifies_frontend_resource_failure(self):
+        payload = {
+            "dns": {"ok": True},
+            "tcp": {"ok": True},
+            "tls": {"ok": True},
+            "http": {"ok": True, "fallback_detected": False},
+            "websocket": {"ok": True, "stage": "auth_required"},
+            "pages": {
+                "/": {
+                    "ok": True,
+                    "fallback_detected": False,
+                    "resource_results": [
+                        {"ok": True, "path": "/frontend_latest/core.abc.js"},
+                        {"ok": False, "path": "/browser_mod.js?2.7.3"},
+                    ],
+                }
+            },
+        }
+
+        self.assertEqual(probe.classify_result(payload), "resource_error")
+
+    def test_dedupes_and_normalizes_compare_paths(self):
+        self.assertEqual(
+            probe.dedupe_paths(["/", "calm-mobile/home", "/calm-mobile/home", "https://example.test/ha-safe/home?x=1"]),
+            ["/", "/calm-mobile/home", "/ha-safe/home?x=1"],
+        )
+
+    def test_skips_external_startup_resources(self):
+        html = """
+        <script src="https://cdn.example.test/external.js"></script>
+        <script src="/frontend_latest/core.abc.js"></script>
+        """
+
+        self.assertEqual(probe.extract_startup_resources(html), ["/frontend_latest/core.abc.js"])
+
 
 if __name__ == "__main__":
     unittest.main()

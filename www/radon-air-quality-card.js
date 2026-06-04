@@ -2,11 +2,13 @@ class RadonAirQualityCard extends HTMLElement {
   constructor() {
     super();
     this.attachShadow({ mode: "open" });
-    this._horizon = "30d";
+    this._horizon = "24h";
     this._history = {};
     this._loadingKey = "";
     this._error = "";
     this._config = {};
+    this._historyScheduled = false;
+    this._historyTimer = null;
   }
 
   setConfig(config) {
@@ -20,12 +22,36 @@ class RadonAirQualityCard extends HTMLElement {
   set hass(hass) {
     this._hass = hass;
     this.render();
-    this.ensureHistory();
+    this.scheduleHistoryLoad();
   }
 
   connectedCallback() {
     this.render();
-    this.ensureHistory();
+    this.scheduleHistoryLoad();
+  }
+
+  disconnectedCallback() {
+    if (this._historyTimer) window.clearTimeout(this._historyTimer);
+    this._historyTimer = null;
+    this._historyScheduled = false;
+  }
+
+  scheduleHistoryLoad(force = false) {
+    if (!this.isConnected || !this._hass || !this._config.entity) return;
+    if (!force && this._historyScheduled) return;
+    this._historyScheduled = true;
+    const load = () => {
+      this._historyTimer = window.setTimeout(() => {
+        this._historyScheduled = false;
+        this._historyTimer = null;
+        this.ensureHistory(force);
+      }, force ? 0 : 900);
+    };
+    if (typeof window.requestAnimationFrame === "function") {
+      window.requestAnimationFrame(load);
+    } else {
+      load();
+    }
   }
 
   horizons() {
@@ -406,7 +432,7 @@ class RadonAirQualityCard extends HTMLElement {
         if (!this.horizons()[horizonKey] || horizonKey === this._horizon) return;
         this._horizon = horizonKey;
         this.render();
-        this.ensureHistory();
+        this.scheduleHistoryLoad(true);
       });
     });
   }

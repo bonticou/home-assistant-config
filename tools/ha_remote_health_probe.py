@@ -13,6 +13,7 @@ import base64
 import hashlib
 import json
 import os
+import re
 import socket
 import ssl
 import sys
@@ -28,6 +29,13 @@ FALLBACK_MARKERS = (
     "Unable to connect to Home Assistant",
     "not currently connected",
     "Nabu Casa account page",
+)
+
+RESOURCE_PATTERNS = (
+    re.compile(r"""(?:src|href)=["']([^"']+?\.js(?:\?[^"']*)?)["']"""),
+    re.compile(r"""import\(["']([^"']+)["']\)"""),
+    re.compile(r"""_ls\(["']([^"']+)["']"""),
+    re.compile(r"""window\.customPanelJS\s*=\s*["']([^"']+)["']"""),
 )
 
 
@@ -70,6 +78,65 @@ def detect_nabu_fallback(text: str) -> bool:
     return any(marker in text for marker in FALLBACK_MARKERS)
 
 
+def normalize_path(path: str) -> str:
+    parsed = urllib.parse.urlparse(path.strip())
+    if parsed.scheme and parsed.netloc:
+        combined = parsed.path or "/"
+        if parsed.query:
+            combined = f"{combined}?{parsed.query}"
+        return combined
+    if not path.startswith("/"):
+        path = f"/{path}"
+    return path or "/"
+
+
+def dedupe_paths(paths: list[str]) -> list[str]:
+    seen: set[str] = set()
+    result: list[str] = []
+    for path in paths:
+        normalized = normalize_path(path)
+        if normalized in seen:
+            continue
+        seen.add(normalized)
+        result.append(normalized)
+    return result
+
+
+def classify_resource(resource: str) -> str:
+    parsed = urllib.parse.urlparse(resource)
+    path = parsed.path
+    if path.startswith("/frontend_latest/") or path.startswith("/frontend_es5/"):
+        return "home_assistant_frontend"
+    if path.startswith("/browser_mod.js"):
+        return "browser_mod"
+    if path.startswith("/hacsfiles/"):
+        return "hacs"
+    if path.startswith("/local/"):
+        return "local"
+    if path.startswith("/static/"):
+        return "static"
+    return "other"
+
+
+def extract_startup_resources(html: str) -> list[str]:
+    resources: list[str] = []
+    seen: set[str] = set()
+    for pattern in RESOURCE_PATTERNS:
+        for match in pattern.finditer(html):
+            resource = match.group(1).strip()
+            if not resource or resource.startswith("data:"):
+                continue
+            parsed = urllib.parse.urlparse(resource)
+            if parsed.scheme and parsed.netloc:
+                continue
+            normalized = normalize_path(resource)
+            if normalized in seen:
+                continue
+            seen.add(normalized)
+            resources.append(normalized)
+    return resources
+
+
 def target_summary(url: str) -> dict[str, Any]:
     parsed = urllib.parse.urlparse(url)
     default_port = 443 if parsed.scheme == "https" else 80
@@ -79,6 +146,16 @@ def target_summary(url: str) -> dict[str, Any]:
         "host_hash": host_hash(parsed.hostname or ""),
         "port": parsed.port or default_port,
     }
+
+
+def build_request(url: str, headers: dict[str, str] | None = None) -> urllib.request.Request:
+    return urllib.request.Request(
+        url,
+        headers={
+            "User-Agent": "HA-Remote-Health-Probe/1.0",
+            **(headers or {}),
+        },
+    )
 
 
 def resolve_dns(hostname: str, port: int, timeout: float) -> tuple[list[Any], dict[str, Any]]:
@@ -154,43 +231,103 @@ def connect_socket(
         }
 
 
-def http_probe(url: str, timeout: float) -> dict[str, Any]:
+def fetch_path(url: str, path: str, timeout: float, read_limit: int = 262144) -> tuple[dict[str, Any], str]:
     start = time.monotonic()
-    request = urllib.request.Request(
-        f"{url}/",
+    target_url = urllib.parse.urljoin(f"{url}/", normalize_path(path).lstrip("/"))
+    request = build_request(
+        target_url,
         headers={
-            "User-Agent": "HA-Remote-Health-Probe/1.0",
             "Accept": "text/html,application/xhtml+xml",
         },
     )
     try:
         with urllib.request.urlopen(request, timeout=timeout) as response:
-            body = response.read(262144).decode("utf-8", errors="replace")
+            body = response.read(read_limit).decode("utf-8", errors="replace")
             return {
                 "ok": 200 <= response.status < 400,
                 "elapsed_ms": elapsed_ms(start),
+                "path": normalize_path(path),
                 "status_code": response.status,
                 "final_url": redact_url(response.url),
                 "content_type": response.headers.get("content-type", ""),
+                "content_length": response.headers.get("content-length", ""),
                 "fallback_detected": detect_nabu_fallback(body),
                 "body_sample": body[:120] if detect_nabu_fallback(body) else "",
-            }
+            }, body
     except urllib.error.HTTPError as exc:
-        body = exc.read(262144).decode("utf-8", errors="replace")
+        body = exc.read(read_limit).decode("utf-8", errors="replace")
         return {
             "ok": False,
             "elapsed_ms": elapsed_ms(start),
+            "path": normalize_path(path),
             "status_code": exc.code,
             "final_url": redact_url(exc.url),
             "content_type": exc.headers.get("content-type", ""),
+            "content_length": exc.headers.get("content-length", ""),
             "fallback_detected": detect_nabu_fallback(body),
+            "error": "HTTPError",
+        }, body
+    except urllib.error.URLError as exc:
+        return {
+            "ok": False,
+            "elapsed_ms": elapsed_ms(start),
+            "path": normalize_path(path),
+            "fallback_detected": False,
+            "error": exc.__class__.__name__,
+            "message": str(exc.reason),
+        }, ""
+    except OSError as exc:
+        return {
+            "ok": False,
+            "elapsed_ms": elapsed_ms(start),
+            "path": normalize_path(path),
+            "fallback_detected": False,
+            "error": exc.__class__.__name__,
+            "message": str(exc),
+        }, ""
+
+
+def resource_probe(url: str, resource: str, timeout: float) -> dict[str, Any]:
+    start = time.monotonic()
+    resource_url = urllib.parse.urljoin(f"{url}/", normalize_path(resource).lstrip("/"))
+    request = build_request(
+        resource_url,
+        headers={
+            "Accept": "*/*",
+            "Range": "bytes=0-1023",
+        },
+    )
+    try:
+        with urllib.request.urlopen(request, timeout=timeout) as response:
+            response.read(1024)
+            return {
+                "ok": 200 <= response.status < 400,
+                "elapsed_ms": elapsed_ms(start),
+                "url": redact_url(response.url),
+                "path": normalize_path(resource),
+                "kind": classify_resource(resource),
+                "status_code": response.status,
+                "content_type": response.headers.get("content-type", ""),
+                "content_length": response.headers.get("content-length", ""),
+            }
+    except urllib.error.HTTPError as exc:
+        return {
+            "ok": False,
+            "elapsed_ms": elapsed_ms(start),
+            "url": redact_url(exc.url),
+            "path": normalize_path(resource),
+            "kind": classify_resource(resource),
+            "status_code": exc.code,
+            "content_type": exc.headers.get("content-type", ""),
+            "content_length": exc.headers.get("content-length", ""),
             "error": "HTTPError",
         }
     except urllib.error.URLError as exc:
         return {
             "ok": False,
             "elapsed_ms": elapsed_ms(start),
-            "fallback_detected": False,
+            "path": normalize_path(resource),
+            "kind": classify_resource(resource),
             "error": exc.__class__.__name__,
             "message": str(exc.reason),
         }
@@ -198,10 +335,33 @@ def http_probe(url: str, timeout: float) -> dict[str, Any]:
         return {
             "ok": False,
             "elapsed_ms": elapsed_ms(start),
-            "fallback_detected": False,
+            "path": normalize_path(resource),
+            "kind": classify_resource(resource),
             "error": exc.__class__.__name__,
             "message": str(exc),
         }
+
+
+def shell_probe(url: str, path: str, timeout: float, include_resources: bool) -> dict[str, Any]:
+    result, body = fetch_path(url, path, timeout)
+    content_type = result.get("content_type", "")
+    resources = extract_startup_resources(body) if result.get("ok") and "html" in content_type else []
+    result["startup_resource_count"] = len(resources)
+    result["startup_resources"] = [
+        {
+            "path": resource,
+            "kind": classify_resource(resource),
+        }
+        for resource in resources
+    ]
+    if include_resources and resources:
+        result["resource_results"] = [resource_probe(url, resource, timeout) for resource in resources]
+    return result
+
+
+def http_probe(url: str, timeout: float) -> dict[str, Any]:
+    result, _body = fetch_path(url, "/", timeout)
+    return result
 
 
 def read_exact(sock: socket.socket | ssl.SSLSocket, length: int) -> bytes:
@@ -348,8 +508,6 @@ def classify_result(payload: dict[str, Any]) -> str:
 
     if http.get("fallback_detected") or websocket.get("fallback_detected"):
         return "remote_fallback"
-    if websocket.get("stage") == "auth_required":
-        return "ok"
     if not dns.get("ok"):
         return "dns_error"
     if not tcp.get("ok"):
@@ -358,12 +516,26 @@ def classify_result(payload: dict[str, Any]) -> str:
         return "tls_error"
     if http and not http.get("ok"):
         return "http_error"
+    for page in payload.get("pages", {}).values():
+        if page.get("fallback_detected"):
+            return "remote_fallback"
+        if page and not page.get("ok"):
+            return "shell_error"
+        if any(not resource.get("ok") for resource in page.get("resource_results", [])):
+            return "resource_error"
+    if websocket.get("stage") == "auth_required":
+        return "ok"
     if websocket and not websocket.get("ok"):
         return "websocket_error"
     return "unknown"
 
 
-def build_payload(url: str, timeout: float) -> dict[str, Any]:
+def build_payload(
+    url: str,
+    timeout: float,
+    paths: list[str] | None = None,
+    include_resources: bool = True,
+) -> dict[str, Any]:
     started = time.monotonic()
     parsed = urllib.parse.urlparse(url)
     port = parsed.port or (443 if parsed.scheme == "https" else 80)
@@ -374,14 +546,21 @@ def build_payload(url: str, timeout: float) -> dict[str, Any]:
         if sock is not None:
             sock.close()
 
+    page_paths = dedupe_paths(["/", *(paths or [])])
+    pages = {
+        path: shell_probe(url, path, timeout, include_resources)
+        for path in page_paths
+    }
+
     payload: dict[str, Any] = {
         "checked_at": now_iso(),
         "target": target_summary(url),
         "dns": dns,
         "tcp": tcp,
         "tls": tls,
-        "http": http_probe(url, timeout),
+        "http": pages.get("/", http_probe(url, timeout)),
         "websocket": websocket_probe(url, timeout),
+        "pages": pages,
         "elapsed_ms": elapsed_ms(started),
     }
     payload["status"] = classify_result(payload)
@@ -393,6 +572,22 @@ def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--url", help="Remote HA URL. Defaults to HA_REMOTE_URL.")
     parser.add_argument("--timeout", type=float, default=8.0)
+    parser.add_argument(
+        "--path",
+        action="append",
+        default=[],
+        help="Additional path to probe, such as /calm-mobile/home. Can be repeated.",
+    )
+    parser.add_argument(
+        "--compare-safe-dashboard",
+        action="store_true",
+        help="Also probe /calm-mobile/home and /ha-safe/home.",
+    )
+    parser.add_argument(
+        "--no-resources",
+        action="store_true",
+        help="Skip startup JavaScript/resource timing.",
+    )
     parser.add_argument("--pretty", action="store_true", help="Pretty-print JSON output.")
     return parser.parse_args()
 
@@ -416,7 +611,10 @@ def main() -> int:
 
     try:
         url = normalize_url(raw_url)
-        payload = build_payload(url, args.timeout)
+        paths = list(args.path)
+        if args.compare_safe_dashboard:
+            paths.extend(["/calm-mobile/home", "/ha-safe/home"])
+        payload = build_payload(url, args.timeout, paths=paths, include_resources=not args.no_resources)
     except ValueError as exc:
         payload = {
             "ok": False,

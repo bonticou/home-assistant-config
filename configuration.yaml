@@ -32,6 +32,13 @@ lovelace:
       show_in_sidebar: true
       require_admin: false
       filename: dashboards/calm_mobile.yaml
+    ha-safe:
+      mode: yaml
+      title: HA Safe
+      icon: mdi:lifebuoy
+      show_in_sidebar: true
+      require_admin: false
+      filename: dashboards/ha_safe.yaml
 
 automation: !include automations.yaml
 script: !include scripts.yaml

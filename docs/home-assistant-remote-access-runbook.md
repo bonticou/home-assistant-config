@@ -18,6 +18,9 @@ The repo now has two layers of protection:
   from outside HA, detects the Nabu Casa fallback page, and verifies whether the
   `/api/websocket` endpoint reaches Home Assistant by waiting for the
   `auth_required` greeting.
+- UI diagnostic layer: `/ha-safe/home` is a stock-only dashboard used to compare
+  against `/calm-mobile/home` when the HA logo appears and then the app goes
+  blank. See `docs/home-assistant-ui-hardening-runbook.md`.
 
 ## Immediate Recovery
 
