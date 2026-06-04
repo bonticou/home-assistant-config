@@ -214,6 +214,53 @@ When editing configuration:
   `python3 tools/check_device_inventory_coverage.py` so active config
   references cannot drift away from the inventory.
 
+## Configuration Structure / Decomposition
+
+Treat configuration structure as reliability work, not mere tidiness.
+`configuration.yaml` should stay close to a table of contents plus truly global
+settings. Large or steadily growing domains should live in included files with
+coherent ownership, such as `sensors.yaml`, `templates.yaml`, `lights.yaml`,
+`command_line.yaml`, `shell_commands.yaml`, or purpose-specific helper files.
+
+Split configuration when any of the following are true:
+
+- a section has a clear independent job or owner;
+- a routine edit requires navigating a very large file;
+- a section is more than roughly 50-100 lines and likely to keep growing;
+- a file is approaching tooling or deploy-path fragility;
+- the split reduces blast radius without making navigation harder.
+
+Prefer domain- or purpose-based includes over arbitrary buckets. Avoid names
+like `misc.yaml`, `part1.yaml`, or one-file-per-entity fragmentation unless
+there is a strong operational reason.
+
+For this repository, keep `configuration.yaml` comfortably below known
+File Editor fragility thresholds. If it grows past roughly 150 KB, actively look
+for coherent domains to move out. If it approaches 300 KB, treat decomposition
+as reliability work that should happen before unrelated feature work. After any
+include split, run local YAML parsing and Home Assistant config validation
+before restart, and verify the live file read-back when deploying through File
+Editor or any browser-mediated path.
+
+Current split context:
+
+- `configuration.yaml` remains the main table of contents and contains broad
+  global configuration plus domains that have not yet justified a separate
+  include.
+- `automations.yaml`, `scripts.yaml`, and `scenes.yaml` remain the standard
+  Home Assistant-managed includes.
+- `sensors.yaml` contains the statistics sensor block that was split out after
+  File Editor truncated the tail of a large `configuration.yaml` during live
+  deploy.
+- `lights.yaml` contains the YAML light group definitions that previously lived
+  at the end of `configuration.yaml`.
+- `dashboards/*.yaml` contains YAML Lovelace dashboards, including
+  `dashboards/calm_mobile.yaml` for the primary calm mobile dashboard and
+  `dashboards/ha_safe.yaml` for the stock diagnostic dashboard.
+
+Do not fold `sensors.yaml` or `lights.yaml` back into `configuration.yaml`
+without a deliberate reason and a successful live read-back/config-check plan.
+
 ---
 
 # Git Hygiene / Commit Cadence
