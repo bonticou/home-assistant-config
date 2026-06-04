@@ -2329,11 +2329,11 @@
   initial_state: true
   triggers:
     - trigger: state
-      entity_id: binary_sensor.usl_motion_motion
+      entity_id: binary_sensor.casey_s_closet_motion
       to: "on"
       id: motion
     - trigger: state
-      entity_id: binary_sensor.usl_motion_motion
+      entity_id: binary_sensor.casey_s_closet_motion
       to: "off"
       for:
         minutes: 3
