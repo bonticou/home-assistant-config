@@ -2325,20 +2325,43 @@
 
 - id: casey_closet_auto_off
   alias: "Lights — Casey's Closet Auto-Off"
-  description: Turn Casey's closet off when it has been left on for more than five minutes.
+  description: Turn Casey's closet on with USL Motion and off after three quiet minutes.
   initial_state: true
   triggers:
     - trigger: state
-      entity_id: light.master_casey_s_closet
+      entity_id: binary_sensor.usl_motion_motion
       to: "on"
+      id: motion
+    - trigger: state
+      entity_id: binary_sensor.usl_motion_motion
+      to: "off"
       for:
-        minutes: 5
+        minutes: 3
+      id: quiet
   actions:
-    - action: light.turn_off
-      target:
-        entity_id: light.master_casey_s_closet
-      data:
-        transition: 2
+    - choose:
+        - conditions:
+            - condition: trigger
+              id: motion
+            - condition: state
+              entity_id: light.master_casey_s_closet
+              state: "off"
+          sequence:
+            - action: light.turn_on
+              target:
+                entity_id: light.master_casey_s_closet
+        - conditions:
+            - condition: trigger
+              id: quiet
+            - condition: state
+              entity_id: light.master_casey_s_closet
+              state: "on"
+          sequence:
+            - action: light.turn_off
+              target:
+                entity_id: light.master_casey_s_closet
+              data:
+                transition: 2
   mode: single
 
 - id: garage_light_auto_off
