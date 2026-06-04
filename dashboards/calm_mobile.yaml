@@ -2596,13 +2596,57 @@ views:
         initial_style: wide
         card_mod:
           style:
-            ha-dialog$: "ha-dialog-header{position:absolute!important;top:-54px;left:0;width:44px;height:44px;padding:0!important;border-radius:999px;background:#0f172a;overflow:hidden}.content-wrapper{padding:0!important}"
+            ha-dialog$: |
+              ha-dialog-header {
+                display: none !important;
+              }
+              ha-icon-button {
+                display: none !important;
+              }
+              .content-wrapper {
+                padding: 0 !important;
+              }
         popup_styles:
           - style: wide
-            styles: ".content{width:318px!important;margin:auto}.content .container{margin-top:54px;overflow:visible;padding:12px;border-radius:24px;background:#0f172a}"
+            styles: ".content{width:318px!important;margin:auto}.content .container{margin-top:54px;overflow:visible;position:relative;padding:12px;border-radius:24px;background:#0f172a}"
         card:
           type: vertical-stack
           cards:
+            - type: custom:button-card
+              icon: mdi:close
+              show_name: false
+              show_state: false
+              tap_action:
+                action: fire-dom-event
+                browser_mod:
+                  service: browser_mod.close_popup
+                  data: {}
+              styles:
+                card:
+                  - width: 44px
+                  - height: 44px
+                  - padding: 0
+                  - border-radius: 999px
+                  - border: 1px solid rgba(148, 163, 184, 0.22)
+                  - background: rgba(15, 23, 42, 0.62)
+                  - color: "#f8fafc"
+                  - box-shadow: 0 12px 26px rgba(2, 6, 23, 0.30)
+                  - -webkit-backdrop-filter: blur(14px) saturate(150%)
+                  - backdrop-filter: blur(14px) saturate(150%)
+                icon:
+                  - width: 22px
+                  - color: "#f8fafc"
+              card_mod:
+                style: |
+                  :host {
+                    position: absolute !important;
+                    top: -58px;
+                    left: 0;
+                    z-index: 5;
+                    width: 44px;
+                    height: 44px;
+                    display: block;
+                  }
             - type: custom:button-card
               entity: sensor.espresso_maintenance_status
               show_icon: false
@@ -2614,10 +2658,10 @@ views:
                     return `<h3>Profitec GO</h3><div class=t><em>Record</em><em>Last</em><em>Due</em><b>Water</b><span>${v('last_water_backflush_date')}</span><span>${v('water_ready_date')}</span><b>Cafiza</b><span>${v('last_cafiza_clean_date')}</span><span>${v('cafiza_due_date')}</span></div>`;
                   ]]]
               styles:
-                card: [background: none, border: 0, box-shadow: none, padding: 0]
-                grid: ["grid-template-areas: 'b'"]
+                card: [background: none, border: 0, box-shadow: none, padding: 0, width: 100%]
+                grid: ["grid-template-areas: 'b'", "grid-template-columns: 1fr", "justify-items: center"]
                 custom_fields:
-                  b: [justify-self: stretch, width: 100%]
+                  b: [justify-self: center, width: 100%, display: flex, flex-direction: column, align-items: center]
               extra_styles: "h3{margin:0 0 8px;text-align:center}.t{display:grid;grid-template-columns:58px 1fr 1fr;width:min(100%,286px);margin:0 auto;box-sizing:border-box;border:1px solid #334155;border-radius:10px;overflow:hidden;font-size:12px}.t>*{padding:5px 6px;border-top:1px solid #334155}.t em{border-top:0;color:#94a3b8;font-style:normal}.t span{text-align:right}"
             - type: custom:mushroom-chips-card
               alignment: left
