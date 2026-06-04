@@ -1406,9 +1406,11 @@
         - fri
     - condition: template
       value_template: >-
+        {% set today = now().strftime('%Y-%m-%d') %}
         {% set last_notified = states('input_datetime.metro_north_commute_last_notified_at') %}
         {{ last_notified in ['unknown', 'unavailable', 'none', '']
-           or last_notified[:10] != now().strftime('%Y-%m-%d') }}
+           or last_notified[:10] != today
+           or last_notified[11:19] == '00:00:00' }}
     - condition: template
       value_template: >
         {{ trigger.to_state is not none
@@ -1456,8 +1458,10 @@
     - variables:
         last_notified: "{{ states('input_datetime.metro_north_commute_last_notified_at') }}"
         notified_today: >-
+          {% set today = now().strftime('%Y-%m-%d') %}
           {{ last_notified not in ['unknown', 'unavailable', 'none', '']
-             and last_notified[:10] == now().strftime('%Y-%m-%d') }}
+             and last_notified[:10] == today
+             and last_notified[11:19] != '00:00:00' }}
     - choose:
         - conditions:
             - condition: template

@@ -250,7 +250,7 @@ function browserScript(files, reload) {
 
   const inner = async (incoming) => {
     const writes = [];
-    const fileBase = "";
+    const fileBase = incoming.fileBase || "";
 
     function decodeBase64Utf8(value) {
       const binary = atob(value);
@@ -328,9 +328,11 @@ function browserScript(files, reload) {
   (async () => {
     setResult({ ok: null, phase: "starting" });
     const frame = findFileEditorFrame();
-    const fileEditorWindow = frame && frame.contentWindow ? frame.contentWindow : window;
+    const framePath = frame && frame.src ? new URL(frame.src, window.location.href).pathname : "";
+    const fileBase = framePath && framePath.endsWith("/") ? framePath : framePath + "/";
+    payload.fileBase = fileBase;
     setResult({ ok: null, phase: "writing" });
-    const writeResult = await fileEditorWindow.eval("(" + inner.toString() + ")(" + JSON.stringify(payload) + ")");
+    const writeResult = await inner(payload);
     setResult({ ok: null, phase: "checking", writes: writeResult.writes });
     const check = await haRequest("POST", "/api/config/core/check_config", {});
     const checkResult = typeof check === "object" ? check : { response: check };
