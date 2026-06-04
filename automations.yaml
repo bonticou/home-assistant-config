@@ -2338,15 +2338,6 @@
       for:
         minutes: 3
       id: quiet
-    - trigger: homeassistant
-      event: start
-      id: quiet_check
-    - trigger: event
-      event_type: automation_reloaded
-      id: quiet_check
-    - trigger: time_pattern
-      minutes: "/1"
-      id: quiet_check
   actions:
     - variables:
         closet_brightness_pct: >-
@@ -2376,16 +2367,11 @@
               data:
                 brightness_pct: "{{ closet_brightness_pct }}"
         - conditions:
-            - condition: template
-              value_template: "{{ trigger.id in ['quiet', 'quiet_check'] }}"
+            - condition: trigger
+              id: quiet
             - condition: state
               entity_id: light.master_casey_s_closet
               state: "on"
-            - condition: state
-              entity_id: binary_sensor.usl_motion_motion
-              state: "off"
-              for:
-                minutes: 3
           sequence:
             - action: light.turn_off
               target:
