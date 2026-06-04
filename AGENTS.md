@@ -266,6 +266,13 @@ include split, run local YAML parsing and Home Assistant config validation
 before restart, and verify the live file read-back when deploying through File
 Editor or any browser-mediated path.
 
+For live deployment, follow `docs/home-assistant-deploy-runbook.md`. Do not run
+the browser deploy helper from a normal dashboard page; it must run from a
+mounted File Editor ingress iframe or it will hit the wrong `api/save` endpoint.
+If local `homeassistant.local` is disconnected or File Editor does not mount,
+try the Nabu Casa Remote UI File Editor route and verify `hass.connected ===
+true` plus an iframe whose `src` contains `/api/hassio_ingress/` before writing.
+
 Current split context:
 
 - `configuration.yaml` remains the main table of contents and contains broad

@@ -40,6 +40,7 @@ unless the exact value is necessary and safe to store.
 ## Related Legacy Reports And Runbooks
 
 - [Home Assistant mobile disconnect audit, 2026-05-26](../home-assistant-mobile-disconnect-audit-2026-05-26.md)
+- [Home Assistant deploy runbook](../home-assistant-deploy-runbook.md)
 - [Home Assistant remote access runbook](../home-assistant-remote-access-runbook.md)
 - [Home Assistant UI hardening runbook](../home-assistant-ui-hardening-runbook.md)
 - [Dashboard chart audit](../dashboard-chart-audit.md)

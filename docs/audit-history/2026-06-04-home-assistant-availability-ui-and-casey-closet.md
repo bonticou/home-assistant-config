@@ -244,11 +244,27 @@ Relevant commit:
 
 - `11588e4 Clarify Casey closet motion helper wording`
 
-Deployment note: the repo change is committed locally. A live File Editor
-deployment attempt from Safari failed because the browser session was not inside
-the File Editor add-on iframe and returned `POST api/save -> 405`. The actual
-automation behavior was already correct; this last slice is wording cleanup and
-should be included in the next normal HA deploy/sync.
+### Casey Closet Stale-On Safety Net
+
+- Added the deliberate crude-but-safe fallback Trevor requested:
+  if Casey's closet light is on and the closet motion sensor has not been `on`
+  for 3 continuous minutes, turn the light off.
+- Implemented this inside the existing Casey closet helper rather than as a
+  second competing rule.
+- Replaced the old motion-off trigger with a template trigger that watches both
+  the light and motion state, so manual-on and already-on cases are covered.
+- Kept the motion-on branch unchanged.
+
+Relevant commit:
+
+- `01b4788 Add Casey closet stale-on safety net`
+
+Deployment note: the reliable live deploy path was Nabu Casa Remote UI File
+Editor at `/core_configurator`, after verifying the frontend was connected and
+the File Editor iframe had mounted through `/api/hassio_ingress/`. The helper
+wrote and read back `automations.yaml` and `dashboards/calm_mobile.yaml`, HA
+config check returned valid with no warnings, and a targeted `automation.reload`
+completed successfully after the helper's short reload calls timed out.
 
 ## Checks And Validation
 
@@ -274,8 +290,6 @@ should be included in the next normal HA deploy/sync.
 
 ### Known Validation Gaps
 
-- The final Casey closet wording cleanup was not deployed live because the
-  Safari/File Editor context was unavailable during the attempt.
 - A fresh live `.storage` registry export is still needed before regenerating
   device inventory docs that reflect the new Casey closet entity. The repo's
   current generator needs live registries that are not committed.
@@ -316,8 +330,6 @@ should be included in the next normal HA deploy/sync.
 - Run the external probe from a clean non-VPN/non-filtered path if possible.
 - Refresh live HA registries and regenerate device inventory so docs stop
   carrying stale Casey closet entity names.
-- Decide whether to deploy the final wording cleanup immediately through a
-  known-good File Editor/SSH path or wait for the next normal HA config deploy.
 - If `/ha-safe/home` works while `/calm-mobile/home` fails, continue hardening:
   - Browser Mod/resource loading;
   - heavy dashboard first render;
