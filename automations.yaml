@@ -2339,6 +2339,20 @@
         minutes: 3
       id: quiet
   actions:
+    - variables:
+        closet_brightness_pct: >-
+          {% set evening_elevation = states('sensor.lighting_evening_on_schedule_elevation_threshold') | float(10) %}
+          {% set morning_elevation = states('sensor.lighting_morning_off_schedule_elevation_threshold') | float(10) %}
+          {% set schedule_elevation = morning_elevation if is_state_attr('sun.sun', 'rising', true) else evening_elevation %}
+          {% set night_elevation = -10 %}
+          {% set elevation = state_attr('sun.sun', 'elevation') | float(90) %}
+          {% if elevation > schedule_elevation %}
+            10
+          {% elif elevation > night_elevation %}
+            30
+          {% else %}
+            50
+          {% endif %}
     - choose:
         - conditions:
             - condition: trigger
@@ -2350,6 +2364,8 @@
             - action: light.turn_on
               target:
                 entity_id: light.master_casey_s_closet
+              data:
+                brightness_pct: "{{ closet_brightness_pct }}"
         - conditions:
             - condition: trigger
               id: quiet
