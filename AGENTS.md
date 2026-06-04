@@ -294,7 +294,7 @@ Current split context:
   automations` pointer. The actual automation lists live in
   `automations/00-water-irrigation.yaml`,
   `automations/10-lighting-security.yaml`,
-  `automations/20-climate-garden-commute.yaml`, and
+  `automations/20-climate-commute.yaml`, and
   `automations/30-maintenance-environment.yaml`. Keep those chunks coherent and
   small enough for reliable browser/File Editor read-back; do not collapse them
   back into one large file.

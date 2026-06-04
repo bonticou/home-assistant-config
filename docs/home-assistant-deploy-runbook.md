@@ -25,7 +25,7 @@ with the files under `automations/` when automation behavior changes.
 4. Generate the browser deploy payload from the repo:
 
 ```bash
-node tools/prepare_ha_utf8_browser_deploy.js automations.yaml automations/20-climate-garden-commute.yaml
+node tools/prepare_ha_utf8_browser_deploy.js automations.yaml automations/20-climate-commute.yaml
 ```
 
 5. Execute the generated `.tmp-ha-utf8-browser-deploy.js` in the File Editor

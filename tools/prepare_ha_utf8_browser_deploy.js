@@ -10,7 +10,7 @@ const defaultFiles = [
   "automations.yaml",
   "automations/00-water-irrigation.yaml",
   "automations/10-lighting-security.yaml",
-  "automations/20-climate-garden-commute.yaml",
+  "automations/20-climate-commute.yaml",
   "automations/30-maintenance-environment.yaml",
   "scripts.yaml",
   "dashboards/calm_mobile.yaml",
