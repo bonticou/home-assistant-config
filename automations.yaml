@@ -2356,11 +2356,11 @@
           {% set night_elevation = -10 %}
           {% set elevation = state_attr('sun.sun', 'elevation') | float(90) %}
           {% if elevation > schedule_elevation %}
-            10
+            50
           {% elif elevation > night_elevation %}
             30
           {% else %}
-            50
+            10
           {% endif %}
     - choose:
         - conditions:
