@@ -6,10 +6,10 @@ A human-readable map of the Home Assistant device model. The full audit dump is 
 
 | Thing | Count |
 | --- | --- |
-| Devices | 209 |
-| Entities | 2287 |
-| Control entities | 793 |
-| Telemetry entities | 1022 |
+| Devices | 215 |
+| Entities | 2165 |
+| Control entities | 744 |
+| Telemetry entities | 986 |
 | Network clients | 129 |
 | Areas | 32 |
 
@@ -24,7 +24,7 @@ A human-readable map of the Home Assistant device model. The full audit dump is 
 | Deck | 1 | 1 | 1 | 0 | 0 |
 | Dining Room | 2 | 6 | 0 | 12 | 0 |
 | Electrical Room | 5 | 12 | 0 | 99 | 2 |
-| Exterior | 2 | 2 | 1 | 0 | 0 |
+| Exterior | 3 | 3 | 2 | 0 | 0 |
 | Family Room | 8 | 31 | 3 | 26 | 3 |
 | Family Room TV | 1 | 2 | 0 | 0 | 0 |
 | Front Door | 1 | 3 | 0 | 7 | 0 |
@@ -32,7 +32,7 @@ A human-readable map of the Home Assistant device model. The full audit dump is 
 | Front Yard | 1 | 32 | 0 | 27 | 1 |
 | Garage | 3 | 4 | 0 | 12 | 0 |
 | Great Room Speakers | 1 | 8 | 0 | 1 | 1 |
-| Kitchen | 4 | 0 | 0 | 19 | 4 |
+| Kitchen | 9 | 5 | 5 | 19 | 4 |
 | Kitchen Speakers | 1 | 8 | 0 | 1 | 1 |
 | Master | 5 | 12 | 1 | 12 | 0 |
 | Master Bathroom | 1 | 0 | 0 | 0 | 0 |
@@ -64,12 +64,18 @@ A human-readable map of the Home Assistant device model. The full audit dump is 
 | Back Stairs | Back Stairs Back Stairs | `light.back_stairs_back_stairs` | lutron_caseta |  |
 | Back Yard | Back Patio Light | `light.back_patio_light` | ring | Light |
 | Deck | Deck Deck Lights | `light.deck_deck_lights` | lutron_caseta |  |
+| Exterior | Exterior Deck Lights | `light.exterior_deck_lights` | lutron_caseta |  |
 | Exterior | Exterior Yard Lights | `light.exterior_yard_lights` | lutron_caseta |  |
 | Family Room | Family Room Main Lights 1 | `light.family_room_main_lights_1` | lutron_caseta |  |
 | Family Room | Family Room Main Lights 2 | `light.family_room_main_lights_2` | lutron_caseta |  |
 | Family Room | Family Room Main Lights 3 | `light.family_room_main_lights_3` | lutron_caseta |  |
 | Front Foyer | Front Foyer Ceiling Lights | `light.front_foyer_ceiling_lights` | lutron_caseta |  |
 | Front Foyer | Front Foyer Chandelier | `light.front_foyer_chandelier` | lutron_caseta |  |
+| Kitchen | Kitchen Coffee Bar | `light.kitchen_coffee_bar` | lutron_caseta |  |
+| Kitchen | Kitchen Island | `light.kitchen_island` | lutron_caseta |  |
+| Kitchen | Kitchen Main | `light.kitchen_main` | lutron_caseta |  |
+| Kitchen | Kitchen Sink Light | `light.kitchen_sink_light` | lutron_caseta |  |
+| Kitchen | Kitchen Table Lights | `light.kitchen_table_lights` | lutron_caseta |  |
 | Master | Casey's closet | `light.master_casey_s_closet` | lutron_caseta | Master Casey's Closet |
 | Master Bedroom | Master Sconce L | `light.master_bedroom_sconce_l` | lutron_caseta |  |
 | Master Bedroom | Master Sconce R | `light.master_bedroom_sconce_r` | lutron_caseta |  |
@@ -117,6 +123,7 @@ A human-readable map of the Home Assistant device model. The full audit dump is 
 
 | Device | Integration | Main controls | Original name |
 | --- | --- | --- | --- |
+| Exterior Deck Lights | lutron_caseta | Exterior Deck Lights (`light.exterior_deck_lights`) |  |
 | Exterior Mud Room Stairs | lutron_caseta | Exterior Mud Room Stairs (`switch.exterior_mud_room_stairs`) |  |
 | Exterior Yard Lights | lutron_caseta | Exterior Yard Lights (`light.exterior_yard_lights`) |  |
 
@@ -170,6 +177,16 @@ A human-readable map of the Home Assistant device model. The full audit dump is 
 | Device | Integration | Main controls | Original name |
 | --- | --- | --- | --- |
 | Great Room Sonos | sonos, unifi | Great Room Sonos (`media_player.great_room_speakers`); Great Room Sonos Balance (`number.great_room_speakers_balance`); Great Room Sonos Bass (`number.great_room_speakers_bass`); Great Room Sonos Treble (`number.great_room_speakers_treble`); Great Room Sonos Crossfade (`switch.great_room_speakers_crossfade`); +3 more |  |
+
+### Kitchen
+
+| Device | Integration | Main controls | Original name |
+| --- | --- | --- | --- |
+| Kitchen Coffee Bar | lutron_caseta | Kitchen Coffee Bar (`light.kitchen_coffee_bar`) |  |
+| Kitchen Island | lutron_caseta | Kitchen Island (`light.kitchen_island`) |  |
+| Kitchen Main | lutron_caseta | Kitchen Main (`light.kitchen_main`) |  |
+| Kitchen Sink Light | lutron_caseta | Kitchen Sink Light (`light.kitchen_sink_light`) |  |
+| Kitchen Table Lights | lutron_caseta | Kitchen Table Lights (`light.kitchen_table_lights`) |  |
 
 ### Kitchen Speakers
 
@@ -230,9 +247,10 @@ A human-readable map of the Home Assistant device model. The full audit dump is 
 | --- | --- | --- | --- |
 | Aqara Hub M100 | matter | Aqara Hub M100 Identify (`button.aqara_hub_m100_identify`) |  |
 | Aqara Smart Lock U100 | matter | Identify (`button.aqara_smart_lock_u100_identify`); `lock.aqara_smart_lock_u100`; Operating mode (`select.aqara_smart_lock_u100_operating_mode`) |  |
-| Basement TV | cast | `media_player.basement_tv` |  |
+| Basement TV | cast | Basement TV (`media_player.basement_tv`) |  |
 | Bonticou | unifi | Regenerate Password (`button.bonticou_regenerate_password`); Bonticou (`switch.bonticou`) |  |
 | Bonticou Guest | unifi | Regenerate Password (`button.bonticou_guest_regenerate_password`); Bonticou Guest (`switch.bonticou_guest`) |  |
+| Casey's Closet | unifiprotect | Casey's Closet Clear tamper (`button.casey_s_closet_clear_tamper`); Restart (`button.casey_s_closet_restart`); Unadopt device (`button.casey_s_closet_unadopt_device`); Casey's Closet Motion sensitivity (`number.casey_s_closet_motion_sensitivity`); Casey's Closet Mount type (`select.casey_s_closet_mount_type`); +7 more |  |
 | Family Room TV | cast | Family Room TV (`media_player.ls03f3973`) |  |
 | Family Room TV | cast | `media_player.family_room_tv` |  |
 | File editor | hassio | `switch.file_editor` |  |
@@ -253,7 +271,6 @@ A human-readable map of the Home Assistant device model. The full audit dump is 
 | U7 Pro (Mesh) | unifi | U7 Pro (Mesh) Restart (`button.u7_pro_mesh_restart`); U7 Pro (Mesh) LED (`light.u7_pro_mesh_led`) |  |
 | U7 Pro (Mud Room) | unifi | U7 Pro (Mud Room) Restart (`button.u7_pro_mud_room_restart`); U7 Pro (Mud Room) LED (`light.u7_pro_mud_room_led`) |  |
 | U7 Pro Outdoor | unifi | U7 Pro Outdoor Restart (`button.u7_pro_outdoor_restart`) |  |
-| USL Motion | unifiprotect | USL Motion Clear tamper (`button.usl_motion_clear_tamper`); Restart (`button.usl_motion_restart`); Unadopt device (`button.usl_motion_unadopt_device`); USL Motion Motion sensitivity (`number.usl_motion_motion_sensitivity`); USL Motion Mount type (`select.usl_motion_mount_type`); +7 more |  |
 | USW Flex 2.5G 5 | unifi | USW Flex 2.5G 5 Restart (`button.usw_flex_2_5g_5_restart`); Port 1 (`switch.usw_flex_2_5g_5_port_1`); Port 2 (`switch.usw_flex_2_5g_5_port_2`); Port 3 (`switch.usw_flex_2_5g_5_port_3`); Port 4 (`switch.usw_flex_2_5g_5_port_4`); +1 more |  |
 | Unnamed Room | sonos, unifi | `media_player.unnamed_room_4`; Balance (`number.unnamed_room_balance_9`); Bass (`number.unnamed_room_bass_9`); Treble (`number.unnamed_room_treble_9`); Crossfade (`switch.unnamed_room_crossfade_9`); +3 more |  |
 | Unnamed Room | sonos, unifi | `media_player.unnamed_room_3`; Balance (`number.unnamed_room_balance_8`); Bass (`number.unnamed_room_bass_8`); Treble (`number.unnamed_room_treble_8`); Crossfade (`switch.unnamed_room_crossfade_8`); +3 more |  |
@@ -331,5 +348,3 @@ A human-readable map of the Home Assistant device model. The full audit dump is 
 | --- | --- |
 | [device-inventory-detail.md](device-inventory-detail.md) | Full per-device audit view |
 | [device-inventory.json](device-inventory.json) | Structured inventory for scripts and checks |
-| [recorder-inventory.md](recorder-inventory.md) | Recording-focused inventory for Recorder/history review |
-| [recorder-inventory.json](recorder-inventory.json) | Structured Recorder inventory for scripts and checks |
