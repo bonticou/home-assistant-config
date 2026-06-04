@@ -2325,16 +2325,17 @@
 
 - id: casey_closet_auto_off
   alias: "Lights — Casey's Closet Auto-Off"
-  description: Turn Casey's closet on with closet motion and off after three quiet minutes.
+  description: Turn Casey's closet on with closet motion and off after three minutes without motion.
   initial_state: true
   triggers:
     - trigger: state
       entity_id: binary_sensor.casey_s_closet_motion
       to: "on"
       id: motion
-    - trigger: state
-      entity_id: binary_sensor.casey_s_closet_motion
-      to: "off"
+    - trigger: template
+      value_template: >-
+        {{ is_state('light.master_casey_s_closet', 'on')
+           and not is_state('binary_sensor.casey_s_closet_motion', 'on') }}
       for:
         minutes: 3
       id: quiet

@@ -6368,9 +6368,9 @@ views:
               primary: Casey's closet motion helper
               secondary: >-
                 {% if is_state('light.master_casey_s_closet', 'on') %}
-                  Motion keeps it active; it turns off after 3 quiet minutes.
+                  Motion keeps it active; no motion for 3 minutes turns it off.
                 {% elif is_state('automation.lights_casey_s_closet_auto_off', 'on') %}
-                  Motion turns it on, then three quiet minutes turn it off.
+                  Motion turns it on, and stale-on quiet time turns it off.
                 {% else %}
                   Automation is disabled.
                 {% endif %}
