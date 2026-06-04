@@ -35,10 +35,17 @@
         {% set old = trigger.event.data.old_state %}
         {% set motion_sources = {
           'binary_sensor.g6_instant_motion': 'Play Room',
+          'binary_sensor.play_room_person_detected': 'Play Room',
+          'binary_sensor.g6_instant_motion_2': 'Front Yard',
+          'binary_sensor.back_yard_person_detected': 'Front Yard',
+          'binary_sensor.g6_instant_motion_3': 'Garage',
+          'binary_sensor.garage_person_detected': 'Garage',
           'binary_sensor.wynn_s_room_motion': "Wynn's Room",
           'binary_sensor.wynn_s_room_person_detected': "Wynn's Room",
           'binary_sensor.mud_room_motion': 'Mud Room',
-          'binary_sensor.mud_room_person_detected': 'Mud Room'
+          'binary_sensor.mud_room_person_detected': 'Mud Room',
+          'binary_sensor.mechanical_room_motion': 'Mechanical Room',
+          'binary_sensor.mechanical_room_person_detected': 'Mechanical Room'
         } %}
         {% if entity.startswith('binary_sensor.') and new is not none and new.state == 'on' and (old is none or old.state != 'on') %}
           {{ entity in motion_sources }}
@@ -51,10 +58,17 @@
         label: >-
           {% set motion_sources = {
             'binary_sensor.g6_instant_motion': 'Play Room',
+            'binary_sensor.play_room_person_detected': 'Play Room',
+            'binary_sensor.g6_instant_motion_2': 'Front Yard',
+            'binary_sensor.back_yard_person_detected': 'Front Yard',
+            'binary_sensor.g6_instant_motion_3': 'Garage',
+            'binary_sensor.garage_person_detected': 'Garage',
             'binary_sensor.wynn_s_room_motion': "Wynn's Room",
             'binary_sensor.wynn_s_room_person_detected': "Wynn's Room",
             'binary_sensor.mud_room_motion': 'Mud Room',
-            'binary_sensor.mud_room_person_detected': 'Mud Room'
+            'binary_sensor.mud_room_person_detected': 'Mud Room',
+            'binary_sensor.mechanical_room_motion': 'Mechanical Room',
+            'binary_sensor.mechanical_room_person_detected': 'Mechanical Room'
           } %}
           {{ motion_sources.get(entity, state_attr(entity, 'friendly_name') or entity) }}
     - action: input_datetime.set_datetime

@@ -296,6 +296,176 @@ completed successfully after the helper's short reload calls timed out.
 - Remote probe results from the Mac can be distorted by local network/VPN/filter
   path behavior, so they should be interpreted alongside iPhone/Safari evidence.
 
+## June 4 Storage, Recorder, Motion, And Wine Follow-Up
+
+### Triggering Symptoms
+
+After the remote/UI recovery, HA still showed signs of state/history strain:
+
+- File Editor had previously failed to create `/homeassistant/automations`
+  with `No space left on device`.
+- Live `home-assistant_v2.db` was observed around 14 GB.
+- The Home header's latest motion line showed Wynn's Room from June 1 even
+  though motion had occurred elsewhere since then.
+- The wine dashboard showed current temperature/humidity but the 24-hour trend
+  chart had little or no data.
+
+### Backup Space Recovery
+
+Trevor selected three old local-only backups for deletion. Deleted backups:
+
+- May 25, 2026 4:46 AM, slug `bfaa086a`, about 1.22 GB, local only.
+- May 24, 2026 5:04 AM, slug `214444ad`, about 1.01 GB, local only.
+- March 25, 2026 9:35 PM, slug `459efa58`, about 0.25 GB, local only.
+
+Remaining backup coverage after deletion:
+
+- May 29, 2026 5:02 AM, about 1.97 GB, local only.
+- May 28, 2026 5:32 AM, about 1.78 GB, local only.
+- May 27, 2026 5:29 AM, about 1.63 GB, local only.
+- May 26, 2026 5:04 AM, about 1.43 GB local and about 1.43 GB cloud.
+
+Important: the Recorder/logbook database was not deleted. A live helper-state
+snapshot was saved under `.tmp/` before further diagnosis.
+
+### Recorder Evidence
+
+Current recorder config retained 30 days and excluded only a few signal-strength
+patterns plus `sun.sun` and `weather.forecast_home`.
+
+Live state surface showed:
+
+- 1,899 total live states.
+- 1,897 states were recorder candidates under the current include/exclude rules.
+- Largest candidate domains by entity count:
+  - `sensor`: 439 entities.
+  - `binary_sensor`: 276 entities.
+  - `switch`: 259 entities.
+  - `automation`: 176 entities.
+  - `script`: 156 entities.
+  - `number`: 93 entities.
+  - `input_datetime`: 92 entities.
+  - `device_tracker`: 80 entities.
+- Most active domains during the snapshot:
+  - `sensor`: 104 recently reported in 15 minutes.
+  - `automation`: 16 recently reported in 15 minutes.
+  - `binary_sensor`: 10 recently reported in 15 minutes.
+  - `camera`: 9 recently reported in 15 minutes.
+
+Largest live attribute payloads included:
+
+- `sensor.house_notice_timeline`
+- `sensor.device_inventory_pending_digest`
+- `sensor.garbage_recycling_schedule`
+- `sensor.irrigation_schedule_summary`
+- `sensor.wine_collection_snapshot`
+- `sensor.house_notice_history`
+- `sensor.irrigation_history_status`
+- `sensor.metro_north_nwp_to_grand_central`
+
+Interpretation: the 14 GB DB is likely caused by recording nearly everything
+for 30 days across a large HA install, plus high-frequency telemetry and large
+derived/template attributes. The live evidence does not yet prove exact
+per-entity row counts; that requires a direct SQLite analysis of
+`home-assistant_v2.db` from a shell or backup copy.
+
+Recorder metadata over HA websocket reported:
+
+- recording: true
+- thread running: true
+- backlog: 0
+- migration in progress: false
+- statistic IDs: 194
+
+So Recorder was running at the moment of the check, but the database size and
+recent history gaps still justify a targeted Recorder policy review.
+
+### Latest Motion Evidence And Fix
+
+The stale latest motion bar was not a Recorder-history issue. It was a source
+coverage issue.
+
+Live state showed the tracker still stored:
+
+- label: Wynn's Room
+- entity: `binary_sensor.wynn_s_room_person_detected`
+- timestamp: June 1, 2026 11:36:51 PM
+
+The automation only listened to this older set:
+
+- `binary_sensor.g6_instant_motion`
+- `binary_sensor.wynn_s_room_motion`
+- `binary_sensor.wynn_s_room_person_detected`
+- `binary_sensor.mud_room_motion`
+- `binary_sensor.mud_room_person_detected`
+
+Live HA had newer relevant camera/motion entities not covered by that map,
+including:
+
+- `binary_sensor.g6_instant_motion_2` / Front Yard Motion
+- `binary_sensor.back_yard_person_detected` / Front Yard Person detected
+- `binary_sensor.g6_instant_motion_3` / Garage Motion
+- `binary_sensor.garage_person_detected` / Garage Person detected
+- `binary_sensor.play_room_person_detected`
+- `binary_sensor.mechanical_room_motion`
+- `binary_sensor.mechanical_room_person_detected`
+
+Fix applied:
+
+- Expanded `automation.cameras_latest_motion_tracker` source map.
+- Expanded the matching `calm-mobile` Latest Motion dashboard card source map
+  and active icon list.
+- Deployed only `automations/00-water-irrigation.yaml` and
+  `dashboards/calm_mobile.yaml` through File Editor.
+- Read-back hashes matched and HA config check returned valid.
+- `automation.reload` succeeded.
+
+### Wine Chart Evidence
+
+The wine sensor was not dead.
+
+Live state showed:
+
+- `sensor.wine_temperature`: about 54.8°F and actively updating.
+- `sensor.wine_humidity`: about 53-54% and actively updating.
+- `sensor.wine_temperature_24h_stats`: available.
+- `sensor.wine_humidity_24h_stats`: available.
+- `sensor.wine_temp_24h_mean`: available.
+- `sensor.wine_humidity_24h_mean`: available.
+
+However, the 24-hour history API returned only a small recent slice:
+
+- `sensor.wine_temperature`: 9 samples, beginning around 10:42 AM EDT.
+- `sensor.wine_humidity`: 11 samples, beginning around 10:42 AM EDT.
+
+The 24-hour statistics sensors also showed very low age coverage:
+
+- age coverage ratio about 0.03.
+- buffer usage ratio about 0.04.
+
+Interpretation: current wine telemetry is healthy, but the 24-hour chart lacked
+data because HA/Recorder only had a short recent history window available after
+the recovery/storage pressure. This matches a Recorder/history continuity
+problem more than a wine sensor or dashboard typo problem.
+
+### Recorder Policy Guidance From This Follow-Up
+
+Do not solve the 14 GB database by excluding broad domains blindly. History and
+logbook records support stateful alerts, incident review, and safety logic.
+
+Recommended next Recorder slice:
+
+- Keep event/security/motion history that supports alerts and postmortems.
+- Reduce retention from 30 days only after confirming which dashboards and
+  automations depend on 30-day raw history.
+- Exclude derived summary sensors with large attributes when they are
+  regenerated elsewhere or only used for current dashboard display.
+- Exclude noisy infrastructure telemetry that is not operationally important
+  as raw state history.
+- Add direct SQLite row-count evidence before making aggressive exclusions.
+- After policy changes, purge/repack only with a fresh backup and enough free
+  disk space for the operation.
+
 ## Current Operational Guidance
 
 ### When HA Remote/Mobile Fails Again
