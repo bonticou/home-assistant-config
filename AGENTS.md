@@ -19,6 +19,30 @@ Changes should always favor **minimal safe improvements** over large refactors.
 
 ---
 
+# Audit And Diagnostic Memory
+
+When running an audit, diagnostic, incident review, or reliability investigation,
+start by checking the repo's historical context before forming a fresh theory.
+At minimum, review `docs/audit-history/README.md`, any relevant dated entries in
+`docs/audit-history/`, and nearby runbooks such as remote-access, UI hardening,
+device inventory, or dashboard audit notes.
+
+Use that history actively:
+
+- compare the current symptom to prior incidents and fixes;
+- look for repeated entities, integrations, dashboards, add-ons, network paths,
+  and deployment tools;
+- preserve earlier evidence even when a newer hypothesis looks stronger;
+- avoid rediscovering or undoing prior decisions without a deliberate reason.
+
+After a meaningful audit or diagnostic fix, add a dated Markdown entry under
+`docs/audit-history/` with the symptom, evidence, ranked findings, changes made,
+checks run, deployment status, residual risks, and next follow-ups. Keep secrets,
+tokens, private URLs, raw logs, and exact sensitive identifiers out of committed
+reports.
+
+---
+
 # Design Philosophy
 
 The user interface should feel **calm, modern, and minimal**, inspired by the design language used in Apple products.
