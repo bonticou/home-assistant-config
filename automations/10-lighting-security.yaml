@@ -1,0 +1,1662 @@
+- id: house_notice_action_history
+  alias: "Notices — Notification Action History"
+  description: Records mobile notification actions for context; the Notices tab hides routine action receipts unless an event opts into Recent.
+  triggers:
+    - trigger: event
+      event_type: mobile_app_notification_action
+  conditions: []
+  actions:
+    - variables:
+        action_id: "{{ trigger.event.data.action | default('unknown', true) }}"
+        action_label: >-
+          {% if 'SNOOZE' in action_id %}
+            Snoozed
+          {% elif action_id in ['CLOSE_AWAY_GARAGE', 'CLOSE_GARAGE_SECURITY'] %}
+            Garage close requested
+          {% elif 'PAID' in action_id %}
+            Paid
+          {% elif 'DONE' in action_id or 'REPLACED' in action_id or 'CAPTURED' in action_id %}
+            Done
+          {% elif 'TAKEN_OUT' in action_id %}
+            Taken out
+          {% elif 'APPLIED' in action_id %}
+            Applied
+          {% elif 'RENEWED' in action_id %}
+            Renewed
+          {% elif action_id == 'URI' %}
+            Opened
+          {% elif 'LOCK' in action_id or 'TURN_OFF' in action_id or 'SECURE' in action_id %}
+            Acted
+          {% else %}
+            Action
+          {% endif %}
+        tag: "{{ trigger.event.data.tag | default('', true) }}"
+    - event: house_notice_event_recorded
+      event_data:
+        at: "{{ now().strftime('%Y-%m-%d %H:%M:%S') }}"
+        kind: action
+        title: "{{ action_label }}"
+        message: "{{ action_id }}"
+        group: "{{ trigger.event.data.group | default('mobile-action', true) }}"
+        tag: "{{ tag }}"
+        url: "{{ trigger.event.data.url | default('', true) }}"
+        severity: info
+        action: "{{ action_id }}"
+        source: mobile_app_notification_action
+        recent: >-
+          {{ trigger.event.data.recent | default(false, true) }}
+        keep_recent: "{{ trigger.event.data.keep_recent | default(false, true) }}"
+        history: >-
+          {{ trigger.event.data.history | default('', true) }}
+  mode: parallel
+  max: 20
+
+- id: water_notification_actions
+  alias: "Water — Notification Actions"
+  description: Handles quick actions from water monitoring notifications.
+  triggers:
+    - trigger: event
+      event_type: mobile_app_notification_action
+  conditions:
+    - condition: template
+      value_template: >
+        {{ trigger.event.data.action in [
+          'WATER_OVERNIGHT_FLOW_EXPECTED',
+          'WATER_SUSTAINED_FLOW_EXPECTED',
+          'WATER_LOW_PRESSURE_EXPECTED'
+        ] }}
+  actions:
+    - choose:
+        - conditions:
+            - condition: template
+              value_template: "{{ trigger.event.data.action == 'WATER_LOW_PRESSURE_EXPECTED' }}"
+          sequence:
+            - action: input_datetime.set_datetime
+              target:
+                entity_id: input_datetime.water_pressure_snooze_until
+              data:
+                datetime: "{{ (now() + timedelta(hours=1)).strftime('%Y-%m-%d %H:%M:%S') }}"
+            - action: input_boolean.turn_off
+              target:
+                entity_id: input_boolean.water_pressure_alert_active
+            - repeat:
+                for_each:
+                  - water-low_pressure
+                  - water-low_pressure_persistent
+                  - water-low_pressure_very_low
+                  - water-low_pressure_urgent
+                  - water-pressure_drop
+                sequence:
+                  - action: script.notify_trevor_phone
+                    data:
+                      message: clear_notification
+                      data:
+                        tag: "{{ repeat.item }}"
+      default:
+        - action: input_boolean.turn_off
+          target:
+            entity_id: input_boolean.water_flow_alert_active
+        - action: script.notify_trevor_phone
+          data:
+            message: clear_notification
+            data:
+              tag: >-
+                {{ 'water-overnight_flow'
+                   if trigger.event.data.action == 'WATER_OVERNIGHT_FLOW_EXPECTED'
+                   else 'water-sustained_flow' }}
+  mode: parallel
+  max: 5
+
+- id: water_pressure_recovered
+  alias: "Water — Pressure Recovered"
+  description: Clears pressure notifications once pressure is back in a stable normal range.
+  triggers:
+    - trigger: numeric_state
+      entity_id: sensor.flo_shutoff_water_pressure
+      above: 42
+      for:
+        minutes: 5
+  conditions: []
+  actions:
+    - action: input_datetime.set_datetime
+      target:
+        entity_id: input_datetime.water_pressure_snooze_until
+      data:
+        datetime: "{{ now().strftime('%Y-%m-%d %H:%M:%S') }}"
+    - action: input_boolean.turn_off
+      target:
+        entity_id: input_boolean.water_pressure_alert_active
+    - repeat:
+        for_each:
+          - water-low_pressure
+          - water-low_pressure_persistent
+          - water-low_pressure_very_low
+          - water-low_pressure_urgent
+          - water-pressure_drop
+        sequence:
+          - action: script.notify_trevor_phone
+            data:
+              message: clear_notification
+              data:
+                tag: "{{ repeat.item }}"
+  mode: single
+
+- id: water_notification_state_clear_when_normal
+  alias: "Water — Clear Notification State When Normal"
+  description: Clears dashboard notification state when the underlying water condition is quiet again.
+  triggers:
+    - trigger: numeric_state
+      entity_id: sensor.flo_shutoff_water_flow_rate
+      below: 0.02
+      for:
+        minutes: 5
+      id: flow_quiet
+    - trigger: state
+      entity_id:
+        - binary_sensor.kitchen_sink_leak_detection_water_detected
+        - binary_sensor.island_sink_leak_detection_water_detected
+        - binary_sensor.dishwasher_leak_detection_water_detected
+        - binary_sensor.kitchen_fridge_leak_detection_water_detected
+        - binary_sensor.washing_machine_leak_detection_water_detected
+        - binary_sensor.laundry_sink_leak_detection_water_detected
+        - binary_sensor.mechanical_room_leak_detection_water_detected
+        - binary_sensor.electrical_room_leak_detection_water_detected
+        - binary_sensor.basement_ejector_leak_detection_water_detected
+      to: "off"
+      for:
+        minutes: 5
+      id: leaks_clear
+    - trigger: state
+      entity_id: switch.flo_shutoff_shutoff_valve
+      to: "on"
+      for:
+        minutes: 2
+      id: valve_open
+    - trigger: state
+      entity_id: binary_sensor.flo_shutoff_pending_system_alerts
+      to: "off"
+      for:
+        minutes: 2
+      id: flo_clear
+    - trigger: numeric_state
+      entity_id: sensor.flo_shutoff_water_pressure
+      below: 80
+      for:
+        minutes: 5
+      id: high_pressure_normal
+    - trigger: time
+      at: "00:05:00"
+      id: usage_reset
+  actions:
+    - choose:
+        - conditions:
+            - condition: trigger
+              id: flow_quiet
+            - condition: template
+              value_template: "{{ states('input_text.water_latest_alert_kind') not in ['burst_day', 'burst_night'] }}"
+          sequence:
+            - action: input_boolean.turn_off
+              target:
+                entity_id: input_boolean.water_flow_alert_active
+            - repeat:
+                for_each:
+                  - water-overnight_flow
+                  - water-sustained_flow
+                sequence:
+                  - action: script.notify_trevor_phone
+                    data:
+                      message: clear_notification
+                      data:
+                        tag: "{{ repeat.item }}"
+        - conditions:
+            - condition: trigger
+              id: leaks_clear
+            - condition: template
+              value_template: >-
+                {{ expand([
+                  'binary_sensor.kitchen_sink_leak_detection_water_detected',
+                  'binary_sensor.island_sink_leak_detection_water_detected',
+                  'binary_sensor.dishwasher_leak_detection_water_detected',
+                  'binary_sensor.kitchen_fridge_leak_detection_water_detected',
+                  'binary_sensor.washing_machine_leak_detection_water_detected',
+                  'binary_sensor.laundry_sink_leak_detection_water_detected',
+                  'binary_sensor.mechanical_room_leak_detection_water_detected',
+                  'binary_sensor.electrical_room_leak_detection_water_detected',
+                  'binary_sensor.basement_ejector_leak_detection_water_detected'
+                ]) | selectattr('state', 'eq', 'on') | list | count == 0 }}
+          sequence:
+            - action: input_boolean.turn_off
+              target:
+                entity_id: input_boolean.water_leak_alert_active
+            - action: script.notify_trevor_phone
+              data:
+                message: clear_notification
+                data:
+                  tag: water-leak
+        - conditions:
+            - condition: template
+              value_template: "{{ trigger.id in ['valve_open', 'flo_clear'] }}"
+            - condition: state
+              entity_id: switch.flo_shutoff_shutoff_valve
+              state: "on"
+            - condition: state
+              entity_id: binary_sensor.flo_shutoff_pending_system_alerts
+              state: "off"
+          sequence:
+            - action: input_boolean.turn_off
+              target:
+                entity_id: input_boolean.water_valve_alert_active
+            - repeat:
+                for_each:
+                  - water-valve_closed
+                  - water-flo_system
+                sequence:
+                  - action: script.notify_trevor_phone
+                    data:
+                      message: clear_notification
+                      data:
+                        tag: "{{ repeat.item }}"
+        - conditions:
+            - condition: trigger
+              id: high_pressure_normal
+            - condition: template
+              value_template: "{{ states('input_text.water_latest_alert_kind') == 'high_pressure' }}"
+          sequence:
+            - action: input_boolean.turn_off
+              target:
+                entity_id: input_boolean.water_pressure_alert_active
+            - action: script.notify_trevor_phone
+              data:
+                message: clear_notification
+                data:
+                  tag: water-high_pressure
+        - conditions:
+            - condition: trigger
+              id: usage_reset
+          sequence:
+            - action: input_boolean.turn_off
+              target:
+                entity_id: input_boolean.water_usage_alert_active
+            - action: script.notify_trevor_phone
+              data:
+                message: clear_notification
+                data:
+                  tag: water-usage_high
+  mode: single
+
+- id: door_lights_schedule_sync
+  alias: "Lights — Door Lights Schedule Sync"
+  description: Keep the front door lights synced to the adaptive sun-elevation evening schedule and restore the correct state on startup or refresh.
+  triggers:
+    - trigger: homeassistant
+      event: start
+    - trigger: time_pattern
+      minutes: "/15"
+    - trigger: state
+      entity_id: binary_sensor.door_lights_schedule_active
+      to: "on"
+    - trigger: state
+      entity_id: binary_sensor.door_lights_schedule_active
+      to: "off"
+    - trigger: state
+      entity_id: input_boolean.front_stairs_sleep_override
+      to: "on"
+  actions:
+    - choose:
+        - conditions:
+            - condition: state
+              entity_id: binary_sensor.door_lights_schedule_active
+              state: "on"
+          sequence:
+            - action: script.door_lights_schedule_on
+      default:
+        - action: script.door_lights_schedule_off
+  mode: single
+
+- id: front_stairs_schedule_sync
+  alias: "Lights — Front Stairs Schedule Sync"
+  description: Keep the front stairs light synced to the adaptive sun-elevation evening schedule, while honoring the guest lighting override and bedtime 4 percent override until the overnight schedule ends.
+  triggers:
+    - trigger: homeassistant
+      event: start
+    - trigger: time_pattern
+      minutes: "/15"
+    - trigger: state
+      entity_id: input_boolean.interior_lights_guest_override
+      to: "off"
+    - trigger: state
+      entity_id: binary_sensor.front_stairs_schedule_active
+      to: "on"
+    - trigger: state
+      entity_id: binary_sensor.front_stairs_schedule_active
+      to: "off"
+  conditions:
+    - condition: state
+      entity_id: input_boolean.interior_lights_guest_override
+      state: "off"
+  actions:
+    - choose:
+        - conditions:
+            - condition: state
+              entity_id: binary_sensor.front_stairs_schedule_active
+              state: "on"
+          sequence:
+            - action: script.front_stairs_schedule_on
+      default:
+        - action: script.front_stairs_schedule_off
+        - action: input_boolean.turn_off
+          target:
+            entity_id: input_boolean.front_stairs_sleep_override
+  mode: single
+
+- id: foyer_chandelier_schedule_sync
+  alias: "Lights — Foyer Chandelier Schedule Sync"
+  description: Keep the foyer chandelier synced to the front stairs evening schedule while honoring the guest lighting override and bedtime hold for the rest of the night.
+  triggers:
+    - trigger: homeassistant
+      event: start
+      id: startup
+    - trigger: time_pattern
+      minutes: "/15"
+      id: refresh
+    - trigger: state
+      entity_id: input_boolean.interior_lights_guest_override
+      to: "off"
+      id: guest_override_off
+    - trigger: state
+      entity_id: binary_sensor.front_stairs_schedule_active
+      to: "on"
+      id: schedule_on
+    - trigger: state
+      entity_id: binary_sensor.front_stairs_schedule_active
+      to: "off"
+      for:
+        minutes: 2
+      id: schedule_off
+  conditions:
+    - condition: state
+      entity_id: input_boolean.interior_lights_guest_override
+      state: "off"
+  actions:
+    - choose:
+        - conditions:
+            - condition: trigger
+              id: schedule_off
+            - condition: state
+              entity_id: sun.sun
+              state: "above_horizon"
+          sequence:
+            - action: script.foyer_chandelier_schedule_off
+            - action: input_boolean.turn_off
+              target:
+                entity_id: input_boolean.foyer_chandelier_sleep_hold
+        - conditions:
+            - condition: trigger
+              id: schedule_on
+            - condition: state
+              entity_id: input_boolean.foyer_chandelier_sleep_hold
+              state: "off"
+          sequence:
+            - action: script.foyer_chandelier_schedule_on
+        - conditions:
+            - condition: trigger
+              id: startup
+            - condition: state
+              entity_id: binary_sensor.front_stairs_schedule_active
+              state: "off"
+          sequence:
+            - action: input_boolean.turn_off
+              target:
+                entity_id: input_boolean.foyer_chandelier_sleep_hold
+        - conditions:
+            - condition: state
+              entity_id: binary_sensor.front_stairs_schedule_active
+              state: "on"
+            - condition: state
+              entity_id: input_boolean.foyer_chandelier_sleep_hold
+              state: "off"
+          sequence:
+            - choose:
+                - conditions:
+                    - condition: template
+                      value_template: "{{ trigger.id == 'startup' }}"
+                  sequence:
+                    - action: script.foyer_chandelier_schedule_on
+                - conditions:
+                    - condition: trigger
+                      id: refresh
+                    - condition: state
+                      entity_id: light.front_foyer_chandelier
+                      state: "on"
+                  sequence:
+                    - action: script.foyer_chandelier_schedule_on
+  mode: single
+
+- id: interior_evening_mode_schedule_sync
+  alias: "Lights — Interior Evening Mode Schedule Sync"
+  description: Starts the calm interior evening scene when the adjusted evening threshold is reached and Casey or Trevor is home.
+  triggers:
+    - trigger: state
+      entity_id: binary_sensor.front_stairs_schedule_active
+      to: "on"
+  conditions:
+    - condition: state
+      entity_id: binary_sensor.front_stairs_schedule_active
+      state: "on"
+    - condition: template
+      value_template: "{{ not is_state_attr('sun.sun', 'rising', true) }}"
+    - condition: template
+      value_template: "{{ is_state('person.bonticou', 'home') or is_state('person.casey', 'home') }}"
+    - condition: state
+      entity_id: input_boolean.interior_lights_guest_override
+      state: "off"
+    - condition: template
+      value_template: "{{ states('input_select.lighting_active_scene') not in ['Evening', 'TV', 'Bedtime'] }}"
+  actions:
+    - action: script.lights_evening_scene
+  mode: single
+
+- id: casey_closet_auto_off
+  alias: "Lights — Casey's Closet Auto-Off"
+  description: Turn Casey's closet on with closet motion and off after three minutes without motion.
+  initial_state: true
+  triggers:
+    - trigger: state
+      entity_id: binary_sensor.casey_s_closet_motion
+      to: "on"
+      id: motion
+    - trigger: template
+      value_template: >-
+        {{ is_state('light.master_casey_s_closet', 'on')
+           and not is_state('binary_sensor.casey_s_closet_motion', 'on') }}
+      for:
+        minutes: 3
+      id: quiet
+  actions:
+    - variables:
+        closet_brightness_pct: >-
+          {% set evening_elevation = states('sensor.lighting_evening_on_schedule_elevation_threshold') | float(10) %}
+          {% set morning_elevation = states('sensor.lighting_morning_off_schedule_elevation_threshold') | float(10) %}
+          {% set schedule_elevation = morning_elevation if is_state_attr('sun.sun', 'rising', true) else evening_elevation %}
+          {% set night_elevation = -10 %}
+          {% set elevation = state_attr('sun.sun', 'elevation') | float(90) %}
+          {% if elevation > schedule_elevation %}
+            50
+          {% elif elevation > night_elevation %}
+            30
+          {% else %}
+            10
+          {% endif %}
+    - choose:
+        - conditions:
+            - condition: trigger
+              id: motion
+            - condition: state
+              entity_id: light.master_casey_s_closet
+              state: "off"
+          sequence:
+            - action: light.turn_on
+              target:
+                entity_id: light.master_casey_s_closet
+              data:
+                brightness_pct: "{{ closet_brightness_pct }}"
+        - conditions:
+            - condition: trigger
+              id: quiet
+            - condition: state
+              entity_id: light.master_casey_s_closet
+              state: "on"
+          sequence:
+            - action: light.turn_off
+              target:
+                entity_id: light.master_casey_s_closet
+              data:
+                transition: 2
+  mode: single
+
+- id: garage_light_auto_off
+  alias: "Lights — Garage Light Auto-Off"
+  description: Turn the garage light off after five quiet minutes, unless the garage camera has seen recent activity.
+  initial_state: true
+  triggers:
+    - trigger: state
+      entity_id: switch.garage_garage_lights
+      to: "on"
+      for:
+        minutes: 5
+    - trigger: state
+      entity_id:
+        - binary_sensor.g6_instant_motion_3
+        - binary_sensor.garage_person_detected
+        - binary_sensor.garage_vehicle_detected
+      to: "off"
+      for:
+        minutes: 5
+  conditions:
+    - condition: template
+      value_template: >-
+        {{ is_state('switch.garage_garage_lights', 'on')
+           and (as_timestamp(now()) - as_timestamp(states.switch.garage_garage_lights.last_changed, 0)) >= 300 }}
+    - condition: template
+      value_template: >-
+        {% set camera_entities = [
+          'binary_sensor.g6_instant_motion_3',
+          'binary_sensor.garage_person_detected',
+          'binary_sensor.garage_vehicle_detected'
+        ] %}
+        {% set ns = namespace(recent=false) %}
+        {% for entity_id in camera_entities %}
+          {% set sensor = states[entity_id] %}
+          {% if sensor is not none and sensor.state == 'on' %}
+            {% set ns.recent = true %}
+          {% elif sensor is not none
+                  and sensor.state == 'off'
+                  and (as_timestamp(now()) - as_timestamp(sensor.last_changed, 0)) < 300 %}
+            {% set ns.recent = true %}
+          {% endif %}
+        {% endfor %}
+        {{ not ns.recent }}
+  actions:
+    - action: switch.turn_off
+      target:
+        entity_id: switch.garage_garage_lights
+  mode: single
+
+- id: vacation_activity_schedule_sync
+  alias: "Vacation — Activity Lighting Sync"
+  description: Keeps the vacation activity simulation aligned with the evening and pre-sunrise sun-curve windows.
+  triggers:
+    - trigger: homeassistant
+      event: start
+    - trigger: time_pattern
+      minutes: "/5"
+    - trigger: state
+      entity_id: input_boolean.vacation_mode
+      to: "on"
+    - trigger: state
+      entity_id: sensor.vacation_activity_window
+  conditions:
+    - condition: state
+      entity_id: input_boolean.vacation_mode
+      state: "on"
+  actions:
+    - action: script.vacation_activity_apply
+  mode: restart
+
+- id: vacation_activity_window_notifications
+  alias: "Vacation — Activity Window Notifications"
+  description: Sends one calm push when each vacation activity window starts and ends.
+  triggers:
+    - trigger: state
+      entity_id: sensor.vacation_activity_window
+  conditions:
+    - condition: state
+      entity_id: input_boolean.vacation_mode
+      state: "on"
+    - condition: template
+      value_template: >-
+        {{ trigger.from_state is not none
+           and trigger.to_state is not none
+           and trigger.from_state.state not in ['unknown', 'unavailable', '']
+           and trigger.to_state.state not in ['unknown', 'unavailable', ''] }}
+  actions:
+    - choose:
+        - conditions:
+            - condition: template
+              value_template: "{{ trigger.to_state.state == 'evening' and trigger.from_state.state != 'evening' }}"
+          sequence:
+            - action: script.notify_trevor_phone
+              data:
+                title: "🌴✨ Vacation glow is on"
+                message: Home lighting is simulating activity for the evening. The house is doing its lived-in routine.
+                data:
+                  tag: vacation-activity-evening
+                  group: lighting
+                  url: /calm-mobile
+        - conditions:
+            - condition: template
+              value_template: "{{ trigger.from_state.state == 'evening' and trigger.to_state.state != 'evening' }}"
+          sequence:
+            - action: script.notify_trevor_phone
+              data:
+                title: "🌙🏡 Vacation glow tucked in"
+                message: The evening activity simulation finished. The house is quiet again and still watching.
+                data:
+                  tag: vacation-activity-evening
+                  group: lighting
+                  url: /calm-mobile
+        - conditions:
+            - condition: template
+              value_template: "{{ trigger.to_state.state == 'pre_sunrise' and trigger.from_state.state != 'pre_sunrise' }}"
+          sequence:
+            - action: script.notify_trevor_phone
+              data:
+                title: "🌅🌴 Vacation morning glow"
+                message: Home lighting is simulating early-morning activity as sunrise approaches.
+                data:
+                  tag: vacation-activity-morning
+                  group: lighting
+                  url: /calm-mobile
+        - conditions:
+            - condition: template
+              value_template: "{{ trigger.from_state.state == 'pre_sunrise' and trigger.to_state.state != 'pre_sunrise' }}"
+          sequence:
+            - action: script.notify_trevor_phone
+              data:
+                title: "☀️🏡 Vacation glow faded out"
+                message: The pre-sunrise activity simulation finished. Daylight has the house now.
+                data:
+                  tag: vacation-activity-morning
+                  group: lighting
+                  url: /calm-mobile
+  mode: queued
+  max: 4
+
+- id: away_security_unsecured_reminder
+  alias: "Security — House Unsecured While Away"
+  description: >
+    Reminds Trevor when both Trevor and Casey are away while an entry point is
+    unsecured or lights are still on. Reminder can be snoozed from the push.
+  triggers:
+    - trigger: state
+      entity_id: binary_sensor.house_unsecured_while_away
+      to: "on"
+      id: became_unsecured
+    - trigger: state
+      entity_id:
+        - cover.ratgdo32disco_c26634_door
+        - cover.ratgdo32_4536e8_door
+      to: "opening"
+      id: garage_opening_away
+    - trigger: state
+      entity_id:
+        - cover.ratgdo32disco_c26634_door
+        - cover.ratgdo32_4536e8_door
+      to: "open"
+      id: garage_opened_away
+    - trigger: homeassistant
+      event: start
+      id: startup
+    - trigger: event
+      event_type: automation_reloaded
+      id: automation_reloaded
+    - trigger: state
+      entity_id: device_tracker.unifi_default_42_15_78_4a_d9_f8
+      not_from:
+        - "unknown"
+        - "unavailable"
+      not_to:
+        - "unknown"
+        - "unavailable"
+      id: casey_departed
+    - trigger: state
+      entity_id: device_tracker.tk_iphone_16_pro
+      not_from:
+        - "unknown"
+        - "unavailable"
+      not_to:
+        - "unknown"
+        - "unavailable"
+      id: trevor_departed
+    - trigger: state
+      entity_id: sensor.away_security_issue_summary
+      id: issue_changed
+    - trigger: time_pattern
+      minutes: "/15"
+      id: repeat
+  conditions:
+    - condition: template
+      value_template: >
+        {% set snooze = states('input_datetime.away_security_snooze_until') %}
+        {{ snooze in ['unknown', 'unavailable', '']
+           or as_timestamp(snooze, 0) <= as_timestamp(now()) }}
+  actions:
+    - if:
+        - condition: template
+          value_template: "{{ trigger.id == 'startup' }}"
+      then:
+        - delay:
+            seconds: 15
+    - variables:
+        trevor_state: "{{ states('device_tracker.tk_iphone_16_pro') }}"
+        casey_state: "{{ states('device_tracker.unifi_default_42_15_78_4a_d9_f8') }}"
+        trevor_away: "{{ trevor_state not in ['home', 'unknown', 'unavailable', ''] }}"
+        casey_away: "{{ casey_state not in ['home', 'unknown', 'unavailable', ''] }}"
+        use_casey_context: >
+          {{ trigger.id == 'casey_departed'
+             and trigger.from_state is not none
+             and trigger.to_state is not none
+             and trigger.from_state.state == 'home'
+             and trigger.to_state.state not in ['home', 'unknown', 'unavailable', ''] }}
+        entry_points_unsecured: "{{ states('sensor.away_security_entry_point_issues') | int(0) > 0 }}"
+        daylight: "{{ is_state('sun.sun', 'above_horizon') }}"
+        active_lights_on: >
+          {{ states('sensor.away_security_active_lights') | int(0) > 0 }}
+        home_unsecured: >
+          {{ trevor_away | bool
+             and casey_away | bool
+             and (entry_points_unsecured | bool or active_lights_on | bool) }}
+    - if:
+        - condition: template
+          value_template: "{{ home_unsecured | bool }}"
+      then:
+        - choose:
+            - conditions:
+                - condition: template
+                  value_template: >
+                    {{ use_casey_context | bool
+                       and daylight | bool
+                       and entry_points_unsecured | bool
+                       and active_lights_on | bool }}
+              sequence:
+                - action: script.casey_left_combo_send_alert
+            - conditions:
+                - condition: template
+                  value_template: "{{ use_casey_context | bool and entry_points_unsecured | bool }}"
+              sequence:
+                - action: script.casey_left_garage_send_alert
+            - conditions:
+                - condition: template
+                  value_template: >
+                    {{ use_casey_context | bool
+                       and daylight | bool
+                       and active_lights_on | bool }}
+              sequence:
+                - action: script.casey_left_lights_send_alert
+          default:
+            - action: script.away_security_send_alert
+  mode: restart
+
+- id: away_security_notification_actions
+  alias: "Security — Away Reminder Actions"
+  description: Handles quick actions from the away-security push notification.
+  triggers:
+    - trigger: event
+      event_type: mobile_app_notification_action
+  conditions:
+    - condition: template
+      value_template: >
+        {{ trigger.event.data.action in [
+          'CLOSE_AWAY_GARAGE',
+          'LOCK_AWAY_GARAGE',
+          'LOCK_AWAY_ENTRY_DOORS',
+          'LOCK_CASEY_LEFT_GARAGE',
+          'LOCK_CASEY_LEFT_ENTRY_DOORS',
+          'SECURE_AWAY_HOME',
+          'SECURE_CASEY_LEFT_HOME',
+          'TURN_OFF_AWAY_LIGHTS',
+          'TURN_OFF_CASEY_LEFT_LIGHTS',
+          'SNOOZE_AWAY_SECURITY_30',
+          'SNOOZE_AWAY_SECURITY_120'
+        ] }}
+  actions:
+    - choose:
+        - conditions:
+            - condition: template
+              value_template: "{{ trigger.event.data.action in ['SECURE_AWAY_HOME', 'SECURE_CASEY_LEFT_HOME'] }}"
+          sequence:
+            - action: script.away_security_lock_unlocked_entry_doors
+            - variables:
+                active_lights: >
+                  {% set light_ids = state_attr('sensor.away_security_active_lights', 'entity_ids') | default('', true) %}
+                  {{ (light_ids.split('||') if light_ids else []) | reject('eq', '') | list }}
+            - repeat:
+                for_each: "{{ active_lights }}"
+                sequence:
+                  - action: homeassistant.turn_off
+                    target:
+                      entity_id: "{{ repeat.item }}"
+            - action: script.away_security_close_open_garage_doors
+            - delay:
+                seconds: 2
+            - action: script.casey_left_combo_clear_alert
+            - action: script.casey_left_garage_clear_alert
+            - action: script.casey_left_lights_clear_alert
+            - if:
+                - condition: template
+                  value_template: >
+                    {% set trevor_state = states('device_tracker.tk_iphone_16_pro') %}
+                    {% set casey_state = states('device_tracker.unifi_default_42_15_78_4a_d9_f8') %}
+                    {% set trevor_away = trevor_state not in ['home', 'unknown', 'unavailable', ''] %}
+                    {% set casey_away = casey_state not in ['home', 'unknown', 'unavailable', ''] %}
+                    {{ not (trevor_away and casey_away and is_state('binary_sensor.away_security_garage_door_open', 'on')) }}
+              then:
+                - if:
+                    - condition: template
+                      value_template: >
+                        {% set trevor_state = states('device_tracker.tk_iphone_16_pro') %}
+                        {% set casey_state = states('device_tracker.unifi_default_42_15_78_4a_d9_f8') %}
+                        {% set trevor_away = trevor_state not in ['home', 'unknown', 'unavailable', ''] %}
+                        {% set casey_away = casey_state not in ['home', 'unknown', 'unavailable', ''] %}
+                        {% set lights_on = states('sensor.away_security_active_lights') | int(0) > 0 %}
+                        {% set entry_points_unsecured = states('sensor.away_security_entry_point_issues') | int(0) > 0 %}
+                        {{ trevor_away and casey_away and
+                           (entry_points_unsecured or lights_on) }}
+                  then:
+                    - action: script.away_security_send_alert
+                  else:
+                    - action: script.away_security_clear_alert
+
+        - conditions:
+            - condition: template
+              value_template: "{{ trigger.event.data.action == 'CLOSE_AWAY_GARAGE' }}"
+          sequence:
+            - action: script.away_security_close_open_garage_doors
+            - delay:
+                seconds: 2
+            - if:
+                - condition: template
+                  value_template: "{{ not is_state('binary_sensor.away_security_garage_door_open', 'on') }}"
+              then:
+                - action: script.casey_left_garage_clear_alert
+            - if:
+                - condition: template
+                  value_template: >
+                    {% set trevor_state = states('device_tracker.tk_iphone_16_pro') %}
+                    {% set casey_state = states('device_tracker.unifi_default_42_15_78_4a_d9_f8') %}
+                    {% set trevor_away = trevor_state not in ['home', 'unknown', 'unavailable', ''] %}
+                    {% set casey_away = casey_state not in ['home', 'unknown', 'unavailable', ''] %}
+                    {{ not (trevor_away and casey_away and is_state('binary_sensor.away_security_garage_door_open', 'on')) }}
+              then:
+                - if:
+                    - condition: template
+                      value_template: >
+                        {% set trevor_state = states('device_tracker.tk_iphone_16_pro') %}
+                        {% set casey_state = states('device_tracker.unifi_default_42_15_78_4a_d9_f8') %}
+                        {% set trevor_away = trevor_state not in ['home', 'unknown', 'unavailable', ''] %}
+                        {% set casey_away = casey_state not in ['home', 'unknown', 'unavailable', ''] %}
+                        {% set lights_on = states('sensor.away_security_active_lights') | int(0) > 0 %}
+                        {% set entry_points_unsecured = states('sensor.away_security_entry_point_issues') | int(0) > 0 %}
+                        {{ trevor_away and casey_away and
+                           (entry_points_unsecured or lights_on) }}
+                  then:
+                    - action: script.away_security_send_alert
+                  else:
+                    - action: script.away_security_clear_alert
+
+        - conditions:
+            - condition: template
+              value_template: "{{ trigger.event.data.action in ['LOCK_AWAY_GARAGE', 'LOCK_AWAY_ENTRY_DOORS', 'LOCK_CASEY_LEFT_GARAGE', 'LOCK_CASEY_LEFT_ENTRY_DOORS'] }}"
+          sequence:
+            - action: script.away_security_lock_unlocked_entry_doors
+            - delay:
+                seconds: 2
+            - action: script.casey_left_garage_clear_alert
+            - if:
+                - condition: template
+                  value_template: >
+                    {% set trevor_state = states('device_tracker.tk_iphone_16_pro') %}
+                    {% set casey_state = states('device_tracker.unifi_default_42_15_78_4a_d9_f8') %}
+                    {% set trevor_away = trevor_state not in ['home', 'unknown', 'unavailable', ''] %}
+                    {% set casey_away = casey_state not in ['home', 'unknown', 'unavailable', ''] %}
+                    {% set lights_on = states('sensor.away_security_active_lights') | int(0) > 0 %}
+                    {% set entry_points_unsecured = states('sensor.away_security_entry_point_issues') | int(0) > 0 %}
+                    {{ trevor_away and casey_away and
+                       (entry_points_unsecured or lights_on) }}
+              then:
+                - action: script.away_security_send_alert
+              else:
+                - action: script.away_security_clear_alert
+
+        - conditions:
+            - condition: template
+              value_template: "{{ trigger.event.data.action in ['TURN_OFF_AWAY_LIGHTS', 'TURN_OFF_CASEY_LEFT_LIGHTS'] }}"
+          sequence:
+            - variables:
+                active_lights: >
+                  {% set light_ids = state_attr('sensor.away_security_active_lights', 'entity_ids') | default('', true) %}
+                  {{ (light_ids.split('||') if light_ids else []) | reject('eq', '') | list }}
+            - repeat:
+                for_each: "{{ active_lights }}"
+                sequence:
+                  - action: homeassistant.turn_off
+                    target:
+                      entity_id: "{{ repeat.item }}"
+            - delay:
+                seconds: 2
+            - action: script.casey_left_lights_clear_alert
+            - if:
+                - condition: template
+                  value_template: >
+                    {% set trevor_state = states('device_tracker.tk_iphone_16_pro') %}
+                    {% set casey_state = states('device_tracker.unifi_default_42_15_78_4a_d9_f8') %}
+                    {% set trevor_away = trevor_state not in ['home', 'unknown', 'unavailable', ''] %}
+                    {% set casey_away = casey_state not in ['home', 'unknown', 'unavailable', ''] %}
+                    {% set lights_on = states('sensor.away_security_active_lights') | int(0) > 0 %}
+                    {% set entry_points_unsecured = states('sensor.away_security_entry_point_issues') | int(0) > 0 %}
+                    {{ trevor_away and casey_away and
+                       (entry_points_unsecured or lights_on) }}
+              then:
+                - action: script.away_security_send_alert
+              else:
+                - action: script.away_security_clear_alert
+
+        - conditions:
+            - condition: template
+              value_template: "{{ trigger.event.data.action == 'SNOOZE_AWAY_SECURITY_30' }}"
+          sequence:
+            - action: script.away_security_snooze_30
+
+        - conditions:
+            - condition: template
+              value_template: "{{ trigger.event.data.action == 'SNOOZE_AWAY_SECURITY_120' }}"
+          sequence:
+            - action: input_datetime.set_datetime
+              target:
+                entity_id: input_datetime.away_security_snooze_until
+              data:
+                datetime: "{{ (now() + timedelta(hours=2)).strftime('%Y-%m-%d %H:%M:%S') }}"
+            - action: script.away_security_clear_alert
+            - action: script.notify_trevor_phone
+              data:
+                title: House reminder sleeping
+                message: Away security reminders paused for 2 hours.
+                data:
+                  tag: away-security-snooze
+  mode: parallel
+  max: 10
+
+- id: garage_security_notification_actions
+  alias: "Garage — Notification Actions"
+  description: Handles quick actions from ratgdo garage reminders.
+  triggers:
+    - trigger: event
+      event_type: mobile_app_notification_action
+  conditions:
+    - condition: template
+      value_template: >
+        {{ trigger.event.data.action in [
+          'CLOSE_GARAGE_SECURITY',
+          'SNOOZE_GARAGE_SECURITY_30',
+          'SNOOZE_GARAGE_SECURITY_MORNING'
+        ] }}
+  actions:
+    - choose:
+        - conditions:
+            - condition: template
+              value_template: "{{ trigger.event.data.action == 'CLOSE_GARAGE_SECURITY' }}"
+          sequence:
+            - action: script.away_security_close_open_garage_doors
+            - delay:
+                seconds: 2
+            - if:
+                - condition: state
+                  entity_id: binary_sensor.away_security_garage_door_open
+                  state: "off"
+              then:
+                - action: script.garage_security_clear_alerts
+        - conditions:
+            - condition: template
+              value_template: "{{ trigger.event.data.action == 'SNOOZE_GARAGE_SECURITY_30' }}"
+          sequence:
+            - action: script.garage_security_snooze_30
+        - conditions:
+            - condition: template
+              value_template: "{{ trigger.event.data.action == 'SNOOZE_GARAGE_SECURITY_MORNING' }}"
+          sequence:
+            - action: script.garage_security_snooze_until_morning
+  mode: parallel
+  max: 10
+
+- id: entry_security_notification_actions
+  alias: "Security — Entry Night Notification Actions"
+  description: Handles quick actions from overnight entry-security reminders.
+  triggers:
+    - trigger: event
+      event_type: mobile_app_notification_action
+  conditions:
+    - condition: template
+      value_template: >
+        {{ trigger.event.data.action in [
+          'LOCK_MUDROOM_NIGHT_SECURITY',
+          'SNOOZE_ENTRY_SECURITY_30',
+          'SNOOZE_ENTRY_SECURITY_MORNING'
+        ] }}
+  actions:
+    - choose:
+        - conditions:
+            - condition: template
+              value_template: "{{ trigger.event.data.action == 'LOCK_MUDROOM_NIGHT_SECURITY' }}"
+          sequence:
+            - action: script.entry_security_lock_mudroom_door
+        - conditions:
+            - condition: template
+              value_template: "{{ trigger.event.data.action == 'SNOOZE_ENTRY_SECURITY_30' }}"
+          sequence:
+            - action: script.entry_security_snooze_30
+        - conditions:
+            - condition: template
+              value_template: "{{ trigger.event.data.action == 'SNOOZE_ENTRY_SECURITY_MORNING' }}"
+          sequence:
+            - action: script.entry_security_snooze_until_morning
+  mode: parallel
+  max: 10
+
+- id: away_motion_security_notification_actions
+  alias: "Security — Away Motion Notification Actions"
+  description: Handles quick actions from away motion security notifications.
+  triggers:
+    - trigger: event
+      event_type: mobile_app_notification_action
+  conditions:
+    - condition: template
+      value_template: >
+        {{ trigger.event.data.action in [
+          'SNOOZE_AWAY_MOTION_SECURITY_30'
+        ] }}
+  actions:
+    - choose:
+        - conditions:
+            - condition: template
+              value_template: "{{ trigger.event.data.action == 'SNOOZE_AWAY_MOTION_SECURITY_30' }}"
+          sequence:
+            - action: script.away_motion_security_snooze_30
+  mode: parallel
+  max: 10
+
+- id: away_motion_security_activity_detected
+  alias: "Security — Motion While Everyone Away"
+  description: High-sensitivity alert for interior or garage motion after both household phones are away.
+  triggers:
+    - trigger: state
+      entity_id:
+        - binary_sensor.g6_instant_motion
+        - binary_sensor.wynn_s_room_motion
+        - binary_sensor.wynn_s_room_person_detected
+        - binary_sensor.mud_room_motion
+        - binary_sensor.mud_room_person_detected
+        - binary_sensor.mechanical_room_motion
+        - binary_sensor.mechanical_room_person_detected
+        - binary_sensor.dining_room_motion
+        - binary_sensor.dining_room_occupancy
+        - binary_sensor.office_motion
+        - binary_sensor.office_occupancy
+        - binary_sensor.master_motion_2
+        - binary_sensor.master_occupancy_2
+        - binary_sensor.master_sensor_new_motion_2
+        - binary_sensor.master_sensor_new_occupancy_2
+        - binary_sensor.wynn_room_motion
+        - binary_sensor.wynn_room_occupancy
+        - binary_sensor.g6_instant_motion_3
+        - binary_sensor.garage_person_detected
+        - binary_sensor.garage_vehicle_detected
+        - binary_sensor.ratgdo32disco_c26634_motion
+        - binary_sensor.ratgdo32disco_c26634_vehicle_arriving
+        - binary_sensor.ratgdo32disco_c26634_vehicle_leaving
+        - binary_sensor.ratgdo32_4536e8_motion
+      to: "on"
+  conditions:
+    - condition: template
+      value_template: >
+        {{ trigger.from_state is not none
+           and trigger.from_state.state not in ['on', 'unknown', 'unavailable', ''] }}
+    - condition: template
+      value_template: >
+        {% set trevor_away = states('device_tracker.tk_iphone_16_pro') not in ['home', 'unknown', 'unavailable', ''] %}
+        {% set casey_away = states('device_tracker.unifi_default_42_15_78_4a_d9_f8') not in ['home', 'unknown', 'unavailable', ''] %}
+        {{ trevor_away and casey_away }}
+    - condition: template
+      value_template: >
+        {{ is_state('binary_sensor.downstairs_everyone_away', 'on')
+           and (as_timestamp(now()) - as_timestamp(states.binary_sensor.downstairs_everyone_away.last_changed, 0)) >= 300 }}
+    - condition: template
+      value_template: >
+        {% set snooze = states('input_datetime.away_motion_security_snooze_until') %}
+        {{ snooze in ['unknown', 'unavailable', '']
+           or as_timestamp(snooze, 0) <= as_timestamp(now()) }}
+  actions:
+    - action: script.away_motion_security_send_alert
+      data:
+        motion_entity: "{{ trigger.entity_id }}"
+  mode: queued
+  max: 10
+
+- id: away_motion_security_clear_when_home
+  alias: "Security — Clear Away Motion Alert When Home"
+  description: Clears away motion security notifications and re-arms temporary guest pauses when a household phone returns home.
+  triggers:
+    - trigger: state
+      entity_id:
+        - device_tracker.tk_iphone_16_pro
+        - device_tracker.unifi_default_42_15_78_4a_d9_f8
+      to: home
+  conditions: []
+  actions:
+    - action: script.away_motion_security_resume
+  mode: single
+
+- id: garage_security_open_while_person_away
+  alias: "Garage — Open While Person Away"
+  description: >
+    Notifies Trevor when either garage door is open while exactly one household
+    person is away. Everyone-away cases stay in the away-security guardrail.
+  triggers:
+    - trigger: state
+      entity_id: binary_sensor.away_security_garage_door_open
+      to: "on"
+      id: garage_opened
+    - trigger: state
+      entity_id: device_tracker.tk_iphone_16_pro
+      not_from:
+        - "unknown"
+        - "unavailable"
+      not_to:
+        - "unknown"
+        - "unavailable"
+      id: trevor_presence
+    - trigger: state
+      entity_id: device_tracker.unifi_default_42_15_78_4a_d9_f8
+      not_from:
+        - "unknown"
+        - "unavailable"
+      not_to:
+        - "unknown"
+        - "unavailable"
+      id: casey_presence
+    - trigger: time_pattern
+      minutes: "/15"
+      id: repeat
+  conditions:
+    - condition: state
+      entity_id: binary_sensor.away_security_garage_door_open
+      state: "on"
+    - condition: template
+      value_template: >
+        {% set snooze = states('input_datetime.garage_security_snooze_until') %}
+        {{ snooze in ['unknown', 'unavailable', '']
+           or as_timestamp(snooze, 0) <= as_timestamp(now()) }}
+  actions:
+    - variables:
+        trevor_state: "{{ states('device_tracker.tk_iphone_16_pro') }}"
+        casey_state: "{{ states('device_tracker.unifi_default_42_15_78_4a_d9_f8') }}"
+        trevor_away: "{{ trevor_state not in ['home', 'unknown', 'unavailable', ''] }}"
+        casey_away: "{{ casey_state not in ['home', 'unknown', 'unavailable', ''] }}"
+        trevor_home: "{{ trevor_state == 'home' }}"
+        casey_home: "{{ casey_state == 'home' }}"
+        trigger_is_departure: >
+          {{ trigger.id in ['trevor_presence', 'casey_presence']
+             and trigger.from_state is not none
+             and trigger.to_state is not none
+             and trigger.from_state.state == 'home'
+             and trigger.to_state.state not in ['home', 'unknown', 'unavailable', ''] }}
+        trigger_is_garage_or_repeat: "{{ trigger.id in ['garage_opened', 'repeat'] }}"
+        repeat_is_due: >
+          {{ trigger.id != 'repeat'
+             or (as_timestamp(now()) - as_timestamp(states.binary_sensor.away_security_garage_door_open.last_changed, 0)) >= 900 }}
+    - condition: template
+      value_template: >
+        {{ repeat_is_due | bool
+           and (trigger_is_departure | bool or trigger_is_garage_or_repeat | bool)
+           and ((trevor_away | bool and casey_home | bool)
+                or (casey_away | bool and trevor_home | bool)) }}
+    - choose:
+        - conditions:
+            - condition: template
+              value_template: "{{ trevor_away | bool and casey_home | bool }}"
+          sequence:
+            - action: script.garage_security_send_alert
+              data:
+                alert_kind: trevor_away
+        - conditions:
+            - condition: template
+              value_template: "{{ casey_away | bool and trevor_home | bool }}"
+          sequence:
+            - action: script.garage_security_send_alert
+              data:
+                alert_kind: casey_away
+  mode: restart
+
+- id: garage_security_open_too_long
+  alias: "Garage — Open Too Long"
+  description: Low-noise reminder when either ratgdo garage door stays open while someone is home.
+  triggers:
+    - trigger: state
+      entity_id:
+        - cover.ratgdo32disco_c26634_door
+        - cover.ratgdo32_4536e8_door
+      to: "open"
+      for:
+        minutes: 30
+      id: open_30
+    - trigger: time_pattern
+      minutes: "/30"
+      id: repeat
+  conditions:
+    - condition: state
+      entity_id: binary_sensor.away_security_garage_door_open
+      state: "on"
+    - condition: template
+      value_template: >
+        {{ is_state('device_tracker.tk_iphone_16_pro', 'home')
+           and is_state('device_tracker.unifi_default_42_15_78_4a_d9_f8', 'home') }}
+    - condition: template
+      value_template: >
+        {% set snooze = states('input_datetime.garage_security_snooze_until') %}
+        {{ snooze in ['unknown', 'unavailable', '']
+           or as_timestamp(snooze, 0) <= as_timestamp(now()) }}
+    - condition: template
+      value_template: >
+        {% set minutes_now = now().hour * 60 + now().minute %}
+        {{ minutes_now >= 360 and minutes_now < 1350 }}
+    - condition: template
+      value_template: >
+        {{ trigger.id != 'repeat'
+           or (as_timestamp(now()) - as_timestamp(states.binary_sensor.away_security_garage_door_open.last_changed, 0)) >= 1800 }}
+  actions:
+    - action: script.garage_security_send_alert
+      data:
+        alert_kind: open_too_long
+        garage_cover: "{{ trigger.entity_id if trigger.id == 'open_30' else state_attr('binary_sensor.away_security_garage_door_open', 'primary_open_entity') }}"
+  mode: single
+
+- id: garage_security_open_at_night
+  alias: "Garage — Open At Night"
+  description: Higher-priority reminder when either ratgdo garage door is open during the overnight window.
+  triggers:
+    - trigger: time
+      at: "22:30:00"
+      id: bedtime_check
+    - trigger: time_pattern
+      minutes: "/15"
+      id: repeat
+  conditions:
+    - condition: state
+      entity_id: binary_sensor.away_security_garage_door_open
+      state: "on"
+    - condition: template
+      value_template: >
+        {% set snooze = states('input_datetime.garage_security_snooze_until') %}
+        {{ snooze in ['unknown', 'unavailable', '']
+           or as_timestamp(snooze, 0) <= as_timestamp(now()) }}
+    - condition: template
+      value_template: >
+        {% set minutes_now = now().hour * 60 + now().minute %}
+        {{ minutes_now >= 1350 or minutes_now < 360 }}
+    - condition: template
+      value_template: >
+        {{ is_state('device_tracker.tk_iphone_16_pro', 'home')
+           and is_state('device_tracker.unifi_default_42_15_78_4a_d9_f8', 'home') }}
+  actions:
+    - action: script.garage_security_send_alert
+      data:
+        alert_kind: open_at_night
+  mode: single
+
+- id: entry_security_mudroom_unlocked_at_night
+  alias: "Security — Mudroom Unlocked At Night"
+  description: Reminds Trevor when the mudroom door is unlocked during the overnight window.
+  triggers:
+    - trigger: time
+      at: "22:30:00"
+      id: bedtime_check
+    - trigger: state
+      entity_id: lock.mudroom_door_lock
+      to: "unlocked"
+      id: unlocked
+    - trigger: homeassistant
+      event: start
+      id: startup
+    - trigger: event
+      event_type: automation_reloaded
+      id: automation_reloaded
+    - trigger: time_pattern
+      minutes: "/15"
+      id: repeat
+  conditions:
+    - condition: state
+      entity_id: lock.mudroom_door_lock
+      state: "unlocked"
+    - condition: template
+      value_template: >
+        {% set snooze = states('input_datetime.entry_security_snooze_until') %}
+        {{ snooze in ['unknown', 'unavailable', '']
+           or as_timestamp(snooze, 0) <= as_timestamp(now()) }}
+    - condition: template
+      value_template: >
+        {% set minutes_now = now().hour * 60 + now().minute %}
+        {{ minutes_now >= 1350 or minutes_now < 360 }}
+    - condition: template
+      value_template: >
+        {% set trevor_away = states('device_tracker.tk_iphone_16_pro') not in ['home', 'unknown', 'unavailable', ''] %}
+        {% set casey_away = states('device_tracker.unifi_default_42_15_78_4a_d9_f8') not in ['home', 'unknown', 'unavailable', ''] %}
+        {{ not (trevor_away and casey_away) }}
+  actions:
+    - if:
+        - condition: template
+          value_template: "{{ trigger.id == 'startup' }}"
+      then:
+        - delay:
+            seconds: 15
+    - action: script.entry_security_send_alert
+      data:
+        alert_kind: mudroom_unlocked_at_night
+  mode: single
+
+- id: garage_security_opened_overnight
+  alias: "Garage — Opened Overnight"
+  description: Immediate alert when either ratgdo garage door opens overnight without a recent arrival home.
+  triggers:
+    - trigger: state
+      entity_id:
+        - cover.ratgdo32disco_c26634_door
+        - cover.ratgdo32_4536e8_door
+      from: "closed"
+      to: "opening"
+      id: opening
+    - trigger: state
+      entity_id:
+        - cover.ratgdo32disco_c26634_door
+        - cover.ratgdo32_4536e8_door
+      from: "closed"
+      to: "open"
+      id: open
+  conditions:
+    - condition: template
+      value_template: >
+        {% set minutes_now = now().hour * 60 + now().minute %}
+        {{ minutes_now >= 1380 or minutes_now < 360 }}
+    - condition: template
+      value_template: >
+        {% set snooze = states('input_datetime.garage_security_snooze_until') %}
+        {{ snooze in ['unknown', 'unavailable', '']
+           or as_timestamp(snooze, 0) <= as_timestamp(now()) }}
+    - condition: template
+      value_template: >
+        {% set recent_window = 600 %}
+        {% set trevor_recent = is_state('device_tracker.tk_iphone_16_pro', 'home')
+           and (as_timestamp(now()) - as_timestamp(states.device_tracker.tk_iphone_16_pro.last_changed, 0)) < recent_window %}
+        {% set casey_recent = is_state('device_tracker.unifi_default_42_15_78_4a_d9_f8', 'home')
+           and (as_timestamp(now()) - as_timestamp(states.device_tracker.unifi_default_42_15_78_4a_d9_f8.last_changed, 0)) < recent_window %}
+        {{ not (trevor_recent or casey_recent) }}
+  actions:
+    - action: script.garage_security_send_alert
+      data:
+        alert_kind: opened_overnight
+        garage_cover: "{{ trigger.entity_id }}"
+  mode: single
+
+- id: garage_security_obstruction_detected
+  alias: "Garage — Obstruction Detected"
+  description: Pushes only when either ratgdo reports an obstruction while that garage door is moving.
+  triggers:
+    - trigger: state
+      entity_id:
+        - binary_sensor.ratgdo32disco_c26634_obstruction
+        - binary_sensor.ratgdo32_4536e8_obstruction
+      to: "on"
+  conditions:
+    - condition: template
+      value_template: >-
+        {% set cover = 'cover.ratgdo32_4536e8_door'
+           if trigger.entity_id == 'binary_sensor.ratgdo32_4536e8_obstruction'
+           else 'cover.ratgdo32disco_c26634_door' %}
+        {{ states(cover) in ['opening', 'closing'] }}
+    - condition: template
+      value_template: >
+        {% set snooze = states('input_datetime.garage_security_snooze_until') %}
+        {{ snooze in ['unknown', 'unavailable', '']
+           or as_timestamp(snooze, 0) <= as_timestamp(now()) }}
+  actions:
+    - action: script.garage_security_send_alert
+      data:
+        alert_kind: obstruction
+        garage_cover: >-
+          {{ 'cover.ratgdo32_4536e8_door'
+             if trigger.entity_id == 'binary_sensor.ratgdo32_4536e8_obstruction'
+             else 'cover.ratgdo32disco_c26634_door' }}
+  mode: single
+
+- id: garage_security_clear_when_resolved
+  alias: "Garage — Clear Alerts When Resolved"
+  description: Clears active garage-security pushes when the door closes or obstruction clears.
+  triggers:
+    - trigger: state
+      entity_id:
+        - cover.ratgdo32disco_c26634_door
+        - cover.ratgdo32_4536e8_door
+      to: "closed"
+      id: door_closed
+    - trigger: state
+      entity_id:
+        - binary_sensor.ratgdo32disco_c26634_obstruction
+        - binary_sensor.ratgdo32_4536e8_obstruction
+      to: "off"
+      id: obstruction_clear
+    - trigger: state
+      entity_id:
+        - device_tracker.tk_iphone_16_pro
+        - device_tracker.unifi_default_42_15_78_4a_d9_f8
+      to: home
+      id: person_home
+  conditions: []
+  actions:
+    - choose:
+        - conditions:
+            - condition: template
+              value_template: "{{ trigger.id == 'door_closed' }}"
+          sequence:
+            - if:
+                - condition: state
+                  entity_id: binary_sensor.away_security_garage_door_open
+                  state: "off"
+              then:
+                - action: script.garage_security_clear_alerts
+        - conditions:
+            - condition: template
+              value_template: "{{ trigger.id == 'obstruction_clear' }}"
+          sequence:
+            - action: script.notify_trevor_phone
+              data:
+                message: clear_notification
+                data:
+                  tag: garage-obstruction
+        - conditions:
+            - condition: template
+              value_template: "{{ trigger.id == 'person_home' }}"
+          sequence:
+            - action: script.garage_security_clear_person_away_alerts
+  mode: single
+
+- id: entry_security_clear_when_resolved
+  alias: "Security — Clear Entry Night Reminder When Resolved"
+  description: Clears overnight entry-security pushes when the mudroom lock is secured or away-security takes over.
+  triggers:
+    - trigger: state
+      entity_id: lock.mudroom_door_lock
+      to: "locked"
+      id: mudroom_locked
+    - trigger: state
+      entity_id:
+        - device_tracker.tk_iphone_16_pro
+        - device_tracker.unifi_default_42_15_78_4a_d9_f8
+      not_from:
+        - "unknown"
+        - "unavailable"
+      not_to:
+        - "unknown"
+        - "unavailable"
+      id: presence
+    - trigger: state
+      entity_id: binary_sensor.house_unsecured_while_away
+      to: "on"
+      id: away_security
+    - trigger: homeassistant
+      event: start
+      id: startup
+    - trigger: event
+      event_type: automation_reloaded
+      id: automation_reloaded
+  conditions: []
+  actions:
+    - if:
+        - condition: template
+          value_template: >
+            {% set trevor_away = states('device_tracker.tk_iphone_16_pro') not in ['home', 'unknown', 'unavailable', ''] %}
+            {% set casey_away = states('device_tracker.unifi_default_42_15_78_4a_d9_f8') not in ['home', 'unknown', 'unavailable', ''] %}
+            {{ trigger.id in ['mudroom_locked', 'away_security']
+               or is_state('lock.mudroom_door_lock', 'locked')
+               or (trevor_away and casey_away) }}
+      then:
+        - action: script.entry_security_clear_alerts
+
+- id: away_security_clear_when_resolved
+  alias: "Security — Clear Away Reminder When Resolved"
+  description: Clears the active away-security push once the issue is resolved.
+  triggers:
+    - trigger: state
+      entity_id: binary_sensor.house_unsecured_while_away
+      to: "off"
+  conditions: []
+  actions:
+    - action: script.away_security_clear_alert
+  mode: single
+
+- id: security_casey_left_garage_clear
+  alias: "Security — Clear Casey Left Entry Alert"
+  description: Clears the contextual Casey-left-entry push once it is no longer relevant.
+  triggers:
+    - trigger: state
+      entity_id:
+        - cover.ratgdo32disco_c26634_door
+        - cover.ratgdo32_4536e8_door
+      to: closed
+    - trigger: state
+      entity_id:
+        - lock.garage_entry_lock
+        - lock.mudroom_door_lock
+      to: locked
+    - trigger: state
+      entity_id: device_tracker.tk_iphone_16_pro
+      to: home
+    - trigger: state
+      entity_id: device_tracker.unifi_default_42_15_78_4a_d9_f8
+      to: home
+  conditions: []
+  actions:
+    - if:
+        - condition: template
+          value_template: >
+            {{ is_state('device_tracker.tk_iphone_16_pro', 'home')
+               or is_state('device_tracker.unifi_default_42_15_78_4a_d9_f8', 'home')
+               or states('sensor.away_security_entry_point_issues') | int(0) == 0 }}
+      then:
+        - action: script.casey_left_garage_clear_alert
+  mode: single
+
+- id: security_casey_left_combo_clear
+  alias: "Security — Clear Casey Left Combo Alert"
+  description: Clears the contextual Casey-left combo push once it is no longer relevant.
+  triggers:
+    - trigger: state
+      entity_id:
+        - cover.ratgdo32disco_c26634_door
+        - cover.ratgdo32_4536e8_door
+      to: closed
+    - trigger: state
+      entity_id:
+        - lock.garage_entry_lock
+        - lock.mudroom_door_lock
+      to: locked
+    - trigger: state
+      entity_id: sun.sun
+      to: "below_horizon"
+    - trigger: state
+      entity_id: device_tracker.tk_iphone_16_pro
+      to: home
+    - trigger: state
+      entity_id: device_tracker.unifi_default_42_15_78_4a_d9_f8
+      to: home
+    - trigger: event
+      event_type: state_changed
+      id: lights_state_changed
+  conditions:
+    - condition: template
+      value_template: >
+        {% if trigger.id == 'lights_state_changed' %}
+          {% set entity = trigger.event.data.entity_id | default('') %}
+          {{ entity.startswith('light.') or entity == 'switch.exterior_mud_room_stairs' }}
+        {% else %}
+          true
+        {% endif %}
+  actions:
+    - if:
+        - condition: template
+          value_template: >
+            {{ not (
+              is_state('sun.sun', 'above_horizon')
+              and states('device_tracker.tk_iphone_16_pro') not in ['home', 'unknown', 'unavailable', '']
+              and states('device_tracker.unifi_default_42_15_78_4a_d9_f8') not in ['home', 'unknown', 'unavailable', '']
+              and states('sensor.away_security_entry_point_issues') | int(0) > 0
+              and states('sensor.away_security_active_lights') | int(0) > 0
+            ) }}
+      then:
+        - action: script.casey_left_combo_clear_alert
+  mode: single
+
+- id: security_casey_left_lights_clear
+  alias: "Security — Clear Casey Left Lights Alert"
+  description: Clears the contextual Casey-left-lights push once it is no longer relevant.
+  triggers:
+    - trigger: state
+      entity_id: sun.sun
+      to: "below_horizon"
+    - trigger: state
+      entity_id: device_tracker.tk_iphone_16_pro
+      to: home
+    - trigger: state
+      entity_id: device_tracker.unifi_default_42_15_78_4a_d9_f8
+      to: home
+    - trigger: event
+      event_type: state_changed
+      id: lights_state_changed
+  conditions:
+    - condition: template
+      value_template: >
+        {% if trigger.id == 'lights_state_changed' %}
+          {% set entity = trigger.event.data.entity_id | default('') %}
+          {{ entity.startswith('light.') or entity == 'switch.exterior_mud_room_stairs' }}
+        {% else %}
+          true
+        {% endif %}
+  actions:
+    - if:
+        - condition: template
+          value_template: >
+            {{ is_state('sun.sun', 'below_horizon')
+               or is_state('device_tracker.tk_iphone_16_pro', 'home')
+               or is_state('device_tracker.unifi_default_42_15_78_4a_d9_f8', 'home')
+               or states('sensor.away_security_active_lights') | int(0) == 0 }}
+      then:
+        - action: script.casey_left_lights_clear_alert
+  mode: single
+
+- id: security_entry_ring_notifications
+  alias: "Security — Entry Ring Notifications"
+  description: Sends mobile notifications for front door and mud room Ring motion and doorbell events.
+  triggers:
+    - trigger: state
+      entity_id: event.front_door_motion
+      id: front_door_motion
+    - trigger: state
+      entity_id: event.front_door_ding
+      id: front_door_ding
+    - trigger: state
+      entity_id: event.mudroom_door_motion
+      id: mudroom_door_motion
+    - trigger: state
+      entity_id: event.mudroom_door_ding
+      id: mudroom_door_ding
+  conditions:
+    - condition: template
+      value_template: >
+        {{ trigger.to_state is not none and trigger.to_state.state not in ['unknown', 'unavailable'] }}
+  actions:
+    - variables:
+        zone_name: "{{ 'Mud room' if trigger.id.startswith('mudroom') else 'Front door' }}"
+        event_kind: "{{ 'doorbell' if trigger.id.endswith('ding') else 'motion' }}"
+    - action: script.entry_camera_send_alert
+      data:
+        zone_name: "{{ zone_name }}"
+        event_kind: "{{ event_kind }}"
+  mode: parallel
+  max: 10

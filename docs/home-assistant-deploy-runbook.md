@@ -10,6 +10,10 @@ config check, reload, and verification.
 
 ## Preferred Browser Deploy Path
 
+Keep deployed files small enough for reliable browser-mediated write/read-back.
+`automations.yaml` is intentionally a tiny include pointer; deploy it together
+with the files under `automations/` when automation behavior changes.
+
 1. Open Home Assistant in Safari through a connected route.
    - Local may work when `homeassistant.local` is healthy.
    - If local shows stale state or `hass.connected === false`, use the Nabu Casa
@@ -21,7 +25,7 @@ config check, reload, and verification.
 4. Generate the browser deploy payload from the repo:
 
 ```bash
-node tools/prepare_ha_utf8_browser_deploy.js automations.yaml dashboards/calm_mobile.yaml
+node tools/prepare_ha_utf8_browser_deploy.js automations.yaml automations/20-climate-garden-commute.yaml
 ```
 
 5. Execute the generated `.tmp-ha-utf8-browser-deploy.js` in the File Editor
@@ -56,6 +60,9 @@ template trigger.
 
 - Running the deploy helper from a normal dashboard page writes to the wrong
   relative `api/save` endpoint and returns `405 Method Not Allowed`.
+- Saving one large YAML file through File Editor can fail near the tail and
+  leave the live file partially written. Prefer Home Assistant include files
+  with coherent chunks, and require byte-for-byte read-back before reload.
 - A local dashboard can show cached/stale HA state while
   `hass.connected === false`; do not deploy from that state.
 - From this Mac, terminal HTTP/curl to the HA LAN address may connect at TCP

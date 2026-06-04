@@ -721,6 +721,10 @@ input_datetime:
     name: NWP Parking Pass Replaced At
     has_date: true
     has_time: true
+  metro_north_commute_last_notified_at:
+    name: Metro-North Commute Last Notified At
+    has_date: true
+    has_time: true
 
 input_text:
   water_latest_alert_kind:
@@ -880,6 +884,7 @@ input_boolean:
   metro_north_commute_notified_today:
     name: Metro-North Commute Notified Today
     icon: mdi:train-clock
+    initial: false
   garden_spinach_in_ground:
     name: Garden Spinach In Ground
     icon: mdi:shovel

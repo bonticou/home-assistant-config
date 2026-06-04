@@ -156,6 +156,11 @@ before changing chart values again.
 
 Notifications should feel personal, warm, and immediately scannable.
 
+When creating or changing notification automations, follow
+`docs/notification-reliability-patterns.md`. Important alerts must use durable
+timestamp or cycle helpers for idempotency; do not rely on a restored boolean as
+the only "already notified" or "handled this cycle" guard.
+
 When creating or changing push notifications for Trevor, include a small, appropriate emoji cue in the title. The emoji should match the notification's job:
 
 - use gentle, cute icons for routine care and reminders
@@ -278,8 +283,16 @@ Current split context:
 - `configuration.yaml` remains the main table of contents and contains broad
   global configuration plus domains that have not yet justified a separate
   include.
-- `automations.yaml`, `scripts.yaml`, and `scenes.yaml` remain the standard
-  Home Assistant-managed includes.
+- `automations.yaml` is intentionally a tiny `!include_dir_merge_list
+  automations` pointer. The actual automation lists live in
+  `automations/00-water-irrigation.yaml`,
+  `automations/10-lighting-security.yaml`,
+  `automations/20-climate-garden-commute.yaml`, and
+  `automations/30-maintenance-environment.yaml`. Keep those chunks coherent and
+  small enough for reliable browser/File Editor read-back; do not collapse them
+  back into one large file.
+- `scripts.yaml` and `scenes.yaml` remain the standard Home Assistant-managed
+  includes.
 - `sensors.yaml` contains the statistics sensor block that was split out after
   File Editor truncated the tail of a large `configuration.yaml` during live
   deploy.

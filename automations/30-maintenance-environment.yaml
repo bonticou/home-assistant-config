@@ -1,0 +1,1683 @@
+- id: espresso_maintenance_notification_actions
+  alias: "Espresso — Notification Actions"
+  description: Handles the quick actions from Profitec GO cleaning reminders.
+  triggers:
+    - trigger: event
+      event_type: mobile_app_notification_action
+  conditions:
+    - condition: template
+      value_template: >
+        {{ trigger.event.data.action in [
+          'ESPRESSO_WATER_BACKFLUSH_DONE',
+          'ESPRESSO_CAFIZA_CLEAN_DONE',
+          'ESPRESSO_SNOOZE_TOMORROW'
+        ] }}
+  actions:
+    - choose:
+        - conditions:
+            - condition: template
+              value_template: "{{ trigger.event.data.action == 'ESPRESSO_WATER_BACKFLUSH_DONE' }}"
+            - condition: state
+              entity_id: binary_sensor.espresso_water_backflush_due
+              state: "on"
+            - condition: state
+              entity_id: binary_sensor.espresso_cafiza_clean_due
+              state: "off"
+          sequence:
+            - action: script.espresso_mark_water_backflush_done
+              data:
+                source: home_assistant_notification_action
+
+        - conditions:
+            - condition: template
+              value_template: "{{ trigger.event.data.action == 'ESPRESSO_CAFIZA_CLEAN_DONE' }}"
+            - condition: state
+              entity_id: binary_sensor.espresso_cafiza_clean_due
+              state: "on"
+          sequence:
+            - action: script.espresso_mark_cafiza_clean_done
+              data:
+                source: home_assistant_notification_action
+
+        - conditions:
+            - condition: template
+              value_template: "{{ trigger.event.data.action == 'ESPRESSO_SNOOZE_TOMORROW' }}"
+            - condition: state
+              entity_id: binary_sensor.espresso_maintenance_due
+              state: "on"
+          sequence:
+            - action: script.espresso_snooze_maintenance
+              data:
+                source: home_assistant_notification_action
+  mode: parallel
+  max: 10
+
+- id: robison_oil_annual_tune_up_reminder
+  alias: "Robison Oil — Annual Tune-Up Reminder"
+  description: Sends the late-March reminder to schedule or confirm the annual Robison Oil tune-up.
+  triggers:
+    - trigger: time
+      at: "09:00:00"
+  conditions:
+    - condition: template
+      value_template: "{{ now().month == 3 and now().day == 25 }}"
+  actions:
+    - action: script.robison_oil_send_tune_up_reminder
+  mode: single
+
+- id: robison_oil_annual_price_check_reminder
+  alias: "Robison Oil — Annual Price Check Reminder"
+  description: Sends the late-summer Robison Oil price-check reminder.
+  triggers:
+    - trigger: time
+      at: "09:00:00"
+  conditions:
+    - condition: template
+      value_template: "{{ now().month == 8 and now().day == 20 }}"
+  actions:
+    - action: script.robison_oil_send_price_check_reminder
+  mode: single
+
+- id: robison_oil_price_check_follow_up
+  alias: "Robison Oil — Price Check Follow-Up"
+  description: Sends the September follow-up if this year's Robison Oil price check has not been marked done.
+  triggers:
+    - trigger: time
+      at: "09:00:00"
+  conditions:
+    - condition: template
+      value_template: "{{ now().month == 9 and now().day == 5 }}"
+    - condition: template
+      value_template: >-
+        {% set last = states('input_datetime.robison_oil_price_check_last_done') %}
+        {% set price_check_date = now().year ~ '-08-20' %}
+        {{ last in ['unknown', 'unavailable', 'none', ''] or last[:10] < price_check_date }}
+  actions:
+    - action: script.robison_oil_send_price_check_reminder
+  mode: single
+
+- id: robison_oil_notification_actions
+  alias: "Robison Oil — Notification Actions"
+  description: Handles quick actions from Robison Oil reminders.
+  triggers:
+    - trigger: event
+      event_type: mobile_app_notification_action
+  conditions:
+    - condition: template
+      value_template: "{{ trigger.event.data.action == 'ROBISON_OIL_PRICE_CHECK_DONE' }}"
+  actions:
+    - action: script.robison_oil_mark_price_check_done
+  mode: parallel
+  max: 5
+
+- id: garbage_recycling_reminders
+  alias: "Garbage Recycling - Night Before And Morning Reminders"
+  description: Sends North Castle Zone 4 garbage and recycling reminders until the current pickup is marked taken out, with early warnings for holiday-delayed Thursday pickups.
+  triggers:
+    - trigger: time
+      at: "16:30:00"
+      id: afternoon
+    - trigger: time
+      at: "19:00:00"
+      id: evening
+    - trigger: time
+      at: "06:30:00"
+      id: morning
+  conditions:
+    - condition: state
+      entity_id: input_boolean.garbage_recycling_reminders_enabled
+      state: "on"
+  actions:
+    - variables:
+        pickup: "{{ states('sensor.garbage_recycling_next_pickup') }}"
+        scheduled_thursday: "{{ state_attr('sensor.garbage_recycling_next_pickup', 'scheduled_thursday') | default('', true) }}"
+        exception: "{{ state_attr('sensor.garbage_recycling_next_pickup', 'exception') | default('', true) }}"
+        today: "{{ now().strftime('%Y-%m-%d') }}"
+        tomorrow: "{{ (now() + timedelta(days=1)).strftime('%Y-%m-%d') }}"
+        taken: "{{ states('input_text.garbage_recycling_last_taken_out_pickup') }}"
+        shifted_week_warning: >-
+          {{ exception | length > 0
+             and scheduled_thursday not in ['unknown', 'unavailable', 'none', '']
+             and scheduled_thursday == tomorrow
+             and pickup != scheduled_thursday }}
+        reminder_stage: >-
+          {% if shifted_week_warning | bool and trigger.id == 'afternoon' %}
+            delay_notice
+          {% elif trigger.id == 'morning' %}
+            morning
+          {% else %}
+            evening
+          {% endif %}
+        should_send: >-
+          {{ pickup not in ['unknown', 'unavailable', 'none', '']
+             and taken != pickup
+             and (
+               (trigger.id == 'afternoon' and (pickup == tomorrow or (shifted_week_warning | bool)))
+               or (trigger.id == 'evening' and pickup == tomorrow)
+               or (trigger.id == 'morning' and pickup == today)
+             ) }}
+    - condition: template
+      value_template: "{{ should_send }}"
+    - action: script.garbage_recycling_send_reminder
+      data:
+        stage: "{{ reminder_stage | trim }}"
+        pickup_date: "{{ pickup }}"
+  mode: single
+
+- id: garbage_recycling_notification_actions
+  alias: "Garbage Recycling - Notification Actions"
+  description: Handles Taken out actions from garbage and recycling reminders.
+  triggers:
+    - trigger: event
+      event_type: mobile_app_notification_action
+  conditions:
+    - condition: template
+      value_template: "{{ trigger.event.data.action == 'GARBAGE_RECYCLING_TAKEN_OUT' }}"
+  actions:
+    - variables:
+        tag: "{{ trigger.event.data.tag | default('', true) }}"
+        pickup: >-
+          {% if tag[:18] == 'garbage-recycling-' and tag | length >= 28 %}
+            {{ tag[-10:] }}
+          {% else %}
+            {{ states('sensor.garbage_recycling_next_pickup') }}
+          {% endif %}
+    - action: script.garbage_recycling_mark_taken_out
+      data:
+        pickup_date: "{{ pickup | trim }}"
+  mode: parallel
+  max: 5
+
+- id: property_tax_reminders
+  alias: "Property Tax - Bill And Due Week Reminders"
+  description: Sends bill-ready notices and daily due-week reminders until the matching tax bill is marked paid.
+  triggers:
+    - trigger: time
+      at: "08:55:00"
+      id: daily
+    - trigger: homeassistant
+      event: start
+      id: startup
+    - trigger: event
+      event_type: automation_reloaded
+      id: automation_reloaded
+  conditions:
+    - condition: state
+      entity_id: input_boolean.tax_reminders_enabled
+      state: "on"
+  actions:
+    - if:
+        - condition: trigger
+          id: startup
+      then:
+        - delay:
+            minutes: 2
+    - variables:
+        today: "{{ now().strftime('%Y-%m-%d') }}"
+        school_january_bill_date: "{{ now().year }}-01-01"
+        town_bill_date: "{{ now().year }}-04-01"
+        school_september_bill_date: "{{ now().year }}-09-01"
+        school_january_due: "{{ states('sensor.school_tax_january_due_date') }}"
+        town_due: "{{ states('sensor.town_tax_due_date') }}"
+        school_september_due: "{{ states('sensor.school_tax_september_due_date') }}"
+        school_january_last_paid: "{{ states('input_datetime.school_tax_january_last_paid_at') }}"
+        school_september_last_paid: "{{ states('input_datetime.school_tax_september_last_paid_at') }}"
+        town_last_paid: "{{ states('input_datetime.town_tax_last_paid_at') }}"
+        school_january_paid: >-
+          {{ school_january_last_paid not in ['unknown', 'unavailable', 'none', '']
+             and school_january_last_paid[:10] >= school_january_bill_date }}
+        town_paid: >-
+          {{ town_last_paid not in ['unknown', 'unavailable', 'none', '']
+             and town_last_paid[:10] >= town_bill_date }}
+        school_september_paid: >-
+          {{ school_september_last_paid not in ['unknown', 'unavailable', 'none', '']
+             and school_september_last_paid[:10] >= school_september_bill_date }}
+        school_january_due_week: >-
+          {% if school_january_due in ['unknown', 'unavailable', 'none', ''] or now().weekday() >= 5 %}
+            false
+          {% else %}
+            {% set due_date = strptime(school_january_due, '%Y-%m-%d') %}
+            {% set today_date = strptime(today, '%Y-%m-%d') %}
+            {% set days = (as_timestamp(due_date) - as_timestamp(today_date)) // 86400 %}
+            {% set ns = namespace(business_days=0) %}
+            {% for offset in range(1, (days | int) + 1) %}
+              {% set day = today_date + timedelta(days=offset) %}
+              {% if day.weekday() < 5 %}
+                {% set ns.business_days = ns.business_days + 1 %}
+              {% endif %}
+            {% endfor %}
+            {{ days >= 0 and days <= 10 and ns.business_days <= 5 }}
+          {% endif %}
+        town_due_week: >-
+          {% if town_due in ['unknown', 'unavailable', 'none', ''] or now().weekday() >= 5 %}
+            false
+          {% else %}
+            {% set due_date = strptime(town_due, '%Y-%m-%d') %}
+            {% set today_date = strptime(today, '%Y-%m-%d') %}
+            {% set days = (as_timestamp(due_date) - as_timestamp(today_date)) // 86400 %}
+            {% set ns = namespace(business_days=0) %}
+            {% for offset in range(1, (days | int) + 1) %}
+              {% set day = today_date + timedelta(days=offset) %}
+              {% if day.weekday() < 5 %}
+                {% set ns.business_days = ns.business_days + 1 %}
+              {% endif %}
+            {% endfor %}
+            {{ days >= 0 and days <= 10 and ns.business_days <= 5 }}
+          {% endif %}
+        school_september_due_week: >-
+          {% if school_september_due in ['unknown', 'unavailable', 'none', ''] or now().weekday() >= 5 %}
+            false
+          {% else %}
+            {% set due_date = strptime(school_september_due, '%Y-%m-%d') %}
+            {% set today_date = strptime(today, '%Y-%m-%d') %}
+            {% set days = (as_timestamp(due_date) - as_timestamp(today_date)) // 86400 %}
+            {% set ns = namespace(business_days=0) %}
+            {% for offset in range(1, (days | int) + 1) %}
+              {% set day = today_date + timedelta(days=offset) %}
+              {% if day.weekday() < 5 %}
+                {% set ns.business_days = ns.business_days + 1 %}
+              {% endif %}
+            {% endfor %}
+            {{ days >= 0 and days <= 10 and ns.business_days <= 5 }}
+          {% endif %}
+    - choose:
+        - conditions:
+            - condition: template
+              value_template: "{{ today == school_january_bill_date and not school_january_paid }}"
+          sequence:
+            - action: script.property_tax_send_reminder
+              data:
+                tax_type: school
+                bill_month: 1
+                stage: bill_ready
+                due_date: "{{ school_january_due }}"
+
+        - conditions:
+            - condition: template
+              value_template: "{{ (school_january_due_week | trim | lower) == 'true' and not school_january_paid }}"
+          sequence:
+            - action: script.property_tax_send_reminder
+              data:
+                tax_type: school
+                bill_month: 1
+                stage: countdown
+                due_date: "{{ school_january_due }}"
+
+        - conditions:
+            - condition: template
+              value_template: "{{ today == town_bill_date and not town_paid }}"
+          sequence:
+            - action: script.property_tax_send_reminder
+              data:
+                tax_type: town
+                bill_month: 4
+                stage: bill_ready
+                due_date: "{{ town_due }}"
+
+        - conditions:
+            - condition: template
+              value_template: "{{ (town_due_week | trim | lower) == 'true' and not town_paid }}"
+          sequence:
+            - action: script.property_tax_send_reminder
+              data:
+                tax_type: town
+                bill_month: 4
+                stage: countdown
+                due_date: "{{ town_due }}"
+
+        - conditions:
+            - condition: template
+              value_template: "{{ today == school_september_bill_date and not school_september_paid }}"
+          sequence:
+            - action: script.property_tax_send_reminder
+              data:
+                tax_type: school
+                bill_month: 9
+                stage: bill_ready
+                due_date: "{{ school_september_due }}"
+
+        - conditions:
+            - condition: template
+              value_template: "{{ (school_september_due_week | trim | lower) == 'true' and not school_september_paid }}"
+          sequence:
+            - action: script.property_tax_send_reminder
+              data:
+                tax_type: school
+                bill_month: 9
+                stage: countdown
+                due_date: "{{ school_september_due }}"
+  mode: single
+
+- id: property_tax_notification_actions
+  alias: "Property Tax - Notification Actions"
+  description: Handles Paid actions from property tax reminder notifications.
+  triggers:
+    - trigger: event
+      event_type: mobile_app_notification_action
+  conditions:
+    - condition: template
+      value_template: >
+        {{ trigger.event.data.action in [
+          'PROPERTY_TAX_SCHOOL_JAN_PAID',
+          'PROPERTY_TAX_TOWN_APR_PAID',
+          'PROPERTY_TAX_SCHOOL_SEP_PAID'
+        ] }}
+  actions:
+    - choose:
+        - conditions:
+            - condition: template
+              value_template: "{{ trigger.event.data.action == 'PROPERTY_TAX_SCHOOL_JAN_PAID' }}"
+          sequence:
+            - action: script.property_tax_mark_paid
+              data:
+                tax_type: school
+                bill_month: 1
+                due_date: "{{ states('sensor.school_tax_january_due_date') }}"
+
+        - conditions:
+            - condition: template
+              value_template: "{{ trigger.event.data.action == 'PROPERTY_TAX_TOWN_APR_PAID' }}"
+          sequence:
+            - action: script.property_tax_mark_paid
+              data:
+                tax_type: town
+                bill_month: 4
+                due_date: "{{ states('sensor.town_tax_due_date') }}"
+
+        - conditions:
+            - condition: template
+              value_template: "{{ trigger.event.data.action == 'PROPERTY_TAX_SCHOOL_SEP_PAID' }}"
+          sequence:
+            - action: script.property_tax_mark_paid
+              data:
+                tax_type: school
+                bill_month: 9
+                due_date: "{{ states('sensor.school_tax_september_due_date') }}"
+  mode: parallel
+  max: 5
+
+- id: bonticou_llc_de_franchise_tax_reminder
+  alias: "Bonticou - DE Franchise Tax Reminder"
+  description: Sends bill-ready and due-week reminders until Bonticou - DE franchise tax is marked paid.
+  triggers:
+    - trigger: time
+      at: "09:06:00"
+      id: daily
+    - trigger: homeassistant
+      event: start
+      id: startup
+    - trigger: event
+      event_type: automation_reloaded
+      id: automation_reloaded
+  conditions:
+    - condition: state
+      entity_id: input_boolean.business_admin_reminders_enabled
+      state: "on"
+    - condition: state
+      entity_id: binary_sensor.bonticou_llc_de_franchise_tax_due
+      state: "on"
+  actions:
+    - if:
+        - condition: trigger
+          id: startup
+      then:
+        - delay:
+            minutes: 2
+    - variables:
+        today: "{{ now().strftime('%Y-%m-%d') }}"
+        due: "{{ states('sensor.bonticou_llc_de_franchise_tax_due_date') }}"
+        notice_start: >-
+          {{ due[:4] ~ '-05-01' if due not in ['unknown', 'unavailable', 'none', ''] else '' }}
+        due_week: >-
+          {% if due in ['unknown', 'unavailable', 'none', ''] or now().weekday() >= 5 %}
+            false
+          {% else %}
+            {% set due_date = strptime(due, '%Y-%m-%d') %}
+            {% set today_date = strptime(today, '%Y-%m-%d') %}
+            {% set days = (as_timestamp(due_date) - as_timestamp(today_date)) // 86400 %}
+            {% set ns = namespace(business_days=0) %}
+            {% for offset in range(1, (days | int) + 1) %}
+              {% set day = today_date + timedelta(days=offset) %}
+              {% if day.weekday() < 5 %}
+                {% set ns.business_days = ns.business_days + 1 %}
+              {% endif %}
+            {% endfor %}
+            {{ days >= 0 and days <= 10 and ns.business_days <= 5 }}
+          {% endif %}
+        reminder_stage: >-
+          {% if due in ['unknown', 'unavailable', 'none', ''] %}
+          {% elif today == notice_start %}
+            bill_ready
+          {% elif (due_week | trim | lower) == 'true' %}
+            countdown
+          {% endif %}
+    - condition: template
+      value_template: "{{ reminder_stage | trim != '' }}"
+    - action: script.bonticou_llc_de_franchise_tax_send_reminder
+      data:
+        stage: "{{ reminder_stage | trim }}"
+        due_date: "{{ due }}"
+  mode: single
+
+- id: bonticou_llc_de_franchise_tax_notification_actions
+  alias: "Bonticou - DE Franchise Tax Notification Actions"
+  description: Handles Paid action from the annual Delaware franchise tax reminder.
+  triggers:
+    - trigger: event
+      event_type: mobile_app_notification_action
+  conditions:
+    - condition: template
+      value_template: "{{ trigger.event.data.action == 'BONTICOU_DE_FRANCHISE_TAX_PAID' }}"
+  actions:
+    - action: script.bonticou_llc_de_franchise_tax_mark_paid
+      data:
+        source: home_assistant_notification_action
+  mode: parallel
+  max: 5
+
+- id: piano_annual_tuning_reminder
+  alias: "Piano — Annual Tuning Reminder"
+  description: Sends the annual Steinway tuning check when piano care is due.
+  triggers:
+    - trigger: time
+      at: "09:25:00"
+    - trigger: time
+      at: input_datetime.piano_tuning_snooze_until
+  conditions:
+    - condition: state
+      entity_id: input_boolean.piano_care_enabled
+      state: "on"
+    - condition: state
+      entity_id: binary_sensor.piano_tuning_due
+      state: "on"
+  actions:
+    - action: script.piano_send_tuning_reminder
+  mode: single
+
+- id: piano_tuning_notification_actions
+  alias: "Piano — Tuning Notification Actions"
+  description: Handles quick actions from Steinway tuning reminders.
+  triggers:
+    - trigger: event
+      event_type: mobile_app_notification_action
+  conditions:
+    - condition: template
+      value_template: >
+        {{ trigger.event.data.action in [
+          'PIANO_TUNING_DONE',
+          'PIANO_TUNING_SCHEDULED'
+        ] }}
+  actions:
+    - choose:
+        - conditions:
+            - condition: template
+              value_template: "{{ trigger.event.data.action == 'PIANO_TUNING_DONE' }}"
+          sequence:
+            - action: script.piano_mark_tuning_done
+
+        - conditions:
+            - condition: template
+              value_template: "{{ trigger.event.data.action == 'PIANO_TUNING_SCHEDULED' }}"
+          sequence:
+            - action: script.piano_snooze_tuning
+  mode: parallel
+  max: 5
+
+- id: dryer_vent_annual_cleaning_reminder
+  alias: "Dryer Vent — Annual Cleaning Reminder"
+  description: Sends the annual LG dryer vent cleaning reminder when due.
+  triggers:
+    - trigger: time
+      at: "09:25:00"
+  conditions:
+    - condition: state
+      entity_id: input_boolean.dryer_vent_maintenance_enabled
+      state: "on"
+    - condition: state
+      entity_id: binary_sensor.dryer_vent_cleaning_due
+      state: "on"
+  actions:
+    - action: script.dryer_vent_send_cleaning_reminder
+  mode: single
+
+- id: dryer_vent_maintenance_notification_actions
+  alias: "Dryer Vent — Maintenance Notification Actions"
+  description: Handles quick actions from dryer vent cleaning reminders.
+  triggers:
+    - trigger: event
+      event_type: mobile_app_notification_action
+  conditions:
+    - condition: template
+      value_template: >
+        {{ trigger.event.data.action in [
+          'DRYER_VENT_CLEANING_DONE',
+          'DRYER_VENT_CLEANING_SNOOZE_30'
+        ] }}
+  actions:
+    - choose:
+        - conditions:
+            - condition: template
+              value_template: "{{ trigger.event.data.action == 'DRYER_VENT_CLEANING_DONE' }}"
+          sequence:
+            - action: script.dryer_vent_mark_cleaning_done
+
+        - conditions:
+            - condition: template
+              value_template: "{{ trigger.event.data.action == 'DRYER_VENT_CLEANING_SNOOZE_30' }}"
+          sequence:
+            - action: script.dryer_vent_snooze_cleaning
+  mode: parallel
+  max: 5
+
+- id: passport_renewal_reminder
+  alias: "Passport — Renewal Reminder"
+  description: Sends passport renewal reminders starting one year before expiration.
+  triggers:
+    - trigger: time
+      at: "09:10:00"
+    - trigger: time
+      at: input_datetime.passport_renewal_snooze_until
+  conditions:
+    - condition: state
+      entity_id: input_boolean.passport_renewal_enabled
+      state: "on"
+    - condition: state
+      entity_id: binary_sensor.passport_renewal_due
+      state: "on"
+  actions:
+    - action: script.passport_send_renewal_reminder
+  mode: single
+
+- id: passport_renewal_notification_actions
+  alias: "Passport — Renewal Notification Actions"
+  description: Handles quick actions from passport renewal reminders.
+  triggers:
+    - trigger: event
+      event_type: mobile_app_notification_action
+  conditions:
+    - condition: template
+      value_template: >
+        {{ trigger.event.data.action in [
+          'PASSPORT_RENEWAL_APPLIED',
+          'PASSPORT_RENEWAL_SNOOZE_7',
+          'PASSPORT_RENEWAL_SNOOZE_14',
+          'PASSPORT_RENEWAL_SNOOZE_30'
+        ] }}
+  actions:
+    - choose:
+        - conditions:
+            - condition: template
+              value_template: "{{ trigger.event.data.action == 'PASSPORT_RENEWAL_APPLIED' }}"
+          sequence:
+            - action: script.passport_mark_renewal_applied
+
+        - conditions:
+            - condition: template
+              value_template: "{{ trigger.event.data.action == 'PASSPORT_RENEWAL_SNOOZE_7' }}"
+          sequence:
+            - action: script.passport_snooze_renewal
+              data:
+                days: 7
+
+        - conditions:
+            - condition: template
+              value_template: "{{ trigger.event.data.action == 'PASSPORT_RENEWAL_SNOOZE_14' }}"
+          sequence:
+            - action: script.passport_snooze_renewal
+              data:
+                days: 14
+
+        - conditions:
+            - condition: template
+              value_template: "{{ trigger.event.data.action == 'PASSPORT_RENEWAL_SNOOZE_30' }}"
+          sequence:
+            - action: script.passport_snooze_renewal
+              data:
+                days: 30
+  mode: parallel
+  max: 5
+
+- id: driver_license_renewal_reminder
+  alias: "Driver License — Renewal Reminder"
+  description: Sends driver license renewal reminders starting one year before expiration.
+  triggers:
+    - trigger: time
+      at: "09:12:00"
+    - trigger: time
+      at: input_datetime.driver_license_renewal_snooze_until
+  conditions:
+    - condition: state
+      entity_id: input_boolean.driver_license_renewal_enabled
+      state: "on"
+    - condition: state
+      entity_id: binary_sensor.driver_license_renewal_due
+      state: "on"
+  actions:
+    - action: script.driver_license_send_renewal_reminder
+  mode: single
+
+- id: driver_license_renewal_notification_actions
+  alias: "Driver License — Renewal Notification Actions"
+  description: Handles quick actions from driver license renewal reminders.
+  triggers:
+    - trigger: event
+      event_type: mobile_app_notification_action
+  conditions:
+    - condition: template
+      value_template: >
+        {{ trigger.event.data.action in [
+          'DRIVER_LICENSE_RENEWED',
+          'DRIVER_LICENSE_SNOOZE_7',
+          'DRIVER_LICENSE_SNOOZE_14',
+          'DRIVER_LICENSE_SNOOZE_30'
+        ] }}
+  actions:
+    - choose:
+        - conditions:
+            - condition: template
+              value_template: "{{ trigger.event.data.action == 'DRIVER_LICENSE_RENEWED' }}"
+          sequence:
+            - action: script.driver_license_mark_renewed
+
+        - conditions:
+            - condition: template
+              value_template: "{{ trigger.event.data.action == 'DRIVER_LICENSE_SNOOZE_7' }}"
+          sequence:
+            - action: script.driver_license_snooze_renewal
+              data:
+                days: 7
+
+        - conditions:
+            - condition: template
+              value_template: "{{ trigger.event.data.action == 'DRIVER_LICENSE_SNOOZE_14' }}"
+          sequence:
+            - action: script.driver_license_snooze_renewal
+              data:
+                days: 14
+
+        - conditions:
+            - condition: template
+              value_template: "{{ trigger.event.data.action == 'DRIVER_LICENSE_SNOOZE_30' }}"
+          sequence:
+            - action: script.driver_license_snooze_renewal
+              data:
+                days: 30
+  mode: parallel
+  max: 5
+
+- id: nwp_parking_pass_expiration_reminder
+  alias: "NWP Parking Pass — Expiration Reminder"
+  description: Sends the NWP parking pass reminder the day before expiration and on expiration day.
+  triggers:
+    - trigger: time
+      at: "09:13:00"
+    - trigger: time
+      at: input_datetime.nwp_parking_pass_snooze_until
+  conditions:
+    - condition: state
+      entity_id: input_boolean.nwp_parking_pass_reminders_enabled
+      state: "on"
+    - condition: state
+      entity_id: binary_sensor.nwp_parking_pass_due
+      state: "on"
+  actions:
+    - action: script.nwp_parking_pass_send_reminder
+  mode: single
+
+- id: nwp_parking_pass_notification_actions
+  alias: "NWP Parking Pass — Notification Actions"
+  description: Handles quick actions from NWP parking pass reminders.
+  triggers:
+    - trigger: event
+      event_type: mobile_app_notification_action
+  conditions:
+    - condition: template
+      value_template: >
+        {{ trigger.event.data.action in [
+          'NWP_PARKING_PASS_REPLACED',
+          'NWP_PARKING_PASS_SNOOZE_1'
+        ] }}
+  actions:
+    - choose:
+        - conditions:
+            - condition: template
+              value_template: "{{ trigger.event.data.action == 'NWP_PARKING_PASS_REPLACED' }}"
+          sequence:
+            - action: script.nwp_parking_pass_mark_replaced
+
+        - conditions:
+            - condition: template
+              value_template: "{{ trigger.event.data.action == 'NWP_PARKING_PASS_SNOOZE_1' }}"
+          sequence:
+            - action: script.nwp_parking_pass_snooze
+              data:
+                days: 1
+  mode: parallel
+  max: 5
+
+- id: casey_passport_renewal_reminder
+  alias: "Casey Passport — Renewal Reminder"
+  description: Sends Casey passport renewal reminders starting one year before expiration.
+  triggers:
+    - trigger: time
+      at: "09:14:00"
+    - trigger: time
+      at: input_datetime.casey_passport_renewal_snooze_until
+  conditions:
+    - condition: state
+      entity_id: input_boolean.casey_passport_renewal_enabled
+      state: "on"
+    - condition: state
+      entity_id: binary_sensor.casey_passport_renewal_due
+      state: "on"
+  actions:
+    - action: script.casey_passport_send_renewal_reminder
+  mode: single
+
+- id: casey_passport_renewal_notification_actions
+  alias: "Casey Passport — Renewal Notification Actions"
+  description: Handles quick actions from Casey passport renewal reminders.
+  triggers:
+    - trigger: event
+      event_type: mobile_app_notification_action
+  conditions:
+    - condition: template
+      value_template: >
+        {{ trigger.event.data.action in [
+          'CASEY_PASSPORT_RENEWAL_APPLIED',
+          'CASEY_PASSPORT_SNOOZE_7',
+          'CASEY_PASSPORT_SNOOZE_14',
+          'CASEY_PASSPORT_SNOOZE_30'
+        ] }}
+  actions:
+    - choose:
+        - conditions:
+            - condition: template
+              value_template: "{{ trigger.event.data.action == 'CASEY_PASSPORT_RENEWAL_APPLIED' }}"
+          sequence:
+            - action: script.casey_passport_mark_renewal_applied
+
+        - conditions:
+            - condition: template
+              value_template: "{{ trigger.event.data.action == 'CASEY_PASSPORT_SNOOZE_7' }}"
+          sequence:
+            - action: script.casey_passport_snooze_renewal
+              data:
+                days: 7
+
+        - conditions:
+            - condition: template
+              value_template: "{{ trigger.event.data.action == 'CASEY_PASSPORT_SNOOZE_14' }}"
+          sequence:
+            - action: script.casey_passport_snooze_renewal
+              data:
+                days: 14
+
+        - conditions:
+            - condition: template
+              value_template: "{{ trigger.event.data.action == 'CASEY_PASSPORT_SNOOZE_30' }}"
+          sequence:
+            - action: script.casey_passport_snooze_renewal
+              data:
+                days: 30
+  mode: parallel
+  max: 5
+
+- id: casey_driver_license_renewal_reminder
+  alias: "Casey Driver License — Renewal Reminder"
+  description: Sends Casey driver license renewal reminders starting one year before expiration.
+  triggers:
+    - trigger: time
+      at: "09:16:00"
+    - trigger: time
+      at: input_datetime.casey_driver_license_renewal_snooze_until
+  conditions:
+    - condition: state
+      entity_id: input_boolean.casey_driver_license_renewal_enabled
+      state: "on"
+    - condition: state
+      entity_id: binary_sensor.casey_driver_license_renewal_due
+      state: "on"
+  actions:
+    - action: script.casey_driver_license_send_renewal_reminder
+  mode: single
+
+- id: casey_driver_license_renewal_notification_actions
+  alias: "Casey Driver License — Renewal Notification Actions"
+  description: Handles quick actions from Casey driver license renewal reminders.
+  triggers:
+    - trigger: event
+      event_type: mobile_app_notification_action
+  conditions:
+    - condition: template
+      value_template: >
+        {{ trigger.event.data.action in [
+          'CASEY_DRIVER_LICENSE_RENEWED',
+          'CASEY_DRIVER_LICENSE_SNOOZE_7',
+          'CASEY_DRIVER_LICENSE_SNOOZE_14',
+          'CASEY_DRIVER_LICENSE_SNOOZE_30'
+        ] }}
+  actions:
+    - choose:
+        - conditions:
+            - condition: template
+              value_template: "{{ trigger.event.data.action == 'CASEY_DRIVER_LICENSE_RENEWED' }}"
+          sequence:
+            - action: script.casey_driver_license_mark_renewed
+
+        - conditions:
+            - condition: template
+              value_template: "{{ trigger.event.data.action == 'CASEY_DRIVER_LICENSE_SNOOZE_7' }}"
+          sequence:
+            - action: script.casey_driver_license_snooze_renewal
+              data:
+                days: 7
+
+        - conditions:
+            - condition: template
+              value_template: "{{ trigger.event.data.action == 'CASEY_DRIVER_LICENSE_SNOOZE_14' }}"
+          sequence:
+            - action: script.casey_driver_license_snooze_renewal
+              data:
+                days: 14
+
+        - conditions:
+            - condition: template
+              value_template: "{{ trigger.event.data.action == 'CASEY_DRIVER_LICENSE_SNOOZE_30' }}"
+          sequence:
+            - action: script.casey_driver_license_snooze_renewal
+              data:
+                days: 30
+  mode: parallel
+  max: 5
+
+- id: wine_cave_charcoal_filter_reminder
+  alias: "Wine Cave — Charcoal Filter Reminder"
+  description: Sends the annual wine cave charcoal filter reminder without changing environmental alerts.
+  triggers:
+    - trigger: time
+      at: "09:15:00"
+  conditions:
+    - condition: state
+      entity_id: input_boolean.wine_cave_maintenance_enabled
+      state: "on"
+    - condition: state
+      entity_id: binary_sensor.wine_cave_charcoal_filter_due
+      state: "on"
+  actions:
+    - action: script.wine_cave_send_charcoal_filter_reminder
+  mode: single
+
+- id: wine_cave_cabinet_cleaning_reminder
+  alias: "Wine Cave — Cabinet Cleaning Reminder"
+  description: Sends the annual wine cave cabinet cleaning reminder without changing environmental alerts.
+  triggers:
+    - trigger: time
+      at: "09:20:00"
+  conditions:
+    - condition: state
+      entity_id: input_boolean.wine_cave_maintenance_enabled
+      state: "on"
+    - condition: state
+      entity_id: binary_sensor.wine_cave_cabinet_cleaning_due
+      state: "on"
+  actions:
+    - action: script.wine_cave_send_cabinet_cleaning_reminder
+  mode: single
+
+- id: wine_cave_rating_plate_one_time_reminder
+  alias: "Wine Cave — Rating Plate One-Time Reminder"
+  description: Sends one prompt to capture the wine cave rating plate and serial number for house-manager.
+  triggers:
+    - trigger: time
+      at: "10:00:00"
+  conditions:
+    - condition: state
+      entity_id: input_boolean.wine_cave_maintenance_enabled
+      state: "on"
+    - condition: state
+      entity_id: input_boolean.wine_cave_rating_plate_captured
+      state: "off"
+    - condition: state
+      entity_id: input_boolean.wine_cave_rating_plate_reminder_sent
+      state: "off"
+  actions:
+    - action: script.wine_cave_send_rating_plate_reminder
+    - action: input_boolean.turn_on
+      target:
+        entity_id: input_boolean.wine_cave_rating_plate_reminder_sent
+  mode: single
+
+- id: wine_cave_maintenance_notification_actions
+  alias: "Wine Cave — Maintenance Notification Actions"
+  description: Handles quick actions from wine cave lifecycle and maintenance reminders.
+  triggers:
+    - trigger: event
+      event_type: mobile_app_notification_action
+  conditions:
+    - condition: template
+      value_template: >
+        {{ trigger.event.data.action in [
+          'WINE_CAVE_CHARCOAL_REPLACED',
+          'WINE_CAVE_CHARCOAL_SNOOZE_30',
+          'WINE_CAVE_CLEANING_DONE',
+          'WINE_CAVE_CLEANING_SNOOZE_30',
+          'WINE_CAVE_RATING_PLATE_CAPTURED'
+        ] }}
+  actions:
+    - choose:
+        - conditions:
+            - condition: template
+              value_template: "{{ trigger.event.data.action == 'WINE_CAVE_CHARCOAL_REPLACED' }}"
+          sequence:
+            - action: script.wine_cave_mark_charcoal_filter_replaced
+
+        - conditions:
+            - condition: template
+              value_template: "{{ trigger.event.data.action == 'WINE_CAVE_CHARCOAL_SNOOZE_30' }}"
+          sequence:
+            - action: script.wine_cave_snooze_charcoal_filter
+
+        - conditions:
+            - condition: template
+              value_template: "{{ trigger.event.data.action == 'WINE_CAVE_CLEANING_DONE' }}"
+          sequence:
+            - action: script.wine_cave_mark_cabinet_cleaning_done
+
+        - conditions:
+            - condition: template
+              value_template: "{{ trigger.event.data.action == 'WINE_CAVE_CLEANING_SNOOZE_30' }}"
+          sequence:
+            - action: script.wine_cave_snooze_cabinet_cleaning
+
+        - conditions:
+            - condition: template
+              value_template: "{{ trigger.event.data.action == 'WINE_CAVE_RATING_PLATE_CAPTURED' }}"
+          sequence:
+            - action: script.wine_cave_mark_rating_plate_captured
+  mode: parallel
+  max: 10
+
+- id: wine_cave_cooling_cycle_settled_notification
+  alias: "Wine Cave — Cooling Cycle Settled Notification"
+  description: Clears outstanding wine cave cycle notifications once humidity returns to the target band.
+  triggers:
+    - trigger: state
+      entity_id: binary_sensor.wine_cave_cooling_cycle
+      to: "off"
+      for:
+        minutes: 10
+  conditions:
+    - condition: state
+      entity_id: binary_sensor.wine_cave_cycle_settled
+      state: "on"
+    - condition: state
+      entity_id: binary_sensor.wine_cave_sensor_unavailable
+      state: "off"
+  actions:
+    - action: script.notify_trevor_phone
+      data:
+        message: clear_notification
+        data:
+          tag: wine-cave-overdue
+    - action: script.notify_trevor_phone
+      data:
+        message: clear_notification
+        data:
+          tag: wine-cave-unresolved
+    - action: script.notify_trevor_phone
+      data:
+        message: clear_notification
+        data:
+          tag: wine-cave-cycle
+  mode: single
+
+- id: wine_cave_cooling_cycle_overdue_notification
+  alias: "Wine Cave — Cooling Cycle Overdue Notification"
+  description: Sends a watch-level push when a normal cycle has not recovered in the expected window.
+  triggers:
+    - trigger: state
+      entity_id: binary_sensor.wine_cave_cooling_cycle
+      to: "on"
+      for:
+        minutes: 90
+  conditions:
+    - condition: state
+      entity_id: binary_sensor.wine_cave_sensor_unavailable
+      state: "off"
+    - condition: state
+      entity_id: binary_sensor.wine_cave_actionable_alert
+      state: "off"
+  actions:
+    - action: script.wine_cave_send_alert
+      data:
+        alert_kind: cycle_overdue
+        severity: watch
+        message: >-
+          Humidity is still below the normal band after 90 minutes.
+          Current reading is {{ states('sensor.wine_humidity') | float(0) | round(0) }}% RH
+          at {{ states('sensor.wine_temperature') | float(0) | round(1) }}°F.
+          This may still resolve, but it is no longer just a quick cycle.
+          If the cabinet is closed and powered, check the humidity cartridge next.
+  mode: single
+
+- id: wine_cave_cooling_cycle_unresolved_urgent
+  alias: "Wine Cave — Cooling Cycle Unresolved Urgent"
+  description: Escalates if a dry cooling-cycle condition is still unresolved after several hours.
+  triggers:
+    - trigger: state
+      entity_id: binary_sensor.wine_cave_cooling_cycle
+      to: "on"
+      for:
+        hours: 3
+  conditions:
+    - condition: state
+      entity_id: binary_sensor.wine_cave_sensor_unavailable
+      state: "off"
+  actions:
+    - action: script.wine_cave_send_alert
+      data:
+        alert_kind: cycle_overdue
+        severity: urgent
+        message: >-
+          Wine cave humidity has stayed low for 3 hours.
+          Current reading is {{ states('sensor.wine_humidity') | float(0) | round(0) }}% RH
+          at {{ states('sensor.wine_temperature') | float(0) | round(1) }}°F.
+          Check the fridge, door, power circuit, and humidity cartridge when you can.
+  mode: single
+
+- id: wine_cave_unresolved_attention_reminder
+  alias: "Wine Cave — Unresolved Attention Reminder"
+  description: Escalates unresolved wine cave issues on a tighter cadence the longer they remain active.
+  triggers:
+    - trigger: time
+      at: "08:30:00"
+      id: morning
+    - trigger: time
+      at: "20:30:00"
+      id: evening
+    - trigger: time_pattern
+      hours: "/6"
+      minutes: 30
+      id: six_hour
+    - trigger: time_pattern
+      hours: "/3"
+      minutes: 30
+      id: three_hour
+  conditions:
+    - condition: template
+      value_template: >-
+        {% set now_ts = as_timestamp(now()) %}
+        {% set ns = namespace(active=false, oldest=now_ts) %}
+        {% if is_state('binary_sensor.wine_cave_actionable_alert', 'on') %}
+          {% set ns.active = true %}
+          {% set ns.oldest = [ns.oldest, as_timestamp(states.binary_sensor.wine_cave_actionable_alert.last_changed, now())] | min %}
+        {% endif %}
+        {% if is_state('binary_sensor.wine_cave_sensor_unavailable', 'on') %}
+          {% set ns.active = true %}
+          {% set ns.oldest = [ns.oldest, as_timestamp(states.binary_sensor.wine_cave_sensor_unavailable.last_changed, now())] | min %}
+        {% endif %}
+        {% if is_state('binary_sensor.wine_cave_cooling_cycle', 'on')
+           and (now_ts - as_timestamp(states.binary_sensor.wine_cave_cooling_cycle.last_changed, now())) >= 10800 %}
+          {% set ns.active = true %}
+          {% set ns.oldest = [ns.oldest, as_timestamp(states.binary_sensor.wine_cave_cooling_cycle.last_changed, now())] | min %}
+        {% endif %}
+        {% set unresolved_seconds = now_ts - ns.oldest %}
+        {% if trigger.id in ['morning', 'evening'] %}
+          {{ ns.active and unresolved_seconds >= 43200 and unresolved_seconds < 86400 }}
+        {% elif trigger.id == 'six_hour' %}
+          {{ ns.active and unresolved_seconds >= 86400 and unresolved_seconds < 172800 }}
+        {% elif trigger.id == 'three_hour' %}
+          {{ ns.active and unresolved_seconds >= 172800 }}
+        {% else %}
+          false
+        {% endif %}
+  actions:
+    - variables:
+        unresolved_hours: >-
+          {% set now_ts = as_timestamp(now()) %}
+          {% set ns = namespace(oldest=now_ts) %}
+          {% if is_state('binary_sensor.wine_cave_actionable_alert', 'on') %}
+            {% set ns.oldest = [ns.oldest, as_timestamp(states.binary_sensor.wine_cave_actionable_alert.last_changed, now())] | min %}
+          {% endif %}
+          {% if is_state('binary_sensor.wine_cave_sensor_unavailable', 'on') %}
+            {% set ns.oldest = [ns.oldest, as_timestamp(states.binary_sensor.wine_cave_sensor_unavailable.last_changed, now())] | min %}
+          {% endif %}
+          {% if is_state('binary_sensor.wine_cave_cooling_cycle', 'on') %}
+            {% set ns.oldest = [ns.oldest, as_timestamp(states.binary_sensor.wine_cave_cooling_cycle.last_changed, now())] | min %}
+          {% endif %}
+          {{ ((now_ts - ns.oldest) / 3600) | round(0) | int }}
+        active_issue_summary: >-
+          {% set ns = namespace(items=[]) %}
+          {% if is_state('binary_sensor.wine_cave_sensor_unavailable', 'on') %}
+            {% set ns.items = ns.items + ['telemetry is missing'] %}
+          {% endif %}
+          {% if is_state('binary_sensor.wine_cave_temp_high_alert', 'on') %}
+            {% set ns.items = ns.items + ['temperature is high'] %}
+          {% endif %}
+          {% if is_state('binary_sensor.wine_cave_temp_low_alert', 'on') %}
+            {% set ns.items = ns.items + ['temperature is low'] %}
+          {% endif %}
+          {% if is_state('binary_sensor.wine_cave_moisture_anomaly', 'on') %}
+            {% set ns.items = ns.items + ['humidity/moisture is abnormal'] %}
+          {% endif %}
+          {% if is_state('binary_sensor.wine_cave_condensation_risk', 'on') %}
+            {% set ns.items = ns.items + ['condensation risk is active'] %}
+          {% endif %}
+          {% if is_state('binary_sensor.wine_cave_cooling_cycle', 'on') %}
+            {% set ns.items = ns.items + ['cycle recovery is still unresolved'] %}
+          {% endif %}
+          {{ ns.items | join(', ') if ns.items else 'the wine cave still has an unresolved condition' }}
+        escalation_context: >-
+          {% set hours = unresolved_hours | int(0) %}
+          {% if hours >= 48 %}
+            This has been unresolved for more than two days, so reminders now repeat every 3 hours until it recovers.
+          {% elif hours >= 24 %}
+            This has been unresolved for more than a day, so reminders now repeat every 6 hours until it recovers.
+          {% else %}
+            If this is still unresolved after 24 hours, reminders will repeat every 6 hours.
+          {% endif %}
+    - action: script.wine_cave_send_alert
+      data:
+        alert_kind: unresolved
+        severity: urgent
+        message: >-
+          Wine cave has been unresolved for about {{ unresolved_hours }} hours:
+          {{ active_issue_summary }}.
+          Current readings are {{ states('sensor.wine_temperature') | float(0) | round(1) }}°F
+          and {{ states('sensor.wine_humidity') | float(0) | round(0) }}% RH when telemetry is available.
+          {{ escalation_context }}
+          Confirm the fridge has power, the door is closed, the sensor is online,
+          and the circuit has not tripped.
+  mode: single
+
+- id: wine_cave_temperature_alerts
+  alias: "Wine Cave — Temperature Alerts"
+  description: Sends pushes when the wine cave is genuinely running too warm or too cold for a sustained period.
+  triggers:
+    - trigger: state
+      entity_id: binary_sensor.wine_cave_temp_high_alert
+      to: "on"
+      id: temp_high
+    - trigger: state
+      entity_id: binary_sensor.wine_cave_temp_low_alert
+      to: "on"
+      id: temp_low
+  conditions:
+    - condition: state
+      entity_id: binary_sensor.wine_cave_sensor_unavailable
+      state: "off"
+  actions:
+    - choose:
+        - conditions:
+            - condition: trigger
+              id: temp_high
+          sequence:
+            - action: script.wine_cave_send_alert
+              data:
+                alert_kind: temp_high
+                severity: urgent
+                message: >-
+                  Wine cave is at {{ states('sensor.wine_temperature') | float(0) | round(1) }}°F,
+                  above your 60°F ceiling.
+                  This no longer looks like a normal cycle.
+        - conditions:
+            - condition: trigger
+              id: temp_low
+          sequence:
+            - action: script.wine_cave_send_alert
+              data:
+                alert_kind: temp_low
+                severity: urgent
+                message: >-
+                  Wine cave is at {{ states('sensor.wine_temperature') | float(0) | round(1) }}°F,
+                  below your 50°F floor.
+                  This may be overcooling or a sensor issue.
+  mode: single
+
+- id: wine_cave_moisture_anomaly_notification
+  alias: "Wine Cave — Moisture Anomaly Notification"
+  description: Alerts when humidity is outside the desired band in a way that does not look like a normal refrigeration cycle.
+  triggers:
+    - trigger: state
+      entity_id: binary_sensor.wine_cave_moisture_anomaly
+      to: "on"
+  conditions:
+    - condition: state
+      entity_id: binary_sensor.wine_cave_sensor_unavailable
+      state: "off"
+    - condition: template
+      value_template: >
+        {{ not (
+          is_state('binary_sensor.wine_cave_condensation_risk', 'on')
+          and (states('sensor.wine_humidity') | float(0)) > 70
+        ) }}
+  actions:
+    - action: script.wine_cave_send_alert
+      data:
+        alert_kind: moisture
+        message: >-
+          {% set humidity = states('sensor.wine_humidity') | float(0) | round(0) %}
+          {% set ah = states('sensor.wine_cave_absolute_humidity') | float(0) | round(2) %}
+          {% set ah_delta = states('sensor.wine_cave_absolute_humidity_24h_delta') | float(0) %}
+          {% if humidity < 50 %}
+            Humidity is {{ humidity }}%, below your 50% floor.
+            Actual moisture is {{ ah }} g/m³, so this looks drier than a normal cycle.
+            If the door and power look normal, check the wine cave humidity cartridge.
+          {% else %}
+            Humidity is {{ humidity }}% and actual moisture is {{ ah }} g/m³,
+            {{ (ah_delta | abs) | round(2) }} g/m³ above the 24-hour average.
+            This looks different from a normal refrigeration cycle.
+          {% endif %}
+  mode: single
+
+- id: wine_cave_condensation_risk_notification
+  alias: "Wine Cave — Condensation Risk Notification"
+  description: Warns when dew point gets too close to the cellar temperature for long enough to matter.
+  triggers:
+    - trigger: state
+      entity_id: binary_sensor.wine_cave_condensation_risk
+      to: "on"
+  conditions:
+    - condition: state
+      entity_id: binary_sensor.wine_cave_sensor_unavailable
+      state: "off"
+  actions:
+    - action: script.wine_cave_send_alert
+      data:
+        alert_kind: condensation
+        message: >-
+          Dew point has moved close to cellar temperature:
+          {{ states('sensor.wine_cave_dew_point') | float(0) | round(1) }}°F dew point
+          vs {{ states('sensor.wine_temperature') | float(0) | round(1) }}°F air temperature.
+          Labels and corks may be at risk if this holds.
+  mode: single
+
+- id: wine_cave_drift_notification
+  alias: "Wine Cave — Drift Notification"
+  description: Sends an early heads-up when the last 24 hours drift away from the cave's recent baseline.
+  triggers:
+    - trigger: state
+      entity_id: binary_sensor.wine_cave_drift_alert
+      to: "on"
+  conditions:
+    - condition: state
+      entity_id: binary_sensor.wine_cave_sensor_unavailable
+      state: "off"
+    - condition: state
+      entity_id: binary_sensor.wine_cave_actionable_alert
+      state: "off"
+    - condition: state
+      entity_id: binary_sensor.wine_cave_cooling_cycle
+      state: "off"
+  actions:
+    - action: script.wine_cave_send_alert
+      data:
+        alert_kind: drift
+        message: >-
+          The last 24 hours have drifted away from the cave's recent pattern:
+          {{ states('sensor.wine_temperature_24h_stats') | float(0) | round(1) }}°F avg vs
+          {{ states('sensor.wine_temperature_7d_stats') | float(0) | round(1) }}°F over 7 days,
+          and {{ states('sensor.wine_humidity_24h_stats') | float(0) | round(0) }}% avg vs
+          {{ states('sensor.wine_humidity_7d_stats') | float(0) | round(0) }}% over 7 days.
+          Worth a look before it turns into a hard alarm.
+  mode: single
+
+- id: wine_cave_sensor_unavailable_notification
+  alias: "Wine Cave — Sensor Unavailable Notification"
+  description: Warns when wine cave telemetry has been missing long enough that climate alerts may be incomplete.
+  triggers:
+    - trigger: state
+      entity_id: binary_sensor.wine_cave_sensor_unavailable
+      to: "on"
+  actions:
+    - action: script.wine_cave_send_alert
+      data:
+        alert_kind: sensor_unavailable
+        message: >-
+          Wine cave temperature or humidity data has been unavailable for 10 minutes,
+          so condition alerts may be incomplete right now.
+  mode: single
+
+- id: wine_cave_sensor_unavailable_urgent
+  alias: "Wine Cave — Sensor Unavailable Urgent"
+  description: Escalates when wine cave telemetry stays missing long enough to suggest power or sensor trouble.
+  triggers:
+    - trigger: state
+      entity_id: binary_sensor.wine_cave_sensor_unavailable
+      to: "on"
+      for:
+        minutes: 45
+  actions:
+    - action: script.wine_cave_send_alert
+      data:
+        alert_kind: sensor_unavailable
+        severity: urgent
+        message: >-
+          Wine cave temperature or humidity data has been missing for 45 minutes.
+          Check the fridge, sensor, and power circuit.
+  mode: single
+
+- id: wine_cave_sensor_unavailable_clear
+  alias: "Wine Cave — Clear Sensor Unavailable Notification"
+  description: Clears the stale wine cave sensor-health push once telemetry has recovered.
+  triggers:
+    - trigger: state
+      entity_id: binary_sensor.wine_cave_sensor_unavailable
+      to: "off"
+      for:
+        minutes: 5
+  actions:
+    - action: script.notify_trevor_phone
+      data:
+        message: clear_notification
+        data:
+          tag: wine-cave-sensor_unavailable
+    - choose:
+        - conditions:
+            - condition: state
+              entity_id: binary_sensor.wine_cave_actionable_alert
+              state: "off"
+            - condition: state
+              entity_id: binary_sensor.wine_cave_cooling_cycle
+              state: "off"
+          sequence:
+            - action: script.notify_trevor_phone
+              data:
+                message: clear_notification
+                data:
+                  tag: wine-cave-unresolved
+  mode: single
+
+- id: wine_cave_abrupt_change_notification
+  alias: "Wine Cave — Abrupt Change Notification"
+  description: Sends an immediate push when temperature or humidity jumps far more than a normal cycle swing.
+  triggers:
+    - trigger: state
+      entity_id: sensor.wine_temperature
+      id: temperature
+    - trigger: state
+      entity_id: sensor.wine_humidity
+      id: humidity
+  conditions:
+    - condition: state
+      entity_id: binary_sensor.wine_cave_sensor_unavailable
+      state: "off"
+    - condition: template
+      value_template: >
+        {{ trigger.from_state is not none
+           and trigger.to_state is not none
+           and trigger.from_state.state not in ['unknown', 'unavailable', 'none', '']
+           and trigger.to_state.state not in ['unknown', 'unavailable', 'none', '']
+           and (as_timestamp(now()) - as_timestamp(trigger.from_state.last_updated, 0)) <= 1800 }}
+    - condition: template
+      value_template: >
+        {% set from_value = trigger.from_state.state | float(0) %}
+        {% set to_value = trigger.to_state.state | float(0) %}
+        {% set delta = (to_value - from_value) | abs %}
+        {{ (trigger.id == 'temperature' and delta >= 3)
+           or (trigger.id == 'humidity' and delta >= 15) }}
+    - condition: state
+      entity_id: binary_sensor.wine_cave_cooling_cycle
+      state: "off"
+  actions:
+    - action: script.wine_cave_send_alert
+      data:
+        alert_kind: abrupt
+        message: >-
+          {% set from_value = trigger.from_state.state | float(0) %}
+          {% set to_value = trigger.to_state.state | float(0) %}
+          {% set delta = (to_value - from_value) | abs %}
+          {% if trigger.id == 'temperature' %}
+            Wine temperature changed {{ delta | round(1) }}°F in under 30 minutes,
+            from {{ from_value | round(1) }}°F to {{ to_value | round(1) }}°F.
+            That can point to an open door, outside air intrusion, or a sensor issue.
+          {% else %}
+            Wine humidity changed {{ delta | round(0) }} points in under 30 minutes,
+            from {{ from_value | round(0) }}% to {{ to_value | round(0) }}%.
+            That is larger than a normal cycle swing.
+          {% endif %}
+    - delay:
+        minutes: 30
+  mode: single
+
+- id: wine_cave_recovery_notification
+  alias: "Wine Cave — Clear Resolved Alert Notifications"
+  description: Clears stale wine cave alert pushes when an actionable issue has settled, without sending a separate recovery push.
+  triggers:
+    - trigger: state
+      entity_id: binary_sensor.wine_cave_actionable_alert
+      to: "off"
+      for:
+        minutes: 30
+  conditions:
+    - condition: state
+      entity_id: binary_sensor.wine_cave_sensor_unavailable
+      state: "off"
+  actions:
+    - action: script.notify_trevor_phone
+      data:
+        message: clear_notification
+        data:
+          tag: wine-cave-temp_high
+    - action: script.notify_trevor_phone
+      data:
+        message: clear_notification
+        data:
+          tag: wine-cave-temp_low
+    - action: script.notify_trevor_phone
+      data:
+        message: clear_notification
+        data:
+          tag: wine-cave-moisture
+    - action: script.notify_trevor_phone
+      data:
+        message: clear_notification
+        data:
+          tag: wine-cave-condensation
+    - action: script.notify_trevor_phone
+      data:
+        message: clear_notification
+        data:
+          tag: wine-cave-overdue
+    - action: script.notify_trevor_phone
+      data:
+        message: clear_notification
+        data:
+          tag: wine-cave-unresolved
+  mode: single
+
+- id: basement_humidity_watch_notification
+  alias: "Environment — Basement Humidity Watch"
+  description: Uses the Airthings-backed basement sensor to warn when the basement stays humid long enough to invite mold, mustiness, or damp-loving bugs.
+  triggers:
+    - trigger: numeric_state
+      entity_id: sensor.mechanical_room_humidity
+      above: 55
+      for:
+        minutes: 90
+      id: watch
+    - trigger: numeric_state
+      entity_id: sensor.mechanical_room_humidity
+      above: 60
+      for:
+        minutes: 45
+      id: urgent
+    - trigger: numeric_state
+      entity_id: sensor.mechanical_room_humidity
+      below: 52
+      for:
+        minutes: 90
+      id: clear
+    - trigger: homeassistant
+      event: start
+      id: startup
+    - trigger: event
+      event_type: automation_reloaded
+      id: automation_reloaded
+    - trigger: time
+      at: input_datetime.basement_humidity_snooze_until
+      id: snooze_expired
+  actions:
+    - if:
+        - condition: template
+          value_template: "{{ trigger.id == 'startup' }}"
+      then:
+        - delay:
+            minutes: 20
+    - if:
+        - condition: template
+          value_template: "{{ trigger.id == 'automation_reloaded' }}"
+      then:
+        - delay:
+            minutes: 1
+    - variables:
+        humidity_raw: "{{ states('sensor.mechanical_room_humidity') }}"
+        temp_raw: "{{ states('sensor.mechanical_room_temperature') }}"
+        humidity_valid: "{{ is_number(humidity_raw) }}"
+        temp_valid: "{{ is_number(temp_raw) }}"
+        humidity: "{{ humidity_raw | float(0) }}"
+        temp: "{{ temp_raw | float(0) }}"
+        alert_kind: >-
+          {% set h = states('sensor.mechanical_room_humidity') %}
+          {% if is_number(h) and (h | float(0)) >= 60 %}
+            urgent
+          {% elif is_number(h) and (h | float(0)) >= 55 %}
+            watch
+          {% else %}
+            clear
+          {% endif %}
+        warm_damp: >-
+          {% set h = states('sensor.mechanical_room_humidity') %}
+          {% set t = states('sensor.mechanical_room_temperature') %}
+          {{ is_number(h) and is_number(t) and (h | float(0)) >= 60 and (t | float(0)) >= 68 }}
+        snooze_until: "{{ states('input_datetime.basement_humidity_snooze_until') }}"
+        snoozed: >-
+          {{ snooze_until not in ['unknown', 'unavailable', 'none', '']
+             and as_timestamp(snooze_until, 0) > as_timestamp(now()) }}
+    - if:
+        - condition: template
+          value_template: "{{ snoozed and alert_kind != 'clear' }}"
+      then:
+        - action: script.environment_send_alert
+          data:
+            room: Basement
+            alert_kind: humidity_high
+            clear: true
+        - stop: Basement humidity notifications are snoozed.
+    - choose:
+        - conditions:
+            - condition: state
+              entity_id: input_boolean.environment_alerts_enabled
+              state: "off"
+          sequence:
+            - action: script.environment_send_alert
+              data:
+                room: Basement
+                alert_kind: humidity_high
+                clear: true
+        - conditions:
+            - condition: template
+              value_template: "{{ alert_kind == 'urgent' }}"
+          sequence:
+            - action: script.environment_send_alert
+              data:
+                room: Basement
+                alert_kind: humidity_high
+                message: >-
+                  Basement humidity is sitting at {{ humidity | round(0) }}%
+                  {% if temp_valid | bool %}with the basement around {{ temp | round(0) }}°F{% endif %}.
+                  That is damp enough to raise mold, mustiness, and insect risk if it keeps up.
+                  {% if warm_damp | bool %}
+                    Warm plus humid is especially worth correcting.
+                  {% endif %}
+                  Worth checking the dehumidifier, drainage, or any open-air source.
+        - conditions:
+            - condition: template
+              value_template: "{{ alert_kind == 'watch' }}"
+          sequence:
+            - action: script.environment_send_alert
+              data:
+                room: Basement
+                alert_kind: humidity_high
+                message: >-
+                  Basement humidity has stayed above the safer range long enough to deserve a look:
+                  {{ humidity | round(0) }}%
+                  {% if temp_valid | bool %}at about {{ temp | round(0) }}°F{% endif %}.
+                  In your climate, keeping the basement in the low-to-mid 50s is the better target for
+                  mold and damp-bug prevention.
+                  Worth checking dehumidification before it turns swampy.
+      default:
+        - action: script.environment_send_alert
+          data:
+            room: Basement
+            alert_kind: humidity_high
+            clear: true
+  mode: restart
+
+- id: basement_humidity_notification_actions
+  alias: "Environment — Basement Humidity Notification Actions"
+  description: Handles basement humidity push actions, including the 24-hour snooze.
+  triggers:
+    - trigger: event
+      event_type: mobile_app_notification_action
+  conditions:
+    - condition: template
+      value_template: "{{ trigger.event.data.action == 'BASEMENT_HUMIDITY_SNOOZE_24H' }}"
+  actions:
+    - action: script.basement_humidity_snooze_24h
+  mode: single
+
+- id: environment_basement_radon_notification
+  alias: "Environment — Basement Radon Notification"
+  description: Sends a throttled basement radon push when the 24-hour Airthings average reaches the action band.
+  triggers:
+    - trigger: state
+      entity_id: binary_sensor.environment_basement_radon_high_alert
+      to: "on"
+      id: high
+    - trigger: time
+      at: "09:00:00"
+      id: repeat
+    - trigger: state
+      entity_id: binary_sensor.environment_basement_radon_high_alert
+      to: "off"
+      id: clear
+  actions:
+    - variables:
+        due_again: >-
+          {% set last_ts = as_timestamp(states('input_datetime.environment_radon_last_alert'), 0) %}
+          {{ last_ts == 0 or (as_timestamp(now()) - last_ts) >= 604800 }}
+        should_send: >-
+          {{ is_state('input_boolean.environment_alerts_enabled', 'on')
+             and is_state('binary_sensor.environment_basement_radon_high_alert', 'on')
+             and (trigger.id == 'high' or (trigger.id == 'repeat' and due_again | bool)) }}
+    - choose:
+        - conditions:
+            - condition: template
+              value_template: "{{ trigger.id == 'clear' or not is_state('input_boolean.environment_alerts_enabled', 'on') }}"
+          sequence:
+            - action: script.environment_send_alert
+              data:
+                room: Basement
+                alert_kind: radon_high
+                clear: true
+        - conditions:
+            - condition: template
+              value_template: "{{ should_send }}"
+          sequence:
+            - action: script.environment_send_alert
+              data:
+                room: Basement
+                alert_kind: radon_high
+                message: >-
+                  Basement radon is elevated on the 24-hour average:
+                  {{ states('sensor.basement_radon_24h_stats') }} {{ state_attr('sensor.basement_air_quality_radon', 'unit_of_measurement') or 'Bq/m³' }}.
+                  The dashboard starts watching at 75 Bq/m³ and this push fires around the EPA action band.
+                  Check ventilation or mitigation status if this persists.
+            - action: input_datetime.set_datetime
+              target:
+                entity_id: input_datetime.environment_radon_last_alert
+              data:
+                datetime: "{{ now().strftime('%Y-%m-%d %H:%M:%S') }}"
+  mode: single

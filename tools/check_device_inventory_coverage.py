@@ -42,6 +42,10 @@ SERVICE_OR_TEMPLATE_SUFFIXES = {
 DEFAULT_CONFIG_FILES = (
     "configuration.yaml",
     "automations.yaml",
+    "automations/00-water-irrigation.yaml",
+    "automations/10-lighting-security.yaml",
+    "automations/20-climate-garden-commute.yaml",
+    "automations/30-maintenance-environment.yaml",
     "scripts.yaml",
     "scenes.yaml",
     "dashboards/calm_mobile.yaml",
