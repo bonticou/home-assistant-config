@@ -45,3 +45,4 @@ unless the exact value is necessary and safe to store.
 - [Home Assistant UI hardening runbook](../home-assistant-ui-hardening-runbook.md)
 - [Dashboard chart audit](../dashboard-chart-audit.md)
 - [Device inventory](../device-inventory.md)
+- [Recorder inventory](../recorder-inventory.md)

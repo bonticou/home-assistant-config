@@ -453,6 +453,14 @@ problem more than a wine sensor or dashboard typo problem.
 Do not solve the 14 GB database by excluding broad domains blindly. History and
 logbook records support stateful alerts, incident review, and safety logic.
 
+Follow-up implemented: added `docs/recorder-inventory.md`,
+`docs/recorder-inventory.json`, and `tools/generate_recorder_inventory.py` so
+Recorder scope can be audited beside the device inventory. The first generated
+inventory identified 1,944 Recorder candidates under the current config and 627
+low stateful-need candidates for review. The first run used live-state recency
+and attribute size; exact per-entity frequency remains pending until the tool is
+run against a copied `home-assistant_v2.db`.
+
 Recommended next Recorder slice:
 
 - Keep event/security/motion history that supports alerts and postmortems.

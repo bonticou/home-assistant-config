@@ -242,6 +242,13 @@ When editing configuration:
   `docs/device-inventory.json` and `docs/device-inventory.md`, then run
   `python3 tools/check_device_inventory_coverage.py` so active config
   references cannot drift away from the inventory.
+- when changing Recorder config, history-heavy dashboards, stateful alert
+  assumptions, or high-churn integrations, update `docs/recorder-inventory.json`
+  and `docs/recorder-inventory.md` with
+  `python3 tools/generate_recorder_inventory.py`. When possible, run the same
+  tool against a copied `home-assistant_v2.db` with `--db` so frequency and row
+  counts are based on the actual Recorder database instead of live-state
+  recency.
 
 ## Configuration Structure / Decomposition
 

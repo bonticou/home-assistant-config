@@ -331,3 +331,5 @@ A human-readable map of the Home Assistant device model. The full audit dump is 
 | --- | --- |
 | [device-inventory-detail.md](device-inventory-detail.md) | Full per-device audit view |
 | [device-inventory.json](device-inventory.json) | Structured inventory for scripts and checks |
+| [recorder-inventory.md](recorder-inventory.md) | Recording-focused inventory for Recorder/history review |
+| [recorder-inventory.json](recorder-inventory.json) | Structured Recorder inventory for scripts and checks |
