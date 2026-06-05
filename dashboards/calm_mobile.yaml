@@ -487,7 +487,7 @@ views:
             hold_action:
               action: more-info
           - type: template
-            entity: sensor.master_temperature
+            entity: climate.master_2
             icon: >-
               {% set profile = states('select.master_current_mode_2') %}
               {% set hvac_action = state_attr('climate.master_2', 'hvac_action') %}
@@ -497,19 +497,22 @@ views:
               {% elif hvac_action == 'cooling' %}mdi:snowflake
               {% else %}mdi:bed-king-outline{% endif %}
             icon_color: >-
-              {% set status = states('sensor.environment_primary_bedroom_status') %}
+              {% set profile = states('select.master_current_mode_2') %}
               {% set hvac_action = state_attr('climate.master_2', 'hvac_action') %}
-              {% if status in ['attention', 'unavailable'] %}red
+              {% if profile == 'away' %}amber
+              {% elif profile == 'sleep' %}indigo
               {% elif hvac_action == 'heating' %}orange
               {% elif hvac_action == 'cooling' %}blue
-              {% elif status == 'watch' %}amber
               {% else %}grey{% endif %}
+            # The Master Bedroom home chip mirrors the Master Ecobee, not the SensorPush room sensor.
             content: >-
               {% set profile = states('select.master_current_mode_2') %}
-              {% set temp = states('sensor.master_temperature') %}
+              {% set temp = states('sensor.master_current_temperature_2') %}
+              {% set climate_temp = state_attr('climate.master_2', 'current_temperature') %}
               {% if profile == 'away' %}Away
               {% elif profile == 'sleep' %}Sleep
               {% elif is_number(temp) %}{{ temp | float(0) | round(0) }}°
+              {% elif climate_temp is not none %}{{ climate_temp | float(0) | round(0) }}°
               {% else %}HVAC{% endif %}
             tap_action:
               action: fire-dom-event
