@@ -504,15 +504,15 @@ views:
               {% elif hvac_action == 'heating' %}orange
               {% elif hvac_action == 'cooling' %}blue
               {% else %}grey{% endif %}
-            # The Master Bedroom home chip mirrors the Master Ecobee, not the SensorPush room sensor.
+            # The Master Bedroom home chip mirrors the built-in Master Ecobee thermostat sensor.
             content: >-
               {% set profile = states('select.master_current_mode_2') %}
-              {% set temp = states('sensor.master_current_temperature_2') %}
               {% set climate_temp = state_attr('climate.master_2', 'current_temperature') %}
+              {% set temp = states('sensor.master_current_temperature_2') %}
               {% if profile == 'away' %}Away
               {% elif profile == 'sleep' %}Sleep
-              {% elif is_number(temp) %}{{ temp | float(0) | round(0) }}°
               {% elif climate_temp is not none %}{{ climate_temp | float(0) | round(0) }}°
+              {% elif is_number(temp) %}{{ temp | float(0) | round(0) }}°
               {% else %}HVAC{% endif %}
             tap_action:
               action: fire-dom-event
