@@ -36,8 +36,6 @@
         {% set motion_sources = {
           'binary_sensor.g6_instant_motion': 'Play Room',
           'binary_sensor.play_room_person_detected': 'Play Room',
-          'binary_sensor.g6_instant_motion_2': 'Front Yard',
-          'binary_sensor.back_yard_person_detected': 'Front Yard',
           'binary_sensor.g6_instant_motion_3': 'Garage',
           'binary_sensor.garage_person_detected': 'Garage',
           'binary_sensor.wynn_s_room_motion': "Wynn's Room",
@@ -59,8 +57,6 @@
           {% set motion_sources = {
             'binary_sensor.g6_instant_motion': 'Play Room',
             'binary_sensor.play_room_person_detected': 'Play Room',
-            'binary_sensor.g6_instant_motion_2': 'Front Yard',
-            'binary_sensor.back_yard_person_detected': 'Front Yard',
             'binary_sensor.g6_instant_motion_3': 'Garage',
             'binary_sensor.garage_person_detected': 'Garage',
             'binary_sensor.wynn_s_room_motion': "Wynn's Room",
