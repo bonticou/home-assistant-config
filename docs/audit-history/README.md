@@ -38,6 +38,7 @@ unless the exact value is necessary and safe to store.
 | 2026-06-04 | [Garden decommission](2026-06-04-garden-decommission.md) | Crop-garden UI/config removal, Recorder purge, entity-registry cleanup, inventory refresh |
 | 2026-06-04 | [Home Assistant availability, UI hardening, and Casey closet recovery](2026-06-04-home-assistant-availability-ui-and-casey-closet.md) | Remote/mobile disconnect audit, diagnostic hardening, config recovery, Casey closet motion fix |
 | 2026-06-04 | [Home Assistant transient app-layer stall](2026-06-04-home-assistant-transient-app-layer-stall.md) | Local HTTP/websocket stall, Remote UI loading failure, recovered without config change |
+| 2026-06-04 | [Remote UI and fresh HTTP stall](2026-06-04-remote-ui-http-stall.md) | Existing websocket stayed live while fresh local HTTP and Remote UI TLS failed |
 | 2026-06-04 | [Casey closet unexpected light-on](2026-06-04-casey-closet-unexpected-light-on.md) | Manual-on hypothesis, sensitivity calibration, quiet-off validation |
 
 ## Related Legacy Reports And Runbooks
