@@ -2709,6 +2709,45 @@ views:
                     display: block;
                   }
             - type: custom:button-card
+              name: Profitec GO
+              label: Maintenance schedule
+              icon: mdi:coffee
+              show_state: false
+              show_label: true
+              tap_action:
+                action: none
+              styles:
+                card:
+                  - height: 48px
+                  - padding: 0 4px 8px
+                  - border-radius: 0
+                  - border: 0
+                  - border-bottom: 1px solid rgba(148, 163, 184, 0.14)
+                  - background: transparent
+                  - box-shadow: none
+                  - text-align: left
+                grid:
+                  - grid-template-areas: '"i n" "i l"'
+                  - grid-template-columns: 30px minmax(0, 1fr)
+                  - grid-template-rows: min-content min-content
+                  - column-gap: 10px
+                  - align-content: center
+                  - align-items: center
+                icon:
+                  - width: 21px
+                  - color: '#fbbf24'
+                name:
+                  - justify-self: start
+                  - font-size: 15px
+                  - font-weight: 760
+                  - color: rgba(248, 250, 252, 0.96)
+                label:
+                  - justify-self: start
+                  - margin-top: 2px
+                  - font-size: 12px
+                  - font-weight: 550
+                  - color: rgba(203, 213, 225, 0.72)
+            - type: custom:button-card
               entity: sensor.espresso_maintenance_status
               show_icon: false
               show_name: false
@@ -2716,14 +2755,14 @@ views:
                 b: >-
                   [[[
                     const a=entity.attributes||{},n='No record',fmt=x=>{const m=String(x||'').match(/^(\d{4})-(\d{2})-(\d{2})$/);return m?new Intl.DateTimeFormat('en-US',{month:'long',day:'numeric'}).format(new Date(Number(m[1]),Number(m[2])-1,Number(m[3]))):(x||n)},v=k=>fmt(a[k]);
-                    return `<h3>Profitec GO</h3><div class=t><em>Record</em><em>Last</em><em>Due</em><b>Water</b><span>${v('last_water_backflush_date')}</span><span>${v('water_ready_date')}</span><b>Cafiza</b><span>${v('last_cafiza_clean_date')}</span><span>${v('cafiza_due_date')}</span></div>`;
+                    return `<div class=t><em>Record</em><em>Last</em><em>Due</em><b>Water</b><span>${v('last_water_backflush_date')}</span><span>${v('water_ready_date')}</span><b>Cafiza</b><span>${v('last_cafiza_clean_date')}</span><span>${v('cafiza_due_date')}</span></div>`;
                   ]]]
               styles:
                 card: [background: none, border: 0, box-shadow: none, padding: 0, width: 100%]
                 grid: ["grid-template-areas: 'b'", "grid-template-columns: 1fr", "justify-items: center"]
                 custom_fields:
                   b: [justify-self: center, width: 100%, display: flex, flex-direction: column, align-items: center]
-              extra_styles: "h3{margin:0 0 8px;text-align:center}.t{display:grid;grid-template-columns:58px 1fr 1fr;width:min(100%,286px);margin:0 auto;box-sizing:border-box;border:1px solid #334155;border-radius:10px;overflow:hidden;font-size:12px}.t>*{padding:5px 6px;border-top:1px solid #334155}.t em{border-top:0;color:#94a3b8;font-style:normal}.t span{text-align:right}"
+              extra_styles: ".t{display:grid;grid-template-columns:58px 1fr 1fr;width:min(100%,286px);margin:6px auto 0;box-sizing:border-box;border:1px solid #334155;border-radius:10px;overflow:hidden;font-size:12px}.t>*{padding:5px 6px;border-top:1px solid #334155;text-align:left}.t em{border-top:0;color:#94a3b8;font-style:normal}"
             - type: custom:mushroom-chips-card
               alignment: left
               chips:
