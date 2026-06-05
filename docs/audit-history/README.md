@@ -40,6 +40,7 @@ unless the exact value is necessary and safe to store.
 | 2026-06-04 | [Home Assistant transient app-layer stall](2026-06-04-home-assistant-transient-app-layer-stall.md) | Local HTTP/websocket stall, Remote UI loading failure, recovered without config change |
 | 2026-06-04 | [Remote UI and fresh HTTP stall](2026-06-04-remote-ui-http-stall.md) | Existing websocket stayed live while fresh local HTTP and Remote UI TLS failed |
 | 2026-06-04 | [Casey closet unexpected light-on](2026-06-04-casey-closet-unexpected-light-on.md) | Manual-on hypothesis, sensitivity calibration, quiet-off validation |
+| 2026-06-05 | [Casey closet missed motion](2026-06-05-casey-closet-missed-motion.md) | Missed real closet entry, Core availability window, UniFi Protect sensitivity correction |
 
 ## Related Legacy Reports And Runbooks
 
