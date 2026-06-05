@@ -2605,10 +2605,63 @@ views:
               }
               .content-wrapper {
                 padding: 0 !important;
+                width: fit-content !important;
+                max-width: calc(100vw - 30px) !important;
+                margin-inline: auto !important;
+                background: transparent !important;
+                box-shadow: none !important;
+              }
+            ha-dialog$ wa-dialog$: |
+              dialog {
+                width: fit-content !important;
+                max-width: calc(100vw - 30px) !important;
+                min-width: 0 !important;
+                padding: 0 !important;
+                border: 0 !important;
+                background: transparent !important;
+                box-shadow: none !important;
+              }
+              .dialog {
+                background: transparent !important;
+                box-shadow: none !important;
               }
         popup_styles:
+          - style: all
+            styles: |
+              :host {
+                --primary-text-color: #f8fafc;
+                --secondary-text-color: #cbd5e1;
+                --popup-padding-x: 0px;
+                --popup-padding-y: 0px;
+              }
+              ha-dialog {
+                --mdc-dialog-scrim-color: rgba(2, 6, 23, 0.62);
+                --dialog-backdrop-filter: blur(28px) saturate(160%);
+                --ha-dialog-border-radius: 0px;
+                --mdc-dialog-container-color: transparent;
+                --mdc-theme-surface: transparent;
+                --ha-dialog-surface-background: transparent;
+              }
+              dialog {
+                background: transparent !important;
+                box-shadow: none !important;
+              }
           - style: wide
-            styles: ".content{width:318px!important;margin:auto}.content .container{margin-top:54px;overflow:visible;position:relative;padding:12px;border-radius:24px;background:#0f172a}"
+            styles: |
+              .content {
+                width: min(318px, calc(100vw - 30px)) !important;
+                margin-inline: auto;
+              }
+              .content .container {
+                margin-top: 54px;
+                overflow: visible;
+                position: relative;
+                padding: 12px !important;
+                border-radius: 24px;
+                border: 1px solid rgba(148, 163, 184, 0.16);
+                background: rgba(15, 23, 42, 0.96);
+                box-shadow: 0 22px 50px rgba(2, 6, 23, 0.38);
+              }
         card:
           type: vertical-stack
           cards:
