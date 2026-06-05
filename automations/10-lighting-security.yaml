@@ -958,7 +958,7 @@
 
 - id: garage_security_notification_actions
   alias: "Garage — Notification Actions"
-  description: Handles quick actions from ratgdo garage reminders.
+  description: Handles quick actions from garage door reminders.
   triggers:
     - trigger: event
       event_type: mobile_app_notification_action
@@ -1208,7 +1208,7 @@
 
 - id: garage_security_open_too_long
   alias: "Garage — Open Too Long"
-  description: Low-noise reminder when either ratgdo garage door stays open while someone is home.
+  description: Low-noise reminder when either garage door stays open while someone is home.
   triggers:
     - trigger: state
       entity_id:
@@ -1251,7 +1251,7 @@
 
 - id: garage_security_open_at_night
   alias: "Garage — Open At Night"
-  description: Higher-priority reminder when either ratgdo garage door is open during the overnight window.
+  description: Higher-priority reminder when either garage door is open during the overnight window.
   triggers:
     - trigger: time
       at: "22:30:00"
@@ -1334,7 +1334,7 @@
 
 - id: garage_security_opened_overnight
   alias: "Garage — Opened Overnight"
-  description: Immediate alert when either ratgdo garage door opens overnight without a recent arrival home.
+  description: Immediate alert when either garage door opens overnight without a recent arrival home.
   triggers:
     - trigger: state
       entity_id:
@@ -1377,7 +1377,7 @@
 
 - id: garage_security_obstruction_detected
   alias: "Garage — Obstruction Detected"
-  description: Pushes only when either ratgdo reports an obstruction while that garage door is moving.
+  description: Pushes only when either garage door path reports an obstruction while that door is moving.
   triggers:
     - trigger: state
       entity_id:

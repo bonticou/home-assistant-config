@@ -4248,7 +4248,7 @@ views:
               secondary: >-
                 {% set summary = state_attr('binary_sensor.garage_close_hazard_active', 'summary') | default('', true) %}
                 {{ summary if summary else 'Garage motion is active' }}.
-                The close command is blocked until the garage camera and both ratgdo paths clear.
+                The close command is blocked until the garage camera and both garage-door paths are clear.
               icon: mdi:alert-outline
               icon_color: red
               multiline_secondary: true
@@ -4260,9 +4260,9 @@ views:
               entity: binary_sensor.garage_close_hazard_active
               primary: Watched signals
               secondary: >-
-                Camera motion, person, and vehicle movement; Casey and Trevor
-                ratgdo motion and obstruction; Casey arriving/leaving vehicle
-                signals when available. A parked vehicle alone does not block closing.
+                Camera motion, person, and vehicle movement; nearby garage-door
+                motion and door-path obstruction; and Casey's vehicle-arriving
+                and vehicle-leaving signals when available. A parked vehicle alone does not block closing.
               icon: mdi:cctv
               icon_color: amber
               multiline_secondary: true

@@ -3296,7 +3296,7 @@ away_security_move_garage_door:
 
 away_security_close_garage_door:
   alias: Away Security Close Garage Door
-  description: Closes a selected ratgdo garage door only from an explicit user action when the shared garage path is clear.
+  description: Closes a selected garage door only from an explicit user action when the shared garage path is clear.
   icon: mdi:garage-arrow-down
   mode: parallel
   max: 4
@@ -3363,7 +3363,7 @@ away_security_close_garage_door:
                       {% if trevor_away | bool and casey_away | bool %}
                         Casey and Trevor are away, and Home Assistant still sees {{ states('sensor.away_security_issue_summary') }}.
                       {% else %}
-                        Home Assistant will keep watching ratgdo until {{ garage_label }} reports closed.
+                        Home Assistant will keep watching {{ garage_label }} and clear this once it reports closed.
                       {% endif %}
                     data:
                       tag: garage-did-not-close
@@ -3498,7 +3498,7 @@ garage_security_clear_person_away_alerts:
 
 garage_security_send_alert:
   alias: Garage Security Send Alert
-  description: Sends ratgdo garage reminders that are not part of the away-security system.
+  description: Sends garage door reminders that are not part of the away-security system.
   icon: mdi:garage-alert-variant
   mode: restart
   fields:
@@ -3558,7 +3558,7 @@ garage_security_send_alert:
           {% elif kind == 'casey_away' %}
             Casey is away, you're home, and {{ open_issue }}. Home Assistant will keep watching until the garage is closed.
           {% elif kind == 'obstruction' %}
-            ratgdo reports an obstruction while {{ target_label }} is {{ target_state }}. Check the door path before closing again.
+            Something is in or near the door path while {{ target_label }} is {{ target_state }}. Check the doorway before trying again.
           {% else %}
             {{ open_issue }} for {{ opened_for }} while someone is home.
           {% endif %}
@@ -3893,14 +3893,14 @@ away_motion_security_send_alert:
             'binary_sensor.g6_instant_motion_3': 'Garage camera motion',
             'binary_sensor.garage_person_detected': 'Garage person detected',
             'binary_sensor.garage_vehicle_detected': 'Garage vehicle detected',
-            'binary_sensor.ratgdo32disco_c26634_motion': "Casey's garage ratgdo motion",
-            'binary_sensor.ratgdo32disco_c26634_vehicle_arriving': "Casey's vehicle arriving in garage",
-            'binary_sensor.ratgdo32disco_c26634_vehicle_leaving': "Casey's vehicle leaving garage",
-            'binary_sensor.ratgdo32_4536e8_motion': "Trevor's garage ratgdo motion"
+            'binary_sensor.ratgdo32disco_c26634_motion': "Motion near Casey's garage door",
+            'binary_sensor.ratgdo32disco_c26634_vehicle_arriving': "Vehicle movement near Casey's garage door",
+            'binary_sensor.ratgdo32disco_c26634_vehicle_leaving': "Vehicle movement near Casey's garage door",
+            'binary_sensor.ratgdo32_4536e8_motion': "Motion near Trevor's garage door"
           } %}
           {{ labels.get(source_entity, state_attr(source_entity, 'friendly_name') or source_entity) }}
         source_area: >-
-          {% if 'garage' in source_label | lower or 'ratgdo' in source_label | lower or 'vehicle' in source_label | lower %}
+          {% if 'garage' in source_label | lower or 'vehicle' in source_label | lower %}
             Garage
           {% else %}
             Inside
@@ -3912,8 +3912,8 @@ away_motion_security_send_alert:
             🚨 Motion inside while away
           {% endif %}
         message: >-
-          {{ source_label }} triggered while Casey and Trevor are away.
-          I’ll keep this visible so it does not get buried.
+          {{ source_label }} while Casey and Trevor are away.
+          I'll keep this visible so it does not get buried.
     - action: script.notify_trevor_phone
       data:
         title: "{{ title }}"

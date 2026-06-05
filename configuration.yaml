@@ -3602,8 +3602,8 @@ template:
                 'Casey presence: ' ~ states('device_tracker.unifi_default_42_15_78_4a_d9_f8'),
                 "Casey's vehicle detection: " ~ states('binary_sensor.ratgdo32disco_c26634_vehicle_detected'),
                 "Casey's vehicle distance: " ~ states('sensor.ratgdo32disco_c26634_vehicle_distance_actual_filtered'),
-                "Trevor's ratgdo motion: " ~ states('binary_sensor.ratgdo32_4536e8_motion'),
-                "Trevor's ratgdo obstruction: " ~ states('binary_sensor.ratgdo32_4536e8_obstruction')
+                "Trevor's garage door area motion: " ~ states('binary_sensor.ratgdo32_4536e8_motion'),
+                "Trevor's garage door path: " ~ states('binary_sensor.ratgdo32_4536e8_obstruction')
               ] %}
               {% set ns.items = ns.items + [{
                 'id': 'away-security',
@@ -3621,8 +3621,8 @@ template:
                 'details': {
                   'summary': states('sensor.away_security_issue_summary') ~ '. Trevor and Casey are both away, so this stays active until the garage, locks, and lights are secure or the reminder is snoozed.',
                   'facts': facts,
-                  'after_action': 'Close garage sends explicit commands only for open garage doors, only when the shared garage camera and ratgdo hazard sensors are clear, then waits for each door to report closed. Lock doors locks only the currently unlocked entry locks. Sleep 30 min pauses away-security repeats without changing the home.',
-                  'tracking': 'Home Assistant watches both ratgdo garage states, entry locks, lights, and presence. Casey vehicle detection is shown for calibration only and does not trigger this alert.'
+                  'after_action': 'Close garage sends explicit commands only for open garage doors, only when the shared garage camera and door-path safety sensors are clear, then waits for each door to report closed. Lock doors locks only the currently unlocked entry locks. Sleep 30 min pauses away-security repeats without changing the home.',
+                  'tracking': 'Home Assistant watches both garage doors, nearby garage motion, door-path obstruction, entry locks, lights, and presence. Casey vehicle detection is shown for calibration only and does not trigger this alert.'
                 },
                 'actions': ([{'label': garage_close_title, 'service': 'script.away_security_close_open_garage_doors', 'inline': false}] if garage_open else [])
                   + ([{'label': 'Lock doors' if lock_count > 1 else 'Lock door', 'service': 'script.away_security_lock_unlocked_entry_doors', 'confirm': true, 'inline': false}] if lock_count > 0 else [])
@@ -5228,12 +5228,12 @@ template:
               'binary_sensor.g6_instant_motion_3': 'Garage camera motion',
               'binary_sensor.garage_person_detected': 'Garage person detected',
               'binary_sensor.garage_vehicle_detected': 'Garage vehicle movement',
-              'binary_sensor.ratgdo32disco_c26634_motion': "Casey's ratgdo motion",
-              'binary_sensor.ratgdo32disco_c26634_obstruction': "Casey's ratgdo obstruction",
+              'binary_sensor.ratgdo32disco_c26634_motion': "Motion near Casey's garage door",
+              'binary_sensor.ratgdo32disco_c26634_obstruction': "Casey's garage door path",
               'binary_sensor.ratgdo32disco_c26634_vehicle_arriving': "Casey's vehicle arriving",
               'binary_sensor.ratgdo32disco_c26634_vehicle_leaving': "Casey's vehicle leaving",
-              'binary_sensor.ratgdo32_4536e8_motion': "Trevor's ratgdo motion",
-              'binary_sensor.ratgdo32_4536e8_obstruction': "Trevor's ratgdo obstruction"
+              'binary_sensor.ratgdo32_4536e8_motion': "Motion near Trevor's garage door",
+              'binary_sensor.ratgdo32_4536e8_obstruction': "Trevor's garage door path"
             } %}
             {% set ns = namespace(names=[]) %}
             {% for entity_id, label in sources.items() %}
@@ -5264,13 +5264,13 @@ template:
           camera_motion: "{{ states('binary_sensor.g6_instant_motion_3') }}"
           camera_person_detected: "{{ states('binary_sensor.garage_person_detected') }}"
           camera_vehicle_detected: "{{ states('binary_sensor.garage_vehicle_detected') }}"
-          casey_ratgdo_motion: "{{ states('binary_sensor.ratgdo32disco_c26634_motion') }}"
-          casey_ratgdo_obstruction: "{{ states('binary_sensor.ratgdo32disco_c26634_obstruction') }}"
-          casey_ratgdo_vehicle_arriving: "{{ states('binary_sensor.ratgdo32disco_c26634_vehicle_arriving') }}"
-          casey_ratgdo_vehicle_leaving: "{{ states('binary_sensor.ratgdo32disco_c26634_vehicle_leaving') }}"
+          casey_garage_door_motion: "{{ states('binary_sensor.ratgdo32disco_c26634_motion') }}"
+          casey_garage_door_path: "{{ states('binary_sensor.ratgdo32disco_c26634_obstruction') }}"
+          casey_vehicle_arriving: "{{ states('binary_sensor.ratgdo32disco_c26634_vehicle_arriving') }}"
+          casey_vehicle_leaving: "{{ states('binary_sensor.ratgdo32disco_c26634_vehicle_leaving') }}"
           casey_parked_vehicle_detected: "{{ states('binary_sensor.ratgdo32disco_c26634_vehicle_detected') }}"
-          trevor_ratgdo_motion: "{{ states('binary_sensor.ratgdo32_4536e8_motion') }}"
-          trevor_ratgdo_obstruction: "{{ states('binary_sensor.ratgdo32_4536e8_obstruction') }}"
+          trevor_garage_door_motion: "{{ states('binary_sensor.ratgdo32_4536e8_motion') }}"
+          trevor_garage_door_path: "{{ states('binary_sensor.ratgdo32_4536e8_obstruction') }}"
 
       - name: "Wine Cave Sensor Unavailable"
         unique_id: wine_cave_sensor_unavailable
