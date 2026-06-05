@@ -2715,7 +2715,7 @@ views:
               custom_fields:
                 b: >-
                   [[[
-                    const a=entity.attributes||{},n='No record',v=k=>a[k]||n;
+                    const a=entity.attributes||{},n='No record',fmt=x=>{const m=String(x||'').match(/^(\d{4})-(\d{2})-(\d{2})$/);return m?new Intl.DateTimeFormat('en-US',{month:'long',day:'numeric'}).format(new Date(Number(m[1]),Number(m[2])-1,Number(m[3]))):(x||n)},v=k=>fmt(a[k]);
                     return `<h3>Profitec GO</h3><div class=t><em>Record</em><em>Last</em><em>Due</em><b>Water</b><span>${v('last_water_backflush_date')}</span><span>${v('water_ready_date')}</span><b>Cafiza</b><span>${v('last_cafiza_clean_date')}</span><span>${v('cafiza_due_date')}</span></div>`;
                   ]]]
               styles:
