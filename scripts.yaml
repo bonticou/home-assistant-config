@@ -3518,6 +3518,22 @@ garage_security_send_alert:
         open_count: "{{ state_attr('binary_sensor.away_security_garage_door_open', 'open_count') | int(0) }}"
         open_label: "{{ state_attr('binary_sensor.away_security_garage_door_open', 'open_label') | default(target_label, true) }}"
         open_issue: "{{ state_attr('binary_sensor.away_security_garage_door_open', 'open_issue') | default(target_label ~ ' open', true) }}"
+        casey_departure_open_label: >-
+          {% set label = open_label | trim %}
+          {% if label == "Casey's garage door" %}
+            her garage door
+          {% else %}
+            {{ label }}
+          {% endif %}
+        casey_departure_open_issue: >-
+          {% set issue = open_issue | trim %}
+          {% if issue == "Casey's garage door open" %}
+            her garage door is open
+          {% elif issue[-5:] == ' open' %}
+            {{ issue[:-5] }} is open
+          {% else %}
+            {{ issue }}
+          {% endif %}
         close_title: "{{ state_attr('binary_sensor.away_security_garage_door_open', 'close_action_title') | default('Close garage', true) }}"
         opened_for: >-
           {% set door = states[target_cover] %}
@@ -3532,7 +3548,7 @@ garage_security_send_alert:
           {% elif kind == 'trevor_away' %}
             🚗 {{ open_issue }} while you're away
           {% elif kind == 'casey_away' %}
-            {% if open_count | int(0) == 2 %}🚗 Casey left both garage doors open{% else %}🚗 Casey left {{ open_label }} open{% endif %}
+            {% if open_count | int(0) == 2 %}🚗 Casey left both garage doors open{% else %}🚗 Casey left {{ casey_departure_open_label }} open{% endif %}
           {% elif kind == 'obstruction' %}
             🚗 {{ target_label }} obstruction detected
           {% else %}
@@ -3556,7 +3572,7 @@ garage_security_send_alert:
           {% elif kind == 'trevor_away' %}
             You're away, Casey is home, and {{ open_issue }}. Home Assistant will keep watching until the garage is closed.
           {% elif kind == 'casey_away' %}
-            Casey is away, you're home, and {{ open_issue }}. Home Assistant will keep watching until the garage is closed.
+            Casey is away, you're home, and {{ casey_departure_open_issue }}. Home Assistant will keep watching until the garage is closed.
           {% elif kind == 'obstruction' %}
             Something is in or near the door path while {{ target_label }} is {{ target_state }}. Check the doorway before trying again.
           {% else %}
@@ -4265,19 +4281,35 @@ casey_left_garage_send_alert:
           {% else %}
             {{ issue }}
           {% endif %}
+        casey_departure_entry_issue_sentence: >-
+          {% set issue = entry_point_issue_sentence | trim %}
+          {% if issue == "Casey's garage door open" %}
+            her garage door open
+          {% else %}
+            {{ issue }}
+          {% endif %}
+        casey_departure_entry_message_clause: >-
+          {% set issue = entry_point_issue_sentence | trim %}
+          {% if issue == "Casey's garage door open" %}
+            her garage door is open
+          {% elif issue[-5:] == ' open' %}
+            {{ issue[:-5] }} is open
+          {% else %}
+            {{ issue }}
+          {% endif %}
         unlocked_entry_count: "{{ states('sensor.away_security_unlocked_entry_locks') | int(0) }}"
         notification_title: >-
           {% if garage_open_count | int(0) == 2 and entry_point_count | int(0) == 2 %}
             🚗 Casey left both garage doors open
           {% elif garage_door_open | bool and entry_point_count | int(0) == garage_open_count | int(0) %}
-            🚗 Casey left {{ entry_point_issue_sentence }}
+            🚗 Casey left {{ casey_departure_entry_issue_sentence }}
           {% elif entry_point_count | int(0) > 1 %}
             🔐 Casey left entry points unsecured
           {% else %}
-            🔐 Casey left {{ entry_point_issue_sentence }}
+            🔐 Casey left {{ casey_departure_entry_issue_sentence }}
           {% endif %}
         notification_message: >-
-          Casey just left home and {{ entry_point_issue_sentence }}.
+          Casey just left home and {{ casey_departure_entry_message_clause }}.
           Tap below to {{ 'close it' if garage_door_open | bool and unlocked_entry_count | int(0) == 0 else 'secure it' }}.
     - choose:
         - conditions:
@@ -4379,6 +4411,22 @@ casey_left_combo_send_alert:
           {% else %}
             {{ issue }}
           {% endif %}
+        casey_departure_entry_issue_sentence: >-
+          {% set issue = entry_point_issue_sentence | trim %}
+          {% if issue == "Casey's garage door open" %}
+            her garage door open
+          {% else %}
+            {{ issue }}
+          {% endif %}
+        casey_departure_entry_message_clause: >-
+          {% set issue = entry_point_issue_sentence | trim %}
+          {% if issue == "Casey's garage door open" %}
+            her garage door is open
+          {% elif issue[-5:] == ' open' %}
+            {{ issue[:-5] }} is open
+          {% else %}
+            {{ issue }}
+          {% endif %}
         unlocked_entry_count: "{{ states('sensor.away_security_unlocked_entry_locks') | int(0) }}"
         active_light_names: >
           {% set light_names = state_attr('sensor.away_security_active_lights', 'names') | default('', true) %}
@@ -4389,14 +4437,14 @@ casey_left_combo_send_alert:
           {% else %}Lock + lights off{% endif %}
     - action: script.notify_trevor_phone
       data:
-        title: "🏠 Casey left {{ entry_point_issue_sentence }} and lights on"
+        title: "🏠 Casey left {{ casey_departure_entry_issue_sentence }} and lights on"
         message: >-
           {% if active_light_names | count == 1 %}
-            Casey just left home, {{ entry_point_issue_sentence }}, and {{ active_light_names[0] }} is still on.
+            Casey just left home, {{ casey_departure_entry_message_clause }}, and {{ active_light_names[0] }} is still on.
           {% elif active_light_names | count == 2 %}
-            Casey just left home, {{ entry_point_issue_sentence }}, and {{ active_light_names | join(' and ') }} are still on.
+            Casey just left home, {{ casey_departure_entry_message_clause }}, and {{ active_light_names | join(' and ') }} are still on.
           {% else %}
-            Casey just left home, {{ entry_point_issue_sentence }}, and {{ active_light_names | count }} lights are still on.
+            Casey just left home, {{ casey_departure_entry_message_clause }}, and {{ active_light_names | count }} lights are still on.
           {% endif %}
           Tap below to secure everything.
         data:
