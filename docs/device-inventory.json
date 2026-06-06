@@ -827,6 +827,24 @@
     {
       "area": "",
       "control_count": 0,
+      "device_id": "manual_home_assistant_usb_sandisk_extreme_55ae",
+      "disabled_by": "",
+      "entities": [],
+      "entity_count": 0,
+      "entry_type": "manual_hardware",
+      "integrations": [
+        "hassio"
+      ],
+      "manufacturer": "SanDisk",
+      "model": "Extreme 55AE",
+      "name": "Home Assistant USB SSD",
+      "network_count": 0,
+      "other_count": 0,
+      "telemetry_count": 0
+    },
+    {
+      "area": "",
+      "control_count": 0,
       "device_id": "device_5998ed5c3bcd",
       "disabled_by": "",
       "entities": [
@@ -55360,7 +55378,7 @@
   "schema_version": 3,
   "summary": {
     "area_count": 32,
-    "device_count": 215,
+    "device_count": 216,
     "domain_counts": {
       "ai_task": 2,
       "automation": 164,

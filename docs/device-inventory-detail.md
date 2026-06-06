@@ -4,13 +4,13 @@ Full generated audit view. For the readable overview, use [device-inventory.md](
 
 ## Last Updated
 
-- Summary: 215 devices, 2165 entities, 129 network clients
+- Summary: 216 devices, 2165 entities, 129 network clients
 
 ## Summary
 
 | Metric | Count |
 | --- | --- |
-| Devices | 215 |
+| Devices | 216 |
 | Entities | 2165 |
 | Orphan entities | 707 |
 | Network clients | 129 |
@@ -1929,6 +1929,16 @@ _No registered entities._
 | `sensor.home_assistant_host_disk_total` | Disk total | telemetry | hassio | diagnostic | disabled |
 | `sensor.home_assistant_host_disk_used` | Disk used | telemetry | hassio | diagnostic | disabled |
 | `sensor.home_assistant_host_os_agent_version` | OS Agent version | telemetry | hassio | diagnostic | disabled |
+
+#### Home Assistant USB SSD
+
+- Device ID: `manual_home_assistant_usb_sandisk_extreme_55ae`
+- Integration: hassio (Supervisor storage UI)
+- Model: SanDisk Extreme 55AE
+- Capability mix: 0 telemetry, 0 control, 0 network, 0 other
+- Inventory note: USB-attached 931.48 GB SSD detected in Settings > System > Storage > Move data disk as an available target. No normal Home Assistant entity is currently registered. Serial is visible in the HA storage UI and intentionally omitted here.
+
+_No registered entities._
 
 #### Home Assistant Operating System
 
