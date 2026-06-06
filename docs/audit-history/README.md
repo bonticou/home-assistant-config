@@ -41,6 +41,7 @@ unless the exact value is necessary and safe to store.
 | 2026-06-04 | [Remote UI and fresh HTTP stall](2026-06-04-remote-ui-http-stall.md) | Existing websocket stayed live while fresh local HTTP and Remote UI TLS failed |
 | 2026-06-04 | [Casey closet unexpected light-on](2026-06-04-casey-closet-unexpected-light-on.md) | Manual-on hypothesis, sensitivity calibration, quiet-off validation |
 | 2026-06-05 | [Casey closet missed motion](2026-06-05-casey-closet-missed-motion.md) | Missed real closet entry, Core availability window, UniFi Protect sensitivity correction |
+| 2026-06-06 | [SSD data-disk migration and Casey closet miss](2026-06-06-ssd-data-disk-and-casey-closet.md) | External data disk migration, storage breakdown, Core flapping, Casey closet missed motion |
 
 ## Related Legacy Reports And Runbooks
 
