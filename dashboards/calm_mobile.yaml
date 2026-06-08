@@ -42,6 +42,10 @@ views:
             schedule: >-
               [[[
                 const message = hass.states['input_text.metro_north_commute_card_message']?.state || '';
+                const flipCells = (value, extraClass = '') => String(value).split('').map((char) => {
+                  if (char === ':') return '<span class="flip-separator">:</span>';
+                  return `<span class="flip-cell ${extraClass}">${char}</span>`;
+                }).join('');
                 const rows = String(message)
                   .split('\n')
                   .map((line) => line.trim())
@@ -62,10 +66,10 @@ views:
                     return `
                       <div class="train-row ${index === 0 ? 'primary-train' : ''}">
                         <div class="train-left">
-                          <div class="departure"><span class="clock">${clock}</span><span class="meridiem">${meridiem}</span></div>
+                          <div class="departure"><span class="flip-run time-run">${flipCells(clock)}</span><span class="meridiem">${meridiem}</span></div>
                           <div class="duration">${duration} min ride</div>
                         </div>
-                        <div class="track">Track ${track}</div>
+                        <div class="track"><span class="track-label">Track</span><span class="flip-run track-run">${flipCells(track, 'track-cell')}</span></div>
                         <div class="until ${urgency}">in ${minutesUntil} min</div>
                       </div>
                     `;
@@ -166,16 +170,9 @@ views:
               text-align: left;
             }
             .departure {
-              position: relative;
               display: inline-flex;
               align-items: center;
-              justify-content: center;
-              min-width: 84px;
-              padding: 6px 9px 7px;
-              border-radius: 4px;
-              background: linear-gradient(180deg, #252923 0%, #181d1a 49%, #0d1110 50%, #1a1f1b 100%);
-              box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.08), 0 2px 0 rgba(0, 0, 0, 0.28);
-              isolation: isolate;
+              justify-content: flex-start;
               font-family: SFMono-Regular, Menlo, Consolas, monospace;
               font-size: 15px;
               line-height: 1.1;
@@ -183,7 +180,24 @@ views:
               font-variant-numeric: tabular-nums;
               color: rgba(250, 241, 214, 0.96);
             }
-            .departure::after {
+            .flip-run {
+              display: inline-flex;
+              align-items: center;
+              gap: 2px;
+            }
+            .flip-cell {
+              position: relative;
+              display: inline-flex;
+              align-items: center;
+              justify-content: center;
+              width: 15px;
+              height: 22px;
+              border-radius: 3px;
+              background: linear-gradient(180deg, #252923 0%, #181d1a 49%, #0d1110 50%, #1a1f1b 100%);
+              box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.08), 0 2px 0 rgba(0, 0, 0, 0.28);
+              isolation: isolate;
+            }
+            .flip-cell::after {
               content: "";
               position: absolute;
               left: 0;
@@ -193,10 +207,21 @@ views:
               border-top: 1px solid rgba(0, 0, 0, 0.42);
               border-bottom: 1px solid rgba(255, 255, 255, 0.05);
             }
-            .clock,
-            .meridiem {
-              position: relative;
+            .flip-cell,
+            .flip-separator {
+              color: rgba(250, 241, 214, 0.96);
+              font-family: SFMono-Regular, Menlo, Consolas, monospace;
+              font-size: 15px;
+              font-weight: 780;
+              font-variant-numeric: tabular-nums;
+            }
+            .flip-cell {
               z-index: 1;
+            }
+            .flip-separator {
+              width: 5px;
+              text-align: center;
+              color: rgba(250, 241, 214, 0.72);
             }
             .meridiem {
               margin-left: 5px;
@@ -216,12 +241,24 @@ views:
               color: rgba(218, 190, 126, 0.66);
             }
             .track {
+              display: inline-flex;
+              align-items: center;
+              gap: 5px;
               justify-self: start;
               font-size: 12px;
               font-weight: 760;
               text-transform: uppercase;
               color: rgba(226, 197, 130, 0.92);
               white-space: nowrap;
+            }
+            .track-label {
+              color: rgba(226, 197, 130, 0.78);
+            }
+            .track-cell {
+              width: 14px;
+              height: 20px;
+              font-size: 13px;
+              color: rgba(250, 241, 214, 0.94);
             }
             .until {
               justify-self: end;
