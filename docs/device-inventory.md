@@ -59,6 +59,7 @@ A human-readable map of the Home Assistant device model. The full audit dump is 
 | --- | --- | --- | --- | --- |
 | Unassigned | Family Room | `light.family_room` | group |  |
 | Unassigned | Interior (Test) | `light.interior_test` | group |  |
+| Unassigned | Kitchen | `light.kitchen` | group |  |
 | Unassigned | Master Bedroom Sconces | `light.master_bedroom_sconces` | group |  |
 | Unassigned | Mudroom | `light.mudroom` | group |  |
 | Unassigned | U7 Pro (Family Room) LED | `light.u7_pro_family_room_led` | unifi | LED |

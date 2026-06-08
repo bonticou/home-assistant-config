@@ -4185,6 +4185,7 @@ _No registered entities._
 | `input_text.water_latest_alert_label` | Water Latest Alert Label | control | input_text | available |
 | `light.family_room` | Family Room | control | group | available |
 | `light.interior_test` | Interior (Test) | control | group | available |
+| `light.kitchen` | Kitchen | control | group | available |
 | `light.master_bedroom_sconces` | Master Bedroom Sconces | control | group | available |
 | `light.mudroom` | Mudroom | control | group | available |
 | `light.wynn_s_room` | Wynn's Room | control | group | available |

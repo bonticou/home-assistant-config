@@ -18,6 +18,15 @@
     - light.mudroom_main_lights
     - light.mudroom_nook_lights
 - platform: group
+  name: Kitchen
+  unique_id: kitchen_group
+  entities:
+    - light.kitchen_main
+    - light.kitchen_island
+    - light.kitchen_table_lights
+    - light.kitchen_sink_light
+    - light.kitchen_coffee_bar
+- platform: group
   name: Master Bedroom Sconces
   unique_id: master_bedroom_sconces_group
   entities:

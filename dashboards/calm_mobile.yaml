@@ -760,7 +760,7 @@ views:
                           - color: rgba(226, 232, 240, 0.88)
                 - type: custom:button-card
                   name: Evening
-                  label: Calm 10% glow
+                  label: Island 100% + 10%
                   icon: mdi:weather-sunset
                   entity: input_select.lighting_active_scene
                   show_state: false
@@ -5449,7 +5449,7 @@ views:
                     - color: rgba(226, 232, 240, 0.88)
           - type: custom:button-card
             name: Evening
-            label: Calm 10% glow
+            label: Island 100% + 10%
             icon: mdi:weather-sunset
             entity: input_select.lighting_active_scene
             show_state: false
@@ -6670,20 +6670,6 @@ views:
             use_light_color: true
             card_mod:
               style: *common_area_light_tile_style
-          - type: custom:mushroom-template-card
-            entity: switch.front_foyer_sconces
-            primary: Foyer Sconces
-            secondary: >-
-              {{ 'On' if is_state('switch.front_foyer_sconces', 'on') else 'Off' }}
-            icon: mdi:wall-sconce-flat
-            icon_color: >-
-              {{ 'amber' if is_state('switch.front_foyer_sconces', 'on') else 'grey' }}
-            tap_action:
-              action: toggle
-            hold_action:
-              action: more-info
-            card_mod:
-              style: *common_area_light_tile_style
           - type: custom:mushroom-light-card
             entity: light.stairs_front_stairs
             name: Front Stairs
@@ -6754,6 +6740,100 @@ views:
             use_light_color: true
             card_mod:
               style: *common_area_light_tile_style
+
+      - type: custom:mushroom-title-card
+        title: Kitchen
+
+      - type: custom:mushroom-light-card
+        entity: light.kitchen
+        name: Kitchen
+        icon: mdi:countertop-outline
+        tap_action:
+          <<: *lights_transition_tap_action
+          data:
+            light_entity: light.kitchen
+            transition_seconds: 3
+        show_brightness_control: true
+        show_color_temp_control: false
+        use_light_color: true
+        fill_container: true
+        card_mod:
+          style: *lights_compact_card_style
+
+      - type: grid
+        columns: 2
+        square: false
+        cards:
+          - type: custom:mushroom-light-card
+            entity: light.kitchen_main
+            name: Main
+            icon: mdi:ceiling-light
+            tap_action:
+              <<: *lights_transition_tap_action
+              data:
+                light_entity: light.kitchen_main
+                transition_seconds: 3
+            show_brightness_control: true
+            collapsible_controls: true
+            use_light_color: true
+            card_mod:
+              style: *lights_compact_card_style
+          - type: custom:mushroom-light-card
+            entity: light.kitchen_island
+            name: Island
+            icon: mdi:countertop
+            tap_action:
+              <<: *lights_transition_tap_action
+              data:
+                light_entity: light.kitchen_island
+                transition_seconds: 3
+            show_brightness_control: true
+            collapsible_controls: true
+            use_light_color: true
+            card_mod:
+              style: *lights_compact_card_style
+          - type: custom:mushroom-light-card
+            entity: light.kitchen_table_lights
+            name: Table
+            icon: mdi:table-chair
+            tap_action:
+              <<: *lights_transition_tap_action
+              data:
+                light_entity: light.kitchen_table_lights
+                transition_seconds: 3
+            show_brightness_control: true
+            collapsible_controls: true
+            use_light_color: true
+            card_mod:
+              style: *lights_compact_card_style
+          - type: custom:mushroom-light-card
+            entity: light.kitchen_sink_light
+            name: Sink
+            icon: mdi:faucet
+            tap_action:
+              <<: *lights_transition_tap_action
+              data:
+                light_entity: light.kitchen_sink_light
+                transition_seconds: 3
+            show_brightness_control: true
+            collapsible_controls: true
+            use_light_color: true
+            card_mod:
+              style: *lights_compact_card_style
+          - type: custom:mushroom-light-card
+            entity: light.kitchen_coffee_bar
+            name: Coffee Bar
+            icon: mdi:coffee
+            tap_action:
+              <<: *lights_transition_tap_action
+              data:
+                light_entity: light.kitchen_coffee_bar
+                transition_seconds: 3
+            show_brightness_control: true
+            collapsible_controls: true
+            use_light_color: true
+            card_mod:
+              style: *lights_compact_card_style
 
       - type: custom:mushroom-title-card
         title: Family Room
@@ -6922,20 +7002,6 @@ views:
             collapsible_controls: true
             show_color_temp_control: false
             use_light_color: true
-            card_mod:
-              style: *lights_compact_card_style
-          - type: custom:mushroom-template-card
-            entity: switch.master_lantern
-            primary: Master Lantern
-            secondary: >-
-              {{ 'On' if is_state('switch.master_lantern', 'on') else 'Off' }}
-            icon: mdi:coach-lamp
-            icon_color: >-
-              {{ 'amber' if is_state('switch.master_lantern', 'on') else 'grey' }}
-            tap_action:
-              action: toggle
-            hold_action:
-              action: more-info
             card_mod:
               style: *lights_compact_card_style
 
