@@ -1119,6 +1119,11 @@
           group: commute
           tag: metro-north-nwp-gct
           url: /calm-mobile/home
+    - action: input_text.set_value
+      target:
+        entity_id: input_text.metro_north_commute_card_message
+      data:
+        value: "{{ train_message[:255] }}"
     - action: input_datetime.set_datetime
       target:
         entity_id: input_datetime.metro_north_commute_last_notified_at

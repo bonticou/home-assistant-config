@@ -17,6 +17,106 @@ views:
 
       - type: conditional
         conditions:
+          - entity: binary_sensor.metro_north_commute_card_active
+            state: "on"
+        card:
+          type: custom:button-card
+          entity: binary_sensor.metro_north_commute_card_active
+          name: NWP to Grand Central
+          label: >-
+            [[[
+              const sent = hass.states['input_datetime.metro_north_commute_last_notified_at']?.state;
+              if (!sent || ['unknown', 'unavailable', 'none'].includes(sent)) return 'Metro-North';
+              const date = new Date(sent.replace(' ', 'T'));
+              if (Number.isNaN(date.getTime())) return 'Metro-North';
+              return `Sent ${date.toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' })}`;
+            ]]]
+          icon: mdi:train
+          show_label: true
+          show_state: false
+          tap_action:
+            action: none
+          hold_action:
+            action: more-info
+          custom_fields:
+            schedule: >-
+              [[[
+                const message = hass.states['input_text.metro_north_commute_card_message']?.state || '';
+                return String(message).replaceAll('\\n', '<br>');
+              ]]]
+            dismiss:
+              card:
+                type: custom:button-card
+                icon: mdi:close
+                show_name: false
+                show_state: false
+                tap_action:
+                  action: call-service
+                  service: script.metro_north_commute_dismiss_card
+                styles:
+                  card:
+                    - width: 32px
+                    - height: 32px
+                    - border-radius: 999px
+                    - border: none
+                    - box-shadow: none
+                    - background: rgba(15, 23, 42, 0.06)
+                    - padding: 0
+                  icon:
+                    - width: 18px
+                    - color: rgba(15, 23, 42, 0.62)
+          styles:
+            card:
+              - padding: 12px
+              - border-radius: 20px
+              - border: 1px solid rgba(37, 99, 235, 0.16)
+              - background: linear-gradient(180deg, rgba(239, 246, 255, 0.96), rgba(219, 234, 254, 0.82))
+              - box-shadow: 0 14px 32px rgba(37, 99, 235, 0.14)
+              - text-align: left
+            grid:
+              - grid-template-areas: '"i n dismiss" "i l dismiss" "schedule schedule schedule"'
+              - grid-template-columns: 36px minmax(0, 1fr) 36px
+              - grid-template-rows: min-content min-content min-content
+              - column-gap: 10px
+              - row-gap: 2px
+              - align-items: center
+            img_cell:
+              - justify-content: center
+              - align-items: center
+              - width: 36px
+              - height: 36px
+              - border-radius: 999px
+              - background: rgba(37, 99, 235, 0.12)
+            icon:
+              - width: 20px
+              - color: rgba(37, 99, 235, 0.92)
+            name:
+              - justify-self: start
+              - align-self: end
+              - font-size: 14px
+              - font-weight: 680
+              - color: rgba(15, 23, 42, 0.92)
+            label:
+              - justify-self: start
+              - align-self: start
+              - font-size: 12px
+              - font-weight: 520
+              - color: rgba(51, 65, 85, 0.72)
+            custom_fields:
+              dismiss:
+                - justify-self: end
+                - align-self: start
+              schedule:
+                - justify-self: stretch
+                - padding-top: 10px
+                - font-size: 13px
+                - line-height: 1.42
+                - font-weight: 540
+                - color: rgba(15, 23, 42, 0.88)
+                - white-space: normal
+
+      - type: conditional
+        conditions:
           - entity: input_boolean.vacation_mode
             state: "on"
         card:

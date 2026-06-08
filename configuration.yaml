@@ -663,6 +663,10 @@ input_datetime:
     name: Metro-North Commute Last Notified At
     has_date: true
     has_time: true
+  metro_north_commute_card_dismissed_at:
+    name: Metro-North Commute Card Dismissed At
+    has_date: true
+    has_time: true
 
 input_text:
   water_latest_alert_kind:
@@ -697,6 +701,9 @@ input_text:
     max: 255
   home_assistant_remote_ui_watchdog_last_status:
     name: HA Remote UI Watchdog Last Status
+    max: 255
+  metro_north_commute_card_message:
+    name: Metro-North Commute Card Message
     max: 255
   garbage_recycling_last_taken_out_pickup:
     name: Garbage Recycling Last Taken Out Pickup
@@ -4630,6 +4637,22 @@ template:
           lights_on_count: >
             {{ states('sensor.away_security_active_lights') | int(0) }}
           summary: "{{ states('sensor.away_security_issue_summary') }}"
+
+      - name: "metro_north_commute_card_active"
+        unique_id: metro_north_commute_card_active
+        icon: mdi:train
+        state: >
+          {% set last_notified = states('input_datetime.metro_north_commute_last_notified_at') %}
+          {% set dismissed = states('input_datetime.metro_north_commute_card_dismissed_at') %}
+          {% set message = states('input_text.metro_north_commute_card_message') %}
+          {% set has_message = message not in ['unknown', 'unavailable', 'none', ''] %}
+          {% set notified_at = as_timestamp(last_notified, 0) %}
+          {% set dismissed_at = as_timestamp(dismissed, 0) %}
+          {{ has_message and notified_at > 0 and dismissed_at < notified_at }}
+        attributes:
+          message: "{{ states('input_text.metro_north_commute_card_message') }}"
+          last_notified_at: "{{ states('input_datetime.metro_north_commute_last_notified_at') }}"
+          dismissed_at: "{{ states('input_datetime.metro_north_commute_card_dismissed_at') }}"
 
       - name: "door_lights_schedule_active"
         unique_id: door_lights_schedule_active

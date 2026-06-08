@@ -1307,6 +1307,18 @@ notify_trevor_phone:
         message: "{{ notification_message }}"
         data: "{{ notification_data }}"
 
+metro_north_commute_dismiss_card:
+  alias: Metro-North Commute Dismiss Card
+  description: Hides the current Metro-North commute schedule card from the home dashboard.
+  icon: mdi:train
+  mode: restart
+  sequence:
+    - action: input_datetime.set_datetime
+      target:
+        entity_id: input_datetime.metro_north_commute_card_dismissed_at
+      data:
+        datetime: "{{ now().strftime('%Y-%m-%d %H:%M:%S') }}"
+
 ting_send_notification:
   alias: Ting Send Notification
   description: Sends high-signal Ting electrical, voltage, offline, freeze, and learning notifications.
