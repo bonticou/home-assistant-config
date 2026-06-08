@@ -500,9 +500,10 @@ lights_all_off_scene:
         option: All off
     - choose:
         - conditions:
-            - condition: state
-              entity_id: binary_sensor.front_stairs_schedule_active
-              state: "on"
+            - condition: template
+              value_template: >
+                {{ is_state('binary_sensor.front_stairs_schedule_active', 'on')
+                   or is_state('binary_sensor.door_lights_schedule_active', 'on') }}
           sequence:
             - action: input_boolean.turn_on
               target:
@@ -534,6 +535,7 @@ lights_all_off_scene:
           - light.mudroom_nook_lights
           - light.back_patio_light
           - light.deck_deck_lights
+          - light.exterior_deck_lights
           - light.exterior_yard_lights
           - light.master_casey_s_closet
         transition: 3
@@ -598,7 +600,7 @@ lights_all_off_scene:
 
 lights_bedtime_scene:
   alias: Lights Bedtime Scene
-  description: Turn off the house lights for bedtime, turn off the family room TV, leave Wynn's room and the front entry lights alone, bring the master bedroom sconces on softly, fade the chandelier down first, turn off the mudroom exterior stairs, then settle the front stairs to a 4 percent overnight glow, and keep the chandelier off for the rest of the night.
+  description: Turn off the house lights for bedtime, turn off the family room TV, leave Wynn's room and the front entry lights alone, bring the master bedroom sconces on softly, fade the chandelier down first, turn off the garage and exterior utility lights, then settle the front stairs to a 4 percent overnight glow, and keep the chandelier off for the rest of the night.
   icon: mdi:weather-night
   mode: single
   sequence:
@@ -632,6 +634,9 @@ lights_bedtime_scene:
           - light.mudroom_main_lights
           - light.mudroom_nook_lights
           - light.back_patio_light
+          - light.deck_deck_lights
+          - light.exterior_deck_lights
+          - light.exterior_yard_lights
           - light.master_casey_s_closet
         transition: 8
     - action: light.turn_on
@@ -718,6 +723,41 @@ lights_bedtime_scene:
           action: media_player.media_pause
           data:
             entity_id: media_player.family_room_tv_2
+
+lights_late_night_exterior_off:
+  alias: Lights Late Night Exterior Off
+  description: Turn off garage and exterior utility lights for the night while leaving the front door lights alone.
+  icon: mdi:outdoor-lamp
+  mode: restart
+  sequence:
+    - if:
+        - condition: state
+          entity_id: binary_sensor.door_lights_schedule_active
+          state: "on"
+      then:
+        - action: input_boolean.turn_on
+          target:
+            entity_id: input_boolean.front_stairs_sleep_override
+    - action: light.turn_off
+      data:
+        entity_id:
+          - light.back_patio_light
+          - light.deck_deck_lights
+          - light.exterior_deck_lights
+          - light.exterior_yard_lights
+        transition: 3
+    - action: switch.turn_off
+      data:
+        entity_id:
+          - switch.uplight
+          - switch.garage_garage_lights
+          - switch.exterior_mud_room_stairs
+    - if:
+        - condition: state
+          entity_id: binary_sensor.door_lights_schedule_active
+          state: "on"
+      then:
+        - action: script.door_lights_schedule_on
 
 door_lights_schedule_on:
   alias: Door Lights Schedule On

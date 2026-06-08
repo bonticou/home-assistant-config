@@ -519,11 +519,21 @@
   description: Turn the garage light off after five quiet minutes, unless the garage camera has seen recent activity.
   initial_state: true
   triggers:
+    - trigger: homeassistant
+      event: start
+      id: startup
+    - trigger: event
+      event_type: automation_reloaded
+      id: automation_reloaded
+    - trigger: time_pattern
+      minutes: "/5"
+      id: watchdog
     - trigger: state
       entity_id: switch.garage_garage_lights
       to: "on"
       for:
         minutes: 5
+      id: light_on_quiet
     - trigger: state
       entity_id:
         - binary_sensor.g6_instant_motion_3
@@ -532,6 +542,7 @@
       to: "off"
       for:
         minutes: 5
+      id: motion_quiet
   conditions:
     - condition: template
       value_template: >-
@@ -560,6 +571,187 @@
     - action: switch.turn_off
       target:
         entity_id: switch.garage_garage_lights
+  mode: single
+
+- id: late_night_exterior_lights_left_on
+  alias: "Lights — Late Night Exterior Lights Left On"
+  description: Reminds Trevor when garage or exterior utility lights are still on overnight, excluding the front door lights.
+  triggers:
+    - trigger: time
+      at: "22:30:00"
+      id: bedtime_check
+    - trigger: state
+      entity_id:
+        - switch.garage_garage_lights
+        - switch.exterior_mud_room_stairs
+        - light.back_patio_light
+        - light.deck_deck_lights
+        - light.exterior_deck_lights
+        - light.exterior_yard_lights
+      to: "on"
+      for:
+        minutes: 5
+      id: light_on
+    - trigger: homeassistant
+      event: start
+      id: startup
+    - trigger: event
+      event_type: automation_reloaded
+      id: automation_reloaded
+    - trigger: time_pattern
+      minutes: "/15"
+      id: repeat
+  conditions:
+    - condition: template
+      value_template: >
+        {% set minutes_now = now().hour * 60 + now().minute %}
+        {{ minutes_now >= 1350 or minutes_now < 360 }}
+    - condition: template
+      value_template: >
+        {{ is_state('switch.garage_garage_lights', 'on')
+           or is_state('switch.exterior_mud_room_stairs', 'on')
+           or is_state('light.back_patio_light', 'on')
+           or is_state('light.deck_deck_lights', 'on')
+           or is_state('light.exterior_deck_lights', 'on')
+           or is_state('light.exterior_yard_lights', 'on') }}
+    - condition: template
+      value_template: >
+        {% set last = states('input_datetime.late_night_exterior_lights_last_notified_at') %}
+        {{ last in ['unknown', 'unavailable', 'none', '']
+           or (as_timestamp(now()) - as_timestamp(last, 0)) >= 3600 }}
+  actions:
+    - if:
+        - condition: template
+          value_template: "{{ trigger.id == 'startup' }}"
+      then:
+        - delay:
+            seconds: 15
+    - variables:
+        active_light_text: >-
+          {% set watched = {
+            'switch.garage_garage_lights': 'Garage light',
+            'switch.exterior_mud_room_stairs': 'Mudroom exterior stairs',
+            'light.back_patio_light': 'Back patio light',
+            'light.deck_deck_lights': 'Deck lights',
+            'light.exterior_deck_lights': 'Exterior deck lights',
+            'light.exterior_yard_lights': 'Side yard lights'
+          } %}
+          {% set ns = namespace(names=[]) %}
+          {% for entity_id, label in watched.items() %}
+            {% if is_state(entity_id, 'on') %}
+              {% set ns.names = ns.names + [label] %}
+            {% endif %}
+          {% endfor %}
+          {{ ns.names | join(', ') }}
+        active_light_count: >-
+          {% set watched = [
+            'switch.garage_garage_lights',
+            'switch.exterior_mud_room_stairs',
+            'light.back_patio_light',
+            'light.deck_deck_lights',
+            'light.exterior_deck_lights',
+            'light.exterior_yard_lights'
+          ] %}
+          {% set ns = namespace(count=0) %}
+          {% for entity_id in watched %}
+            {% if is_state(entity_id, 'on') %}
+              {% set ns.count = ns.count + 1 %}
+            {% endif %}
+          {% endfor %}
+          {{ ns.count }}
+        primary_light_name: >-
+          {% set watched = {
+            'switch.garage_garage_lights': 'Garage light',
+            'switch.exterior_mud_room_stairs': 'Mudroom exterior stairs',
+            'light.back_patio_light': 'Back patio light',
+            'light.deck_deck_lights': 'Deck lights',
+            'light.exterior_deck_lights': 'Exterior deck lights',
+            'light.exterior_yard_lights': 'Side yard lights'
+          } %}
+          {% set ns = namespace(name='Exterior light') %}
+          {% for entity_id, label in watched.items() %}
+            {% if is_state(entity_id, 'on') and ns.name == 'Exterior light' %}
+              {% set ns.name = label %}
+            {% endif %}
+          {% endfor %}
+          {{ ns.name }}
+    - variables:
+        title: >-
+          {% if active_light_count | int(0) == 1 %}
+            💡 {{ primary_light_name }} still on
+          {% else %}
+            💡 Exterior lights still on
+          {% endif %}
+    - action: script.notify_trevor_phone
+      data:
+        title: "{{ title }}"
+        message: >-
+          {{ active_light_text }} {{ 'is' if active_light_count | int(0) == 1 else 'are' }}
+          still on during the overnight window.
+        data:
+          tag: late-night-exterior-lights
+          group: lighting
+          sticky: true
+          ttl: 0
+          priority: high
+          url: /calm-mobile/home
+          actions:
+            - action: LIGHTS_LATE_NIGHT_EXTERIOR_OFF
+              title: Turn off exterior
+    - action: input_datetime.set_datetime
+      target:
+        entity_id: input_datetime.late_night_exterior_lights_last_notified_at
+      data:
+        datetime: "{{ now().strftime('%Y-%m-%d %H:%M:%S') }}"
+  mode: single
+
+- id: late_night_exterior_lights_notification_action
+  alias: "Lights — Late Night Exterior Notification Action"
+  description: Handles the overnight exterior-lights push action.
+  triggers:
+    - trigger: event
+      event_type: mobile_app_notification_action
+      event_data:
+        action: LIGHTS_LATE_NIGHT_EXTERIOR_OFF
+  conditions: []
+  actions:
+    - action: script.lights_late_night_exterior_off
+    - action: script.notify_trevor_phone
+      data:
+        message: clear_notification
+        data:
+          tag: late-night-exterior-lights
+  mode: single
+
+- id: late_night_exterior_lights_clear_when_off
+  alias: "Lights — Clear Late Night Exterior Reminder"
+  description: Clears the overnight exterior-lights push once the watched lights are off.
+  triggers:
+    - trigger: state
+      entity_id:
+        - switch.garage_garage_lights
+        - switch.exterior_mud_room_stairs
+        - light.back_patio_light
+        - light.deck_deck_lights
+        - light.exterior_deck_lights
+        - light.exterior_yard_lights
+      from: "on"
+      to: "off"
+  conditions:
+    - condition: template
+      value_template: >
+        {{ is_state('switch.garage_garage_lights', 'off')
+           and is_state('switch.exterior_mud_room_stairs', 'off')
+           and is_state('light.back_patio_light', 'off')
+           and is_state('light.deck_deck_lights', 'off')
+           and is_state('light.exterior_deck_lights', 'off')
+           and is_state('light.exterior_yard_lights', 'off') }}
+  actions:
+    - action: script.notify_trevor_phone
+      data:
+        message: clear_notification
+        data:
+          tag: late-night-exterior-lights
   mode: single
 
 - id: vacation_activity_schedule_sync

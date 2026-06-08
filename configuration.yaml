@@ -383,6 +383,10 @@ input_datetime:
     name: Entry Security Snooze Until
     has_date: true
     has_time: true
+  late_night_exterior_lights_last_notified_at:
+    name: Late Night Exterior Lights Last Notified At
+    has_date: true
+    has_time: true
   away_motion_security_snooze_until:
     name: Away Motion Security Snooze Until
     has_date: true
