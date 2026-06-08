@@ -516,7 +516,7 @@
 
 - id: garage_light_auto_off
   alias: "Lights — Garage Light Auto-Off"
-  description: Turn the garage light off after five quiet minutes, unless the garage camera has seen recent activity.
+  description: Turn the garage lights off after five quiet minutes, unless garage camera or motion sensors have seen recent activity.
   initial_state: true
   triggers:
     - trigger: homeassistant
@@ -529,7 +529,10 @@
       minutes: "/5"
       id: watchdog
     - trigger: state
-      entity_id: switch.garage_garage_lights
+      entity_id:
+        - switch.garage_garage_lights
+        - light.ratgdo32_4536e8_light
+        - light.ratgdo32disco_c26634_light
       to: "on"
       for:
         minutes: 5
@@ -539,6 +542,10 @@
         - binary_sensor.g6_instant_motion_3
         - binary_sensor.garage_person_detected
         - binary_sensor.garage_vehicle_detected
+        - binary_sensor.ratgdo32_4536e8_motion
+        - binary_sensor.ratgdo32disco_c26634_motion
+        - binary_sensor.ratgdo32disco_c26634_vehicle_arriving
+        - binary_sensor.ratgdo32disco_c26634_vehicle_leaving
       to: "off"
       for:
         minutes: 5
@@ -546,14 +553,31 @@
   conditions:
     - condition: template
       value_template: >-
-        {{ is_state('switch.garage_garage_lights', 'on')
-           and (as_timestamp(now()) - as_timestamp(states.switch.garage_garage_lights.last_changed, 0)) >= 300 }}
+        {% set garage_lights = [
+          'switch.garage_garage_lights',
+          'light.ratgdo32_4536e8_light',
+          'light.ratgdo32disco_c26634_light'
+        ] %}
+        {% set ns = namespace(quiet_light_on=false) %}
+        {% for entity_id in garage_lights %}
+          {% set target = states[entity_id] %}
+          {% if target is not none
+                and target.state == 'on'
+                and (as_timestamp(now()) - as_timestamp(target.last_changed, 0)) >= 300 %}
+            {% set ns.quiet_light_on = true %}
+          {% endif %}
+        {% endfor %}
+        {{ ns.quiet_light_on }}
     - condition: template
       value_template: >-
         {% set camera_entities = [
           'binary_sensor.g6_instant_motion_3',
           'binary_sensor.garage_person_detected',
-          'binary_sensor.garage_vehicle_detected'
+          'binary_sensor.garage_vehicle_detected',
+          'binary_sensor.ratgdo32_4536e8_motion',
+          'binary_sensor.ratgdo32disco_c26634_motion',
+          'binary_sensor.ratgdo32disco_c26634_vehicle_arriving',
+          'binary_sensor.ratgdo32disco_c26634_vehicle_leaving'
         ] %}
         {% set ns = namespace(recent=false) %}
         {% for entity_id in camera_entities %}
@@ -571,6 +595,11 @@
     - action: switch.turn_off
       target:
         entity_id: switch.garage_garage_lights
+    - action: light.turn_off
+      target:
+        entity_id:
+          - light.ratgdo32_4536e8_light
+          - light.ratgdo32disco_c26634_light
   mode: single
 
 - id: late_night_exterior_lights_left_on
@@ -583,6 +612,8 @@
     - trigger: state
       entity_id:
         - switch.garage_garage_lights
+        - light.ratgdo32_4536e8_light
+        - light.ratgdo32disco_c26634_light
         - switch.exterior_mud_room_stairs
         - light.back_patio_light
         - light.deck_deck_lights
@@ -609,6 +640,8 @@
     - condition: template
       value_template: >
         {{ is_state('switch.garage_garage_lights', 'on')
+           or is_state('light.ratgdo32_4536e8_light', 'on')
+           or is_state('light.ratgdo32disco_c26634_light', 'on')
            or is_state('switch.exterior_mud_room_stairs', 'on')
            or is_state('light.back_patio_light', 'on')
            or is_state('light.deck_deck_lights', 'on')
@@ -630,6 +663,8 @@
         active_light_text: >-
           {% set watched = {
             'switch.garage_garage_lights': 'Garage light',
+            'light.ratgdo32_4536e8_light': "Trevor's garage opener light",
+            'light.ratgdo32disco_c26634_light': "Casey's garage opener light",
             'switch.exterior_mud_room_stairs': 'Mudroom exterior stairs',
             'light.back_patio_light': 'Back patio light',
             'light.deck_deck_lights': 'Deck lights',
@@ -646,6 +681,8 @@
         active_light_count: >-
           {% set watched = [
             'switch.garage_garage_lights',
+            'light.ratgdo32_4536e8_light',
+            'light.ratgdo32disco_c26634_light',
             'switch.exterior_mud_room_stairs',
             'light.back_patio_light',
             'light.deck_deck_lights',
@@ -662,6 +699,8 @@
         primary_light_name: >-
           {% set watched = {
             'switch.garage_garage_lights': 'Garage light',
+            'light.ratgdo32_4536e8_light': "Trevor's garage opener light",
+            'light.ratgdo32disco_c26634_light': "Casey's garage opener light",
             'switch.exterior_mud_room_stairs': 'Mudroom exterior stairs',
             'light.back_patio_light': 'Back patio light',
             'light.deck_deck_lights': 'Deck lights',
@@ -730,6 +769,8 @@
     - trigger: state
       entity_id:
         - switch.garage_garage_lights
+        - light.ratgdo32_4536e8_light
+        - light.ratgdo32disco_c26634_light
         - switch.exterior_mud_room_stairs
         - light.back_patio_light
         - light.deck_deck_lights
@@ -741,6 +782,8 @@
     - condition: template
       value_template: >
         {{ is_state('switch.garage_garage_lights', 'off')
+           and is_state('light.ratgdo32_4536e8_light', 'off')
+           and is_state('light.ratgdo32disco_c26634_light', 'off')
            and is_state('switch.exterior_mud_room_stairs', 'off')
            and is_state('light.back_patio_light', 'off')
            and is_state('light.deck_deck_lights', 'off')

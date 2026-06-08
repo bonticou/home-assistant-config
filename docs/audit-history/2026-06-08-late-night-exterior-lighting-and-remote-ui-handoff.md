@@ -90,6 +90,12 @@ light, and expected the garage light to auto-off after five quiet minutes.
   remain excluded.
 - Updated All Off so the front-stairs sleep override also follows the
   door-light schedule, not only the front-stairs schedule.
+- Follow-up: added the two RATGDO garage opener lights to Bedtime, All Off,
+  late-night exterior shutoff, late-night exterior reminders, and garage
+  auto-off.
+- Follow-up: added RATGDO garage motion/vehicle entities to the quiet-garage
+  activity check so opener lights and wall-switch lights share the same
+  "never left on after long quiet periods" behavior.
 
 ## Checks And Live Validation
 

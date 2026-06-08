@@ -537,6 +537,8 @@ lights_all_off_scene:
           - light.deck_deck_lights
           - light.exterior_deck_lights
           - light.exterior_yard_lights
+          - light.ratgdo32_4536e8_light
+          - light.ratgdo32disco_c26634_light
           - light.master_casey_s_closet
         transition: 3
     - variables:
@@ -625,18 +627,26 @@ lights_bedtime_scene:
       data:
         entity_id:
           - light.front_foyer_ceiling_lights
+          - light.front_foyer_chandelier
           - light.family_room_main_lights_1
           - light.family_room_main_lights_2
           - light.family_room_main_lights_3
           - light.back_stairs_back_stairs
           - light.upstairs_hallway_main_lights
           - light.vestibule_main_lights
+          - light.kitchen_main
+          - light.kitchen_island
+          - light.kitchen_table_lights
+          - light.kitchen_sink_light
+          - light.kitchen_coffee_bar
           - light.mudroom_main_lights
           - light.mudroom_nook_lights
           - light.back_patio_light
           - light.deck_deck_lights
           - light.exterior_deck_lights
           - light.exterior_yard_lights
+          - light.ratgdo32_4536e8_light
+          - light.ratgdo32disco_c26634_light
           - light.master_casey_s_closet
         transition: 8
     - action: light.turn_on
@@ -745,6 +755,8 @@ lights_late_night_exterior_off:
           - light.deck_deck_lights
           - light.exterior_deck_lights
           - light.exterior_yard_lights
+          - light.ratgdo32_4536e8_light
+          - light.ratgdo32disco_c26634_light
         transition: 3
     - action: switch.turn_off
       data:
