@@ -760,7 +760,7 @@ views:
                           - color: rgba(226, 232, 240, 0.88)
                 - type: custom:button-card
                   name: Evening
-                  label: Island 100% + 10%
+                  label: Soft evening glow
                   icon: mdi:weather-sunset
                   entity: input_select.lighting_active_scene
                   show_state: false
@@ -812,7 +812,7 @@ views:
                           - color: rgba(207, 250, 254, 0.9)
                 - type: custom:button-card
                   name: Bedtime
-                  label: Sleep hold
+                  label: Master glow only
                   icon: mdi:weather-night
                   entity: input_select.lighting_active_scene
                   show_state: false
@@ -5449,7 +5449,7 @@ views:
                     - color: rgba(226, 232, 240, 0.88)
           - type: custom:button-card
             name: Evening
-            label: Island 100% + 10%
+            label: Soft evening glow
             icon: mdi:weather-sunset
             entity: input_select.lighting_active_scene
             show_state: false
@@ -5501,7 +5501,7 @@ views:
                     - color: rgba(207, 250, 254, 0.9)
           - type: custom:button-card
             name: Bedtime
-            label: Sleep hold
+            label: Master glow only
             icon: mdi:weather-night
             entity: input_select.lighting_active_scene
             show_state: false
