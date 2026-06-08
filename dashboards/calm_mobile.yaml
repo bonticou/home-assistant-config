@@ -58,10 +58,11 @@ views:
                     const [, minutesUntil, departure, track, duration] = match;
                     const minutes = Number(minutesUntil);
                     const urgency = minutes < 5 ? 'urgent' : minutes < 20 ? 'soon' : 'comfortable';
+                    const [clock, meridiem = ''] = departure.split(/\s+/);
                     return `
                       <div class="train-row ${index === 0 ? 'primary-train' : ''}">
                         <div class="train-left">
-                          <div class="departure">${departure}</div>
+                          <div class="departure"><span class="clock">${clock}</span><span class="meridiem">${meridiem}</span></div>
                           <div class="duration">${duration} min ride</div>
                         </div>
                         <div class="track">Track ${track}</div>
@@ -87,18 +88,18 @@ views:
                     - border-radius: 999px
                     - border: none
                     - box-shadow: none
-                    - background: rgba(15, 23, 42, 0.06)
+                    - background: rgba(246, 232, 193, 0.12)
                     - padding: 0
                   icon:
                     - width: 18px
-                    - color: rgba(15, 23, 42, 0.62)
+                    - color: rgba(246, 232, 193, 0.72)
           styles:
             card:
               - padding: 12px
-              - border-radius: 20px
-              - border: 1px solid rgba(37, 99, 235, 0.16)
-              - background: linear-gradient(180deg, rgba(239, 246, 255, 0.96), rgba(219, 234, 254, 0.82))
-              - box-shadow: 0 14px 32px rgba(37, 99, 235, 0.14)
+              - border-radius: 16px
+              - border: 1px solid rgba(226, 197, 130, 0.38)
+              - background: linear-gradient(180deg, rgba(40, 52, 42, 0.98), rgba(17, 24, 22, 0.98))
+              - box-shadow: 0 14px 34px rgba(0, 0, 0, 0.3), inset 0 1px 0 rgba(255, 255, 255, 0.06)
               - text-align: left
             grid:
               - grid-template-areas: '"i n dismiss" "i l dismiss" "schedule schedule schedule"'
@@ -113,22 +114,23 @@ views:
               - width: 36px
               - height: 36px
               - border-radius: 999px
-              - background: rgba(37, 99, 235, 0.12)
+              - background: rgba(226, 197, 130, 0.16)
             icon:
               - width: 20px
-              - color: rgba(37, 99, 235, 0.92)
+              - color: rgba(246, 232, 193, 0.92)
             name:
               - justify-self: start
               - align-self: end
               - font-size: 14px
-              - font-weight: 680
-              - color: rgba(15, 23, 42, 0.92)
+              - font-weight: 760
+              - text-transform: uppercase
+              - color: rgba(246, 232, 193, 0.96)
             label:
               - justify-self: start
               - align-self: start
               - font-size: 12px
               - font-weight: 520
-              - color: rgba(51, 65, 85, 0.72)
+              - color: rgba(218, 190, 126, 0.74)
             custom_fields:
               dismiss:
                 - justify-self: end
@@ -142,7 +144,7 @@ views:
                 - font-size: 12px
                 - line-height: 1.25
                 - font-weight: 520
-                - color: rgba(15, 23, 42, 0.88)
+                - color: rgba(246, 232, 193, 0.9)
                 - white-space: normal
           extra_styles: |
             .train-row {
@@ -150,9 +152,9 @@ views:
               grid-template-columns: minmax(0, 1fr) 70px 86px;
               align-items: center;
               gap: 8px;
-              min-height: 38px;
-              padding: 7px 0;
-              border-top: 1px solid rgba(37, 99, 235, 0.1);
+              min-height: 46px;
+              padding: 8px 0;
+              border-top: 1px solid rgba(226, 197, 130, 0.16);
             }
             .train-row:first-child {
               border-top: 0;
@@ -164,54 +166,94 @@ views:
               text-align: left;
             }
             .departure {
+              position: relative;
+              display: inline-flex;
+              align-items: center;
+              justify-content: center;
+              min-width: 84px;
+              padding: 6px 9px 7px;
+              border-radius: 4px;
+              background: linear-gradient(180deg, #252923 0%, #181d1a 49%, #0d1110 50%, #1a1f1b 100%);
+              box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.08), 0 2px 0 rgba(0, 0, 0, 0.28);
+              isolation: isolate;
+              font-family: SFMono-Regular, Menlo, Consolas, monospace;
               font-size: 15px;
               line-height: 1.1;
-              font-weight: 730;
-              color: rgba(15, 23, 42, 0.94);
+              font-weight: 760;
+              font-variant-numeric: tabular-nums;
+              color: rgba(250, 241, 214, 0.96);
+            }
+            .departure::after {
+              content: "";
+              position: absolute;
+              left: 0;
+              right: 0;
+              top: 50%;
+              z-index: 0;
+              border-top: 1px solid rgba(0, 0, 0, 0.42);
+              border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+            }
+            .clock,
+            .meridiem {
+              position: relative;
+              z-index: 1;
+            }
+            .meridiem {
+              margin-left: 5px;
+              align-self: flex-end;
+              padding-bottom: 1px;
+              font-size: 9px;
+              line-height: 1;
+              font-weight: 700;
+              text-transform: lowercase;
+              color: rgba(250, 241, 214, 0.82);
             }
             .duration {
-              margin-top: 3px;
+              margin-top: 5px;
               font-size: 11px;
               line-height: 1.1;
               font-weight: 560;
-              color: rgba(71, 85, 105, 0.68);
+              color: rgba(218, 190, 126, 0.66);
             }
             .track {
               justify-self: start;
               font-size: 12px;
-              font-weight: 680;
-              color: rgba(37, 99, 235, 0.86);
+              font-weight: 760;
+              text-transform: uppercase;
+              color: rgba(226, 197, 130, 0.92);
               white-space: nowrap;
             }
             .until {
               justify-self: end;
-              padding: 5px 8px;
-              border-radius: 999px;
+              padding: 5px 7px;
+              border-radius: 4px;
+              border: 1px solid rgba(255, 255, 255, 0.08);
+              box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.08);
               font-size: 11px;
-              font-weight: 700;
+              font-weight: 760;
               text-align: center;
               white-space: nowrap;
             }
             .until.urgent {
-              background: rgba(239, 68, 68, 0.13);
-              color: rgba(185, 28, 28, 0.94);
+              background: rgba(146, 42, 32, 0.92);
+              color: rgba(255, 231, 219, 0.96);
             }
             .until.soon {
-              background: rgba(245, 158, 11, 0.16);
-              color: rgba(180, 83, 9, 0.96);
+              background: rgba(169, 102, 28, 0.92);
+              color: rgba(255, 240, 210, 0.96);
             }
             .until.comfortable {
-              background: rgba(34, 197, 94, 0.14);
-              color: rgba(22, 101, 52, 0.94);
+              background: rgba(70, 119, 84, 0.92);
+              color: rgba(232, 245, 220, 0.96);
             }
             .train-row:not(.primary-train) {
-              opacity: 0.78;
+              opacity: 0.82;
             }
             .train-main {
               grid-column: 1 / -1;
               font-size: 13px;
               font-weight: 620;
-              color: rgba(15, 23, 42, 0.86);
+              color: rgba(246, 232, 193, 0.86);
             }
 
       - type: conditional
