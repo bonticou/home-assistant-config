@@ -147,6 +147,59 @@ class IrrigationHistoryTests(unittest.TestCase):
             self.assertEqual(json.loads(status_file.read_text(encoding="utf-8")), status)
             self.assertEqual(status["event_count"], 0)
 
+    def test_purge_flo_derived_memory(self):
+        data = history.initial_data()
+        data["active_session"] = {"session_id": "s1"}
+        data["active_zones"] = {"Zone 1": {"zone": "Zone 1"}}
+        data["sessions"] = [{"session_id": "s1", "gallons": 40}]
+        data["zone_runs"] = [{"zone": "Zone 1", "avg_flow": 4.2}]
+        data["events"] = [
+            history.event_payload(
+                kind="zone_finished",
+                at="2026-06-09T10:00:00+00:00",
+                title="Zone 1 finished",
+                note="Zone 1 used 40 gallons at 4 gpm.",
+            ),
+            history.event_payload(
+                kind="alert_irrigation_clog_possible",
+                at="2026-06-09T10:05:00+00:00",
+                title="Possible clogged irrigation zone",
+                note="Fingerprint reason: low_flow_low_gallons_small_pressure_drop.",
+            ),
+            history.event_payload(
+                kind="alert_irrigation_zone_ran_too_long",
+                at="2026-06-09T10:10:00+00:00",
+                title="Irrigation zone ran too long",
+                note="Zone 4 ran for 48 minutes. Flow is 5 gpm.",
+            ),
+            history.event_payload(
+                kind="weather_skip_likely",
+                at="2026-06-09T10:15:00+00:00",
+                title="Weather skip likely",
+                note="Hydrawise advanced past the scheduled cycle.",
+            ),
+            history.event_payload(
+                kind="session_started",
+                at="2026-06-09T10:20:00+00:00",
+                title="Sprinklers started",
+                note="Zone 2 started. Shared well pressure is 52 psi.",
+            ),
+        ]
+
+        history.purge_flo_derived(data)
+
+        self.assertEqual(data["active_session"], {})
+        self.assertEqual(data["active_zones"], {})
+        self.assertEqual(data["sessions"], [])
+        self.assertEqual(data["zone_runs"], [])
+        self.assertEqual([event["kind"] for event in data["events"]], [
+            "alert_irrigation_zone_ran_too_long",
+            "weather_skip_likely",
+            "session_started",
+        ])
+        self.assertEqual(data["events"][0]["note"], "Zone 4 ran for 48 minutes.")
+        self.assertNotIn("gpm", data["events"][0]["note"])
+
 
 if __name__ == "__main__":
     unittest.main()

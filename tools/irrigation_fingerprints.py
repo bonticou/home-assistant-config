@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Track simple Hydrawise/Flo irrigation zone fingerprints."""
+"""Maintain resettable legacy irrigation fingerprint memory."""
 
 from __future__ import annotations
 
@@ -132,6 +132,10 @@ def mark_status(data: dict[str, Any], status_file: Path) -> dict[str, Any]:
     status = summarize(data)
     write_json(status_file, status)
     return status
+
+
+def reset_data() -> dict[str, Any]:
+    return initial_data()
 
 
 def start_sample(args: argparse.Namespace, data: dict[str, Any]) -> None:
@@ -294,6 +298,8 @@ def build_parser() -> argparse.ArgumentParser:
         if command in {"start", "finish"}:
             sub.add_argument("--gallons", required=True)
 
+    subparsers.add_parser("reset")
+
     return parser
 
 
@@ -312,6 +318,8 @@ def main() -> int:
         touch_sample(args, data)
     elif args.command == "finish":
         finish_sample(args, data)
+    elif args.command == "reset":
+        data = reset_data()
     elif args.status:
         pass
     else:

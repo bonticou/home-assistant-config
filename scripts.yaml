@@ -2944,36 +2944,24 @@ water_send_alert:
             Irrigation started
           {% elif kind == 'irrigation_finished' %}
             Irrigation finished
-          {% elif kind == 'irrigation_flow_after_stop' %}
-            Irrigation flow after stop
           {% elif kind == 'irrigation_pressure_collapse' %}
-            Irrigation pressure collapse
+            Shared well pressure low
           {% elif kind == 'irrigation_recovery_slow' %}
             Irrigation recovery slow
           {% elif kind == 'irrigation_recovery_failed' %}
             Irrigation recovery failed
-          {% elif kind == 'irrigation_no_flow' %}
-            Irrigation no flow
-          {% elif kind == 'irrigation_break_suspected' %}
-            Irrigation break suspected
           {% elif kind == 'irrigation_zone_ran_too_long' %}
             Irrigation zone ran too long
           {% elif kind == 'irrigation_valve_mismatch' %}
             Irrigation valve mismatch
           {% elif kind == 'irrigation_multiple_zones' %}
             Multiple irrigation zones
-          {% elif kind == 'irrigation_clog_possible' %}
-            Possible clogged irrigation zone
           {% elif kind == 'irrigation_scheduled_not_started' %}
             Scheduled irrigation did not start
           {% elif kind == 'irrigation_controller_offline' %}
             Hydrawise offline
           {% elif kind == 'irrigation_controller_offline_during_watering' %}
             Hydrawise offline during watering
-          {% elif kind == 'irrigation_flo_unavailable' %}
-            Flo telemetry unavailable during irrigation
-          {% elif kind == 'irrigation_blind_watering' %}
-            Hydrawise blind watering
           {% else %}
             Water update
           {% endif %}
@@ -2992,14 +2980,11 @@ water_send_alert:
             'leak',
             'valve_closed',
             'low_pressure_urgent',
-            'irrigation_flow_after_stop',
             'irrigation_pressure_collapse',
             'irrigation_recovery_failed',
-            'irrigation_break_suspected',
             'irrigation_zone_ran_too_long',
             'irrigation_valve_mismatch',
-            'irrigation_multiple_zones',
-            'irrigation_blind_watering'
+            'irrigation_multiple_zones'
           ] %}
             critical
           {% elif kind in ['irrigation_started', 'irrigation_finished'] %}
@@ -3040,36 +3025,24 @@ water_send_alert:
             💦 Sprinklers started
           {% elif kind == 'irrigation_finished' %}
             ✅ Sprinklers finished
-          {% elif kind == 'irrigation_flow_after_stop' %}
-            🚨 Irrigation flow did not stop
           {% elif kind == 'irrigation_pressure_collapse' %}
-            🚨 Irrigation pressure collapse
+            🚨 Shared well pressure low
           {% elif kind == 'irrigation_recovery_slow' %}
             ⚠️ Well recovery is slow
           {% elif kind == 'irrigation_recovery_failed' %}
             🚨 Well did not recover
-          {% elif kind == 'irrigation_no_flow' %}
-            ⚠️ Irrigation zone may not have opened
-          {% elif kind == 'irrigation_break_suspected' %}
-            🚨 Irrigation break suspected
           {% elif kind == 'irrigation_zone_ran_too_long' %}
             🚨 Irrigation zone ran too long
           {% elif kind == 'irrigation_valve_mismatch' %}
             🚨 Irrigation valve state mismatch
           {% elif kind == 'irrigation_multiple_zones' %}
             🚨 Multiple irrigation zones active
-          {% elif kind == 'irrigation_clog_possible' %}
-            💧 Irrigation zone may be clogged
           {% elif kind == 'irrigation_scheduled_not_started' %}
             ⚠️ Scheduled watering did not start
           {% elif kind == 'irrigation_controller_offline' %}
             ⚠️ Hydrawise offline before watering
           {% elif kind == 'irrigation_controller_offline_during_watering' %}
             ⚠️ Hydrawise offline during watering
-          {% elif kind == 'irrigation_flo_unavailable' %}
-            ⚠️ Flo unavailable during irrigation
-          {% elif kind == 'irrigation_blind_watering' %}
-            🚨 Hydrawise blind watering
           {% else %}
             💧 Water update
           {% endif %}
@@ -3196,20 +3169,14 @@ water_send_alert:
             - condition: template
               value_template: >-
                 {{ kind in [
-                  'irrigation_flow_after_stop',
                   'irrigation_pressure_collapse',
                   'irrigation_recovery_slow',
                   'irrigation_recovery_failed',
-                  'irrigation_no_flow',
-                  'irrigation_break_suspected',
                   'irrigation_zone_ran_too_long',
                   'irrigation_valve_mismatch',
                   'irrigation_multiple_zones',
-                  'irrigation_clog_possible',
                   'irrigation_controller_offline',
-                  'irrigation_controller_offline_during_watering',
-                  'irrigation_flo_unavailable',
-                  'irrigation_blind_watering'
+                  'irrigation_controller_offline_during_watering'
                 ] }}
           sequence:
             - action: input_boolean.turn_on
@@ -3246,14 +3213,11 @@ water_send_alert:
             - condition: template
               value_template: >-
                 {{ kind in [
-                  'irrigation_flow_after_stop',
                   'irrigation_pressure_collapse',
                   'irrigation_recovery_failed',
-                  'irrigation_break_suspected',
                   'irrigation_zone_ran_too_long',
                   'irrigation_valve_mismatch',
-                  'irrigation_multiple_zones',
-                  'irrigation_blind_watering'
+                  'irrigation_multiple_zones'
                 ] }}
           sequence:
             - action: script.notify_trevor_phone

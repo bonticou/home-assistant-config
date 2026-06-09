@@ -6,6 +6,7 @@ from __future__ import annotations
 import argparse
 import datetime as dt
 import json
+import re
 from pathlib import Path
 from typing import Any
 
@@ -13,6 +14,24 @@ from typing import Any
 MAX_SESSIONS = 30
 MAX_ZONE_RUNS = 120
 MAX_EVENTS = 200
+
+FLO_DERIVED_EVENT_KINDS = {
+    "irrigation_flow_after_stop",
+    "irrigation_no_flow",
+    "irrigation_break_suspected",
+    "irrigation_clog_possible",
+    "irrigation_flo_unavailable",
+    "irrigation_blind_watering",
+}
+
+FLO_DERIVED_NOTE_RE = re.compile(
+    r"\b("
+    r"flo|flow|gpm|gal/min|gallons?|"
+    r"fingerprint|learned|profile|clog(?:ged)?|break|"
+    r"max flow|avg flow|water used"
+    r")\b",
+    re.IGNORECASE,
+)
 
 
 def parse_float(value: Any, default: float = 0.0) -> float:
@@ -37,6 +56,44 @@ def parse_bool(value: Any) -> bool:
 
 def clean_text(value: Any) -> str:
     return " ".join(str(value or "").split())
+
+
+def base_event_kind(kind: Any) -> str:
+    text = clean_text(kind)
+    if text.startswith("alert_"):
+        return text[len("alert_") :]
+    return text
+
+
+def sanitize_note(note: Any) -> str:
+    text = clean_text(note)
+    if not text:
+        return ""
+    parts = re.split(r"(?<=[.!?])\s+", text)
+    kept = [part for part in parts if part and not FLO_DERIVED_NOTE_RE.search(part)]
+    return clean_text(" ".join(kept))
+
+
+def is_flo_derived_event(event: dict[str, Any]) -> bool:
+    kind = base_event_kind(event.get("kind"))
+    if kind in FLO_DERIVED_EVENT_KINDS:
+        return True
+    text = " ".join(
+        clean_text(event.get(key))
+        for key in ("kind", "title", "note")
+    )
+    return bool(FLO_DERIVED_NOTE_RE.search(text)) and kind not in {
+        "weather_skip_likely",
+        "irrigation_scheduled_not_started",
+        "irrigation_controller_offline",
+        "irrigation_controller_offline_during_watering",
+        "irrigation_zone_ran_too_long",
+        "irrigation_valve_mismatch",
+        "irrigation_multiple_zones",
+        "irrigation_pressure_collapse",
+        "irrigation_recovery_slow",
+        "irrigation_recovery_failed",
+    }
 
 
 def parse_time(value: str | None) -> dt.datetime:
@@ -312,6 +369,22 @@ def generic_event(args: argparse.Namespace, data: dict[str, Any]) -> None:
     )
 
 
+def purge_flo_derived(data: dict[str, Any]) -> None:
+    data["active_session"] = {}
+    data["active_zones"] = {}
+    data["sessions"] = []
+    data["zone_runs"] = []
+
+    retained_events = []
+    for event in data.get("events", []):
+        if is_flo_derived_event(event):
+            continue
+        cleaned = dict(event)
+        cleaned["note"] = sanitize_note(cleaned.get("note"))
+        retained_events.append(cleaned)
+    data["events"] = retained_events[:MAX_EVENTS]
+
+
 def summarize(data: dict[str, Any]) -> dict[str, Any]:
     sessions = data.get("sessions", [])
     zone_runs = data.get("zone_runs", [])
@@ -416,6 +489,8 @@ def build_parser() -> argparse.ArgumentParser:
     zone_finish_parser.add_argument("--anomaly-reason", default="")
     zone_finish_parser.add_argument("--note", default="")
 
+    subparsers.add_parser("purge-flo-derived")
+
     return parser
 
 
@@ -438,6 +513,8 @@ def main() -> int:
         zone_start(args, data)
     elif args.command == "zone-finish":
         zone_finish(args, data)
+    elif args.command == "purge-flo-derived":
+        purge_flo_derived(data)
     elif args.status:
         pass
     else:

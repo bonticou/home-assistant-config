@@ -712,7 +712,7 @@
 
 - id: irrigation_session_started
   alias: "Irrigation — Session Started Notification"
-  description: Sends one calm sprinkler-start notice per Hydrawise session and starts expected water-use context.
+  description: Sends one calm sprinkler-start notice per Hydrawise session and starts shared-well pressure context.
   triggers:
     - trigger: state
       entity_id: binary_sensor.irrigation_active
@@ -738,9 +738,7 @@
           {% else %}
             {{ states('sensor.irrigation_active_zone') }}
           {% endif %}
-        current_flow: "{{ states('sensor.flo_shutoff_water_flow_rate') | float(0) | round(2) }}"
         current_pressure: "{{ states('sensor.flo_shutoff_water_pressure') | float(0) | round(1) }}"
-        current_gallons: "{{ states('sensor.flo_shutoff_today_s_water_usage') | float(0) | round(1) }}"
         next_cycle: "{{ states('sensor.irrigation_next_cycle') }}"
     - action: input_text.set_value
       target:
@@ -769,29 +767,17 @@
           - input_number.irrigation_session_min_pressure
       data:
         value: "{{ current_pressure }}"
-    - action: input_number.set_value
-      target:
-        entity_id: input_number.irrigation_session_start_gallons
+    - action: shell_command.irrigation_history_event
       data:
-        value: "{{ current_gallons }}"
-    - action: input_number.set_value
-      target:
-        entity_id: input_number.irrigation_session_max_flow
-      data:
-        value: "{{ current_flow }}"
-    - action: shell_command.irrigation_history_session_start
-      data:
-        session_id: "{{ session_id }}"
+        kind: session_started
         at: "{{ now().isoformat() }}"
+        severity: info
+        title: "Sprinklers started"
         zone: "{{ active_zone_stable }}"
         zone_name: "{{ active_zone }}"
-        pressure: "{{ current_pressure }}"
-        flow: "{{ current_flow }}"
-        gallons: "{{ current_gallons }}"
-        next_cycle: "{{ next_cycle }}"
+        session_id: "{{ session_id }}"
         note: >-
-          {{ active_zone }} started. Flow {{ current_flow }} gpm,
-          pressure {{ current_pressure }} psi.
+          {{ active_zone }} started. Shared well pressure is {{ current_pressure }} psi.
     - action: homeassistant.update_entity
       target:
         entity_id: sensor.irrigation_history_status
@@ -806,15 +792,15 @@
             severity: info
             message: >-
               Sprinklers started on {{ active_zone }}.
-              Flow is {{ current_flow }} gal/min and well pressure is {{ current_pressure }} psi.
+              Shared well pressure is {{ current_pressure }} psi.
               {% if next_cycle not in ['unknown', 'unavailable', 'none', ''] %}
                 Next scheduled Hydrawise cycle is {{ as_timestamp(next_cycle, 0) | timestamp_custom('%a %-I:%M %p', true) }}.
               {% endif %}
   mode: single
 
-- id: irrigation_zone_fingerprint_tracking
-  alias: "Irrigation — Zone Fingerprint Tracking"
-  description: Starts and finishes per-zone Flo/Hydrawise samples whenever the active zone changes.
+- id: irrigation_zone_state_tracking
+  alias: "Irrigation — Zone State Tracking"
+  description: Keeps Hydrawise zone state and shared-well pressure baselines current without Flo flow learning.
   triggers:
     - trigger: state
       entity_id: sensor.irrigation_active_zone
@@ -841,42 +827,7 @@
           {% endif %}
         now_label: "{{ now().isoformat() }}"
         current_pressure: "{{ states('sensor.flo_shutoff_water_pressure') | float(0) | round(2) }}"
-        current_flow: "{{ states('sensor.flo_shutoff_water_flow_rate') | float(0) | round(3) }}"
-        current_gallons: "{{ states('sensor.flo_shutoff_today_s_water_usage') | float(0) | round(2) }}"
         active_count: "{{ states('sensor.irrigation_active_zone_count') | int(0) }}"
-    - if:
-        - condition: template
-          value_template: >-
-            {{ from_zone not in ['unknown', 'unavailable', 'none', '', 'None']
-               and from_zone != to_zone }}
-      then:
-        - action: shell_command.irrigation_fingerprint_finish
-          data:
-            zone: "{{ from_zone_stable }}"
-            at: "{{ now_label }}"
-            gallons: "{{ current_gallons }}"
-            pressure: "{{ current_pressure }}"
-            flow: "{{ current_flow }}"
-            active_count: "{{ active_count }}"
-        - action: homeassistant.update_entity
-          target:
-            entity_id: sensor.irrigation_fingerprint_status
-        - action: shell_command.irrigation_history_zone_finish
-          data:
-            zone: "{{ from_zone_stable }}"
-            zone_name: "{{ from_zone }}"
-            session_id: "{{ states('input_text.irrigation_session_id') }}"
-            at: "{{ now_label }}"
-            max_flow: "{{ current_flow }}"
-            min_pressure: "{{ current_pressure }}"
-            anomaly: "{{ state_attr('sensor.irrigation_fingerprint_status', 'latest_anomaly') | default('', true) }}"
-            anomaly_reason: "{{ state_attr('sensor.irrigation_fingerprint_status', 'latest_anomaly_reason') | default('', true) }}"
-            note: >-
-              {{ from_zone }} finished or handed off. Flow {{ current_flow }} gpm,
-              pressure {{ current_pressure }} psi.
-        - action: homeassistant.update_entity
-          target:
-            entity_id: sensor.irrigation_history_status
     - if:
         - condition: template
           value_template: >-
@@ -898,35 +849,6 @@
             entity_id: input_number.irrigation_zone_start_pressure
           data:
             value: "{{ current_pressure }}"
-        - action: input_number.set_value
-          target:
-            entity_id: input_number.irrigation_zone_start_gallons
-          data:
-            value: "{{ current_gallons }}"
-        - action: shell_command.irrigation_fingerprint_start
-          data:
-            zone: "{{ to_zone_stable }}"
-            at: "{{ now_label }}"
-            gallons: "{{ current_gallons }}"
-            pressure: "{{ current_pressure }}"
-            flow: "{{ current_flow }}"
-            active_count: "{{ active_count }}"
-        - action: shell_command.irrigation_history_zone_start
-          data:
-            zone: "{{ to_zone_stable }}"
-            zone_name: "{{ to_zone }}"
-            session_id: "{{ states('input_text.irrigation_session_id') }}"
-            at: "{{ now_label }}"
-            gallons: "{{ current_gallons }}"
-            pressure: "{{ current_pressure }}"
-            flow: "{{ current_flow }}"
-            active_count: "{{ active_count }}"
-            note: >-
-              {{ to_zone }} started. Flow {{ current_flow }} gpm,
-              pressure {{ current_pressure }} psi.
-        - action: homeassistant.update_entity
-          target:
-            entity_id: sensor.irrigation_history_status
     - if:
         - condition: template
           value_template: "{{ to_zone in ['unknown', 'unavailable', 'none', '', 'None'] }}"
@@ -940,8 +862,8 @@
   max: 10
 
 - id: irrigation_session_telemetry_tracking
-  alias: "Irrigation — Session Telemetry Tracking"
-  description: Keeps session min pressure, max flow, grace window, and active zone samples current while irrigation is running.
+  alias: "Irrigation — Shared Well Pressure Tracking"
+  description: Keeps session min pressure and the Hydrawise grace window current while irrigation is running.
   triggers:
     - trigger: time_pattern
       minutes: "/1"
@@ -951,10 +873,7 @@
       state: "on"
   actions:
     - variables:
-        active_zone: "{{ states('sensor.irrigation_active_zone') }}"
-        active_count: "{{ states('sensor.irrigation_active_zone_count') | int(0) }}"
         current_pressure: "{{ states('sensor.flo_shutoff_water_pressure') | float(0) | round(2) }}"
-        current_flow: "{{ states('sensor.flo_shutoff_water_flow_rate') | float(0) | round(3) }}"
     - action: input_datetime.set_datetime
       target:
         entity_id: input_datetime.irrigation_expected_water_use_until
@@ -969,26 +888,6 @@
             entity_id: input_number.irrigation_session_min_pressure
           data:
             value: "{{ current_pressure }}"
-    - if:
-        - condition: template
-          value_template: "{{ current_flow | float(0) > states('input_number.irrigation_session_max_flow') | float(0) }}"
-      then:
-        - action: input_number.set_value
-          target:
-            entity_id: input_number.irrigation_session_max_flow
-          data:
-            value: "{{ current_flow }}"
-    - if:
-        - condition: template
-          value_template: "{{ active_zone not in ['unknown', 'unavailable', 'none', '', 'None'] }}"
-      then:
-        - action: shell_command.irrigation_fingerprint_touch
-          data:
-            zone: "{{ active_zone }}"
-            at: "{{ now().isoformat() }}"
-            pressure: "{{ current_pressure }}"
-            flow: "{{ current_flow }}"
-            active_count: "{{ active_count }}"
   mode: single
 
 - id: irrigation_session_finished
@@ -1012,15 +911,9 @@
   actions:
     - variables:
         session_id: "{{ states('input_text.irrigation_session_id') }}"
-        started_at: "{{ states('input_datetime.irrigation_session_started_at') }}"
         started_ts: "{{ as_timestamp(states('input_datetime.irrigation_session_started_at'), as_timestamp(now())) }}"
         runtime_minutes: "{{ ((as_timestamp(now()) - (started_ts | float(0))) / 60) | round(0) }}"
-        start_gallons: "{{ states('input_number.irrigation_session_start_gallons') | float(0) }}"
-        current_gallons: "{{ states('sensor.flo_shutoff_today_s_water_usage') | float(0) }}"
-        gallons_used: "{{ (current_gallons | float(0) - start_gallons | float(0)) | round(1) }}"
-        start_pressure: "{{ states('input_number.irrigation_session_start_pressure') | float(0) | round(1) }}"
         min_pressure: "{{ states('input_number.irrigation_session_min_pressure') | float(0) | round(1) }}"
-        max_flow: "{{ states('input_number.irrigation_session_max_flow') | float(0) | round(2) }}"
         current_pressure: "{{ states('sensor.flo_shutoff_water_pressure') | float(0) | round(1) }}"
         start_zone: "{{ states('input_text.irrigation_session_start_zone') }}"
     - action: input_datetime.set_datetime
@@ -1043,23 +936,18 @@
         entity_id: input_datetime.irrigation_recovery_failed_check_at
       data:
         datetime: "{{ (now() + timedelta(minutes=15)).strftime('%Y-%m-%d %H:%M:%S') }}"
-    - action: shell_command.irrigation_history_session_finish
+    - action: shell_command.irrigation_history_event
       data:
-        session_id: "{{ session_id }}"
+        kind: session_finished
         at: "{{ now().isoformat() }}"
-        started_at: "{{ started_at }}"
-        runtime_minutes: "{{ runtime_minutes }}"
-        gallons: "{{ gallons_used }}"
-        start_zone: "{{ start_zone }}"
-        start_zone_name: "{{ start_zone }}"
-        min_pressure: "{{ min_pressure }}"
-        max_flow: "{{ max_flow }}"
-        current_pressure: "{{ current_pressure }}"
-        recovery_status: "watching"
-        alert_outcome: "{{ states('input_text.irrigation_active_alert_kind') }}"
+        severity: info
+        title: "Sprinklers finished"
+        session_id: "{{ session_id }}"
+        zone: "{{ start_zone }}"
+        zone_name: "{{ start_zone }}"
         note: >-
           Sprinklers finished after about {{ runtime_minutes }} minutes.
-          Flo estimates {{ gallons_used }} gal used; lowest pressure {{ min_pressure }} psi.
+          Lowest shared well pressure was {{ min_pressure }} psi; pressure is now {{ current_pressure }} psi.
     - action: homeassistant.update_entity
       target:
         entity_id: sensor.irrigation_history_status
@@ -1074,8 +962,8 @@
             severity: info
             message: >-
               Sprinklers finished after about {{ runtime_minutes }} minutes.
-              Flo estimates {{ gallons_used }} gal used. Lowest pressure was {{ min_pressure }} psi,
-              max flow was {{ max_flow }} gal/min, and pressure is now {{ current_pressure }} psi.
+              Lowest shared well pressure was {{ min_pressure }} psi,
+              and pressure is now {{ current_pressure }} psi.
               Session started on {{ start_zone }}.
   mode: single
 
@@ -1103,8 +991,7 @@
     - condition: template
       value_template: >-
         {% set recovery_target = ([35, states('input_number.irrigation_session_start_pressure') | float(0) - 12]) | max %}
-        {{ states('sensor.flo_shutoff_water_flow_rate') | float(0) < 0.05
-           and states('sensor.flo_shutoff_water_pressure') | float(0) < recovery_target }}
+        {{ states('sensor.flo_shutoff_water_pressure') | float(0) < recovery_target }}
   actions:
     - variables:
         recovery_target: "{{ ([35, states('input_number.irrigation_session_start_pressure') | float(0) - 12]) | max | round(1) }}"
@@ -1115,7 +1002,7 @@
         alert_kind: irrigation_recovery_slow
         severity: warning
         message: >-
-          Ten minutes after sprinklers stopped, flow is quiet but well pressure is only
+          Ten minutes after sprinklers stopped, shared well pressure is only
           {{ pressure_now }} psi. Expected recovery target is about {{ recovery_target }} psi
           based on the session start pressure of {{ start_pressure }} psi.
   mode: single
@@ -1143,51 +1030,20 @@
       value_template: "{{ states('input_text.irrigation_active_alert_kind') != 'irrigation_recovery_failed' }}"
     - condition: template
       value_template: >-
-        {{ states('sensor.flo_shutoff_water_flow_rate') | float(0) < 0.05
-           and states('sensor.flo_shutoff_water_pressure') | float(0) < 30 }}
+        {{ states('sensor.flo_shutoff_water_pressure') | float(0) < 30 }}
   actions:
     - action: script.water_send_alert
       data:
         alert_kind: irrigation_recovery_failed
         severity: critical
         message: >-
-          Twenty minutes after sprinklers stopped, flow is quiet but well pressure is still
+          Twenty minutes after sprinklers stopped, shared well pressure is still
           {{ states('sensor.flo_shutoff_water_pressure') | float(0) | round(1) }} psi.
           The well system has not recovered to the 30 psi floor.
   mode: single
 
-- id: irrigation_flow_after_stop
-  alias: "Irrigation — Flow After Stop"
-  description: Critical alert when Flo still sees water after the Hydrawise session and grace period are over.
-  triggers:
-    - trigger: numeric_state
-      entity_id: sensor.flo_shutoff_water_flow_rate
-      above: 0.15
-      for:
-        minutes: 5
-  conditions:
-    - condition: state
-      entity_id: input_boolean.irrigation_notifications_enabled
-      state: "on"
-    - condition: state
-      entity_id: binary_sensor.irrigation_active
-      state: "off"
-    - condition: state
-      entity_id: binary_sensor.irrigation_expected_water_use
-      state: "off"
-  actions:
-    - action: script.water_send_alert
-      data:
-        alert_kind: irrigation_flow_after_stop
-        severity: critical
-        message: >-
-          Hydrawise is no longer watering, the 15-minute grace window has expired,
-          but Flo still sees {{ states('sensor.flo_shutoff_water_flow_rate') | float(0) | round(2) }} gal/min.
-          Check irrigation valves, hose bibs, and the Flo app.
-  mode: single
-
 - id: irrigation_pressure_collapse
-  alias: "Irrigation — Pressure Collapse"
+  alias: "Irrigation — Shared Well Pressure Low"
   description: Critical well-pressure alert during active irrigation.
   triggers:
     - trigger: numeric_state
@@ -1217,82 +1073,8 @@
         alert_kind: irrigation_pressure_collapse
         severity: critical
         message: >-
-          Well pressure is {{ states('sensor.flo_shutoff_water_pressure') | float(0) | round(1) }} psi
+          Shared well pressure is {{ states('sensor.flo_shutoff_water_pressure') | float(0) | round(1) }} psi
           while {{ states('sensor.irrigation_active_zone') }} is watering.
-          Flow is {{ states('sensor.flo_shutoff_water_flow_rate') | float(0) | round(2) }} gal/min.
-  mode: single
-
-- id: irrigation_zone_no_flow
-  alias: "Irrigation — Zone May Not Have Opened"
-  description: Warning when Hydrawise reports one active zone but Flo sees almost no flow or pressure movement.
-  triggers:
-    - trigger: state
-      entity_id: sensor.irrigation_active_zone
-      for:
-        minutes: 5
-  conditions:
-    - condition: state
-      entity_id: input_boolean.irrigation_notifications_enabled
-      state: "on"
-    - condition: state
-      entity_id: binary_sensor.irrigation_active
-      state: "on"
-    - condition: template
-      value_template: "{{ states('sensor.irrigation_active_zone') not in ['unknown', 'unavailable', 'none', '', 'None'] }}"
-    - condition: template
-      value_template: "{{ states('sensor.irrigation_active_zone_count') | int(0) == 1 }}"
-    - condition: template
-      value_template: "{{ states('sensor.flo_shutoff_water_flow_rate') | float(0) < 0.15 }}"
-    - condition: template
-      value_template: >-
-        {{ (states('input_number.irrigation_zone_start_pressure') | float(0)
-             - states('sensor.flo_shutoff_water_pressure') | float(0)) < 3 }}
-    - condition: template
-      value_template: "{{ states('input_text.irrigation_active_alert_kind') != 'irrigation_no_flow' }}"
-  actions:
-    - action: script.water_send_alert
-      data:
-        alert_kind: irrigation_no_flow
-        severity: warning
-        message: >-
-          {{ states('sensor.irrigation_active_zone') }} has been active for 5 minutes,
-          but Flo sees only {{ states('sensor.flo_shutoff_water_flow_rate') | float(0) | round(2) }} gal/min
-          and pressure has barely moved. The zone may not have opened, or the valve may be restricted.
-  mode: single
-
-- id: irrigation_break_suspected
-  alias: "Irrigation — Break Suspected"
-  description: Critical alert for high-flow and low-pressure irrigation signatures.
-  triggers:
-    - trigger: state
-      entity_id: binary_sensor.irrigation_break_signature_active
-      to: "on"
-      for:
-        minutes: 2
-  conditions:
-    - condition: state
-      entity_id: input_boolean.irrigation_notifications_enabled
-      state: "on"
-    - condition: state
-      entity_id: binary_sensor.irrigation_active
-      state: "on"
-    - condition: template
-      value_template: "{{ states('sensor.irrigation_active_zone_count') | int(0) == 1 }}"
-    - condition: template
-      value_template: "{{ states('input_text.irrigation_active_alert_kind') != 'irrigation_break_suspected' }}"
-    - condition: state
-      entity_id: binary_sensor.irrigation_break_signature_active
-      state: "on"
-  actions:
-    - action: script.water_send_alert
-      data:
-        alert_kind: irrigation_break_suspected
-        severity: critical
-        message: >-
-          {{ states('sensor.irrigation_active_zone') }} has a break-like signature:
-          {{ states('sensor.flo_shutoff_water_flow_rate') | float(0) | round(2) }} gal/min,
-          pressure {{ states('sensor.flo_shutoff_water_pressure') | float(0) | round(1) }} psi,
-          zone start pressure {{ states('input_number.irrigation_zone_start_pressure') | float(0) | round(1) }} psi.
   mode: single
 
 - id: irrigation_zone_ran_too_long
@@ -1323,9 +1105,8 @@
         severity: critical
         message: >-
           {{ states('sensor.irrigation_active_zone') }} has reported watering for about
-          {{ runtime_minutes }} minutes. Flow is
-          {{ states('sensor.flo_shutoff_water_flow_rate') | float(0) | round(2) }} gal/min
-          and pressure is {{ states('sensor.flo_shutoff_water_pressure') | float(0) | round(1) }} psi.
+          {{ runtime_minutes }} minutes. Shared well pressure is
+          {{ states('sensor.flo_shutoff_water_pressure') | float(0) | round(1) }} psi.
           Check Hydrawise and the valve; the zone may not have advanced or may be stuck open.
   mode: single
 
@@ -1352,8 +1133,7 @@
         message: >-
           Hydrawise watering sensors and valve states disagree:
           {{ state_attr('binary_sensor.irrigation_valve_state_mismatch', 'mismatches') }}.
-          Flow is {{ states('sensor.flo_shutoff_water_flow_rate') | float(0) | round(2) }} gal/min
-          and pressure is {{ states('sensor.flo_shutoff_water_pressure') | float(0) | round(1) }} psi.
+          Shared well pressure is {{ states('sensor.flo_shutoff_water_pressure') | float(0) | round(1) }} psi.
   mode: single
 
 - id: irrigation_multiple_zones_active
@@ -1379,8 +1159,7 @@
         message: >-
           Hydrawise reports {{ states('sensor.irrigation_active_zone_count') }} zones watering at once:
           {{ state_attr('sensor.irrigation_active_zone', 'active_zones') }}.
-          Flow is {{ states('sensor.flo_shutoff_water_flow_rate') | float(0) | round(2) }} gal/min
-          and pressure is {{ states('sensor.flo_shutoff_water_pressure') | float(0) | round(1) }} psi.
+          Shared well pressure is {{ states('sensor.flo_shutoff_water_pressure') | float(0) | round(1) }} psi.
   mode: single
 
 - id: irrigation_controller_offline_before_watering
@@ -1612,147 +1391,19 @@
         severity: warning
         message: >-
           Hydrawise went offline while irrigation was active or still inside the watering grace window.
-          HA may be blind to zone transitions until the controller reconnects. Flo shows
-          {{ states('sensor.flo_shutoff_water_flow_rate') | float(0) | round(2) }} gal/min
-          and {{ states('sensor.flo_shutoff_water_pressure') | float(0) | round(1) }} psi.
-  mode: single
-
-- id: irrigation_flo_unavailable_during_watering
-  alias: "Irrigation — Flo Telemetry Unavailable During Watering"
-  description: Warns when Flo flow or pressure telemetry is unavailable during irrigation.
-  triggers:
-    - trigger: state
-      entity_id: binary_sensor.irrigation_flo_telemetry_available
-      to: "off"
-      for:
-        minutes: 2
-  conditions:
-    - condition: state
-      entity_id: input_boolean.irrigation_notifications_enabled
-      state: "on"
-    - condition: state
-      entity_id: binary_sensor.irrigation_active
-      state: "on"
-    - condition: template
-      value_template: "{{ states('input_text.irrigation_active_alert_kind') != 'irrigation_flo_unavailable' }}"
-  actions:
-    - action: script.water_send_alert
-      data:
-        alert_kind: irrigation_flo_unavailable
-        severity: warning
-        message: >-
-          Flo flow or pressure telemetry became unavailable while
-          {{ states('sensor.irrigation_active_zone') }} was watering.
-          Hydrawise still shows irrigation active, but HA cannot cross-check well pressure or flow.
-  mode: single
-
-- id: irrigation_blind_watering
-  alias: "Irrigation — Blind Watering"
-  description: Critical alert when Flo sees irrigation-level flow while Hydrawise is offline and no zone state explains it.
-  triggers:
-    - trigger: numeric_state
-      entity_id: sensor.flo_shutoff_water_flow_rate
-      above: 4
-      for:
-        minutes: 5
-  conditions:
-    - condition: state
-      entity_id: input_boolean.irrigation_notifications_enabled
-      state: "on"
-    - condition: state
-      entity_id: binary_sensor.hydrawise_controller_online
-      state: "off"
-    - condition: state
-      entity_id: binary_sensor.irrigation_active
-      state: "off"
-    - condition: template
-      value_template: "{{ states('input_text.irrigation_active_alert_kind') != 'irrigation_blind_watering' }}"
-  actions:
-    - action: script.water_send_alert
-      data:
-        alert_kind: irrigation_blind_watering
-        severity: critical
-        message: >-
-          Flo sees {{ states('sensor.flo_shutoff_water_flow_rate') | float(0) | round(2) }} gal/min
-          while Hydrawise is offline and no zone is reported active.
-          This looks like irrigation-level flow that HA cannot explain from controller state.
-  mode: single
-
-- id: irrigation_fingerprint_anomaly_notification
-  alias: "Irrigation — Fingerprint Anomaly Notification"
-  description: Sends learned-zone clogged-head or break-signature notices from the local fingerprint model.
-  triggers:
-    - trigger: state
-      entity_id: sensor.irrigation_fingerprint_status
-      attribute: latest_anomaly
-    - trigger: state
-      entity_id: sensor.irrigation_fingerprint_status
-      attribute: latest_anomaly_zone
-  conditions:
-    - condition: state
-      entity_id: input_boolean.irrigation_notifications_enabled
-      state: "on"
-    - condition: template
-      value_template: "{{ state_attr('sensor.irrigation_fingerprint_status', 'latest_anomaly') in ['clog_possible', 'break_possible'] }}"
-    - condition: template
-      value_template: >-
-        {% set latest = state_attr('sensor.irrigation_fingerprint_status', 'latest_sample') or {} %}
-        {% set key = [
-          state_attr('sensor.irrigation_fingerprint_status', 'latest_anomaly'),
-          state_attr('sensor.irrigation_fingerprint_status', 'latest_anomaly_zone'),
-          latest.get('ended_at', '')
-        ] | join(':') %}
-        {{ key != states('input_text.irrigation_latest_fingerprint_anomaly_key') }}
-  actions:
-    - variables:
-        anomaly: "{{ state_attr('sensor.irrigation_fingerprint_status', 'latest_anomaly') }}"
-        anomaly_zone: "{{ state_attr('sensor.irrigation_fingerprint_status', 'latest_anomaly_zone') }}"
-        anomaly_reason: "{{ state_attr('sensor.irrigation_fingerprint_status', 'latest_anomaly_reason') }}"
-        anomaly_key: >-
-          {% set latest = state_attr('sensor.irrigation_fingerprint_status', 'latest_sample') or {} %}
-          {{ [anomaly, anomaly_zone, latest.get('ended_at', '')] | join(':') }}
-    - choose:
-        - conditions:
-            - condition: template
-              value_template: "{{ anomaly == 'break_possible' }}"
-          sequence:
-            - action: script.water_send_alert
-              data:
-                alert_kind: irrigation_break_suspected
-                severity: critical
-                message: >-
-                  {{ anomaly_zone }} looked much higher-flow and lower-pressure than its learned normal profile.
-                  Fingerprint reason: {{ anomaly_reason }}.
-      default:
-        - action: script.water_send_alert
-          data:
-            alert_kind: irrigation_clog_possible
-            severity: warning
-            message: >-
-              {{ anomaly_zone }} used much less water than its learned normal profile,
-              with a smaller pressure drop. This can point to clogged heads, a blocked filter,
-              a restricted valve, or closed nozzles. Fingerprint reason: {{ anomaly_reason }}.
-    - action: input_text.set_value
-      target:
-        entity_id: input_text.irrigation_latest_fingerprint_anomaly_key
-      data:
-        value: "{{ anomaly_key }}"
+          HA may be blind to zone transitions until the controller reconnects.
+          Shared well pressure is {{ states('sensor.flo_shutoff_water_pressure') | float(0) | round(1) }} psi.
   mode: single
 
 - id: irrigation_transient_alert_clear
   alias: "Irrigation — Clear Transient Alerts When Normal"
-  description: Clears live irrigation danger state after irrigation is quiet, flow has stopped, and pressure is above the recovery floor.
+  description: Clears live irrigation danger state after Hydrawise is quiet and shared well pressure is above the recovery floor.
   triggers:
     - trigger: state
       entity_id: binary_sensor.irrigation_expected_water_use
       to: "off"
       for:
         minutes: 5
-    - trigger: numeric_state
-      entity_id: sensor.flo_shutoff_water_flow_rate
-      below: 0.05
-      for:
-        minutes: 10
     - trigger: numeric_state
       entity_id: sensor.flo_shutoff_water_pressure
       above: 30
@@ -1765,25 +1416,18 @@
     - condition: state
       entity_id: binary_sensor.irrigation_expected_water_use
       state: "off"
-    - condition: numeric_state
-      entity_id: sensor.flo_shutoff_water_flow_rate
-      below: 0.05
     - condition: numeric_state
       entity_id: sensor.flo_shutoff_water_pressure
       above: 30
     - condition: template
       value_template: >-
         {{ states('input_text.irrigation_active_alert_kind') in [
-          'irrigation_flow_after_stop',
           'irrigation_pressure_collapse',
           'irrigation_recovery_slow',
           'irrigation_recovery_failed',
-          'irrigation_no_flow',
-          'irrigation_break_suspected',
           'irrigation_zone_ran_too_long',
           'irrigation_valve_mismatch',
-          'irrigation_multiple_zones',
-          'irrigation_blind_watering'
+          'irrigation_multiple_zones'
         ] }}
   actions:
     - action: input_boolean.turn_off
@@ -1796,16 +1440,12 @@
         value: ""
     - repeat:
         for_each:
-          - water-irrigation_flow_after_stop
           - water-irrigation_pressure_collapse
           - water-irrigation_recovery_slow
           - water-irrigation_recovery_failed
-          - water-irrigation_no_flow
-          - water-irrigation_break_suspected
           - water-irrigation_zone_ran_too_long
           - water-irrigation_valve_mismatch
           - water-irrigation_multiple_zones
-          - water-irrigation_blind_watering
         sequence:
           - action: script.notify_trevor_phone
             data:
@@ -1845,32 +1485,4 @@
               message: clear_notification
               data:
                 tag: "{{ repeat.item }}"
-  mode: single
-
-- id: irrigation_flo_telemetry_restored_clear
-  alias: "Irrigation — Clear Flo Telemetry Warning"
-  description: Clears the irrigation Flo telemetry warning once flow and pressure readings are available again.
-  triggers:
-    - trigger: state
-      entity_id: binary_sensor.irrigation_flo_telemetry_available
-      to: "on"
-      for:
-        minutes: 2
-  conditions:
-    - condition: template
-      value_template: "{{ states('input_text.irrigation_active_alert_kind') == 'irrigation_flo_unavailable' }}"
-  actions:
-    - action: input_boolean.turn_off
-      target:
-        entity_id: input_boolean.water_irrigation_alert_active
-    - action: input_text.set_value
-      target:
-        entity_id: input_text.irrigation_active_alert_kind
-      data:
-        value: ""
-    - action: script.notify_trevor_phone
-      data:
-        message: clear_notification
-        data:
-          tag: water-irrigation_flo_unavailable
   mode: single

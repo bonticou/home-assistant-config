@@ -10001,7 +10001,7 @@ views:
         cards:
           - type: custom:mushroom-title-card
             title: Irrigation
-            subtitle: Hydrawise schedule, Flo well truth, and zone learning
+            subtitle: Hydrawise schedule and shared well pressure
 
           - type: custom:mushroom-template-card
             entity: sensor.irrigation_dashboard_status
@@ -10080,23 +10080,20 @@ views:
             card_mod:
               style: *water_status_card_style
           - type: custom:mushroom-template-card
-            entity: sensor.flo_shutoff_water_flow_rate
-            primary: Flow
+            entity: binary_sensor.hydrawise_controller_online
+            primary: Controller
             secondary: >-
-              {{ states('sensor.flo_shutoff_water_flow_rate') | float(0) | round(2) }} gal/min
-            icon: mdi:waves-arrow-right
+              {{ 'Online' if is_state('binary_sensor.hydrawise_controller_online', 'on') else 'Offline' }}
+            icon: mdi:cloud-check-outline
             icon_color: >-
-              {% set flow = states('sensor.flo_shutoff_water_flow_rate') | float(0) %}
-              {% if flow > 10 %}red
-              {% elif flow > 4 %}blue
-              {% else %}teal{% endif %}
+              {{ 'teal' if is_state('binary_sensor.hydrawise_controller_online', 'on') else 'orange' }}
             tap_action:
               action: more-info
             card_mod:
               style: *water_status_card_style
           - type: custom:mushroom-template-card
             entity: sensor.flo_shutoff_water_pressure
-            primary: Pressure
+            primary: Shared well
             secondary: >-
               {{ states('sensor.flo_shutoff_water_pressure') | float(0) | round(0) }} psi
             icon: mdi:gauge
@@ -10250,19 +10247,19 @@ views:
               {{ states('sensor.irrigation_zone_attention_summary') }}
             icon: mdi:map-marker-radius-outline
             icon_color: >-
-              {{ 'orange' if state_attr('sensor.irrigation_fingerprint_status', 'latest_anomaly') not in ['', none, 'unknown', 'unavailable'] else 'teal' }}
+              {{ 'blue' if is_state('binary_sensor.irrigation_active', 'on') else 'teal' }}
             tap_action:
               action: more-info
             card_mod:
               style: *water_status_card_style
           - type: custom:mushroom-template-card
-            entity: binary_sensor.irrigation_flo_telemetry_available
-            primary: Well safety
+            entity: binary_sensor.irrigation_well_pressure_proxy_available
+            primary: Well pressure
             secondary: >-
               Min {{ states('input_number.irrigation_session_min_pressure') | float(0) | round(0) }} psi ·
-              max {{ states('input_number.irrigation_session_max_flow') | float(0) | round(1) }} gpm
+              now {{ states('sensor.flo_shutoff_water_pressure') | float(0) | round(0) }} psi
             icon: mdi:shield-water-outline
-            icon_color: "{{ 'teal' if is_state('binary_sensor.irrigation_flo_telemetry_available', 'on') else 'orange' }}"
+            icon_color: "{{ 'teal' if is_state('binary_sensor.irrigation_well_pressure_proxy_available', 'on') else 'orange' }}"
             tap_action:
               action: more-info
             card_mod:
@@ -10283,7 +10280,7 @@ views:
         graph_span: 24h
         header:
           show: true
-          title: Flow and Pressure · 24h
+          title: Shared Well Pressure · 24h
           show_states: true
         apex_config:
           chart:
@@ -10296,20 +10293,11 @@ views:
           - id: pressure
             min: 0
             decimals: 0
-          - id: flow
-            opposite: true
-            min: 0
-            decimals: 1
         series:
           - entity: sensor.flo_shutoff_water_pressure
             name: Pressure
             color: '#60a5fa'
             yaxis_id: pressure
-            stroke_width: 2
-          - entity: sensor.flo_shutoff_water_flow_rate
-            name: Flow
-            color: '#2dd4bf'
-            yaxis_id: flow
             stroke_width: 2
         card_mod:
           style: |
@@ -10334,9 +10322,7 @@ views:
               entity: sensor.irrigation_history_status
               primary: Recent irrigation
               secondary: >-
-                {{ state_attr('sensor.irrigation_history_status', 'session_count') }} sessions ·
-                {{ state_attr('sensor.irrigation_history_status', 'zone_run_count') }} zone runs ·
-                {{ state_attr('sensor.irrigation_history_status', 'event_count') }} events
+                {{ state_attr('sensor.irrigation_history_status', 'event_count') }} controller and pressure events
               icon: mdi:history
               icon_color: teal
               tap_action:
@@ -10354,7 +10340,6 @@ views:
                 log: >-
                   [[[
                     const events = Array.isArray(entity?.attributes?.events) ? entity.attributes.events.slice(0, 16) : [];
-                    const sessions = Array.isArray(entity?.attributes?.sessions) ? entity.attributes.sessions.slice(0, 4) : [];
                     const escapeHtml = (value) => String(value ?? '').replace(/[&<>"']/g, (char) => ({
                       '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;'
                     }[char]));
@@ -10362,18 +10347,12 @@ views:
                       const date = new Date(String(value || '').replace(' ', 'T'));
                       return Number.isNaN(date.getTime()) ? 'Unknown time' : date.toLocaleString(undefined, { weekday: 'short', hour: 'numeric', minute: '2-digit' });
                     };
-                    const sessionRows = sessions.map((session) => `<div class="popup-row">
-                      <b>${escapeHtml(when(session.started_at))}</b>
-                      <span>${escapeHtml(session.runtime_minutes || 0)} min · ${escapeHtml(session.gallons || 0)} gal · low ${escapeHtml(session.min_pressure || 0)} psi</span>
-                    </div>`).join('');
                     const eventRows = events.map((event) => `<div class="popup-row">
                       <b>${escapeHtml(event.title || event.kind || 'Irrigation event')}</b>
                       <span>${escapeHtml(when(event.at))} · ${escapeHtml(event.note || '')}</span>
                     </div>`).join('');
                     return `<div class="popup-list">
-                      <div class="popup-heading">Sessions</div>
-                      ${sessionRows || '<div class="popup-empty">No completed sessions yet.</div>'}
-                      <div class="popup-heading second">Timeline</div>
+                      <div class="popup-heading">Timeline</div>
                       ${eventRows || '<div class="popup-empty">No timeline events yet.</div>'}
                     </div>`;
                   ]]]
@@ -10426,7 +10405,7 @@ views:
             - type: custom:mushroom-template-card
               entity: sensor.irrigation_schedule_summary
               primary: Zone schedule
-              secondary: Hydrawise next-cycle data, live state, and learned duration context.
+              secondary: Hydrawise next-cycle data and live controller state.
               icon: mdi:calendar-month-outline
               icon_color: teal
               multiline_secondary: true
@@ -10463,7 +10442,7 @@ views:
                       return `<div class="zone-row ${active ? 'active' : ''}">
                         <div class="zone-name"><b>${escapeHtml(zone.zone)}</b><span>${escapeHtml(zone.name)}</span></div>
                         <div class="zone-meta">${escapeHtml(when(zone.next_cycle))}</div>
-                        <div class="zone-meta">${escapeHtml(zone.duration_context || 'Not learned yet')}</div>
+                        <div class="zone-meta">${escapeHtml(zone.duration_context || 'Hydrawise schedule')}</div>
                         <div class="zone-pill ${warning ? 'warn' : active ? 'active' : ''}">${escapeHtml(active ? 'Running' : zone.automatic === 'on' ? 'Auto' : 'Auto off')}</div>
                       </div>`;
                     }).join('')}</div>`;
@@ -10577,25 +10556,23 @@ views:
                 detail: >-
                   [[[
                     const attrs = entity?.attributes || {};
-                    let runs = [];
-                    const raw = attrs.recent_runs_json || [];
-                    if (Array.isArray(raw)) runs = raw;
-                    else {
-                      try { runs = JSON.parse(raw); } catch (e) { runs = []; }
-                    }
-                    const fp = attrs.fingerprint || {};
                     const escapeHtml = (value) => String(value ?? '').replace(/[&<>"']/g, (char) => ({
                       '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;'
                     }[char]));
-                    const rows = runs.slice(0, 6).map((run) => `<div class="popup-row">
-                      <b>${escapeHtml(run.duration_minutes || 0)} min · ${escapeHtml(run.gallons || 0)} gal</b>
-                      <span>${escapeHtml(run.ended_at || 'Unknown time')} · avg ${escapeHtml(run.avg_flow || 0)} gpm · drop ${escapeHtml(run.pressure_drop || 0)} psi${run.contaminated ? ' · contaminated sample' : ''}</span>
+                    const rows = [
+                      ['Watering', attrs.watering],
+                      ['Valve', attrs.valve],
+                      ['Automatic', attrs.automatic],
+                      ['Remaining', attrs.remaining_time],
+                      ['Today active', attrs.daily_active_time],
+                      ['Shared well pressure', `${attrs.shared_well_pressure || 'unknown'} psi`],
+                    ].map(([label, value]) => `<div class="popup-row">
+                      <b>${escapeHtml(label)}</b>
+                      <span>${escapeHtml(value || 'unknown')}</span>
                     </div>`).join('');
                     return `<div class="popup-list">
-                      <div class="popup-heading">Learning</div>
-                      <div class="popup-row"><b>${fp.learned ? 'Learned' : 'Learning'}</b><span>${escapeHtml(fp.sample_count || 0)} clean samples · normal ${escapeHtml(fp.median_duration_minutes || 0)} min · ${escapeHtml(fp.median_avg_flow || 0)} gpm</span></div>
-                      <div class="popup-heading second">Recent runs</div>
-                      ${rows || '<div class="popup-empty">No runs recorded for this zone yet.</div>'}
+                      <div class="popup-heading">Controller state</div>
+                      ${rows}
                     </div>`;
                   ]]]
               styles:
@@ -10636,8 +10613,8 @@ views:
 
       - type: custom:popup-card
         target:
-          entity_id: binary_sensor.irrigation_flo_telemetry_available
-        title: Well Safety
+          entity_id: binary_sensor.irrigation_well_pressure_proxy_available
+        title: Shared Well Pressure
         dismiss_icon: mdi:close
         initial_style: wide
         popup_styles: *calm_popup_styles
@@ -10645,31 +10622,29 @@ views:
           type: vertical-stack
           cards:
             - type: custom:mushroom-template-card
-              entity: binary_sensor.irrigation_flo_telemetry_available
+              entity: binary_sensor.irrigation_well_pressure_proxy_available
               primary: >-
-                {{ 'Flo telemetry available' if is_state('binary_sensor.irrigation_flo_telemetry_available', 'on') else 'Flo telemetry unavailable' }}
+                {{ 'Pressure proxy available' if is_state('binary_sensor.irrigation_well_pressure_proxy_available', 'on') else 'Pressure proxy unavailable' }}
               secondary: >-
-                Flow {{ states('sensor.flo_shutoff_water_flow_rate') }} gpm ·
-                pressure {{ states('sensor.flo_shutoff_water_pressure') }} psi ·
-                session low {{ states('input_number.irrigation_session_min_pressure') }} psi ·
-                max {{ states('input_number.irrigation_session_max_flow') }} gpm
+                Shared well pressure {{ states('sensor.flo_shutoff_water_pressure') }} psi ·
+                session low {{ states('input_number.irrigation_session_min_pressure') }} psi
               icon: mdi:shield-water-outline
-              icon_color: "{{ 'teal' if is_state('binary_sensor.irrigation_flo_telemetry_available', 'on') else 'orange' }}"
+              icon_color: "{{ 'teal' if is_state('binary_sensor.irrigation_well_pressure_proxy_available', 'on') else 'orange' }}"
               multiline_secondary: true
               tap_action:
                 action: none
               card_mod:
                 style: *calm_popup_hero_style
             - type: history-graph
-              title: Irrigation Safety Signals · 24h
+              title: Irrigation Pressure Signals · 24h
               hours_to_show: 24
               entities:
                 - entity: binary_sensor.irrigation_active
                   name: Irrigation active
                 - entity: binary_sensor.irrigation_expected_water_use
                   name: Expected water use
-                - entity: binary_sensor.irrigation_flo_telemetry_available
-                  name: Flo telemetry
+                - entity: binary_sensor.irrigation_well_pressure_proxy_available
+                  name: Pressure proxy
               card_mod:
                 style: *calm_popup_panel_style
 

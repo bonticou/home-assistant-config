@@ -256,38 +256,11 @@ shell_command:
     --completed-at "{{ completed_at }}"
     --source "{{ source }}"
     --note "{{ note }}"
-  irrigation_fingerprint_start: >-
+  irrigation_fingerprint_reset: >-
     python3 /config/tools/irrigation_fingerprints.py
     --data-file /config/.irrigation_fingerprints.json
     --status-file /config/.irrigation_fingerprint_status.json
-    start
-    --zone "{{ zone }}"
-    --at "{{ at }}"
-    --gallons "{{ gallons }}"
-    --pressure "{{ pressure }}"
-    --flow "{{ flow }}"
-    --active-count "{{ active_count }}"
-  irrigation_fingerprint_touch: >-
-    python3 /config/tools/irrigation_fingerprints.py
-    --data-file /config/.irrigation_fingerprints.json
-    --status-file /config/.irrigation_fingerprint_status.json
-    touch
-    --zone "{{ zone }}"
-    --at "{{ at }}"
-    --pressure "{{ pressure }}"
-    --flow "{{ flow }}"
-    --active-count "{{ active_count }}"
-  irrigation_fingerprint_finish: >-
-    python3 /config/tools/irrigation_fingerprints.py
-    --data-file /config/.irrigation_fingerprints.json
-    --status-file /config/.irrigation_fingerprint_status.json
-    finish
-    --zone "{{ zone }}"
-    --at "{{ at }}"
-    --gallons "{{ gallons }}"
-    --pressure "{{ pressure }}"
-    --flow "{{ flow }}"
-    --active-count "{{ active_count }}"
+    reset
   irrigation_history_event: >-
     python3 /config/tools/irrigation_history.py
     --data-file /config/.irrigation_history.json
@@ -301,74 +274,11 @@ shell_command:
     --session-id "{{ session_id | default('', true) | replace('"', "'") | replace('\n', ' ') }}"
     --zone "{{ zone | default('', true) | replace('"', "'") | replace('\n', ' ') }}"
     --zone-name "{{ zone_name | default('', true) | replace('"', "'") | replace('\n', ' ') }}"
-  irrigation_history_session_start: >-
+  irrigation_history_purge_flo_derived: >-
     python3 /config/tools/irrigation_history.py
     --data-file /config/.irrigation_history.json
     --status-file /config/.irrigation_history_status.json
-    session-start
-    --session-id "{{ session_id | default('', true) | replace('"', "'") | replace('\n', ' ') }}"
-    --at "{{ at | default('', true) }}"
-    --zone "{{ zone | default('', true) | replace('"', "'") | replace('\n', ' ') }}"
-    --zone-name "{{ zone_name | default('', true) | replace('"', "'") | replace('\n', ' ') }}"
-    --pressure "{{ pressure | default(0, true) }}"
-    --flow "{{ flow | default(0, true) }}"
-    --gallons "{{ gallons | default(0, true) }}"
-    --next-cycle "{{ next_cycle | default('', true) | replace('"', "'") | replace('\n', ' ') }}"
-    --note "{{ note | default('', true) | replace('"', "'") | replace('\n', ' ') }}"
-  irrigation_history_session_finish: >-
-    python3 /config/tools/irrigation_history.py
-    --data-file /config/.irrigation_history.json
-    --status-file /config/.irrigation_history_status.json
-    session-finish
-    --session-id "{{ session_id | default('', true) | replace('"', "'") | replace('\n', ' ') }}"
-    --at "{{ at | default('', true) }}"
-    --started-at "{{ started_at | default('', true) }}"
-    --runtime-minutes "{{ runtime_minutes | default(0, true) }}"
-    --gallons "{{ gallons | default(0, true) }}"
-    --start-zone "{{ start_zone | default('', true) | replace('"', "'") | replace('\n', ' ') }}"
-    --start-zone-name "{{ start_zone_name | default('', true) | replace('"', "'") | replace('\n', ' ') }}"
-    --min-pressure "{{ min_pressure | default(0, true) }}"
-    --max-flow "{{ max_flow | default(0, true) }}"
-    --current-pressure "{{ current_pressure | default(0, true) }}"
-    --recovery-status "{{ recovery_status | default('', true) | replace('"', "'") | replace('\n', ' ') }}"
-    --alert-outcome "{{ alert_outcome | default('', true) | replace('"', "'") | replace('\n', ' ') }}"
-    --note "{{ note | default('', true) | replace('"', "'") | replace('\n', ' ') }}"
-  irrigation_history_zone_start: >-
-    python3 /config/tools/irrigation_history.py
-    --data-file /config/.irrigation_history.json
-    --status-file /config/.irrigation_history_status.json
-    zone-start
-    --zone "{{ zone | default('', true) | replace('"', "'") | replace('\n', ' ') }}"
-    --zone-name "{{ zone_name | default('', true) | replace('"', "'") | replace('\n', ' ') }}"
-    --session-id "{{ session_id | default('', true) | replace('"', "'") | replace('\n', ' ') }}"
-    --at "{{ at | default('', true) }}"
-    --pressure "{{ pressure | default(0, true) }}"
-    --flow "{{ flow | default(0, true) }}"
-    --gallons "{{ gallons | default(0, true) }}"
-    --active-count "{{ active_count | default(1, true) }}"
-    --note "{{ note | default('', true) | replace('"', "'") | replace('\n', ' ') }}"
-  irrigation_history_zone_finish: >-
-    python3 /config/tools/irrigation_history.py
-    --data-file /config/.irrigation_history.json
-    --status-file /config/.irrigation_history_status.json
-    --fingerprint-status-file /config/.irrigation_fingerprint_status.json
-    zone-finish
-    --zone "{{ zone | default('', true) | replace('"', "'") | replace('\n', ' ') }}"
-    --zone-name "{{ zone_name | default('', true) | replace('"', "'") | replace('\n', ' ') }}"
-    --session-id "{{ session_id | default('', true) | replace('"', "'") | replace('\n', ' ') }}"
-    --at "{{ at | default('', true) }}"
-    --started-at "{{ started_at | default('', true) }}"
-    --duration-minutes "{{ duration_minutes | default(0, true) }}"
-    --gallons "{{ gallons | default(0, true) }}"
-    --avg-flow "{{ avg_flow | default(0, true) }}"
-    --max-flow "{{ max_flow | default(0, true) }}"
-    --pressure-drop "{{ pressure_drop | default(0, true) }}"
-    --min-pressure "{{ min_pressure | default(0, true) }}"
-    --contaminated "{{ contaminated | default(false, true) }}"
-    --contamination-reasons "{{ contamination_reasons | default('', true) | replace('"', "'") | replace('\n', ' ') }}"
-    --anomaly "{{ anomaly | default('', true) | replace('"', "'") | replace('\n', ' ') }}"
-    --anomaly-reason "{{ anomaly_reason | default('', true) | replace('"', "'") | replace('\n', ' ') }}"
-    --note "{{ note | default('', true) | replace('"', "'") | replace('\n', ' ') }}"
+    purge-flo-derived
 
 input_datetime:
   away_security_snooze_until:
@@ -687,9 +597,6 @@ input_text:
   irrigation_active_alert_kind:
     name: Irrigation Active Alert Kind
     max: 80
-  irrigation_latest_fingerprint_anomaly_key:
-    name: Irrigation Latest Fingerprint Anomaly Key
-    max: 255
   irrigation_last_schedule_miss_key:
     name: Irrigation Last Schedule Miss Key
     max: 80
@@ -905,14 +812,6 @@ input_number:
     mode: box
     unit_of_measurement: "psi"
     icon: mdi:gauge
-  irrigation_session_start_gallons:
-    name: Irrigation Session Start Gallons
-    min: 0
-    max: 100000
-    step: 0.1
-    mode: box
-    unit_of_measurement: "gal"
-    icon: mdi:water
   irrigation_session_min_pressure:
     name: Irrigation Session Min Pressure
     min: 0
@@ -921,14 +820,6 @@ input_number:
     mode: box
     unit_of_measurement: "psi"
     icon: mdi:gauge-low
-  irrigation_session_max_flow:
-    name: Irrigation Session Max Flow
-    min: 0
-    max: 60
-    step: 0.01
-    mode: box
-    unit_of_measurement: "gal/min"
-    icon: mdi:waves-arrow-right
   irrigation_zone_start_pressure:
     name: Irrigation Zone Start Pressure
     min: 0
@@ -937,14 +828,6 @@ input_number:
     mode: box
     unit_of_measurement: "psi"
     icon: mdi:gauge
-  irrigation_zone_start_gallons:
-    name: Irrigation Zone Start Gallons
-    min: 0
-    max: 100000
-    step: 0.1
-    mode: box
-    unit_of_measurement: "gal"
-    icon: mdi:water
   downstairs_aux_cutover_temp:
     name: Main Floor Aux Max Outdoor Temp
     min: 20
@@ -2935,24 +2818,15 @@ template:
             {% else %}
               unknown
             {% endif %}
-          current_flow: "{{ states('sensor.flo_shutoff_water_flow_rate') }}"
-          current_pressure: "{{ states('sensor.flo_shutoff_water_pressure') }}"
-          session_gallons: >
-            {% set current = states('sensor.flo_shutoff_today_s_water_usage') | float(0) %}
-            {% set start = states('input_number.irrigation_session_start_gallons') | float(0) %}
-            {{ (current - start) | round(1) if current >= start else 0 }}
+          shared_well_pressure: "{{ states('sensor.flo_shutoff_water_pressure') }}"
           session_min_pressure: "{{ states('input_number.irrigation_session_min_pressure') }}"
-          session_max_flow: "{{ states('input_number.irrigation_session_max_flow') }}"
           expected_water_use_until: "{{ states('input_datetime.irrigation_expected_water_use_until') }}"
-          flo_telemetry_available: "{{ states('binary_sensor.irrigation_flo_telemetry_available') }}"
+          well_pressure_proxy_available: "{{ states('binary_sensor.irrigation_well_pressure_proxy_available') }}"
 
       - name: "Irrigation Dashboard Status"
         unique_id: irrigation_dashboard_status
         state: >
-          {% if is_state('binary_sensor.irrigation_flo_telemetry_available', 'off')
-             and is_state('binary_sensor.irrigation_expected_water_use', 'on') %}
-            Telemetry unavailable
-          {% elif is_state('input_boolean.water_irrigation_alert_active', 'on') %}
+          {% if is_state('input_boolean.water_irrigation_alert_active', 'on') %}
             Needs attention
           {% elif is_state('binary_sensor.irrigation_active', 'on') %}
             Running
@@ -2975,9 +2849,6 @@ template:
           severity: >
             {% if is_state('input_boolean.water_irrigation_alert_active', 'on') %}
               critical
-            {% elif is_state('binary_sensor.irrigation_flo_telemetry_available', 'off')
-               and is_state('binary_sensor.irrigation_expected_water_use', 'on') %}
-              warning
             {% elif is_state('binary_sensor.hydrawise_controller_online', 'off')
                or is_state('binary_sensor.irrigation_weather_skip_buffer_active', 'on') %}
               watch
@@ -2990,7 +2861,7 @@ template:
             {% elif is_state('binary_sensor.irrigation_active', 'on') %}
               {{ states('sensor.irrigation_active_zone') }} is watering now.
             {% elif is_state('binary_sensor.irrigation_expected_water_use', 'on') %}
-              Irrigation ended recently; well recovery and lingering flow are still being watched.
+              Irrigation ended recently; shared well pressure recovery is still being watched.
             {% elif is_state('binary_sensor.irrigation_weather_skip_buffer_active', 'on') %}
               {{ state_attr('binary_sensor.irrigation_weather_skip_buffer_active', 'reason') | default(states('sensor.irrigation_weather_skip_context'), true) }}
             {% elif is_state('binary_sensor.hydrawise_controller_online', 'off') %}
@@ -3002,8 +2873,8 @@ template:
           active_zone: "{{ states('sensor.irrigation_active_zone') }}"
           up_next_zone: "{{ states('sensor.irrigation_up_next_zone') }}"
           next_cycle: "{{ states('sensor.irrigation_next_cycle') }}"
-          flow: "{{ states('sensor.flo_shutoff_water_flow_rate') }}"
-          pressure: "{{ states('sensor.flo_shutoff_water_pressure') }}"
+          shared_well_pressure: "{{ states('sensor.flo_shutoff_water_pressure') }}"
+          well_pressure_proxy_available: "{{ states('binary_sensor.irrigation_well_pressure_proxy_available') }}"
 
       - name: "Irrigation Schedule Summary"
         unique_id: irrigation_schedule_summary
@@ -3020,8 +2891,6 @@ template:
           next_zone: "{{ states('sensor.irrigation_up_next_zone') }}"
           next_cycle: "{{ state_attr('sensor.irrigation_up_next_zone', 'next_cycle') }}"
           zones_json: >
-            {% set fingerprints = state_attr('sensor.irrigation_fingerprint_status', 'zones') or {} %}
-            {% set zone_runs = state_attr('sensor.irrigation_history_status', 'zone_runs') or [] %}
             {% set ns = namespace(items=[]) %}
             {% for zone in range(1, 28) %}
               {% set key = 'Zone ' ~ zone %}
@@ -3032,14 +2901,7 @@ template:
               {% set valve_entity = 'valve.' ~ 'zone_' ~ zone %}
               {% set automatic_entity = 'switch.' ~ 'zone_' ~ zone ~ '_automatic_watering' %}
               {% set label = (state_attr(watering_entity, 'friendly_name') or key) | regex_replace(' Watering$', '') %}
-              {% set run = namespace(item={}) %}
-              {% for item in zone_runs %}
-                {% if run.item == {} and item.zone | default('', true) == key %}
-                  {% set run.item = item %}
-                {% endif %}
-              {% endfor %}
-              {% set fp = fingerprints.get(key, {}) if fingerprints is mapping else {} %}
-              {% set duration = namespace(value='Not learned yet', source='none') %}
+              {% set duration = namespace(value='Hydrawise schedule', source='controller') %}
               {% set hydrawise_duration = state_attr(next_entity, 'duration')
                  or state_attr(next_entity, 'watering_duration')
                  or state_attr(next_entity, 'watering_duration_minutes')
@@ -3047,12 +2909,6 @@ template:
               {% if hydrawise_duration not in [none, '', 'unknown', 'unavailable'] %}
                 {% set duration.value = hydrawise_duration %}
                 {% set duration.source = 'hydrawise' %}
-              {% elif fp.get('median_duration_minutes', 0) | float(0) > 0 %}
-                {% set duration.value = (fp.get('median_duration_minutes') | float(0) | round(1)) ~ ' min learned' %}
-                {% set duration.source = 'learned' %}
-              {% elif run.item.get('duration_minutes', 0) | float(0) > 0 %}
-                {% set duration.value = (run.item.get('duration_minutes') | float(0) | round(1)) ~ ' min observed' %}
-                {% set duration.source = 'observed' %}
               {% endif %}
               {% set ns.items = ns.items + [{
                 'zone': key,
@@ -3073,30 +2929,25 @@ template:
       - name: "Irrigation Zone Attention Summary"
         unique_id: irrigation_zone_attention_summary
         state: >
-          {% set learned = states('sensor.irrigation_fingerprint_status') | int(0) %}
           {% if is_state('binary_sensor.irrigation_active', 'on') %}
             {{ states('sensor.irrigation_active_zone') }} running
-          {% elif state_attr('sensor.irrigation_fingerprint_status', 'latest_anomaly') not in ['', none, 'unknown', 'unavailable'] %}
-            Fingerprint anomaly
+          {% elif states('sensor.irrigation_up_next_zone') not in ['unknown', 'unavailable', 'Unknown', ''] %}
+            {{ states('sensor.irrigation_up_next_zone') }} up next
           {% else %}
-            {{ learned }} learned zones
+            Hydrawise quiet
           {% endif %}
         icon: mdi:map-marker-radius-outline
         attributes:
-          learned_zone_count: "{{ states('sensor.irrigation_fingerprint_status') }}"
-          learning_zone_count: "{{ 27 - (states('sensor.irrigation_fingerprint_status') | int(0)) }}"
           active_zone: "{{ states('sensor.irrigation_active_zone') }}"
           up_next_zone: "{{ states('sensor.irrigation_up_next_zone') }}"
-          latest_anomaly: "{{ state_attr('sensor.irrigation_fingerprint_status', 'latest_anomaly') }}"
-          latest_anomaly_zone: "{{ state_attr('sensor.irrigation_fingerprint_status', 'latest_anomaly_zone') }}"
-          latest_zone_run: "{{ state_attr('sensor.irrigation_history_status', 'latest_zone_run') }}"
+          shared_well_pressure: "{{ states('sensor.flo_shutoff_water_pressure') }}"
           attention_json: >
             {% set items = namespace(value=[]) %}
             {% if is_state('binary_sensor.irrigation_active', 'on') %}
               {% set items.value = items.value + [{
                 'kind': 'active',
                 'title': states('sensor.irrigation_active_zone') ~ ' running',
-                'note': 'Flow ' ~ states('sensor.flo_shutoff_water_flow_rate') ~ ' gpm, pressure ' ~ states('sensor.flo_shutoff_water_pressure') ~ ' psi.'
+                'note': 'Shared well pressure ' ~ states('sensor.flo_shutoff_water_pressure') ~ ' psi.'
               }] %}
             {% endif %}
             {% if states('sensor.irrigation_up_next_zone') not in ['unknown', 'unavailable', 'Unknown', ''] %}
@@ -3104,21 +2955,6 @@ template:
                 'kind': 'up_next',
                 'title': states('sensor.irrigation_up_next_zone') ~ ' up next',
                 'note': state_attr('sensor.irrigation_up_next_zone', 'next_cycle') | default('Unknown time', true)
-              }] %}
-            {% endif %}
-            {% if state_attr('sensor.irrigation_fingerprint_status', 'latest_anomaly') not in ['', none, 'unknown', 'unavailable'] %}
-              {% set items.value = items.value + [{
-                'kind': 'anomaly',
-                'title': state_attr('sensor.irrigation_fingerprint_status', 'latest_anomaly_zone') | default('Zone anomaly', true),
-                'note': state_attr('sensor.irrigation_fingerprint_status', 'latest_anomaly_reason') | default('Fingerprint anomaly', true)
-              }] %}
-            {% endif %}
-            {% set latest = state_attr('sensor.irrigation_history_status', 'latest_zone_run') or {} %}
-            {% if latest.get('zone_name', '') %}
-              {% set items.value = items.value + [{
-                'kind': 'recent',
-                'title': latest.get('zone_name') ~ ' finished',
-                'note': (latest.get('duration_minutes', 0) | round(1) | string) ~ ' min, ' ~ (latest.get('gallons', 0) | round(1) | string) ~ ' gal.'
               }] %}
             {% endif %}
             {{ items.value | to_json }}
@@ -3154,27 +2990,14 @@ template:
           duration_context: >
             {% set selected = states('input_select.irrigation_dashboard_zone_focus') %}
             {% set zones = state_attr('sensor.irrigation_schedule_summary', 'zones_json') | default('[]', true) | from_json %}
-            {% set ns = namespace(value='Not learned yet') %}
+            {% set ns = namespace(value='Hydrawise schedule') %}
             {% for item in zones %}
               {% if item.zone | default('', true) == selected %}
-                {% set ns.value = item.duration_context | default('Not learned yet', true) %}
+                {% set ns.value = item.duration_context | default('Hydrawise schedule', true) %}
               {% endif %}
             {% endfor %}
             {{ ns.value }}
-          fingerprint: >
-            {% set selected = states('input_select.irrigation_dashboard_zone_focus') %}
-            {% set fingerprints = state_attr('sensor.irrigation_fingerprint_status', 'zones') or {} %}
-            {{ fingerprints.get(selected, {}) if fingerprints is mapping else {} }}
-          recent_runs_json: >
-            {% set selected = states('input_select.irrigation_dashboard_zone_focus') %}
-            {% set runs = state_attr('sensor.irrigation_history_status', 'zone_runs') or [] %}
-            {% set ns = namespace(items=[]) %}
-            {% for run in runs %}
-              {% if run.zone | default('', true) == selected %}
-                {% set ns.items = ns.items + [run] %}
-              {% endif %}
-            {% endfor %}
-            {{ ns.items[:8] | to_json }}
+          shared_well_pressure: "{{ states('sensor.flo_shutoff_water_pressure') }}"
 
       - name: "Ting Notification Status"
         unique_id: ting_notification_status
@@ -4306,19 +4129,6 @@ template:
                  and as_timestamp(expected_until, 0) > as_timestamp(now())) }}
         icon: mdi:sprinkler-variant
 
-      - name: "Irrigation Break Signature Active"
-        unique_id: irrigation_break_signature_active
-        device_class: problem
-        state: >
-          {% set flow = states('sensor.flo_shutoff_water_flow_rate') | float(0) %}
-          {% set pressure = states('sensor.flo_shutoff_water_pressure') | float(0) %}
-          {% set start_pressure = states('input_number.irrigation_zone_start_pressure') | float(0) %}
-          {{ is_state('binary_sensor.irrigation_active', 'on')
-             and states('sensor.irrigation_active_zone_count') | int(0) == 1
-             and ((flow > 10 and pressure < 30)
-                  or (flow > 4 and start_pressure > 0 and (start_pressure - pressure) > 20)) }}
-        icon: mdi:pipe-leak
-
       - name: "Irrigation Zone Running Too Long"
         unique_id: irrigation_zone_running_too_long
         device_class: problem
@@ -4368,12 +4178,11 @@ template:
             {% endfor %}
             {{ ns.mismatches | join('; ') }}
 
-      - name: "Irrigation Flo Telemetry Available"
-        unique_id: irrigation_flo_telemetry_available
+      - name: "Irrigation Well Pressure Proxy Available"
+        unique_id: irrigation_well_pressure_proxy_available
         device_class: connectivity
         state: >
-          {{ states('sensor.flo_shutoff_water_flow_rate') not in ['unknown', 'unavailable', 'none', '']
-             and states('sensor.flo_shutoff_water_pressure') not in ['unknown', 'unavailable', 'none', ''] }}
+          {{ states('sensor.flo_shutoff_water_pressure') not in ['unknown', 'unavailable', 'none', ''] }}
         icon: mdi:gauge
 
       - name: "Irrigation Weather Skip Buffer Active"
