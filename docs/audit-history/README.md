@@ -35,6 +35,7 @@ unless the exact value is necessary and safe to store.
 
 | Date | Entry | Scope |
 | --- | --- | --- |
+| 2026-06-10 | [Overnight lights sweep](2026-06-10-overnight-lights-sweep.md) | Midnight whole-house left-on lighting reminder, snooze, and guarded 1 AM auto-off |
 | 2026-06-09 | [Irrigation Flo topology correction](2026-06-09-irrigation-flo-topology.md) | Hydrawise as irrigation source of truth, Flo pressure as shared-well context, Flo-derived irrigation memory cleanup |
 | 2026-06-04 | [Garden decommission](2026-06-04-garden-decommission.md) | Crop-garden UI/config removal, Recorder purge, entity-registry cleanup, inventory refresh |
 | 2026-06-04 | [Home Assistant availability, UI hardening, and Casey closet recovery](2026-06-04-home-assistant-availability-ui-and-casey-closet.md) | Remote/mobile disconnect audit, diagnostic hardening, config recovery, Casey closet motion fix |

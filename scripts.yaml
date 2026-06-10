@@ -771,6 +771,23 @@ lights_late_night_exterior_off:
       then:
         - action: script.door_lights_schedule_on
 
+lights_overnight_sweep_off:
+  alias: Lights Overnight Sweep Off
+  description: Turn off lights left on overnight while preserving the front door sconces and front stairs light.
+  icon: mdi:lightbulb-night-outline
+  mode: restart
+  sequence:
+    - variables:
+        active_lights: >
+          {% set entity_ids = state_attr('sensor.overnight_lights_left_on', 'entity_ids') | default('', true) %}
+          {{ (entity_ids.split('||') if entity_ids else []) | reject('eq', '') | list }}
+    - repeat:
+        for_each: "{{ active_lights }}"
+        sequence:
+          - action: homeassistant.turn_off
+            target:
+              entity_id: "{{ repeat.item }}"
+
 door_lights_schedule_on:
   alias: Door Lights Schedule On
   description: Turn on the front door lights for the normal overnight routine, while letting bedtime keep the mudroom stairs dark until morning.

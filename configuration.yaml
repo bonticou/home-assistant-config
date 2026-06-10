@@ -297,6 +297,14 @@ input_datetime:
     name: Late Night Exterior Lights Last Notified At
     has_date: true
     has_time: true
+  overnight_lights_last_notified_at:
+    name: Overnight Lights Last Notified At
+    has_date: true
+    has_time: true
+  overnight_lights_snooze_until:
+    name: Overnight Lights Snooze Until
+    has_date: true
+    has_time: true
   away_motion_security_snooze_until:
     name: Away Motion Security Snooze Until
     has_date: true
@@ -2071,6 +2079,101 @@ template:
               {% set ns.ids = ns.ids + ['switch.exterior_mud_room_stairs'] %}
             {% endif %}
             {{ ns.ids | join('||') }}
+
+      - name: "overnight_lights_left_on"
+        unique_id: overnight_lights_left_on
+        icon: mdi:lightbulb-night-outline
+        state: >
+          {% set exempt = [
+            'light.stairs_front_stairs',
+            'switch.front_foyer_sconces',
+            'switch.master_lantern'
+          ] %}
+          {% set switch_lights = [
+            'switch.uplight',
+            'switch.garage_garage_lights',
+            'switch.exterior_mud_room_stairs'
+          ] %}
+          {% set ns = namespace(ids=[]) %}
+          {% for light in states.light
+            | selectattr('state', 'eq', 'on')
+            | rejectattr('attributes.entity_id', 'defined')
+            | list %}
+            {% if light.entity_id not in exempt %}
+              {% set ns.ids = ns.ids + [light.entity_id] %}
+            {% endif %}
+          {% endfor %}
+          {% for entity_id in switch_lights %}
+            {% if entity_id not in exempt and is_state(entity_id, 'on') %}
+              {% set ns.ids = ns.ids + [entity_id] %}
+            {% endif %}
+          {% endfor %}
+          {{ ns.ids | count }}
+        attributes:
+          names: >
+            {% set exempt = [
+              'light.stairs_front_stairs',
+              'switch.front_foyer_sconces',
+              'switch.master_lantern'
+            ] %}
+            {% set switch_lights = {
+              'switch.uplight': 'Uplight',
+              'switch.garage_garage_lights': 'Garage light',
+              'switch.exterior_mud_room_stairs': 'Mudroom exterior stairs'
+            } %}
+            {% set ns = namespace(names=[]) %}
+            {% for light in states.light
+              | selectattr('state', 'eq', 'on')
+              | rejectattr('attributes.entity_id', 'defined')
+              | list %}
+              {% if light.entity_id not in exempt %}
+                {% set ns.names = ns.names + [light.name] %}
+              {% endif %}
+            {% endfor %}
+            {% for entity_id, label in switch_lights.items() %}
+              {% if entity_id not in exempt and is_state(entity_id, 'on') %}
+                {% set ns.names = ns.names + [label] %}
+              {% endif %}
+            {% endfor %}
+            {{ ns.names | join('||') }}
+          entity_ids: >
+            {% set exempt = [
+              'light.stairs_front_stairs',
+              'switch.front_foyer_sconces',
+              'switch.master_lantern'
+            ] %}
+            {% set switch_lights = [
+              'switch.uplight',
+              'switch.garage_garage_lights',
+              'switch.exterior_mud_room_stairs'
+            ] %}
+            {% set ns = namespace(ids=[]) %}
+            {% for light in states.light
+              | selectattr('state', 'eq', 'on')
+              | rejectattr('attributes.entity_id', 'defined')
+              | list %}
+              {% if light.entity_id not in exempt %}
+                {% set ns.ids = ns.ids + [light.entity_id] %}
+              {% endif %}
+            {% endfor %}
+            {% for entity_id in switch_lights %}
+              {% if entity_id not in exempt and is_state(entity_id, 'on') %}
+                {% set ns.ids = ns.ids + [entity_id] %}
+              {% endif %}
+            {% endfor %}
+            {{ ns.ids | join('||') }}
+          exempt_entity_ids: "light.stairs_front_stairs||switch.front_foyer_sconces||switch.master_lantern"
+          auto_off_guard: >
+            {% if is_state('input_boolean.interior_lights_guest_override', 'on') %}
+              guest_override
+            {% elif is_state('input_select.lighting_active_scene', 'TV')
+               or states('media_player.family_room_tv_2') not in ['unknown', 'unavailable', 'off', 'idle', 'standby'] %}
+              up_late_media
+            {% elif is_state('input_boolean.vacation_mode', 'on') %}
+              vacation
+            {% else %}
+              clear
+            {% endif %}
 
       - name: "away_security_entry_point_issues"
         unique_id: away_security_entry_point_issues

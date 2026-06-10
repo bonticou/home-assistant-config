@@ -797,6 +797,163 @@
           tag: late-night-exterior-lights
   mode: single
 
+- id: overnight_lights_midnight_left_on
+  alias: "Lights — Midnight Left-On Reminder"
+  description: Sends a midnight reminder before the 1 AM whole-house overnight light sweep.
+  triggers:
+    - trigger: time
+      at: "00:00:00"
+      id: midnight
+    - trigger: homeassistant
+      event: start
+      id: startup
+    - trigger: event
+      event_type: automation_reloaded
+      id: automation_reloaded
+  conditions:
+    - condition: template
+      value_template: >
+        {% set minutes_now = now().hour * 60 + now().minute %}
+        {{ minutes_now < 60 }}
+    - condition: template
+      value_template: "{{ states('sensor.overnight_lights_left_on') | int(0) > 0 }}"
+    - condition: template
+      value_template: >
+        {% set snooze = states('input_datetime.overnight_lights_snooze_until') %}
+        {{ snooze in ['unknown', 'unavailable', 'none', '']
+           or as_timestamp(snooze, 0) <= as_timestamp(now()) }}
+    - condition: template
+      value_template: >
+        {% set guard = state_attr('sensor.overnight_lights_left_on', 'auto_off_guard') | default('clear', true) | trim %}
+        {{ guard not in ['guest_override', 'vacation'] }}
+  actions:
+    - if:
+        - condition: template
+          value_template: "{{ trigger.id == 'startup' }}"
+      then:
+        - delay:
+            seconds: 15
+    - variables:
+        active_light_count: "{{ states('sensor.overnight_lights_left_on') | int(0) }}"
+        active_light_text: >-
+          {% set names = state_attr('sensor.overnight_lights_left_on', 'names') | default('', true) %}
+          {{ names.replace('||', ', ') if names else 'Some house lights' }}
+    - action: script.notify_trevor_phone
+      data:
+        title: "💡 Lights still on"
+        message: >-
+          {{ active_light_text }} {{ 'is' if active_light_count | int(0) == 1 else 'are' }}
+          still on. Snooze tonight if everyone is still up; otherwise I’ll turn
+          {{ 'it' if active_light_count | int(0) == 1 else 'them' }} off at 1:00 AM.
+        data:
+          tag: overnight-lights-left-on
+          group: lighting
+          sticky: true
+          ttl: 0
+          priority: high
+          url: /calm-mobile/home
+          actions:
+            - action: LIGHTS_OVERNIGHT_SNOOZE
+              title: Snooze tonight
+            - action: LIGHTS_OVERNIGHT_OFF_NOW
+              title: Turn off now
+    - action: input_datetime.set_datetime
+      target:
+        entity_id: input_datetime.overnight_lights_last_notified_at
+      data:
+        datetime: "{{ now().strftime('%Y-%m-%d %H:%M:%S') }}"
+  mode: single
+
+- id: overnight_lights_notification_action
+  alias: "Lights — Overnight Left-On Notification Action"
+  description: Handles snooze and immediate turn-off actions from the midnight left-on lights reminder.
+  triggers:
+    - trigger: event
+      event_type: mobile_app_notification_action
+      event_data:
+        action: LIGHTS_OVERNIGHT_SNOOZE
+      id: snooze
+    - trigger: event
+      event_type: mobile_app_notification_action
+      event_data:
+        action: LIGHTS_OVERNIGHT_OFF_NOW
+      id: off_now
+  conditions: []
+  actions:
+    - choose:
+        - conditions:
+            - condition: template
+              value_template: "{{ trigger.id == 'snooze' }}"
+          sequence:
+            - variables:
+                snooze_until: >-
+                  {% set morning = today_at('06:00:00') %}
+                  {{ (morning if now() < morning else morning + timedelta(days=1)).strftime('%Y-%m-%d %H:%M:%S') }}
+            - action: input_datetime.set_datetime
+              target:
+                entity_id: input_datetime.overnight_lights_snooze_until
+              data:
+                datetime: "{{ snooze_until }}"
+        - conditions:
+            - condition: template
+              value_template: "{{ trigger.id == 'off_now' }}"
+          sequence:
+            - action: script.lights_overnight_sweep_off
+    - action: script.notify_trevor_phone
+      data:
+        message: clear_notification
+        data:
+          tag: overnight-lights-left-on
+  mode: single
+
+- id: overnight_lights_one_am_auto_off
+  alias: "Lights — Overnight Left-On Auto-Off"
+  description: Turns off non-exempt lights at 1 AM if the midnight reminder was not snoozed and no late-night guard is active.
+  triggers:
+    - trigger: time
+      at: "01:00:00"
+  conditions:
+    - condition: template
+      value_template: "{{ states('sensor.overnight_lights_left_on') | int(0) > 0 }}"
+    - condition: template
+      value_template: >
+        {% set last = states('input_datetime.overnight_lights_last_notified_at') %}
+        {% set last_ts = as_timestamp(last, 0) %}
+        {{ last_ts >= as_timestamp(today_at('00:00:00'))
+           and last_ts < as_timestamp(today_at('01:00:00')) }}
+    - condition: template
+      value_template: >
+        {% set snooze = states('input_datetime.overnight_lights_snooze_until') %}
+        {{ snooze in ['unknown', 'unavailable', 'none', '']
+           or as_timestamp(snooze, 0) <= as_timestamp(now()) }}
+    - condition: template
+      value_template: >
+        {{ state_attr('sensor.overnight_lights_left_on', 'auto_off_guard') | default('clear', true) | trim == 'clear' }}
+  actions:
+    - action: script.lights_overnight_sweep_off
+    - action: script.notify_trevor_phone
+      data:
+        message: clear_notification
+        data:
+          tag: overnight-lights-left-on
+  mode: single
+
+- id: overnight_lights_clear_when_off
+  alias: "Lights — Clear Overnight Left-On Reminder"
+  description: Clears the midnight left-on lights push once the watched non-exempt lights are off.
+  triggers:
+    - trigger: state
+      entity_id: sensor.overnight_lights_left_on
+      to: "0"
+  conditions: []
+  actions:
+    - action: script.notify_trevor_phone
+      data:
+        message: clear_notification
+        data:
+          tag: overnight-lights-left-on
+  mode: single
+
 - id: vacation_activity_schedule_sync
   alias: "Vacation — Activity Lighting Sync"
   description: Keeps the vacation activity simulation aligned with the evening and pre-sunrise sun-curve windows.
