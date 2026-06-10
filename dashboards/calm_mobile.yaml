@@ -10051,12 +10051,12 @@ views:
         cards:
           - type: custom:mushroom-template-card
             entity: sensor.irrigation_active_zone
-            primary: Running
+            primary: Status
             secondary: >-
               {% if is_state('binary_sensor.irrigation_active', 'on') %}
                 {{ states('sensor.irrigation_active_zone') }} · {{ state_attr('sensor.irrigation_running_context', 'elapsed_minutes') }} min
               {% else %}
-                Quiet
+                Not running
               {% endif %}
             icon: mdi:sprinkler
             icon_color: "{{ 'blue' if is_state('binary_sensor.irrigation_active', 'on') else 'grey' }}"
