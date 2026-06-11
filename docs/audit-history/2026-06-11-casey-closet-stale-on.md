@@ -54,21 +54,26 @@ sit on unattended.
 ## Checks And Live Validation
 
 - Local YAML parsing passed for `automations/10-lighting-security.yaml`.
+- `python3 tools/check_device_inventory_coverage.py` passed.
 - `git diff --check` passed for the automation and audit entry.
-- Live deployment was not completed in this pass because the local Safari
-  Home Assistant session had no usable auth token and the File Editor ingress
-  iframe was not mounted.
+- Deployed through the Nabu Casa Remote UI File Editor ingress after local
+  `homeassistant.local` auth remained stuck at the auth handoff.
+- File Editor write/read-back succeeded for:
+  - `/homeassistant/dashboards/calm_mobile.yaml`;
+  - `/homeassistant/automations/10-lighting-security.yaml`.
+- Home Assistant config check returned `valid` with no warnings.
+- The deploy helper timed out on `automation.reload`, but a targeted
+  `automation.reload` call from the connected frontend succeeded.
+- Home Assistant's live automation config API returned
+  `casey_closet_auto_off` with both the `hard_cap` trigger and the
+  `watchdog` triggers loaded.
 
 ## Deployment Status
 
-- The YAML fix is ready to deploy once an authenticated Home Assistant File
-  Editor or equivalent deployment path is available.
+- Deployed live and automation reload verified on 2026-06-11.
 
 ## Residual Risks And Next Follow-Ups
 
-- Deploy the automation and reload automations live.
-- After deployment, verify that the live automation config includes the
-  twelve-minute hard-cap/watchdog branch.
 - If the closet still misses motion or behaves oddly after this cap is live,
   inspect the UniFi Protect motion state history and consider adding a physical
   door/contact trigger.
