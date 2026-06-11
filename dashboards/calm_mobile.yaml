@@ -7378,9 +7378,18 @@ views:
         entity: sensor.irrigation_dashboard_status
         primary: Irrigation
         secondary: >-
-          {{ states('sensor.irrigation_dashboard_status') }} ·
-          {{ states('sensor.irrigation_active_zone') if is_state('binary_sensor.irrigation_active', 'on')
-             else states('sensor.irrigation_up_next_zone') ~ ' next' }}
+          {% set status = states('sensor.irrigation_dashboard_status') %}
+          {% if status == 'Needs attention' %}
+            Needs attention · {{ state_attr('sensor.irrigation_dashboard_status', 'reason') }}
+          {% elif is_state('binary_sensor.irrigation_active', 'on') %}
+            Running · {{ states('sensor.irrigation_active_zone') }}
+          {% elif status == 'Recovering' %}
+            Recently finished · pressure watch
+          {% elif status in ['Weather skip likely', 'Controller offline'] %}
+            {{ status }}
+          {% else %}
+            Not running · {{ states('sensor.irrigation_up_next_zone') }} next
+          {% endif %}
         icon: mdi:sprinkler-variant
         icon_color: >-
           {% set severity = state_attr('sensor.irrigation_dashboard_status', 'severity') %}
@@ -10006,9 +10015,20 @@ views:
           - type: custom:mushroom-template-card
             entity: sensor.irrigation_dashboard_status
             primary: >-
-              {{ states('sensor.irrigation_dashboard_status') }}
+              Status
             secondary: >-
-              {{ state_attr('sensor.irrigation_dashboard_status', 'reason') }}
+              {% set status = states('sensor.irrigation_dashboard_status') %}
+              {% if status == 'Needs attention' %}
+                Needs attention · {{ state_attr('sensor.irrigation_dashboard_status', 'reason') }}
+              {% elif is_state('binary_sensor.irrigation_active', 'on') %}
+                Running · {{ states('sensor.irrigation_active_zone') }}
+              {% elif status == 'Recovering' %}
+                Recently finished; watching shared well pressure.
+              {% elif status in ['Weather skip likely', 'Controller offline'] %}
+                {{ state_attr('sensor.irrigation_dashboard_status', 'reason') }}
+              {% else %}
+                Not running
+              {% endif %}
             icon: >-
               {{ state_attr('sensor.irrigation_dashboard_status', 'icon') | default('mdi:sprinkler-variant', true) }}
             icon_color: >-
@@ -10250,8 +10270,20 @@ views:
           cards:
             - type: custom:mushroom-template-card
               entity: sensor.irrigation_dashboard_status
-              primary: "{{ states('sensor.irrigation_dashboard_status') }}"
-              secondary: "{{ state_attr('sensor.irrigation_dashboard_status', 'reason') }}"
+              primary: Status
+              secondary: >-
+                {% set status = states('sensor.irrigation_dashboard_status') %}
+                {% if status == 'Needs attention' %}
+                  Needs attention · {{ state_attr('sensor.irrigation_dashboard_status', 'reason') }}
+                {% elif is_state('binary_sensor.irrigation_active', 'on') %}
+                  Running · {{ states('sensor.irrigation_active_zone') }}
+                {% elif status == 'Recovering' %}
+                  Recently finished; watching shared well pressure.
+                {% elif status in ['Weather skip likely', 'Controller offline'] %}
+                  {{ state_attr('sensor.irrigation_dashboard_status', 'reason') }}
+                {% else %}
+                  Not running
+                {% endif %}
               icon: mdi:sprinkler-variant
               icon_color: teal
               multiline_secondary: true
