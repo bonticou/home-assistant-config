@@ -35,6 +35,7 @@ unless the exact value is necessary and safe to store.
 
 | Date | Entry | Scope |
 | --- | --- | --- |
+| 2026-06-11 | [Casey closet stale-on recurrence](2026-06-11-casey-closet-stale-on.md) | Twelve-minute hard cap and watchdog for Casey closet light stale-on failures |
 | 2026-06-10 | [Overnight lights sweep](2026-06-10-overnight-lights-sweep.md) | Midnight whole-house left-on lighting reminder, snooze, and guarded 1 AM auto-off |
 | 2026-06-09 | [Irrigation Flo topology correction](2026-06-09-irrigation-flo-topology.md) | Hydrawise as irrigation source of truth, Flo pressure as shared-well context, Flo-derived irrigation memory cleanup |
 | 2026-06-04 | [Garden decommission](2026-06-04-garden-decommission.md) | Crop-garden UI/config removal, Recorder purge, entity-registry cleanup, inventory refresh |

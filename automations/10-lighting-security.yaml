@@ -458,13 +458,28 @@
 
 - id: casey_closet_auto_off
   alias: "Lights — Casey's Closet Auto-Off"
-  description: Turn Casey's closet on with closet motion and off after three minutes without motion.
+  description: Turn Casey's closet on with closet motion, off after three quiet minutes, and off after a hard twelve-minute stale-on cap.
   initial_state: true
   triggers:
+    - trigger: homeassistant
+      event: start
+      id: watchdog
+    - trigger: event
+      event_type: automation_reloaded
+      id: watchdog
+    - trigger: time_pattern
+      minutes: "/5"
+      id: watchdog
     - trigger: state
       entity_id: binary_sensor.casey_s_closet_motion
       to: "on"
       id: motion
+    - trigger: state
+      entity_id: light.master_casey_s_closet
+      to: "on"
+      for:
+        minutes: 12
+      id: hard_cap
     - trigger: template
       value_template: >-
         {{ is_state('light.master_casey_s_closet', 'on')
@@ -506,6 +521,24 @@
             - condition: state
               entity_id: light.master_casey_s_closet
               state: "on"
+          sequence:
+            - action: light.turn_off
+              target:
+                entity_id: light.master_casey_s_closet
+              data:
+                transition: 2
+        - conditions:
+            - condition: trigger
+              id:
+                - hard_cap
+                - watchdog
+            - condition: state
+              entity_id: light.master_casey_s_closet
+              state: "on"
+            - condition: template
+              value_template: >-
+                {% set changed = states.light.master_casey_s_closet.last_changed %}
+                {{ changed is not none and (now() - changed).total_seconds() >= 12 * 60 }}
           sequence:
             - action: light.turn_off
               target:
