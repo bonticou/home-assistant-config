@@ -55,15 +55,34 @@ Done and next-morning Snooze, and appear in Notification Center.
   - `configuration.yaml`;
   - `automations/30-maintenance-environment.yaml`;
   - `scripts.yaml`.
+- `git diff --check` passed.
+- `python3 tools/check_device_inventory_coverage.py` passed.
+- Live Remote UI/File Editor deployment wrote and read back:
+  - `/homeassistant/configuration.yaml`;
+  - `/homeassistant/automations/30-maintenance-environment.yaml`;
+  - `/homeassistant/scripts.yaml`.
+- Live Home Assistant config check returned valid.
+- Reloaded helper, template, script, and automation domains. The first template
+  reload timed out, then a longer direct template reload completed successfully.
+- Live validation showed:
+  - `input_datetime.dehumidifier_air_filter_last_done_at` =
+    `1970-01-01 00:00:00`;
+  - `sensor.dehumidifier_air_filter_status` = `Scheduled`;
+  - `sensor.dehumidifier_air_filter_status.next_due_date` = `2026-06-12`;
+  - `binary_sensor.dehumidifier_air_filter_due` = `off`;
+  - dehumidifier air filter scripts are loaded;
+  - `automation.home_care_dehumidifier_air_filter_biweekly_reminder` = `on`;
+  - `automation.home_care_dehumidifier_air_filter_notification_actions` =
+    `on`;
+  - Notification Center includes an upcoming `🌬️ Clean dehumidifier air filter`
+    item for `2026-06-12`.
+- No dehumidifier air filter push was sent during deployment; the first due
+  cycle is still Friday, June 12, 2026 at 7:00 AM.
 
 ## Deployment Status
 
-- Pending live deployment and validation.
+- Deployed live and validated on June 11, 2026.
 
 ## Residual Risks And Next Follow-Ups
 
-- After deployment, verify the live status sensor reports the next due date as
-  `2026-06-12`.
-- Verify Notification Center shows the upcoming dehumidifier air filter item
-  before the first due cycle.
 - Verify mobile actions call the new scripts after the first reminder.
