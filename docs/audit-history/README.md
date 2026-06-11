@@ -35,6 +35,7 @@ unless the exact value is necessary and safe to store.
 
 | Date | Entry | Scope |
 | --- | --- | --- |
+| 2026-06-11 | [Garden fertilizer reminder](2026-06-11-garden-fertilizer-reminder.md) | Every-other-Friday growing-season fertilizer notification with Done/Snooze and Notification Center item |
 | 2026-06-11 | [Profitec GO weekend notification policy](2026-06-11-profitec-weekend-notification-policy.md) | Weekend-first espresso cleaning notifications, weekday only after snooze or away-weekend deferral |
 | 2026-06-11 | [Casey closet stale-on recurrence](2026-06-11-casey-closet-stale-on.md) | Twelve-minute hard cap and watchdog for Casey closet light stale-on failures |
 | 2026-06-10 | [Overnight lights sweep](2026-06-10-overnight-lights-sweep.md) | Midnight whole-house left-on lighting reminder, snooze, and guarded 1 AM auto-off |

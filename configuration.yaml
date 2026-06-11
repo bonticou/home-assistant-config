@@ -394,6 +394,21 @@ input_datetime:
     has_date: true
     has_time: true
     initial: "1970-01-01 00:00:00"
+  garden_fertilizer_last_done_at:
+    name: Garden Fertilizer Last Done At
+    has_date: true
+    has_time: true
+    initial: "2026-06-05 07:00:00"
+  garden_fertilizer_last_notified_at:
+    name: Garden Fertilizer Last Notified At
+    has_date: true
+    has_time: true
+    initial: "1970-01-01 00:00:00"
+  garden_fertilizer_snooze_until:
+    name: Garden Fertilizer Snooze Until
+    has_date: true
+    has_time: true
+    initial: "1970-01-01 00:00:00"
   latest_camera_motion_at:
     name: Latest Camera Motion At
     has_date: true
@@ -625,6 +640,10 @@ input_text:
   metro_north_commute_card_message:
     name: Metro-North Commute Card Message
     max: 255
+  garden_fertilizer_last_notified_cycle:
+    name: Garden Fertilizer Last Notified Cycle
+    max: 10
+    initial: ""
   garbage_recycling_last_taken_out_pickup:
     name: Garbage Recycling Last Taken Out Pickup
     max: 10
@@ -717,6 +736,10 @@ input_boolean:
   espresso_maintenance_enabled:
     name: Espresso Maintenance Enabled
     icon: mdi:coffee-maker-outline
+    initial: true
+  garden_fertilizer_notifications_enabled:
+    name: Garden Fertilizer Notifications Enabled
+    icon: mdi:sprout
     initial: true
   piano_care_enabled:
     name: Piano Care Enabled
@@ -2544,6 +2567,86 @@ template:
           notification_window_start: "06:00"
           notification_window_end: "12:00"
 
+      - name: "Garden Fertilizer Status"
+        unique_id: garden_fertilizer_status
+        state: >
+          {% set today = now().strftime('%Y-%m-%d') %}
+          {% set today_dt = strptime(today, '%Y-%m-%d') %}
+          {% set season_start = strptime(now().year ~ '-05-01', '%Y-%m-%d') %}
+          {% set season_end = strptime(now().year ~ '-10-31', '%Y-%m-%d') %}
+          {% set in_season = today_dt >= season_start and today_dt <= season_end %}
+          {% set snooze = states('input_datetime.garden_fertilizer_snooze_until') %}
+          {% set snoozed = snooze not in ['unknown', 'unavailable', 'none', '']
+             and as_timestamp(snooze, 0) > as_timestamp(now()) %}
+          {% if not is_state('input_boolean.garden_fertilizer_notifications_enabled', 'on') %}
+            Off
+          {% elif snoozed %}
+            Snoozed
+          {% elif is_state('binary_sensor.garden_fertilizer_due', 'on') %}
+            Due
+          {% elif not in_season %}
+            Off season
+          {% else %}
+            Scheduled
+          {% endif %}
+        icon: >
+          {% if is_state('binary_sensor.garden_fertilizer_due', 'on') %}
+            mdi:sprout
+          {% else %}
+            mdi:leaf
+          {% endif %}
+        attributes:
+          cadence: Every other Friday at 7:00 AM during growing season.
+          first_done_date: "2026-06-05"
+          season_start: "{{ now().year ~ '-05-01' }}"
+          season_end: "{{ now().year ~ '-10-31' }}"
+          current_cycle: >
+            {% set anchor = strptime('2026-06-19', '%Y-%m-%d') %}
+            {% set today_dt = strptime(now().strftime('%Y-%m-%d'), '%Y-%m-%d') %}
+            {% set days = ((as_timestamp(today_dt) - as_timestamp(anchor)) / 86400) | int %}
+            {% if days >= 0 %}
+              {% set offset = days - (days % 14) %}
+              {{ (anchor + timedelta(days=offset)).strftime('%Y-%m-%d') }}
+            {% else %}
+              {{ '' }}
+            {% endif %}
+          next_due_date: >
+            {% set anchor = strptime('2026-06-19', '%Y-%m-%d') %}
+            {% set today_dt = strptime(now().strftime('%Y-%m-%d'), '%Y-%m-%d') %}
+            {% set season_start = strptime(now().year ~ '-05-01', '%Y-%m-%d') %}
+            {% set season_end = strptime(now().year ~ '-10-31', '%Y-%m-%d') %}
+            {% set target = season_start if today_dt < season_start else today_dt %}
+            {% set days = ((as_timestamp(target) - as_timestamp(anchor)) / 86400) | int %}
+            {% if days < 0 %}
+              {% set candidate = anchor %}
+            {% else %}
+              {% set offset = days - (days % 14) %}
+              {% set candidate = anchor + timedelta(days=offset) %}
+              {% if candidate < target %}
+                {% set candidate = candidate + timedelta(days=14) %}
+              {% endif %}
+            {% endif %}
+            {% set last_done = states('input_datetime.garden_fertilizer_last_done_at') %}
+            {% if last_done not in ['unknown', 'unavailable', 'none', ''] and last_done[:10] >= candidate.strftime('%Y-%m-%d') and today_dt >= candidate %}
+              {% set candidate = candidate + timedelta(days=14) %}
+            {% endif %}
+            {% if candidate <= season_end %}
+              {{ candidate.strftime('%Y-%m-%d') }}
+            {% else %}
+              {{ '' }}
+            {% endif %}
+          last_done_at: >
+            {% set value = states('input_datetime.garden_fertilizer_last_done_at') %}
+            {{ value if value not in ['unknown', 'unavailable', 'none', ''] else '' }}
+          snooze_until: >
+            {% set value = states('input_datetime.garden_fertilizer_snooze_until') %}
+            {{ value if value not in ['unknown', 'unavailable', 'none', ''] else '' }}
+          last_notified_at: >
+            {% set value = states('input_datetime.garden_fertilizer_last_notified_at') %}
+            {{ value if value not in ['unknown', 'unavailable', 'none', ''] else '' }}
+          last_notified_cycle: "{{ states('input_text.garden_fertilizer_last_notified_cycle') }}"
+          notification_time: "07:00"
+
       - name: "Water Notification Status"
         unique_id: water_notification_status
         state: >
@@ -3295,6 +3398,7 @@ template:
             is_state('binary_sensor.wine_cave_actionable_alert', 'on'),
             is_state('binary_sensor.wine_cave_sensor_unavailable', 'on'),
             is_state('binary_sensor.espresso_maintenance_due', 'on'),
+            is_state('binary_sensor.garden_fertilizer_due', 'on'),
             is_state('binary_sensor.piano_tuning_due', 'on'),
             is_state('binary_sensor.dryer_vent_cleaning_due', 'on'),
             is_state('binary_sensor.passport_renewal_due', 'on'),
@@ -3350,6 +3454,7 @@ template:
               is_state('binary_sensor.wine_cave_actionable_alert', 'on'),
               is_state('binary_sensor.wine_cave_sensor_unavailable', 'on'),
               is_state('binary_sensor.espresso_maintenance_due', 'on'),
+              is_state('binary_sensor.garden_fertilizer_due', 'on'),
               is_state('binary_sensor.piano_tuning_due', 'on'),
               is_state('binary_sensor.dryer_vent_cleaning_due', 'on'),
               is_state('binary_sensor.passport_renewal_due', 'on'),
@@ -3386,6 +3491,7 @@ template:
             {% for date_value in [
               water_next,
               cafiza_next,
+              state_attr('sensor.garden_fertilizer_status', 'next_due_date'),
               states('sensor.piano_next_tuning_due'),
               states('sensor.dryer_vent_next_cleaning_due'),
               states('input_datetime.passport_expiration_date'),
@@ -3441,6 +3547,7 @@ template:
             {% for date_value in [
               water_next,
               cafiza_next,
+              state_attr('sensor.garden_fertilizer_status', 'next_due_date'),
               states('sensor.piano_next_tuning_due'),
               states('sensor.dryer_vent_next_cleaning_due'),
               states('input_datetime.passport_expiration_date'),
@@ -3761,6 +3868,31 @@ template:
                 'url': '/calm-mobile/home',
                 'entity_id': 'sensor.espresso_maintenance_status',
                 'actions': espresso_actions
+              }] %}
+            {% endif %}
+            {% set fertilizer_due = state_attr('sensor.garden_fertilizer_status', 'next_due_date') %}
+            {% if is_state('input_boolean.garden_fertilizer_notifications_enabled', 'on') and fertilizer_due not in ['unknown', 'unavailable', 'none', ''] %}
+              {% set fertilizer_active = is_state('binary_sensor.garden_fertilizer_due', 'on') %}
+              {% set ns.items = ns.items + [{
+                'id': 'garden-fertilizer-' ~ fertilizer_due,
+                'title': 'Fertilizer time',
+                'emoji': '🍅',
+                'icon': 'mdi:sprout',
+                'group': 'Garden',
+                'state': 'due' if fertilizer_active else 'upcoming',
+                'severity': 'watch' if fertilizer_active else 'info',
+                'date': fertilizer_due,
+                'due_prefix': 'Due',
+                'basis_date': states('input_datetime.garden_fertilizer_last_done_at')[:10],
+                'basis_prefix': 'last done',
+                'narrative': 'It is a fertilizer Friday. Add fertilizer when you have a few minutes, then mark it done.',
+                'url': '/calm-mobile/notices',
+                'entity_id': 'sensor.garden_fertilizer_status',
+                'show_in_upcoming': true,
+                'actions': ([
+                  {'label': 'Done', 'service': 'script.garden_fertilizer_mark_done', 'inline': false},
+                  {'label': 'Snooze', 'service': 'script.garden_fertilizer_snooze', 'inline': false}
+                ] if fertilizer_active else [])
               }] %}
             {% endif %}
             {% if is_state('input_boolean.piano_care_enabled', 'on') and states('sensor.piano_next_tuning_due') not in ['unknown', 'unavailable', 'none', ''] %}
@@ -4649,6 +4781,37 @@ template:
              or is_state('binary_sensor.espresso_cafiza_clean_due', 'on')) }}
         icon: >
           {{ 'mdi:coffee-maker-alert-outline' if is_state('binary_sensor.espresso_maintenance_due', 'on') else 'mdi:coffee-maker-check-outline' }}
+
+      - name: "Garden Fertilizer Due"
+        unique_id: garden_fertilizer_due
+        state: >
+          {% set today = now().strftime('%Y-%m-%d') %}
+          {% set today_dt = strptime(today, '%Y-%m-%d') %}
+          {% set season_start = strptime(now().year ~ '-05-01', '%Y-%m-%d') %}
+          {% set season_end = strptime(now().year ~ '-10-31', '%Y-%m-%d') %}
+          {% set anchor = strptime('2026-06-19', '%Y-%m-%d') %}
+          {% set days = ((as_timestamp(today_dt) - as_timestamp(anchor)) / 86400) | int %}
+          {% if days < 0 %}
+            false
+          {% else %}
+            {% set offset = days - (days % 14) %}
+            {% set cycle = anchor + timedelta(days=offset) %}
+            {% set cycle_date = cycle.strftime('%Y-%m-%d') %}
+            {% set last_done = states('input_datetime.garden_fertilizer_last_done_at') %}
+            {% set snooze = states('input_datetime.garden_fertilizer_snooze_until') %}
+            {% set snoozed = snooze not in ['unknown', 'unavailable', 'none', '']
+               and as_timestamp(snooze, 0) > as_timestamp(now()) %}
+            {{ is_state('input_boolean.garden_fertilizer_notifications_enabled', 'on')
+               and today_dt >= season_start
+               and today_dt <= season_end
+               and cycle >= season_start
+               and cycle <= season_end
+               and last_done not in ['unknown', 'unavailable', 'none', '']
+               and last_done[:10] < cycle_date
+               and not snoozed }}
+          {% endif %}
+        icon: >
+          {{ 'mdi:sprout' if is_state('binary_sensor.garden_fertilizer_due', 'on') else 'mdi:leaf' }}
 
       - name: "Wine Cave Charcoal Filter Due"
         unique_id: wine_cave_charcoal_filter_due

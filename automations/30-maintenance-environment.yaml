@@ -52,6 +52,97 @@
   mode: parallel
   max: 10
 
+- id: garden_fertilizer_notification_actions
+  alias: "Garden — Fertilizer Notification Actions"
+  description: Handles quick actions from growing season fertilizer reminders.
+  triggers:
+    - trigger: event
+      event_type: mobile_app_notification_action
+  conditions:
+    - condition: template
+      value_template: >
+        {{ trigger.event.data.action in [
+          'GARDEN_FERTILIZER_DONE',
+          'GARDEN_FERTILIZER_SNOOZE'
+        ] }}
+  actions:
+    - choose:
+        - conditions:
+            - condition: template
+              value_template: "{{ trigger.event.data.action == 'GARDEN_FERTILIZER_DONE' }}"
+          sequence:
+            - action: script.garden_fertilizer_mark_done
+              data:
+                source: home_assistant_notification_action
+        - conditions:
+            - condition: template
+              value_template: "{{ trigger.event.data.action == 'GARDEN_FERTILIZER_SNOOZE' }}"
+            - condition: state
+              entity_id: binary_sensor.garden_fertilizer_due
+              state: "on"
+          sequence:
+            - action: script.garden_fertilizer_snooze
+              data:
+                source: home_assistant_notification_action
+  mode: parallel
+  max: 5
+
+- id: garden_fertilizer_biweekly_reminder
+  alias: "Garden — Fertilizer Biweekly Reminder"
+  description: Sends a lightweight every-other-Friday fertilizer reminder during growing season, with next-morning snooze.
+  triggers:
+    - trigger: time
+      at: "07:00:00"
+      id: morning
+    - trigger: homeassistant
+      event: start
+      id: startup
+    - trigger: event
+      event_type: automation_reloaded
+      id: automation_reloaded
+  conditions:
+    - condition: state
+      entity_id: input_boolean.garden_fertilizer_notifications_enabled
+      state: "on"
+    - condition: state
+      entity_id: binary_sensor.garden_fertilizer_due
+      state: "on"
+  actions:
+    - if:
+        - condition: trigger
+          id: startup
+      then:
+        - delay:
+            minutes: 2
+    - if:
+        - condition: trigger
+          id: automation_reloaded
+      then:
+        - delay:
+            minutes: 1
+    - variables:
+        current_cycle: "{{ state_attr('sensor.garden_fertilizer_status', 'current_cycle') | default('', true) }}"
+        last_notified_cycle: "{{ states('input_text.garden_fertilizer_last_notified_cycle') }}"
+        last_notified: "{{ states('input_datetime.garden_fertilizer_last_notified_at') }}"
+        snooze_until: "{{ states('input_datetime.garden_fertilizer_snooze_until') }}"
+        snooze_ready: >-
+          {{ snooze_until not in ['unknown', 'unavailable', 'none', '']
+             and last_notified not in ['unknown', 'unavailable', 'none', '']
+             and as_timestamp(snooze_until, 0) <= as_timestamp(now())
+             and as_timestamp(snooze_until, 0) > as_timestamp(last_notified, 0) }}
+        trigger_allowed: >-
+          {{ trigger.id == 'morning'
+             or (trigger.id in ['startup', 'automation_reloaded'] and now().hour >= 7 and now().hour < 10) }}
+        should_notify: >-
+          {{ current_cycle not in ['unknown', 'unavailable', 'none', '']
+             and (last_notified_cycle != current_cycle or snooze_ready | bool) }}
+    - condition: template
+      value_template: "{{ trigger_allowed | bool }}"
+    - condition: template
+      value_template: "{{ should_notify | bool }}"
+    - action: script.garden_fertilizer_send_notification
+  mode: single
+
 - id: robison_oil_annual_tune_up_reminder
   alias: "Robison Oil — Annual Tune-Up Reminder"
   description: Sends the late-March reminder to schedule or confirm the annual Robison Oil tune-up.
