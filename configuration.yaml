@@ -389,6 +389,10 @@ input_datetime:
     name: Espresso Maintenance Last Notified At
     has_date: true
     has_time: true
+  espresso_maintenance_weekend_gate_at:
+    name: Espresso Maintenance Weekend Gate At
+    has_date: true
+    has_time: true
   latest_camera_motion_at:
     name: Latest Camera Motion At
     has_date: true
@@ -2532,6 +2536,10 @@ template:
           last_notified_at: >
             {% set value = states('input_datetime.espresso_maintenance_last_notified_at') %}
             {{ value if value not in ['unknown', 'unavailable', 'none', ''] else '' }}
+          weekend_gate_at: >
+            {% set value = states('input_datetime.espresso_maintenance_weekend_gate_at') %}
+            {{ value if value not in ['unknown', 'unavailable', 'none', ''] else '' }}
+          notification_policy: Weekend first; weekday only after a snoozed weekend alert or an away-weekend deferral.
           notification_window_start: "06:00"
           notification_window_end: "12:00"
 

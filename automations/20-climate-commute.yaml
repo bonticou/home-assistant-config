@@ -1051,16 +1051,54 @@
             minutes: 1
     - variables:
         today: "{{ now().strftime('%Y-%m-%d') }}"
+        weekend_now: "{{ now().isoweekday() in [6, 7] }}"
         coffee_window: "{{ now().hour >= 6 and now().hour < 12 }}"
         cafiza_due: "{{ is_state('binary_sensor.espresso_cafiza_clean_due', 'on') }}"
         water_due: "{{ is_state('binary_sensor.espresso_water_backflush_due', 'on') }}"
+        current_due_date: "{{ state_attr('sensor.espresso_maintenance_status', 'next_due_date') | default('', true) }}"
         last_notified: "{{ states('input_datetime.espresso_maintenance_last_notified_at') }}"
         notified_today: >-
           {{ last_notified not in ['unknown', 'unavailable', 'none', '']
              and last_notified[:10] == today }}
+        last_notified_current_cycle: >-
+          {{ current_due_date not in ['unknown', 'unavailable', 'none', '']
+             and last_notified not in ['unknown', 'unavailable', 'none', '']
+             and last_notified[:10] >= current_due_date }}
+        last_notified_weekend_current_cycle: >-
+          {% set last_ts = as_timestamp(last_notified, 0) %}
+          {{ last_notified_current_cycle | bool
+             and last_ts > 0
+             and (last_ts | timestamp_custom('%w', true)) in ['0', '6'] }}
+        snooze_until: "{{ states('input_datetime.espresso_maintenance_snooze_until') }}"
+        snoozed_from_weekend_alert: >-
+          {{ last_notified_weekend_current_cycle | bool
+             and snooze_until not in ['unknown', 'unavailable', 'none', '']
+             and as_timestamp(snooze_until, 0) > as_timestamp(last_notified, 0)
+             and as_timestamp(snooze_until, 0) <= as_timestamp(now()) }}
+        weekend_gate: "{{ states('input_datetime.espresso_maintenance_weekend_gate_at') }}"
+        weekend_gate_current_cycle: >-
+          {{ current_due_date not in ['unknown', 'unavailable', 'none', '']
+             and weekend_gate not in ['unknown', 'unavailable', 'none', '']
+             and weekend_gate[:10] >= current_due_date }}
+        away_weekend_deferral_active: >-
+          {{ weekend_gate_current_cycle | bool
+             and not (last_notified_weekend_current_cycle | bool) }}
+        notification_policy_allowed: >-
+          {{ weekend_now | bool
+             or snoozed_from_weekend_alert | bool
+             or away_weekend_deferral_active | bool }}
         trigger_allowed: >-
           {{ trigger.id == 'morning'
              or (trigger.id in ['homecoming', 'startup', 'automation_reloaded'] and coffee_window | bool) }}
+    - if:
+        - condition: template
+          value_template: "{{ weekend_now | bool and not (weekend_gate_current_cycle | bool) }}"
+      then:
+        - action: input_datetime.set_datetime
+          target:
+            entity_id: input_datetime.espresso_maintenance_weekend_gate_at
+          data:
+            datetime: "{{ now().strftime('%Y-%m-%d %H:%M:%S') }}"
     - condition: state
       entity_id: device_tracker.tk_iphone_16_pro
       state: "home"
@@ -1070,6 +1108,8 @@
       value_template: "{{ not (notified_today | bool) }}"
     - condition: template
       value_template: "{{ cafiza_due | bool or water_due | bool }}"
+    - condition: template
+      value_template: "{{ notification_policy_allowed | bool }}"
     - action: script.espresso_send_maintenance_notification
   mode: single
 
