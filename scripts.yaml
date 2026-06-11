@@ -1901,6 +1901,156 @@ garden_fertilizer_clear_notification:
         data:
           tag: garden-fertilizer
 
+dehumidifier_air_filter_send_notification:
+  alias: Dehumidifier Air Filter Send Notification
+  description: Sends the alternate-Friday dehumidifier air filter reminder.
+  icon: mdi:air-filter
+  mode: restart
+  sequence:
+    - variables:
+        notified_now: "{{ now().strftime('%Y-%m-%d %H:%M:%S') }}"
+        cycle: >-
+          {{ state_attr('sensor.dehumidifier_air_filter_status', 'current_cycle')
+             or state_attr('sensor.dehumidifier_air_filter_status', 'next_due_date')
+             or now().strftime('%Y-%m-%d') }}
+    - action: script.notify_trevor_phone
+      data:
+        title: "🌬️ Clean dehumidifier air filter"
+        message: >-
+          Clean dehumidifier air filter, then mark it done.
+        data:
+          group: home-care
+          tag: dehumidifier-air-filter
+          url: /calm-mobile/notices
+          action: dehumidifier_air_filter_reminder_sent
+          recent: false
+          keep_recent: false
+          history: audit
+          actions:
+            - action: DEHUMIDIFIER_AIR_FILTER_DONE
+              title: Done
+            - action: DEHUMIDIFIER_AIR_FILTER_SNOOZE
+              title: Snooze
+    - action: input_datetime.set_datetime
+      target:
+        entity_id: input_datetime.dehumidifier_air_filter_last_notified_at
+      data:
+        datetime: "{{ notified_now }}"
+    - action: input_text.set_value
+      target:
+        entity_id: input_text.dehumidifier_air_filter_last_notified_cycle
+      data:
+        value: "{{ cycle }}"
+
+dehumidifier_air_filter_mark_done:
+  alias: Dehumidifier Air Filter Mark Done
+  description: Stamps the dehumidifier air filter reminder as completed.
+  icon: mdi:air-filter-check
+  mode: restart
+  fields:
+    source:
+      description: Source that confirmed the action.
+      example: home_assistant_notification_action
+    note:
+      description: Optional ledger note.
+      example: Confirmed from chat.
+  sequence:
+    - variables:
+        filter_now: "{{ now().strftime('%Y-%m-%d %H:%M:%S') }}"
+        action_source: "{{ source | default('home_assistant_dashboard_action', true) | regex_replace('[^A-Za-z0-9_.:-]', '') }}"
+        action_note: "{{ note | default('', true) | regex_replace('[^A-Za-z0-9 .,_:/@+-]', '') | truncate(500, true, '') }}"
+    - action: shell_command.log_house_action_stamp
+      data:
+        notice_id: dehumidifier-air-filter
+        cycle_id: "{{ state_attr('sensor.dehumidifier_air_filter_status', 'current_cycle') or filter_now[:10] }}"
+        action: dehumidifier_air_filter_done
+        completed_at: "{{ filter_now }}"
+        source: "{{ action_source }}"
+        note: "{{ action_note }}"
+    - if:
+        - condition: template
+          value_template: "{{ action_source != 'home_assistant_notification_action' }}"
+      then:
+        - event: house_notice_event_recorded
+          event_data:
+            at: "{{ filter_now }}"
+            kind: action
+            title: Dehumidifier air filter done
+            message: Clean dehumidifier air filter recorded
+            group: home-care
+            tag: dehumidifier-air-filter
+            url: /calm-mobile/notices
+            severity: info
+            action: dehumidifier_air_filter_done
+            source: "{{ action_source }}"
+            recent: false
+            keep_recent: false
+            history: audit
+    - action: input_datetime.set_datetime
+      target:
+        entity_id:
+          - input_datetime.dehumidifier_air_filter_last_done_at
+          - input_datetime.dehumidifier_air_filter_snooze_until
+      data:
+        datetime: "{{ filter_now }}"
+    - action: script.dehumidifier_air_filter_clear_notification
+
+dehumidifier_air_filter_snooze:
+  alias: Dehumidifier Air Filter Snooze
+  description: Snoozes the dehumidifier air filter reminder until the next morning at 7 AM.
+  icon: mdi:alarm-snooze
+  mode: restart
+  fields:
+    source:
+      description: Source that requested the snooze.
+      example: home_assistant_notification_action
+    note:
+      description: Optional audit note.
+      example: Snoozed from dashboard.
+  sequence:
+    - variables:
+        filter_now: "{{ now().strftime('%Y-%m-%d %H:%M:%S') }}"
+        snooze_until: "{{ (today_at('07:00:00') + timedelta(days=1)).strftime('%Y-%m-%d %H:%M:%S') }}"
+        action_source: "{{ source | default('home_assistant_dashboard_action', true) | regex_replace('[^A-Za-z0-9_.:-]', '') }}"
+        action_note: "{{ note | default('', true) | regex_replace('[^A-Za-z0-9 .,_:/@+-]', '') | truncate(500, true, '') }}"
+    - if:
+        - condition: template
+          value_template: "{{ action_source != 'home_assistant_notification_action' }}"
+      then:
+        - event: house_notice_event_recorded
+          event_data:
+            at: "{{ filter_now }}"
+            kind: action
+            title: Snoozed
+            message: "Dehumidifier air filter snoozed until {{ snooze_until }}"
+            group: home-care
+            tag: dehumidifier-air-filter
+            url: /calm-mobile/notices
+            severity: info
+            action: dehumidifier_air_filter_snooze
+            source: "{{ action_source }}"
+            recent: false
+            keep_recent: false
+            history: audit
+    - action: input_datetime.set_datetime
+      target:
+        entity_id: input_datetime.dehumidifier_air_filter_snooze_until
+      data:
+        datetime: "{{ snooze_until }}"
+    - action: script.dehumidifier_air_filter_clear_notification
+
+dehumidifier_air_filter_clear_notification:
+  alias: Dehumidifier Air Filter Clear Notification
+  description: Clears the active dehumidifier air filter notification tag.
+  icon: mdi:air-filter-check
+  mode: restart
+  sequence:
+    - action: script.notify_trevor_phone
+      data:
+        message: clear_notification
+        data:
+          tag: dehumidifier-air-filter
+
 robison_oil_send_tune_up_reminder:
   alias: Robison Oil Send Tune-Up Reminder
   description: Sends the annual Robison Oil tune-up scheduling reminder.
