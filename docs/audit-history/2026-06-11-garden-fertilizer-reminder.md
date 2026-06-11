@@ -57,15 +57,29 @@ Friday, June 5, 2026, so the first reminder should be Friday, June 19, 2026.
 - `python3 tools/generate_device_inventory.py --config-dir . --output-dir docs`
   could not run from this checkout because the local repo does not include the
   live `.storage` registry files.
+- Live File Editor deployment wrote and read back:
+  - `/homeassistant/configuration.yaml`;
+  - `/homeassistant/automations/30-maintenance-environment.yaml`;
+  - `/homeassistant/scripts.yaml`.
+- Live Home Assistant config check returned valid.
+- Reloaded the affected helper, template, script, and automation domains.
+- Live validation showed:
+  - `input_datetime.garden_fertilizer_last_done_at` =
+    `2026-06-05 07:00:00`;
+  - `sensor.garden_fertilizer_status` = `Scheduled`;
+  - `sensor.garden_fertilizer_status.next_due_date` = `2026-06-19`;
+  - `binary_sensor.garden_fertilizer_due` = `off`;
+  - fertilizer scripts are loaded;
+  - fertilizer automations are loaded and enabled;
+  - Notification Center includes an upcoming `🍅 Fertilizer time` item for
+    `2026-06-19`.
+- No fertilizer push was sent during deployment; the first due cycle is still
+  Friday, June 19, 2026 at 7:00 AM.
 
 ## Deployment Status
 
-- Pending live deployment and validation.
+- Deployed live and validated on June 11, 2026.
 
 ## Residual Risks And Next Follow-Ups
 
-- After deployment, verify the live status sensor reports the next due date as
-  `2026-06-19`.
-- Verify Notification Center shows the upcoming fertilizer item before the first
-  due cycle.
 - Verify mobile actions call the new scripts after the first reminder.
