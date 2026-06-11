@@ -84,6 +84,22 @@ missed because Trevor was away.
   - `automation.espresso_morning_maintenance_reminder` includes both the
     `weekend_gate_current_cycle` policy gate and the explicit weekend-day check.
 - Cleared the invalid Thursday Profitec GO notification tag.
+- Follow-up live reset after Trevor clarified not to wipe maintenance history:
+  - preserved actual maintenance timestamps:
+    - `input_datetime.espresso_last_water_backflush` =
+      `2026-06-04 10:22:34`;
+    - `input_datetime.espresso_last_cafiza_clean` =
+      `2026-04-25 07:00:00`;
+  - reset only notification-policy helper state:
+    - `input_datetime.espresso_maintenance_snooze_until` =
+      `1970-01-01 00:00:00`;
+    - `input_datetime.espresso_maintenance_last_notified_at` =
+      `1970-01-01 00:00:00`;
+    - `input_datetime.espresso_maintenance_weekend_gate_at` =
+      `1970-01-01 00:00:00`;
+  - live status remained `Water due`, which is correct maintenance state, but
+    there was no remaining notification helper evidence that would justify a
+    weekday push before a valid weekend/home window.
 
 ## Deployment Status
 

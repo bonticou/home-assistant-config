@@ -4009,7 +4009,7 @@ template:
               {% set ns.items = ns.items + [{
                 'id': 'dehumidifier-air-filter-' ~ dehumidifier_filter_due,
                 'title': 'Clean dehumidifier air filter',
-                'emoji': '🌬️',
+                'emoji': '🧽',
                 'icon': 'mdi:air-filter',
                 'group': 'Home care',
                 'state': 'due' if dehumidifier_filter_active else 'upcoming',

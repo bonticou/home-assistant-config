@@ -1915,7 +1915,7 @@ dehumidifier_air_filter_send_notification:
              or now().strftime('%Y-%m-%d') }}
     - action: script.notify_trevor_phone
       data:
-        title: "🌬️ Clean dehumidifier air filter"
+        title: "🧽 Clean dehumidifier air filter"
         message: >-
           Clean dehumidifier air filter, then mark it done.
         data:

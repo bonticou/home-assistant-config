@@ -74,7 +74,7 @@ Done and next-morning Snooze, and appear in Notification Center.
   - `automation.home_care_dehumidifier_air_filter_biweekly_reminder` = `on`;
   - `automation.home_care_dehumidifier_air_filter_notification_actions` =
     `on`;
-  - Notification Center includes an upcoming `🌬️ Clean dehumidifier air filter`
+  - Notification Center includes an upcoming `🧽 Clean dehumidifier air filter`
     item for `2026-06-12`.
 - No dehumidifier air filter push was sent during deployment; the first due
   cycle is still Friday, June 12, 2026 at 7:00 AM.
