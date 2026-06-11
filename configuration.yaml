@@ -393,6 +393,7 @@ input_datetime:
     name: Espresso Maintenance Weekend Gate At
     has_date: true
     has_time: true
+    initial: "1970-01-01 00:00:00"
   latest_camera_motion_at:
     name: Latest Camera Motion At
     has_date: true
