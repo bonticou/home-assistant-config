@@ -42,6 +42,8 @@ missed because Trevor was away.
 ## Changes Made
 
 - Added `input_datetime.espresso_maintenance_weekend_gate_at`.
+- Gave the weekend gate helper an explicit neutral initial value of
+  `1970-01-01 00:00:00`.
 - Updated `sensor.espresso_maintenance_status` attributes to expose the weekend
   gate timestamp and notification policy.
 - Updated `automation.espresso_morning_maintenance_reminder` so a notification
@@ -53,6 +55,9 @@ missed because Trevor was away.
 - The automation records the weekend gate while maintenance is due on a weekend
   even before checking whether Trevor is home, so away-weekend deferrals can
   turn into weekday nudges later.
+- The automation only treats the weekend gate as valid if the gate timestamp is
+  itself a Saturday or Sunday, so a default/restored weekday helper value cannot
+  unlock weekday notifications.
 - The existing home check remains in place, so weekend alerts still do not send
   while Trevor is away.
 
@@ -67,16 +72,27 @@ missed because Trevor was away.
 - `python3 tools/generate_device_inventory.py --config-dir . --output-dir docs`
   could not run from this checkout because the local repo does not include the
   live `.storage` registry files.
+- Deployed `configuration.yaml` and `automations/20-climate-commute.yaml`
+  through the Nabu Casa Remote UI File Editor ingress.
+- File Editor write/read-back succeeded for both files.
+- Home Assistant config check returned `valid` with no warnings.
+- Live frontend API verification showed:
+  - `input_datetime.espresso_maintenance_weekend_gate_at` exists and was reset
+    to `1970-01-01 00:00:00`;
+  - `sensor.espresso_maintenance_status` exposes the weekend-first notification
+    policy;
+  - `automation.espresso_morning_maintenance_reminder` includes both the
+    `weekend_gate_current_cycle` policy gate and the explicit weekend-day check.
+- Cleared the invalid Thursday Profitec GO notification tag.
 
 ## Deployment Status
 
-- Pending live deployment and validation.
+- Deployed live and verified on 2026-06-11.
 
 ## Residual Risks And Next Follow-Ups
 
-- After deployment, reload input datetime helpers, templates, scripts, and
-  automations, then verify `input_datetime.espresso_maintenance_weekend_gate_at`
-  exists live.
-- Clear the invalid Thursday Profitec GO notification tag.
-- If the weekend gate helper is not created by reload, schedule or perform a
-  Home Assistant restart before Saturday morning.
+- The helper-domain reload path behaved inconsistently through the browser
+  service-call promise path, but the final frontend API verification confirmed
+  the helper exists and the automation config is loaded.
+- Watch the next Saturday morning due cycle to confirm the first valid reminder
+  arrives only when Trevor is home.
