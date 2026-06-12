@@ -1931,32 +1931,32 @@ template:
         unit_of_measurement: "°"
         icon: mdi:weather-sunset
         state: >
-          {% set base_elevation = 10 %}
+          {% set base_elevation = 12 %}
           {% set weather_state = states('weather.forecast_home') %}
           {% if weather_state in ['sunny', 'clear-night'] %}
             {% set weather_adjustment = -2 %}
           {% elif weather_state == 'partlycloudy' %}
-            {% set weather_adjustment = 0 %}
+            {% set weather_adjustment = 2 %}
           {% elif weather_state in ['cloudy', 'fog'] %}
             {% set weather_adjustment = 8 %}
           {% elif weather_state in ['rainy', 'pouring', 'lightning-rainy', 'snowy', 'snowy-rainy'] %}
-            {% set weather_adjustment = 18 %}
+            {% set weather_adjustment = 16 %}
           {% else %}
             {% set weather_adjustment = 0 %}
           {% endif %}
           {{ base_elevation + weather_adjustment }}
         attributes:
-          base_elevation: 10
+          base_elevation: 12
           weather_adjustment: >
             {% set weather_state = states('weather.forecast_home') %}
             {% if weather_state in ['sunny', 'clear-night'] %}
               -2
             {% elif weather_state == 'partlycloudy' %}
-              0
+              2
             {% elif weather_state in ['cloudy', 'fog'] %}
               8
             {% elif weather_state in ['rainy', 'pouring', 'lightning-rainy', 'snowy', 'snowy-rainy'] %}
-              18
+              16
             {% else %}
               0
             {% endif %}
@@ -1964,9 +1964,9 @@ template:
           summary: >
             {% set weather_state = states('weather.forecast_home') %}
             {% if weather_state in ['sunny', 'clear-night'] %}
-              Clearer evening, lights wait a little longer
+              Clear evening, lights still wait a little longer
             {% elif weather_state == 'partlycloudy' %}
-              Baseline evening threshold
+              Partly cloudy evening, lights start a little earlier
             {% elif weather_state in ['cloudy', 'fog'] %}
               Cloudy evening, lights start noticeably earlier
             {% elif weather_state in ['rainy', 'pouring', 'lightning-rainy', 'snowy', 'snowy-rainy'] %}

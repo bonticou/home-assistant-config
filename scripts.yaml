@@ -255,7 +255,7 @@ common_areas_transition_toggle:
 
 lights_evening_scene:
   alias: Lights Evening Scene
-  description: Set the non-automated house lights to a calm 10 percent evening level, keep the kitchen island bright, excluding Wynn's room, turn on the family room uplight, and softly bring the chandelier up to 10 percent only if it happens to be off.
+  description: Set the common evening lights to a calm 10 percent level, keep the kitchen island bright, excluding Wynn's room, turn on the family room uplight, and softly bring the chandelier up to 10 percent only if it happens to be off.
   icon: mdi:weather-sunset
   mode: single
   sequence:
@@ -270,7 +270,7 @@ lights_evening_scene:
           - input_boolean.foyer_chandelier_sleep_hold
           - input_boolean.front_stairs_sleep_override
     - variables:
-        front_stairs_target_pct: "{{ states('sensor.front_stairs_schedule_brightness') | int(0) }}"
+        front_stairs_target_pct: "{{ [10, states('sensor.front_stairs_schedule_brightness') | int(0)] | max }}"
         front_stairs_current_pct: >-
           {% if is_state('light.stairs_front_stairs', 'on') %}
             {{ (((state_attr('light.stairs_front_stairs', 'brightness') | int(0)) / 255) * 100) | round(0) | int }}
