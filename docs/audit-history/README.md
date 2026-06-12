@@ -35,6 +35,7 @@ unless the exact value is necessary and safe to store.
 
 | Date | Entry | Scope |
 | --- | --- | --- |
+| 2026-06-11 | [Garbage recycling Home sticky bar](2026-06-11-garbage-recycling-home-sticky-bar.md) | Home-tab sticky garbage/recycling reminder with taken-out action and holiday-delay priority |
 | 2026-06-11 | [Dehumidifier air filter reminder](2026-06-11-dehumidifier-air-filter-reminder.md) | Alternate-Friday growing-season dehumidifier air filter notification with Done/Snooze and Notification Center item |
 | 2026-06-11 | [Garden fertilizer reminder](2026-06-11-garden-fertilizer-reminder.md) | Every-other-Friday growing-season fertilizer notification with Done/Snooze and Notification Center item |
 | 2026-06-11 | [Profitec GO weekend notification policy](2026-06-11-profitec-weekend-notification-policy.md) | Weekend-first espresso cleaning notifications, weekday only after snooze or away-weekend deferral |

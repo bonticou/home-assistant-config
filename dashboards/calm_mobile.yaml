@@ -5,6 +5,171 @@ views:
     icon: mdi:home-variant-outline
     type: masonry
     cards:
+      - type: conditional
+        conditions:
+          - entity: sensor.garbage_recycling_home_sticky_bar
+            state_not: "Quiet"
+        card:
+          type: custom:button-card
+          entity: sensor.garbage_recycling_home_sticky_bar
+          triggers_update:
+            - sensor.garbage_recycling_home_sticky_bar
+            - sensor.garbage_recycling_next_pickup
+            - input_text.garbage_recycling_last_taken_out_pickup
+          icon: >-
+            [[[
+              return entity?.state === 'Holiday notice'
+                ? 'mdi:calendar-alert'
+                : 'mdi:recycle';
+            ]]]
+          name: >-
+            [[[
+              return entity?.attributes?.title || 'Garbage + recycling';
+            ]]]
+          label: >-
+            [[[
+              return entity?.attributes?.message || '';
+            ]]]
+          show_icon: true
+          show_name: true
+          show_label: true
+          show_state: false
+          tap_action:
+            action: navigate
+            navigation_path: /calm-mobile/notices
+          hold_action:
+            action: more-info
+          custom_fields:
+            action:
+              card:
+                type: custom:button-card
+                name: Taken out
+                icon: mdi:check
+                show_name: true
+                show_icon: true
+                show_state: false
+                tap_action:
+                  action: call-service
+                  service: script.garbage_recycling_mark_taken_out
+                  service_data:
+                    pickup_date: >-
+                      [[[
+                        return hass.states['sensor.garbage_recycling_home_sticky_bar']?.attributes?.pickup_date
+                          || hass.states['sensor.garbage_recycling_next_pickup']?.state
+                          || '';
+                      ]]]
+                  confirmation:
+                    text: Mark this pickup taken out?
+                styles:
+                  card:
+                    - height: 34px
+                    - min-width: 90px
+                    - padding: 0 12px
+                    - border-radius: 999px
+                    - border: 1px solid rgba(22, 101, 52, 0.18)
+                    - background: rgba(255, 255, 255, 0.62)
+                    - box-shadow: none
+                  grid:
+                    - grid-template-areas: '"i n"'
+                    - grid-template-columns: 15px min-content
+                    - column-gap: 6px
+                    - align-items: center
+                    - justify-content: center
+                  icon:
+                    - width: 15px
+                    - color: "#166534"
+                  name:
+                    - font-size: 12px
+                    - font-weight: 760
+                    - line-height: 1
+                    - letter-spacing: 0
+                    - color: "#166534"
+          styles:
+            card:
+              - position: sticky
+              - top: 8px
+              - z-index: 8
+              - margin: 0 0 10px 0
+              - min-height: 76px
+              - padding: 14px 14px
+              - border-radius: 20px
+              - border: >-
+                  [[[
+                    return entity?.state === 'Holiday notice'
+                      ? '1px solid rgba(180, 83, 9, 0.22)'
+                      : '1px solid rgba(20, 184, 166, 0.22)';
+                  ]]]
+              - background: >-
+                  [[[
+                    return entity?.state === 'Holiday notice'
+                      ? 'linear-gradient(180deg, rgba(255, 251, 235, 0.98), rgba(254, 243, 199, 0.94))'
+                      : 'linear-gradient(180deg, rgba(236, 253, 245, 0.98), rgba(240, 253, 250, 0.94))';
+                  ]]]
+              - box-shadow: 0 14px 34px rgba(15, 23, 42, 0.14)
+              - backdrop-filter: blur(16px)
+              - -webkit-backdrop-filter: blur(16px)
+              - box-sizing: border-box
+            grid:
+              - grid-template-areas: '"i n action" "i l action"'
+              - grid-template-columns: 36px minmax(0, 1fr) min-content
+              - grid-template-rows: min-content min-content
+              - column-gap: 11px
+              - row-gap: 3px
+              - align-items: center
+            img_cell:
+              - width: 36px
+              - height: 36px
+              - border-radius: 14px
+              - align-self: center
+              - background: >-
+                  [[[
+                    return entity?.state === 'Holiday notice'
+                      ? 'rgba(245, 158, 11, 0.16)'
+                      : 'rgba(20, 184, 166, 0.16)';
+                  ]]]
+            icon:
+              - width: 20px
+              - color: >-
+                  [[[
+                    return entity?.state === 'Holiday notice' ? '#b45309' : '#0f766e';
+                  ]]]
+            name:
+              - align-self: end
+              - justify-self: start
+              - min-width: 0
+              - font-size: 14px
+              - font-weight: 790
+              - line-height: 1.15
+              - letter-spacing: 0
+              - color: >-
+                  [[[
+                    return entity?.state === 'Holiday notice' ? '#92400e' : '#134e4a';
+                  ]]]
+            label:
+              - align-self: start
+              - justify-self: start
+              - min-width: 0
+              - font-size: 12px
+              - font-weight: 590
+              - line-height: 1.28
+              - letter-spacing: 0
+              - color: >-
+                  [[[
+                    return entity?.state === 'Holiday notice' ? 'rgba(120, 53, 15, 0.78)' : 'rgba(15, 118, 110, 0.78)';
+                  ]]]
+              - white-space: normal
+            custom_fields:
+              action:
+                - display: >-
+                    [[[
+                      const value = entity?.attributes?.action_enabled;
+                      return value === true || String(value).toLowerCase() === 'true'
+                        ? 'block'
+                        : 'none';
+                    ]]]
+                - align-self: center
+                - justify-self: end
+
       - type: custom:mushroom-title-card
         title: >-
           {% set is_night = is_state('sun.sun', 'below_horizon') %}

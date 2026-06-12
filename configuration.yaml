@@ -1448,6 +1448,160 @@ template:
           last_taken_out_pickup: "{{ states('input_text.garbage_recycling_last_taken_out_pickup') }}"
           last_taken_out_at: "{{ states('input_datetime.garbage_recycling_last_taken_out_at') }}"
 
+      - name: "Garbage Recycling Home Sticky Bar"
+        unique_id: garbage_recycling_home_sticky_bar
+        icon: >
+          {% set pickup = states('sensor.garbage_recycling_next_pickup') %}
+          {% set scheduled = state_attr('sensor.garbage_recycling_next_pickup', 'scheduled_thursday') | default('', true) %}
+          {% set exception = state_attr('sensor.garbage_recycling_next_pickup', 'exception') | default('', true) %}
+          {% set today = now().strftime('%Y-%m-%d') %}
+          {% set tomorrow = (now() + timedelta(days=1)).strftime('%Y-%m-%d') %}
+          {% set after_setout = now() >= today_at('16:00:00') %}
+          {% set before_setout = now() < today_at('16:00:00') %}
+          {% set holiday_notice = exception | length > 0
+             and scheduled not in ['unknown', 'unavailable', 'none', '']
+             and pickup != scheduled
+             and ((scheduled == tomorrow and after_setout) or (scheduled == today and before_setout)) %}
+          {{ 'mdi:calendar-alert' if holiday_notice else 'mdi:recycle' }}
+        state: >
+          {% set pickup = states('sensor.garbage_recycling_next_pickup') %}
+          {% set scheduled = state_attr('sensor.garbage_recycling_next_pickup', 'scheduled_thursday') | default('', true) %}
+          {% set exception = state_attr('sensor.garbage_recycling_next_pickup', 'exception') | default('', true) %}
+          {% set taken = states('input_text.garbage_recycling_last_taken_out_pickup') %}
+          {% set today = now().strftime('%Y-%m-%d') %}
+          {% set tomorrow = (now() + timedelta(days=1)).strftime('%Y-%m-%d') %}
+          {% set after_setout = now() >= today_at('16:00:00') %}
+          {% set before_setout = now() < today_at('16:00:00') %}
+          {% set holiday_notice = exception | length > 0
+             and scheduled not in ['unknown', 'unavailable', 'none', '']
+             and pickup != scheduled
+             and ((scheduled == tomorrow and after_setout) or (scheduled == today and before_setout)) %}
+          {% set takeout_window = pickup == today or (pickup == tomorrow and after_setout) %}
+          {% if not is_state('input_boolean.garbage_recycling_reminders_enabled', 'on')
+             or pickup in ['unknown', 'unavailable', 'none', '']
+             or taken == pickup %}
+            Quiet
+          {% elif holiday_notice %}
+            Holiday notice
+          {% elif takeout_window %}
+            Take out
+          {% else %}
+            Quiet
+          {% endif %}
+        attributes:
+          mode: >
+            {% set pickup = states('sensor.garbage_recycling_next_pickup') %}
+            {% set scheduled = state_attr('sensor.garbage_recycling_next_pickup', 'scheduled_thursday') | default('', true) %}
+            {% set exception = state_attr('sensor.garbage_recycling_next_pickup', 'exception') | default('', true) %}
+            {% set taken = states('input_text.garbage_recycling_last_taken_out_pickup') %}
+            {% set today = now().strftime('%Y-%m-%d') %}
+            {% set tomorrow = (now() + timedelta(days=1)).strftime('%Y-%m-%d') %}
+            {% set after_setout = now() >= today_at('16:00:00') %}
+            {% set before_setout = now() < today_at('16:00:00') %}
+            {% set holiday_notice = exception | length > 0
+               and scheduled not in ['unknown', 'unavailable', 'none', '']
+               and pickup != scheduled
+               and ((scheduled == tomorrow and after_setout) or (scheduled == today and before_setout)) %}
+            {% set takeout_window = pickup == today or (pickup == tomorrow and after_setout) %}
+            {% if not is_state('input_boolean.garbage_recycling_reminders_enabled', 'on')
+               or pickup in ['unknown', 'unavailable', 'none', '']
+               or taken == pickup %}
+              quiet
+            {% elif holiday_notice %}
+              delay_notice
+            {% elif takeout_window %}
+              takeout
+            {% else %}
+              quiet
+            {% endif %}
+          active: >
+            {% set pickup = states('sensor.garbage_recycling_next_pickup') %}
+            {% set scheduled = state_attr('sensor.garbage_recycling_next_pickup', 'scheduled_thursday') | default('', true) %}
+            {% set exception = state_attr('sensor.garbage_recycling_next_pickup', 'exception') | default('', true) %}
+            {% set taken = states('input_text.garbage_recycling_last_taken_out_pickup') %}
+            {% set today = now().strftime('%Y-%m-%d') %}
+            {% set tomorrow = (now() + timedelta(days=1)).strftime('%Y-%m-%d') %}
+            {% set after_setout = now() >= today_at('16:00:00') %}
+            {% set before_setout = now() < today_at('16:00:00') %}
+            {% set holiday_notice = exception | length > 0
+               and scheduled not in ['unknown', 'unavailable', 'none', '']
+               and pickup != scheduled
+               and ((scheduled == tomorrow and after_setout) or (scheduled == today and before_setout)) %}
+            {% set takeout_window = pickup == today or (pickup == tomorrow and after_setout) %}
+            {{ is_state('input_boolean.garbage_recycling_reminders_enabled', 'on')
+               and pickup not in ['unknown', 'unavailable', 'none', '']
+               and taken != pickup
+               and (holiday_notice or takeout_window) }}
+          action_enabled: >
+            {% set pickup = states('sensor.garbage_recycling_next_pickup') %}
+            {% set taken = states('input_text.garbage_recycling_last_taken_out_pickup') %}
+            {% set today = now().strftime('%Y-%m-%d') %}
+            {% set tomorrow = (now() + timedelta(days=1)).strftime('%Y-%m-%d') %}
+            {% set takeout_window = pickup == today or (pickup == tomorrow and now() >= today_at('16:00:00')) %}
+            {{ is_state('input_boolean.garbage_recycling_reminders_enabled', 'on')
+               and pickup not in ['unknown', 'unavailable', 'none', '']
+               and taken != pickup
+               and takeout_window }}
+          title: >
+            {% set pickup = states('sensor.garbage_recycling_next_pickup') %}
+            {% set scheduled = state_attr('sensor.garbage_recycling_next_pickup', 'scheduled_thursday') | default('', true) %}
+            {% set exception = state_attr('sensor.garbage_recycling_next_pickup', 'exception') | default('', true) %}
+            {% set today = now().strftime('%Y-%m-%d') %}
+            {% set tomorrow = (now() + timedelta(days=1)).strftime('%Y-%m-%d') %}
+            {% set after_setout = now() >= today_at('16:00:00') %}
+            {% set before_setout = now() < today_at('16:00:00') %}
+            {% set holiday_notice = exception | length > 0
+               and scheduled not in ['unknown', 'unavailable', 'none', '']
+               and pickup != scheduled
+               and ((scheduled == tomorrow and after_setout) or (scheduled == today and before_setout)) %}
+            {% if pickup in ['unknown', 'unavailable', 'none', ''] %}
+              Garbage + recycling
+            {% elif holiday_notice %}
+              No {{ strptime(scheduled | trim, '%Y-%m-%d').strftime('%A') }} pickup
+            {% elif exception | length > 0 %}
+              Garbage moved to {{ strptime(pickup | trim, '%Y-%m-%d').strftime('%A') }}
+            {% elif pickup == today %}
+              Garbage pickup this morning
+            {% elif pickup == tomorrow %}
+              Garbage + recycling tonight
+            {% else %}
+              Garbage + recycling
+            {% endif %}
+          message: >
+            {% set pickup = states('sensor.garbage_recycling_next_pickup') %}
+            {% set scheduled = state_attr('sensor.garbage_recycling_next_pickup', 'scheduled_thursday') | default('', true) %}
+            {% set exception = state_attr('sensor.garbage_recycling_next_pickup', 'exception') | default('', true) %}
+            {% set recycling_label = state_attr('sensor.garbage_recycling_next_pickup', 'recycling_label') | default('recycling', true) %}
+            {% set today = now().strftime('%Y-%m-%d') %}
+            {% set tomorrow = (now() + timedelta(days=1)).strftime('%Y-%m-%d') %}
+            {% set after_setout = now() >= today_at('16:00:00') %}
+            {% set before_setout = now() < today_at('16:00:00') %}
+            {% set holiday_notice = exception | length > 0
+               and scheduled not in ['unknown', 'unavailable', 'none', '']
+               and pickup != scheduled
+               and ((scheduled == tomorrow and after_setout) or (scheduled == today and before_setout)) %}
+            {% if pickup in ['unknown', 'unavailable', 'none', ''] %}
+              No pickup is scheduled.
+            {% elif holiday_notice %}
+              {{ exception }}. Actual pickup is {{ strptime(pickup | trim, '%Y-%m-%d').strftime('%A, %B %-d') }}. Do not put bins out for the usual pickup.
+            {% elif exception | length > 0 and pickup == today %}
+              {{ exception }}. Put out household garbage plus {{ recycling_label }} before 7:00 AM.
+            {% elif exception | length > 0 and pickup == tomorrow %}
+              {{ exception }}. Put out household garbage plus {{ recycling_label }} after 4:00 PM tonight.
+            {% elif pickup == today %}
+              Put out household garbage plus {{ recycling_label }} before 7:00 AM.
+            {% elif pickup == tomorrow %}
+              Put out household garbage plus {{ recycling_label }} after 4:00 PM tonight.
+            {% elif exception | length > 0 %}
+              {{ exception }}. Actual pickup is {{ strptime(pickup | trim, '%Y-%m-%d').strftime('%A, %B %-d') }}.
+            {% else %}
+              Next pickup is {{ strptime(pickup | trim, '%Y-%m-%d').strftime('%A, %B %-d') }}.
+            {% endif %}
+          pickup_date: "{{ states('sensor.garbage_recycling_next_pickup') }}"
+          scheduled_thursday: "{{ state_attr('sensor.garbage_recycling_next_pickup', 'scheduled_thursday') | default('', true) }}"
+          recycling_label: "{{ state_attr('sensor.garbage_recycling_next_pickup', 'recycling_label') | default('', true) }}"
+          exception: "{{ state_attr('sensor.garbage_recycling_next_pickup', 'exception') | default('', true) }}"
+
       - name: "Garbage Recycling Status"
         unique_id: garbage_recycling_status
         icon: >
