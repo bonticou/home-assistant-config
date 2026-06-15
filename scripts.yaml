@@ -788,7 +788,7 @@ lights_overnight_sweep_off:
 
 door_lights_schedule_on:
   alias: Door Lights Schedule On
-  description: Turn on the front door lights for the normal overnight routine, while letting bedtime keep the mudroom stairs dark until morning.
+  description: Turn on the front door lights for the normal overnight routine; vacation mode owns the mudroom exterior light.
   icon: mdi:coach-lamp
   mode: single
   sequence:
@@ -797,18 +797,6 @@ door_lights_schedule_on:
         entity_id:
           - switch.master_lantern
           - switch.front_foyer_sconces
-    - if:
-        - condition: state
-          entity_id: input_boolean.front_stairs_sleep_override
-          state: "off"
-      then:
-        - action: switch.turn_on
-          data:
-            entity_id: switch.exterior_mud_room_stairs
-      else:
-        - action: switch.turn_off
-          data:
-            entity_id: switch.exterior_mud_room_stairs
 
 door_lights_schedule_off:
   alias: Door Lights Schedule Off
@@ -821,7 +809,6 @@ door_lights_schedule_off:
         entity_id:
           - switch.master_lantern
           - switch.front_foyer_sconces
-          - switch.exterior_mud_room_stairs
 
 front_stairs_schedule_on:
   alias: Front Stairs Schedule On
@@ -1819,12 +1806,23 @@ garden_fertilizer_mark_done:
   sequence:
     - variables:
         fertilizer_now: "{{ now().strftime('%Y-%m-%d %H:%M:%S') }}"
+        fertilizer_cycle_id: >-
+          {% set cycle = state_attr('sensor.garden_fertilizer_status', 'current_cycle') | default('', true) | trim %}
+          {{ cycle if cycle else fertilizer_now[:10] }}
         action_source: "{{ source | default('home_assistant_dashboard_action', true) | regex_replace('[^A-Za-z0-9_.:-]', '') }}"
         action_note: "{{ note | default('', true) | regex_replace('[^A-Za-z0-9 .,_:/@+-]', '') | truncate(500, true, '') }}"
-    - action: shell_command.log_house_action_stamp
+    - action: input_datetime.set_datetime
+      target:
+        entity_id:
+          - input_datetime.garden_fertilizer_last_done_at
+          - input_datetime.garden_fertilizer_snooze_until
+      data:
+        datetime: "{{ fertilizer_now }}"
+    - continue_on_error: true
+      action: shell_command.log_house_action_stamp
       data:
         notice_id: garden-fertilizer
-        cycle_id: "{{ state_attr('sensor.garden_fertilizer_status', 'current_cycle') or fertilizer_now[:10] }}"
+        cycle_id: "{{ fertilizer_cycle_id }}"
         action: fertilizer_done
         completed_at: "{{ fertilizer_now }}"
         source: "{{ action_source }}"
@@ -1848,13 +1846,6 @@ garden_fertilizer_mark_done:
             recent: false
             keep_recent: false
             history: audit
-    - action: input_datetime.set_datetime
-      target:
-        entity_id:
-          - input_datetime.garden_fertilizer_last_done_at
-          - input_datetime.garden_fertilizer_snooze_until
-      data:
-        datetime: "{{ fertilizer_now }}"
     - action: script.garden_fertilizer_clear_notification
 
 garden_fertilizer_snooze:
@@ -1969,12 +1960,23 @@ dehumidifier_air_filter_mark_done:
   sequence:
     - variables:
         filter_now: "{{ now().strftime('%Y-%m-%d %H:%M:%S') }}"
+        filter_cycle_id: >-
+          {% set cycle = state_attr('sensor.dehumidifier_air_filter_status', 'current_cycle') | default('', true) | trim %}
+          {{ cycle if cycle else filter_now[:10] }}
         action_source: "{{ source | default('home_assistant_dashboard_action', true) | regex_replace('[^A-Za-z0-9_.:-]', '') }}"
         action_note: "{{ note | default('', true) | regex_replace('[^A-Za-z0-9 .,_:/@+-]', '') | truncate(500, true, '') }}"
-    - action: shell_command.log_house_action_stamp
+    - action: input_datetime.set_datetime
+      target:
+        entity_id:
+          - input_datetime.dehumidifier_air_filter_last_done_at
+          - input_datetime.dehumidifier_air_filter_snooze_until
+      data:
+        datetime: "{{ filter_now }}"
+    - continue_on_error: true
+      action: shell_command.log_house_action_stamp
       data:
         notice_id: dehumidifier-air-filter
-        cycle_id: "{{ state_attr('sensor.dehumidifier_air_filter_status', 'current_cycle') or filter_now[:10] }}"
+        cycle_id: "{{ filter_cycle_id }}"
         action: dehumidifier_air_filter_done
         completed_at: "{{ filter_now }}"
         source: "{{ action_source }}"
@@ -1998,13 +2000,6 @@ dehumidifier_air_filter_mark_done:
             recent: false
             keep_recent: false
             history: audit
-    - action: input_datetime.set_datetime
-      target:
-        entity_id:
-          - input_datetime.dehumidifier_air_filter_last_done_at
-          - input_datetime.dehumidifier_air_filter_snooze_until
-      data:
-        datetime: "{{ filter_now }}"
     - action: script.dehumidifier_air_filter_clear_notification
 
 dehumidifier_air_filter_snooze:

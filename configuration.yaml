@@ -2178,13 +2178,11 @@ template:
           {% endfor %}
           {% set vacation_window_active = is_state('input_boolean.vacation_mode', 'on')
              and states('sensor.vacation_activity_window') in ['evening', 'pre_sunrise'] %}
-          {% set exterior_schedule_active = is_state('binary_sensor.door_lights_schedule_active', 'on') %}
           {% set lighting_switch_count =
             (1 if is_state('switch.garage_garage_lights', 'on') else 0)
             + (1 if is_state('switch.uplight', 'on') and not vacation_window_active else 0)
             + (1 if is_state('switch.exterior_mud_room_stairs', 'on')
-                   and not vacation_window_active
-                   and not exterior_schedule_active else 0) %}
+                   and not vacation_window_active else 0) %}
           {{ (ns.lights | count) + lighting_switch_count }}
         attributes:
           names: >
@@ -2224,7 +2222,6 @@ template:
             {% endfor %}
             {% set vacation_window_active = is_state('input_boolean.vacation_mode', 'on')
                and states('sensor.vacation_activity_window') in ['evening', 'pre_sunrise'] %}
-            {% set exterior_schedule_active = is_state('binary_sensor.door_lights_schedule_active', 'on') %}
             {% if is_state('switch.uplight', 'on') and not vacation_window_active %}
               {% set ns.names = ns.names + ['Uplight'] %}
             {% endif %}
@@ -2232,8 +2229,7 @@ template:
               {% set ns.names = ns.names + ['Garage Light'] %}
             {% endif %}
             {% if is_state('switch.exterior_mud_room_stairs', 'on')
-               and not vacation_window_active
-               and not exterior_schedule_active %}
+               and not vacation_window_active %}
               {% set ns.names = ns.names + ['Exterior Mudroom Stairs'] %}
             {% endif %}
             {{ ns.names | join('||') }}
@@ -2274,7 +2270,6 @@ template:
             {% endfor %}
             {% set vacation_window_active = is_state('input_boolean.vacation_mode', 'on')
                and states('sensor.vacation_activity_window') in ['evening', 'pre_sunrise'] %}
-            {% set exterior_schedule_active = is_state('binary_sensor.door_lights_schedule_active', 'on') %}
             {% if is_state('switch.uplight', 'on') and not vacation_window_active %}
               {% set ns.ids = ns.ids + ['switch.uplight'] %}
             {% endif %}
@@ -2282,8 +2277,7 @@ template:
               {% set ns.ids = ns.ids + ['switch.garage_garage_lights'] %}
             {% endif %}
             {% if is_state('switch.exterior_mud_room_stairs', 'on')
-               and not vacation_window_active
-               and not exterior_schedule_active %}
+               and not vacation_window_active %}
               {% set ns.ids = ns.ids + ['switch.exterior_mud_room_stairs'] %}
             {% endif %}
             {{ ns.ids | join('||') }}

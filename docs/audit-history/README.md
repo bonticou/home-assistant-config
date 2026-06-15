@@ -35,6 +35,7 @@ unless the exact value is necessary and safe to store.
 
 | Date | Entry | Scope |
 | --- | --- | --- |
+| 2026-06-15 | [Dehumidifier Done action and mudroom exterior schedule](2026-06-15-dehumidifier-done-and-mudroom-exterior.md) | Hardened dehumidifier/fertilizer Done scripts and removed mudroom exterior light from normal door-light schedule |
 | 2026-06-12 | [Front stairs cloudy evening threshold](2026-06-12-front-stairs-cloudy-evening-threshold.md) | Earlier evening-light threshold for cloudy/partly-cloudy dusk when the front stairs stayed off too long |
 | 2026-06-11 | [Garbage recycling Home sticky bar](2026-06-11-garbage-recycling-home-sticky-bar.md) | Home-tab sticky garbage/recycling reminder with taken-out action and holiday-delay priority |
 | 2026-06-11 | [Dehumidifier air filter reminder](2026-06-11-dehumidifier-air-filter-reminder.md) | Alternate-Friday growing-season dehumidifier air filter notification with Done/Snooze and Notification Center item |
