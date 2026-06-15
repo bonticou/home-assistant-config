@@ -439,6 +439,13 @@
     - trigger: state
       entity_id: binary_sensor.front_stairs_schedule_active
       to: "on"
+      id: dusk
+    - trigger: state
+      entity_id:
+        - person.bonticou
+        - person.casey
+      to: "home"
+      id: arrival
   conditions:
     - condition: state
       entity_id: binary_sensor.front_stairs_schedule_active

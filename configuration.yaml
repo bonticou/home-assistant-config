@@ -2143,6 +2143,7 @@ template:
         icon: mdi:lightbulb-alert-outline
         state: >
           {% set exempt = namespace(entity_ids=[]) %}
+          {% set exempt.entity_ids = exempt.entity_ids + ['light.wynn_s_room_chandelier'] %}
           {% if is_state('binary_sensor.front_stairs_schedule_active', 'on') %}
             {% set exempt.entity_ids = exempt.entity_ids + ['light.stairs_front_stairs'] %}
           {% endif %}
@@ -2188,6 +2189,7 @@ template:
         attributes:
           names: >
             {% set exempt = namespace(entity_ids=[]) %}
+            {% set exempt.entity_ids = exempt.entity_ids + ['light.wynn_s_room_chandelier'] %}
             {% if is_state('binary_sensor.front_stairs_schedule_active', 'on') %}
               {% set exempt.entity_ids = exempt.entity_ids + ['light.stairs_front_stairs'] %}
             {% endif %}
@@ -2237,6 +2239,7 @@ template:
             {{ ns.names | join('||') }}
           entity_ids: >
             {% set exempt = namespace(entity_ids=[]) %}
+            {% set exempt.entity_ids = exempt.entity_ids + ['light.wynn_s_room_chandelier'] %}
             {% if is_state('binary_sensor.front_stairs_schedule_active', 'on') %}
               {% set exempt.entity_ids = exempt.entity_ids + ['light.stairs_front_stairs'] %}
             {% endif %}
@@ -2291,6 +2294,7 @@ template:
         state: >
           {% set exempt = [
             'light.stairs_front_stairs',
+            'light.wynn_s_room_chandelier',
             'switch.front_foyer_sconces',
             'switch.master_lantern'
           ] %}
@@ -2318,6 +2322,7 @@ template:
           names: >
             {% set exempt = [
               'light.stairs_front_stairs',
+              'light.wynn_s_room_chandelier',
               'switch.front_foyer_sconces',
               'switch.master_lantern'
             ] %}
@@ -2344,6 +2349,7 @@ template:
           entity_ids: >
             {% set exempt = [
               'light.stairs_front_stairs',
+              'light.wynn_s_room_chandelier',
               'switch.front_foyer_sconces',
               'switch.master_lantern'
             ] %}
@@ -2367,7 +2373,7 @@ template:
               {% endif %}
             {% endfor %}
             {{ ns.ids | join('||') }}
-          exempt_entity_ids: "light.stairs_front_stairs||switch.front_foyer_sconces||switch.master_lantern"
+          exempt_entity_ids: "light.stairs_front_stairs||light.wynn_s_room_chandelier||switch.front_foyer_sconces||switch.master_lantern"
           auto_off_guard: >
             {% if is_state('input_boolean.interior_lights_guest_override', 'on') %}
               guest_override

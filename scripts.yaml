@@ -255,7 +255,7 @@ common_areas_transition_toggle:
 
 lights_evening_scene:
   alias: Lights Evening Scene
-  description: Set the common evening lights to a calm 10 percent level, keep the kitchen island bright, excluding Wynn's room, turn on the family room uplight, and softly bring the chandelier up to 10 percent only if it happens to be off.
+  description: Set the common evening lights to a calm 10 percent level, keep the kitchen island bright, leave Mudroom and Wynn's room alone, turn on the family room uplight, and softly bring the chandelier up to 10 percent only if it happens to be off.
   icon: mdi:weather-sunset
   mode: single
   sequence:
@@ -311,8 +311,6 @@ lights_evening_scene:
           - light.kitchen_table_lights
           - light.kitchen_sink_light
           - light.kitchen_coffee_bar
-          - light.mudroom_main_lights
-          - light.mudroom_nook_lights
           - light.back_patio_light
         brightness_pct: 10
         transition: 3
@@ -1005,7 +1003,7 @@ vacation_mode_end:
 
 vacation_activity_apply:
   alias: Vacation Activity Apply
-  description: Apply the current vacation activity lighting target for the evening or pre-sunrise sun curve.
+  description: Apply the current vacation activity lighting target for the evening or pre-sunrise sun curve, with a date-varied bedtime taper for Wynn's room.
   icon: mdi:island
   mode: restart
   sequence:
@@ -1029,28 +1027,42 @@ vacation_activity_apply:
           {% set raw = (as_timestamp(now()) - start) / span %}
           {{ [0, [1, raw] | min] | max }}
         late_remaining: "{{ 1 - (late_progress | float(0)) }}"
-        evening_family_pct: "{{ (24 + (12 * (darkness | float(0)))) | round(0) | int }}"
-        evening_wynn_chandelier_pct: "{{ (30 + (20 * (darkness | float(0)))) | round(0) | int }}"
-        evening_wynn_ceiling_pct: "{{ (14 + (10 * (darkness | float(0)))) | round(0) | int }}"
-        evening_foyer_pct: "{{ (26 + (14 * (darkness | float(0)))) | round(0) | int }}"
-        evening_mudroom_main_pct: "{{ (18 + (10 * (darkness | float(0)))) | round(0) | int }}"
-        evening_mudroom_nook_pct: "{{ (12 + (8 * (darkness | float(0)))) | round(0) | int }}"
-        evening_yard_pct: "{{ (35 + (25 * (darkness | float(0)))) | round(0) | int }}"
-        evening_deck_pct: "{{ (30 + (22 * (darkness | float(0)))) | round(0) | int }}"
-        late_family_pct: "{{ (8 + (18 * (late_remaining | float(0)))) | round(0) | int }}"
-        late_wynn_chandelier_pct: "{{ (6 + (22 * (late_remaining | float(0)))) | round(0) | int }}"
-        late_wynn_ceiling_pct: "{{ (3 + (9 * (late_remaining | float(0)))) | round(0) | int }}"
-        late_foyer_pct: "{{ (24 + (18 * (late_remaining | float(0)))) | round(0) | int }}"
-        late_mudroom_main_pct: "{{ (5 + (16 * (late_remaining | float(0)))) | round(0) | int }}"
-        late_mudroom_nook_pct: "{{ (3 + (11 * (late_remaining | float(0)))) | round(0) | int }}"
-        late_yard_pct: "{{ (40 + (8 * (late_remaining | float(0)))) | round(0) | int }}"
-        late_deck_pct: "{{ (32 + (8 * (late_remaining | float(0)))) | round(0) | int }}"
-        morning_family_pct: "{{ (12 + (8 * (morning_progress | float(0)))) | round(0) | int }}"
-        morning_foyer_pct: "{{ (18 + (10 * (morning_progress | float(0)))) | round(0) | int }}"
-        morning_mudroom_main_pct: "{{ (10 + (6 * (morning_progress | float(0)))) | round(0) | int }}"
-        morning_mudroom_nook_pct: "{{ (6 + (4 * (morning_progress | float(0)))) | round(0) | int }}"
-        morning_yard_pct: "{{ (18 + (14 * (morning_progress | float(0)))) | round(0) | int }}"
-        morning_deck_pct: "{{ (16 + (12 * (morning_progress | float(0)))) | round(0) | int }}"
+        vacation_day_seed: "{{ now().strftime('%j') | int(0) }}"
+        wynn_bedtime_start_offset_minutes: "{{ (((vacation_day_seed | int(0)) * 7) % 25) - 12 }}"
+        wynn_bedtime_end_offset_minutes: "{{ (((vacation_day_seed | int(0)) * 11) % 21) - 10 }}"
+        wynn_bedtime_chandelier_peak_pct: "{{ 38 + (((vacation_day_seed | int(0)) * 5) % 7) }}"
+        wynn_bedtime_ceiling_peak_pct: "{{ 20 + (((vacation_day_seed | int(0)) * 3) % 5) }}"
+        vacation_interior_offset_pct: "{{ (((vacation_day_seed | int(0)) * 3) % 7) - 3 }}"
+        vacation_secondary_offset_pct: "{{ (((vacation_day_seed | int(0)) * 5) % 7) - 3 }}"
+        vacation_exterior_offset_pct: "{{ (((vacation_day_seed | int(0)) * 13) % 7) - 3 }}"
+        wynn_bedtime_remaining: >-
+          {% set start = as_timestamp(today_at('20:15')) + ((wynn_bedtime_start_offset_minutes | int(0)) * 60) %}
+          {% set end = as_timestamp(today_at('21:00')) + ((wynn_bedtime_end_offset_minutes | int(0)) * 60) %}
+          {% set span = [1, end - start] | max %}
+          {% set raw = 1 - ((as_timestamp(now()) - start) / span) %}
+          {{ [0, [1, raw] | min] | max }}
+        evening_family_pct: "{{ [1, [100, (24 + (12 * (darkness | float(0))) + (vacation_interior_offset_pct | int(0))) | round(0) | int] | min] | max }}"
+        evening_wynn_chandelier_pct: "{{ (1 + (((wynn_bedtime_chandelier_peak_pct | int(40)) - 1) * (wynn_bedtime_remaining | float(0)))) | round(0) | int }}"
+        evening_wynn_ceiling_pct: "{{ (1 + (((wynn_bedtime_ceiling_peak_pct | int(22)) - 1) * (wynn_bedtime_remaining | float(0)))) | round(0) | int }}"
+        evening_foyer_pct: "{{ [1, [100, (26 + (14 * (darkness | float(0))) + (vacation_secondary_offset_pct | int(0))) | round(0) | int] | min] | max }}"
+        evening_mudroom_main_pct: "{{ [1, [100, (18 + (10 * (darkness | float(0))) + (vacation_secondary_offset_pct | int(0))) | round(0) | int] | min] | max }}"
+        evening_mudroom_nook_pct: "{{ [1, [100, (12 + (8 * (darkness | float(0))) + (vacation_secondary_offset_pct | int(0))) | round(0) | int] | min] | max }}"
+        evening_yard_pct: "{{ [1, [100, (35 + (25 * (darkness | float(0))) + (vacation_exterior_offset_pct | int(0))) | round(0) | int] | min] | max }}"
+        evening_deck_pct: "{{ [1, [100, (30 + (22 * (darkness | float(0))) + (vacation_exterior_offset_pct | int(0))) | round(0) | int] | min] | max }}"
+        late_family_pct: "{{ [1, [100, (8 + (18 * (late_remaining | float(0))) + (vacation_interior_offset_pct | int(0))) | round(0) | int] | min] | max }}"
+        late_wynn_chandelier_pct: 1
+        late_wynn_ceiling_pct: 1
+        late_foyer_pct: "{{ [1, [100, (24 + (18 * (late_remaining | float(0))) + (vacation_secondary_offset_pct | int(0))) | round(0) | int] | min] | max }}"
+        late_mudroom_main_pct: "{{ [1, [100, (5 + (16 * (late_remaining | float(0))) + (vacation_secondary_offset_pct | int(0))) | round(0) | int] | min] | max }}"
+        late_mudroom_nook_pct: "{{ [1, [100, (3 + (11 * (late_remaining | float(0))) + (vacation_secondary_offset_pct | int(0))) | round(0) | int] | min] | max }}"
+        late_yard_pct: "{{ [1, [100, (40 + (8 * (late_remaining | float(0))) + (vacation_exterior_offset_pct | int(0))) | round(0) | int] | min] | max }}"
+        late_deck_pct: "{{ [1, [100, (32 + (8 * (late_remaining | float(0))) + (vacation_exterior_offset_pct | int(0))) | round(0) | int] | min] | max }}"
+        morning_family_pct: "{{ [1, [100, (12 + (8 * (morning_progress | float(0))) + (vacation_interior_offset_pct | int(0))) | round(0) | int] | min] | max }}"
+        morning_foyer_pct: "{{ [1, [100, (18 + (10 * (morning_progress | float(0))) + (vacation_secondary_offset_pct | int(0))) | round(0) | int] | min] | max }}"
+        morning_mudroom_main_pct: "{{ [1, [100, (10 + (6 * (morning_progress | float(0))) + (vacation_secondary_offset_pct | int(0))) | round(0) | int] | min] | max }}"
+        morning_mudroom_nook_pct: "{{ [1, [100, (6 + (4 * (morning_progress | float(0))) + (vacation_secondary_offset_pct | int(0))) | round(0) | int] | min] | max }}"
+        morning_yard_pct: "{{ [1, [100, (18 + (14 * (morning_progress | float(0))) + (vacation_exterior_offset_pct | int(0))) | round(0) | int] | min] | max }}"
+        morning_deck_pct: "{{ [1, [100, (16 + (12 * (morning_progress | float(0))) + (vacation_exterior_offset_pct | int(0))) | round(0) | int] | min] | max }}"
     - choose:
         - conditions:
             - condition: template
