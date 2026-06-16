@@ -68,14 +68,42 @@ primary evidence.
 The HA error-log REST route attempted from the authenticated frontend returned
 404, so raw Core/cloud logs were not captured in this pass.
 
+### iOS Client Log Evidence
+
+Trevor later provided the iOS companion-app logs exported at 2026-06-16
+1:49 PM Eastern. Those logs were reviewed locally only; raw logs, location
+telemetry, webhook identifiers, and exact private URLs were not committed.
+
+The client logs strengthen the access-layer diagnosis:
+
+- Around 1:47 PM to 1:49 PM, the iPhone reported no Wi-Fi SSID and cellular
+  connectivity, so the current failure was not a local LAN attempt.
+- The app recorded repeated `hooks.nabu.casa` webhook failures with HTTP 503.
+- The app then retried against the active Remote UI URL and hit
+  `NSURLErrorDomain Code=-1200` TLS failures with underlying CFNetwork
+  `-9816`.
+- The network path was reported as satisfied over cellular, but with minimal
+  link quality.
+- Trevor's visible app error, `NSURLErrorDomain Code=-1001` for
+  `/calm-mobile/home`, matches the same failure family: the page request timed
+  out before Home Assistant could reliably serve the mobile dashboard.
+
+The same log bundle also includes earlier local-URL failures on home Wi-Fi,
+including token/state requests timing out or failing to connect to the local HA
+address. That means there are likely two related access paths to harden:
+Remote UI while away from home, and direct local access while on the home LAN.
+The 1:49 PM event itself, however, was clearly on the away/Remote UI path.
+
 ## Findings
 
-1. High confidence: the mobile app symptom was caused by Remote UI/tunnel
-   availability, not by the `calm-mobile` dashboard.
+1. High confidence: the mobile app symptom was caused by Remote UI/tunnel or
+   access-path availability, not by the `calm-mobile` dashboard.
 
    Evidence: `binary_sensor.remote_ui` was `off` during the relevant evening
    window. A dashboard render bug would not normally make HA's own Remote UI
-   cloud connectivity sensor turn off.
+   cloud connectivity sensor turn off. The iOS client logs also show webhook
+   503s, TLS failures, and page timeouts before dashboard-specific JavaScript
+   could be isolated as the primary fault.
 
 2. High confidence: the existing watchdog helped record and attempt recovery,
    but did not prevent long outages.
@@ -83,14 +111,15 @@ The HA error-log REST route attempted from the authenticated frontend returned
    Evidence: the watchdog recorded `cloud.remote_connect` attempts, yet Remote
    UI remained down for 34, 54, and 120 minute windows.
 
-3. Medium confidence: this is a recurring Nabu Casa/cloud tunnel or home-side
-   network stability issue.
+3. Medium confidence: this is a recurring Nabu Casa/cloud tunnel, client
+   network path, or home-side network stability issue.
 
    Evidence: the pattern matches earlier Remote UI disconnect audits. Some
    status snapshots also showed gateway/update entities unavailable during
    outage windows, but this pass did not capture enough raw logs to distinguish
    HA Cloud, Supervisor, host networking, router/WAN, or DNS/TLS as the root
-   cause.
+   cause. The iOS logs add direct evidence of away-from-home cellular/TLS
+   failures and separate local-LAN request failures.
 
 ## No Config Changes In This Pass
 
