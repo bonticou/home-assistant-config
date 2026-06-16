@@ -398,32 +398,26 @@ input_datetime:
     name: Garden Fertilizer Last Done At
     has_date: true
     has_time: true
-    initial: "2026-06-05 07:00:00"
   garden_fertilizer_last_notified_at:
     name: Garden Fertilizer Last Notified At
     has_date: true
     has_time: true
-    initial: "1970-01-01 00:00:00"
   garden_fertilizer_snooze_until:
     name: Garden Fertilizer Snooze Until
     has_date: true
     has_time: true
-    initial: "1970-01-01 00:00:00"
   dehumidifier_air_filter_last_done_at:
     name: Dehumidifier Air Filter Last Done At
     has_date: true
     has_time: true
-    initial: "1970-01-01 00:00:00"
   dehumidifier_air_filter_last_notified_at:
     name: Dehumidifier Air Filter Last Notified At
     has_date: true
     has_time: true
-    initial: "1970-01-01 00:00:00"
   dehumidifier_air_filter_snooze_until:
     name: Dehumidifier Air Filter Snooze Until
     has_date: true
     has_time: true
-    initial: "1970-01-01 00:00:00"
   latest_camera_motion_at:
     name: Latest Camera Motion At
     has_date: true
@@ -658,11 +652,9 @@ input_text:
   garden_fertilizer_last_notified_cycle:
     name: Garden Fertilizer Last Notified Cycle
     max: 10
-    initial: ""
   dehumidifier_air_filter_last_notified_cycle:
     name: Dehumidifier Air Filter Last Notified Cycle
     max: 10
-    initial: ""
   garbage_recycling_last_taken_out_pickup:
     name: Garbage Recycling Last Taken Out Pickup
     max: 10
