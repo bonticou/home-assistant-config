@@ -703,8 +703,8 @@
         active_light_text: >-
           {% set watched = {
             'switch.garage_garage_lights': 'Garage light',
-            'light.ratgdo32_4536e8_light': "Trevor's garage opener light",
-            'light.ratgdo32disco_c26634_light': "Casey's garage opener light",
+            'light.ratgdo32_4536e8_light': "your garage door light",
+            'light.ratgdo32disco_c26634_light': "Casey's garage door light",
             'switch.exterior_mud_room_stairs': 'Mudroom exterior stairs',
             'light.back_patio_light': 'Back patio light',
             'light.deck_deck_lights': 'Deck lights',
@@ -739,8 +739,8 @@
         primary_light_name: >-
           {% set watched = {
             'switch.garage_garage_lights': 'Garage light',
-            'light.ratgdo32_4536e8_light': "Trevor's garage opener light",
-            'light.ratgdo32disco_c26634_light': "Casey's garage opener light",
+            'light.ratgdo32_4536e8_light': "your garage door light",
+            'light.ratgdo32disco_c26634_light': "Casey's garage door light",
             'switch.exterior_mud_room_stairs': 'Mudroom exterior stairs',
             'light.back_patio_light': 'Back patio light',
             'light.deck_deck_lights': 'Deck lights',
@@ -757,7 +757,7 @@
     - variables:
         title: >-
           {% if active_light_count | int(0) == 1 %}
-            💡 {{ primary_light_name }} still on
+            💡 {{ primary_light_name[:1] | upper ~ primary_light_name[1:] }} still on
           {% else %}
             💡 Exterior lights still on
           {% endif %}

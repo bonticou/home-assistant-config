@@ -2178,6 +2178,10 @@ template:
           {{ (ns.lights | count) + lighting_switch_count }}
         attributes:
           names: >
+            {% set light_labels = {
+              'light.ratgdo32_4536e8_light': 'your garage door light',
+              'light.ratgdo32disco_c26634_light': "Casey's garage door light"
+            } %}
             {% set exempt = namespace(entity_ids=[]) %}
             {% set exempt.entity_ids = exempt.entity_ids + ['light.wynn_s_room_chandelier'] %}
             {% if is_state('binary_sensor.front_stairs_schedule_active', 'on') %}
@@ -2209,7 +2213,7 @@ template:
               | rejectattr('attributes.entity_id', 'defined')
               | list %}
               {% if light.entity_id not in exempt.entity_ids %}
-                {% set ns.names = ns.names + [light.name] %}
+                {% set ns.names = ns.names + [light_labels.get(light.entity_id, light.name)] %}
               {% endif %}
             {% endfor %}
             {% set vacation_window_active = is_state('input_boolean.vacation_mode', 'on')
@@ -2306,6 +2310,10 @@ template:
           {{ ns.ids | count }}
         attributes:
           names: >
+            {% set light_labels = {
+              'light.ratgdo32_4536e8_light': 'your garage door light',
+              'light.ratgdo32disco_c26634_light': "Casey's garage door light"
+            } %}
             {% set exempt = [
               'light.stairs_front_stairs',
               'light.wynn_s_room_chandelier',
@@ -2323,7 +2331,7 @@ template:
               | rejectattr('attributes.entity_id', 'defined')
               | list %}
               {% if light.entity_id not in exempt %}
-                {% set ns.names = ns.names + [light.name] %}
+                {% set ns.names = ns.names + [light_labels.get(light.entity_id, light.name)] %}
               {% endif %}
             {% endfor %}
             {% for entity_id, label in switch_lights.items() %}
@@ -2385,7 +2393,7 @@ template:
         state: >
           {% set garage_doors = {
             'cover.ratgdo32disco_c26634_door': "Casey's garage door",
-            'cover.ratgdo32_4536e8_door': "Trevor's garage door"
+            'cover.ratgdo32_4536e8_door': "your garage door"
           } %}
           {% set locks = {
             'lock.garage_entry_lock': 'Garage entry lock',
@@ -2407,7 +2415,7 @@ template:
           names: >
             {% set garage_doors = {
               'cover.ratgdo32disco_c26634_door': "Casey's garage door",
-              'cover.ratgdo32_4536e8_door': "Trevor's garage door"
+              'cover.ratgdo32_4536e8_door': "your garage door"
             } %}
             {% set locks = {
               'lock.garage_entry_lock': 'Garage entry lock',
@@ -2428,7 +2436,7 @@ template:
           issues: >
             {% set garage_doors = {
               'cover.ratgdo32disco_c26634_door': "Casey's garage door open",
-              'cover.ratgdo32_4536e8_door': "Trevor's garage door open"
+              'cover.ratgdo32_4536e8_door': "your garage door open"
             } %}
             {% set locks = {
               'lock.garage_entry_lock': 'Garage entry lock unlocked',
@@ -2470,7 +2478,7 @@ template:
           label: >
             {% set garage_doors = {
               'cover.ratgdo32disco_c26634_door': "Casey's garage door",
-              'cover.ratgdo32_4536e8_door': "Trevor's garage door"
+              'cover.ratgdo32_4536e8_door': "your garage door"
             } %}
             {% set locks = {
               'lock.garage_entry_lock': 'Garage entry lock',
@@ -2498,7 +2506,7 @@ template:
           issue: >
             {% set garage_doors = {
               'cover.ratgdo32disco_c26634_door': "Casey's garage door open",
-              'cover.ratgdo32_4536e8_door': "Trevor's garage door open"
+              'cover.ratgdo32_4536e8_door': "your garage door open"
             } %}
             {% set locks = {
               'lock.garage_entry_lock': 'Garage entry lock unlocked',
@@ -3900,7 +3908,7 @@ template:
               {% set lights_count = states('sensor.away_security_active_lights') | int(0) %}
               {% set facts = [
                 "Casey's garage door: " ~ states('cover.ratgdo32disco_c26634_door'),
-                "Trevor's garage door: " ~ states('cover.ratgdo32_4536e8_door'),
+                "Your garage door: " ~ states('cover.ratgdo32_4536e8_door'),
                 'Garage entry lock: ' ~ states('lock.garage_entry_lock'),
                 'Mudroom door lock: ' ~ states('lock.mudroom_door_lock'),
                 'Lights on: ' ~ lights_count,
@@ -3908,8 +3916,8 @@ template:
                 'Casey presence: ' ~ states('device_tracker.unifi_default_42_15_78_4a_d9_f8'),
                 "Casey's vehicle detection: " ~ states('binary_sensor.ratgdo32disco_c26634_vehicle_detected'),
                 "Casey's vehicle distance: " ~ states('sensor.ratgdo32disco_c26634_vehicle_distance_actual_filtered'),
-                "Trevor's garage door area motion: " ~ states('binary_sensor.ratgdo32_4536e8_motion'),
-                "Trevor's garage door path: " ~ states('binary_sensor.ratgdo32_4536e8_obstruction')
+                "Motion near your garage door: " ~ states('binary_sensor.ratgdo32_4536e8_motion'),
+                "Your garage door path: " ~ states('binary_sensor.ratgdo32_4536e8_obstruction')
               ] %}
               {% set ns.items = ns.items + [{
                 'id': 'away-security',
@@ -4837,7 +4845,7 @@ template:
           open_labels: >
             {% set doors = {
               'cover.ratgdo32disco_c26634_door': "Casey's garage door",
-              'cover.ratgdo32_4536e8_door': "Trevor's garage door"
+              'cover.ratgdo32_4536e8_door': "your garage door"
             } %}
             {% set ns = namespace(labels=[]) %}
             {% for entity_id, label in doors.items() %}
@@ -4861,7 +4869,7 @@ template:
           open_label: >
             {% set doors = {
               'cover.ratgdo32disco_c26634_door': "Casey's garage door",
-              'cover.ratgdo32_4536e8_door': "Trevor's garage door"
+              'cover.ratgdo32_4536e8_door': "your garage door"
             } %}
             {% set ns = namespace(labels=[]) %}
             {% for entity_id, label in doors.items() %}
@@ -4880,7 +4888,7 @@ template:
           open_issue: >
             {% set doors = {
               'cover.ratgdo32disco_c26634_door': "Casey's garage door",
-              'cover.ratgdo32_4536e8_door': "Trevor's garage door"
+              'cover.ratgdo32_4536e8_door': "your garage door"
             } %}
             {% set ns = namespace(labels=[]) %}
             {% for entity_id, label in doors.items() %}
@@ -4912,12 +4920,12 @@ template:
             {% elif casey_open %}
               Close Casey's
             {% elif trevor_open %}
-              Close Trevor's
+              Close your garage
             {% else %}
               Close garage
             {% endif %}
           state_summary: >
-            Casey: {{ states('cover.ratgdo32disco_c26634_door') }}; Trevor: {{ states('cover.ratgdo32_4536e8_door') }}
+            Casey: {{ states('cover.ratgdo32disco_c26634_door') }}; Yours: {{ states('cover.ratgdo32_4536e8_door') }}
           casey_cover_entity: cover.ratgdo32disco_c26634_door
           casey_cover_state: "{{ states('cover.ratgdo32disco_c26634_door') }}"
           trevor_cover_entity: cover.ratgdo32_4536e8_door
@@ -5653,8 +5661,8 @@ template:
               'binary_sensor.ratgdo32disco_c26634_obstruction': "Casey's garage door path",
               'binary_sensor.ratgdo32disco_c26634_vehicle_arriving': "Casey's vehicle arriving",
               'binary_sensor.ratgdo32disco_c26634_vehicle_leaving': "Casey's vehicle leaving",
-              'binary_sensor.ratgdo32_4536e8_motion': "Motion near Trevor's garage door",
-              'binary_sensor.ratgdo32_4536e8_obstruction': "Trevor's garage door path"
+              'binary_sensor.ratgdo32_4536e8_motion': "Motion near your garage door",
+              'binary_sensor.ratgdo32_4536e8_obstruction': "Your garage door path"
             } %}
             {% set ns = namespace(names=[]) %}
             {% for entity_id, label in sources.items() %}

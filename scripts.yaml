@@ -3675,7 +3675,7 @@ away_security_close_garage_door:
     - variables:
         requested_cover: "{{ garage_cover | default('cover.ratgdo32disco_c26634_door', true) }}"
         target_cover: "{{ 'cover.ratgdo32_4536e8_door' if requested_cover in ['trevor', 'cover.ratgdo32_4536e8_door'] else 'cover.ratgdo32disco_c26634_door' }}"
-        garage_label: "{{ \"Trevor's garage door\" if target_cover == 'cover.ratgdo32_4536e8_door' else \"Casey's garage door\" }}"
+        garage_label: "{{ 'your garage door' if target_cover == 'cover.ratgdo32_4536e8_door' else \"Casey's garage door\" }}"
         close_hazard_active: "{{ is_state('binary_sensor.garage_close_hazard_active', 'on') }}"
     - choose:
         - conditions:
@@ -3880,11 +3880,14 @@ garage_security_send_alert:
         kind: "{{ alert_kind | default('open_too_long', true) }}"
         requested_cover: "{{ garage_cover | default(state_attr('binary_sensor.away_security_garage_door_open', 'primary_open_entity') | default('cover.ratgdo32disco_c26634_door', true), true) }}"
         target_cover: "{{ 'cover.ratgdo32_4536e8_door' if requested_cover in ['trevor', 'cover.ratgdo32_4536e8_door'] else 'cover.ratgdo32disco_c26634_door' }}"
-        target_label: "{{ \"Trevor's garage door\" if target_cover == 'cover.ratgdo32_4536e8_door' else \"Casey's garage door\" }}"
+        target_label: "{{ 'your garage door' if target_cover == 'cover.ratgdo32_4536e8_door' else \"Casey's garage door\" }}"
         target_state: "{{ states(target_cover) }}"
         open_count: "{{ state_attr('binary_sensor.away_security_garage_door_open', 'open_count') | int(0) }}"
         open_label: "{{ state_attr('binary_sensor.away_security_garage_door_open', 'open_label') | default(target_label, true) }}"
         open_issue: "{{ state_attr('binary_sensor.away_security_garage_door_open', 'open_issue') | default(target_label ~ ' open', true) }}"
+        target_label_title: "{{ target_label[:1] | upper ~ target_label[1:] }}"
+        open_label_title: "{{ open_label[:1] | upper ~ open_label[1:] }}"
+        open_issue_title: "{{ open_issue[:1] | upper ~ open_issue[1:] }}"
         casey_departure_open_label: >-
           {% set label = open_label | trim %}
           {% if label == "Casey's garage door" %}
@@ -3909,17 +3912,17 @@ garage_security_send_alert:
           {{ states('binary_sensor.ratgdo32_4536e8_obstruction') if target_cover == 'cover.ratgdo32_4536e8_door' else states('binary_sensor.ratgdo32disco_c26634_obstruction') }}
         title: >-
           {% if kind == 'open_at_night' %}
-            {% if open_count | int(0) == 2 %}🚗 Both garage doors open at night{% else %}🚗 {{ open_label }} open at night{% endif %}
+            {% if open_count | int(0) == 2 %}🚗 Both garage doors open at night{% else %}🚗 {{ open_label_title }} open at night{% endif %}
           {% elif kind == 'opened_overnight' %}
-            🚗 {{ target_label }} opened overnight
+            🚗 {{ target_label_title }} opened overnight
           {% elif kind == 'trevor_away' %}
-            🚗 {{ open_issue }} while you're away
+            🚗 {{ open_issue_title }} while you're away
           {% elif kind == 'casey_away' %}
             {% if open_count | int(0) == 2 %}🚗 Casey left both garage doors open{% else %}🚗 Casey left {{ casey_departure_open_label }} open{% endif %}
           {% elif kind == 'obstruction' %}
-            🚗 {{ target_label }} obstruction detected
+            🚗 {{ target_label_title }} obstruction detected
           {% else %}
-            🚗 {{ open_issue }}
+            🚗 {{ open_issue_title }}
           {% endif %}
         tag: >-
           {% if kind == 'open_at_night' %}garage-open-at-night
@@ -3933,7 +3936,7 @@ garage_security_send_alert:
           {% if kind == 'open_at_night' %}
             {{ open_issue }} during the overnight window.
             Casey's door reports {{ states('cover.ratgdo32disco_c26634_door') }};
-            Trevor's door reports {{ states('cover.ratgdo32_4536e8_door') }}.
+            Your garage door reports {{ states('cover.ratgdo32_4536e8_door') }}.
           {% elif kind == 'opened_overnight' %}
             {{ target_label }} changed from closed to {{ target_state }} overnight, and I did not see a recent arrival home.
           {% elif kind == 'trevor_away' %}
@@ -4279,7 +4282,7 @@ away_motion_security_send_alert:
             'binary_sensor.ratgdo32disco_c26634_motion': "Motion near Casey's garage door",
             'binary_sensor.ratgdo32disco_c26634_vehicle_arriving': "Vehicle movement near Casey's garage door",
             'binary_sensor.ratgdo32disco_c26634_vehicle_leaving': "Vehicle movement near Casey's garage door",
-            'binary_sensor.ratgdo32_4536e8_motion': "Motion near Trevor's garage door"
+            'binary_sensor.ratgdo32_4536e8_motion': "Motion near your garage door"
           } %}
           {{ labels.get(source_entity, state_attr(source_entity, 'friendly_name') or source_entity) }}
         source_area: >-
@@ -4350,6 +4353,7 @@ away_security_send_alert:
         garage_close_title: "{{ state_attr('binary_sensor.away_security_garage_door_open', 'close_action_title') | default('Close garage', true) }}"
         entry_point_count: "{{ states('sensor.away_security_entry_point_issues') | int(0) }}"
         entry_point_issue: "{{ state_attr('sensor.away_security_entry_point_issues', 'issue') | default('', true) }}"
+        entry_point_issue_title: "{{ entry_point_issue[:1] | upper ~ entry_point_issue[1:] }}"
         unlocked_entry_count: "{{ states('sensor.away_security_unlocked_entry_locks') | int(0) }}"
         active_light_count: "{{ states('sensor.away_security_active_lights') | int(0) }}"
         secure_action_title: >-
@@ -4366,17 +4370,17 @@ away_security_send_alert:
           {% if garage_open_count | int(0) == 2 %}
             🚗 Both garage doors open while away
           {% elif garage_door_open | bool and entry_point_count | int(0) == garage_open_count | int(0) and active_light_count | int(0) == 0 %}
-            🚗 {{ entry_point_issue }} while away
+            🚗 {{ entry_point_issue_title }} while away
           {% elif entry_point_count | int(0) > 1 and active_light_count | int(0) == 0 %}
             🔐 Entry points unsecured while away
           {% elif entry_point_count | int(0) == 1 and active_light_count | int(0) == 0 %}
-            🔐 {{ entry_point_issue }} while away
+            🔐 {{ entry_point_issue_title }} while away
           {% else %}
             🏠 House left unsecured
           {% endif %}
         notification_message: >-
           {% if garage_open_count | int(0) == 2 %}
-            Casey and Trevor are away, and Casey's garage door and Trevor's garage door are open.
+            Casey and Trevor are away, and Casey's garage door and your garage door are open.
             {% set extras = namespace(items=[]) %}
             {% if unlocked_entry_count | int(0) > 0 %}
               {% set extras.items = extras.items + [('entry locks' if unlocked_entry_count | int(0) > 1 else 'an entry lock') ~ ' unlocked'] %}
