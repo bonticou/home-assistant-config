@@ -642,6 +642,33 @@
           - light.ratgdo32disco_c26634_light
   mode: single
 
+- id: garage_door_open_dark_lutron_light
+  alias: "Lights — Garage Door Open Dark Assist"
+  description: Turn on the Lutron garage switch when either garage door opens during the dark-hours lighting schedule.
+  triggers:
+    - trigger: state
+      entity_id:
+        - cover.ratgdo32disco_c26634_door
+        - cover.ratgdo32_4536e8_door
+      to: opening
+    - trigger: state
+      entity_id:
+        - cover.ratgdo32disco_c26634_door
+        - cover.ratgdo32_4536e8_door
+      to: open
+  conditions:
+    - condition: template
+      value_template: "{{ trigger.from_state is none or trigger.from_state.state not in ['open', 'opening'] }}"
+    - condition: template
+      value_template: >
+        {{ is_state('binary_sensor.door_lights_schedule_active', 'on')
+           or is_state('sun.sun', 'below_horizon') }}
+  actions:
+    - action: switch.turn_on
+      target:
+        entity_id: switch.garage_garage_lights
+  mode: single
+
 - id: late_night_exterior_lights_left_on
   alias: "Lights — Late Night Exterior Lights Left On"
   description: Reminds Trevor when garage or exterior utility lights are still on overnight, excluding the front door lights.
