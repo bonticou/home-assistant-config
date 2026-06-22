@@ -455,6 +455,9 @@
     - condition: template
       value_template: "{{ is_state('person.bonticou', 'home') or is_state('person.casey', 'home') }}"
     - condition: state
+      entity_id: input_boolean.vacation_mode
+      state: "off"
+    - condition: state
       entity_id: input_boolean.interior_lights_guest_override
       state: "off"
     - condition: template
@@ -1041,6 +1044,36 @@
   actions:
     - action: script.vacation_activity_apply
   mode: restart
+
+- id: vacation_mode_end_on_household_return
+  alias: "Vacation — End When Household Returns"
+  description: Ends vacation lighting when Trevor or Casey returns, then restores normal Evening mode if the dark-hours schedule is active.
+  triggers:
+    - trigger: state
+      entity_id:
+        - person.bonticou
+        - person.casey
+      to: "home"
+  conditions:
+    - condition: state
+      entity_id: input_boolean.vacation_mode
+      state: "on"
+  actions:
+    - action: script.vacation_mode_end
+    - delay:
+        seconds: 2
+    - if:
+        - condition: state
+          entity_id: binary_sensor.front_stairs_schedule_active
+          state: "on"
+        - condition: template
+          value_template: "{{ not is_state_attr('sun.sun', 'rising', true) }}"
+        - condition: state
+          entity_id: input_boolean.interior_lights_guest_override
+          state: "off"
+      then:
+        - action: script.lights_evening_scene
+  mode: single
 
 - id: vacation_activity_window_notifications
   alias: "Vacation — Activity Window Notifications"
