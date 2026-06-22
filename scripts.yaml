@@ -974,7 +974,9 @@ vacation_mode_end:
         transition: 8
     - action: switch.turn_off
       data:
-        entity_id: switch.uplight
+        entity_id:
+          - switch.uplight
+          - switch.exterior_mud_room_stairs
     - choose:
         - conditions:
             - condition: state

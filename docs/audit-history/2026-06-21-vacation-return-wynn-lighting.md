@@ -70,3 +70,46 @@ The handoff relies on the `person.bonticou` and `person.casey` entities
 transitioning to `home`. If presence lags or misses a return event, vacation
 mode will remain active until manually ended or until a later presence update
 fires.
+
+## Follow-up: Mudroom Exterior Left On
+
+Date: 2026-06-22
+
+### Symptom
+
+The mudroom exterior stairs light was still on after vacation mode had ended.
+
+### Evidence
+
+- Live logbook showed `automation.vacation_activity_lighting_sync` turned on
+  `switch.exterior_mud_room_stairs` at 2026-06-21 19:26:36 EDT when
+  `sensor.vacation_activity_window` changed.
+- `input_boolean.vacation_mode` was later off, with `script.vacation_mode_end`
+  last triggered at 2026-06-21 21:13:40 EDT.
+- The newly added household-return automation had `last_triggered: null`
+  because both household person entities were already `home` before the
+  automation was loaded live.
+- `script.vacation_mode_end` turned off the indoor vacation lights, Wynn's
+  lights, yard/deck/patio lights, and `switch.uplight`, but did not include
+  `switch.exterior_mud_room_stairs`.
+
+### Finding
+
+High confidence: the mudroom exterior light was correctly turned on by vacation
+activity lighting, but vacation shutdown did not clear it.
+
+### Change Made
+
+Added `switch.exterior_mud_room_stairs` to the `switch.turn_off` cleanup in
+`script.vacation_mode_end` so ending vacation mode clears the only remaining
+mudroom exterior path.
+
+### Checks And Deployment
+
+- Ruby YAML parse passed for `scripts.yaml`.
+- Live File Editor write/read-back succeeded for `scripts.yaml`.
+- Home Assistant config check returned `valid` with no warnings or errors.
+- `script.reload` returned HTTP 200.
+- Live validation saw vacation mode `off`, turned
+  `switch.exterior_mud_room_stairs` off, and confirmed the switch state was
+  `off` afterward.
