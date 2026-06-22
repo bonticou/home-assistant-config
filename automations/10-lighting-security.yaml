@@ -467,7 +467,7 @@
         {% else %}
           {% set other_person = 'person.casey' if trigger.entity_id == 'person.bonticou' else 'person.bonticou' %}
           {{ trigger.from_state is not none
-             and trigger.from_state.state == 'not_home'
+             and trigger.from_state.state not in ['home', 'unknown', 'unavailable']
              and states(other_person) != 'home' }}
         {% endif %}
     - condition: template

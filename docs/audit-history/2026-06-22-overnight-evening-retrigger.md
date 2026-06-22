@@ -46,9 +46,10 @@ off, so it was not obvious why any lights would have come back on.
 ## Change Made
 
 Updated `automation.lights_interior_evening_mode_schedule_sync` so its arrival
-branch only runs when the triggering person changes from `not_home` to `home`
-and the other household person is not already `home`. The dusk branch is
-unchanged.
+branch only runs when the triggering person changes from a known away state to
+`home` and the other household person is not already `home`. This allows
+`not_home` and named away-zone returns while blocking `unknown` or
+`unavailable` recovery blips. The dusk branch is unchanged.
 
 ## Checks
 
@@ -57,8 +58,8 @@ unchanged.
   `automations/10-lighting-security.yaml`.
 - Home Assistant config check returned `valid` with no warnings or errors.
 - `automation.reload` returned HTTP 200.
-- Live read-back confirmed the Evening arrival guard requires a `not_home` to
-  `home` transition and another household person not already `home`.
+- Live read-back confirmed the Evening arrival guard requires a known away
+  state to `home` transition and another household person not already `home`.
 
 ## Residual Risks
 
