@@ -461,6 +461,16 @@
       entity_id: input_boolean.interior_lights_guest_override
       state: "off"
     - condition: template
+      value_template: >
+        {% if trigger.id != 'arrival' %}
+          true
+        {% else %}
+          {% set other_person = 'person.casey' if trigger.entity_id == 'person.bonticou' else 'person.bonticou' %}
+          {{ trigger.from_state is not none
+             and trigger.from_state.state == 'not_home'
+             and states(other_person) != 'home' }}
+        {% endif %}
+    - condition: template
       value_template: "{{ states('input_select.lighting_active_scene') not in ['Evening', 'TV', 'Bedtime'] }}"
   actions:
     - action: script.lights_evening_scene

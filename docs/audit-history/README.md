@@ -35,6 +35,7 @@ unless the exact value is necessary and safe to store.
 
 | Date | Entry | Scope |
 | --- | --- | --- |
+| 2026-06-22 | [Overnight Evening retrigger](2026-06-22-overnight-evening-retrigger.md) | Blocks presence tracker recovery from re-running Evening while someone is already home overnight |
 | 2026-06-21 | [Vacation return lighting and Wynn protection](2026-06-21-vacation-return-wynn-lighting.md) | Ends vacation lighting when Trevor or Casey returns, then restores normal Evening mode without turning on Wynn's lights |
 | 2026-06-16 | [Remote UI overnight flapping](2026-06-16-remote-ui-overnight-flapping.md) | Mobile app network errors matched repeated Nabu Casa Remote UI-off windows, including a 54-minute overnight outage |
 | 2026-06-15 | [Dehumidifier Done action and mudroom exterior schedule](2026-06-15-dehumidifier-done-and-mudroom-exterior.md) | Hardened dehumidifier/fertilizer Done scripts and removed mudroom exterior light from normal door-light schedule |
