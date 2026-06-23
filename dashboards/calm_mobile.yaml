@@ -7354,7 +7354,7 @@ views:
         cards:
           - type: custom:mushroom-template-card
             entity: switch.great_room_uplights
-            primary: Great Room uplights
+            primary: Uplight
             secondary: >-
               {{ 'On' if is_state('switch.great_room_uplights', 'on') else 'Off' }}
             icon: mdi:floor-lamp
