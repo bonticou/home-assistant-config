@@ -7344,6 +7344,14 @@ views:
             use_light_color: true
             card_mod:
               style: *lights_compact_card_style
+
+      - type: custom:mushroom-title-card
+        title: Great Room
+
+      - type: grid
+        columns: 2
+        square: false
+        cards:
           - type: custom:mushroom-template-card
             entity: switch.great_room_uplights
             primary: Great Room uplights
