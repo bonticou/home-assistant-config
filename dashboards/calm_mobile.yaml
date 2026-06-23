@@ -7551,9 +7551,6 @@ views:
                 primary: Exterior Stairs
                 secondary: >-
                   {{ 'On' if is_state('switch.exterior_mud_room_stairs', 'on') else 'Off' }}
-                icon: mdi:circle
-                icon_color: >-
-                  {{ 'amber' if is_state('switch.exterior_mud_room_stairs', 'on') else 'grey' }}
                 tap_action:
                   action: toggle
                 hold_action:
@@ -7565,9 +7562,6 @@ views:
                 primary: Garage Light
                 secondary: >-
                   {{ 'On' if is_state('switch.garage_garage_lights', 'on') else 'Off' }}
-                icon: mdi:circle
-                icon_color: >-
-                  {{ 'amber' if is_state('switch.garage_garage_lights', 'on') else 'grey' }}
                 tap_action:
                   action: toggle
                 hold_action:
