@@ -35,6 +35,7 @@ unless the exact value is necessary and safe to store.
 
 | Date | Entry | Scope |
 | --- | --- | --- |
+| 2026-06-23 | [HA update readiness and remote auth bootstrap](2026-06-23-ha-update-readiness-and-remote-auth.md) | Pre-update repo backup, auth-provider failure evidence, Zscaler Mac/TLS factor, and authenticated-check blocker |
 | 2026-06-22 | [Mobile disconnected with Nabu route reachable](2026-06-22-mobile-disconnected-nabu-session.md) | Current Nabu shell and websocket reachable while mobile/Safari appeared stuck in auth/session handoff |
 | 2026-06-22 | [Overnight Evening retrigger](2026-06-22-overnight-evening-retrigger.md) | Blocks presence tracker recovery from re-running Evening while someone is already home overnight |
 | 2026-06-21 | [Vacation return lighting and Wynn protection](2026-06-21-vacation-return-wynn-lighting.md) | Ends vacation lighting when Trevor or Casey returns, then restores normal Evening mode without turning on Wynn's lights |
