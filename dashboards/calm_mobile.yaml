@@ -7039,28 +7039,47 @@ views:
       - type: custom:mushroom-light-card
         entity: light.interior_test
         name: Common areas
-        icon: mdi:home-lightbulb-outline
+        icon: mdi:circle
         tap_action:
           action: perform-action
           perform_action: script.common_areas_transition_toggle
         show_brightness_control: true
         show_color_temp_control: false
-        use_light_color: true
+        collapsible_controls: true
+        use_light_color: false
         fill_container: true
         card_mod:
-          style: &common_area_master_light_style |
+          style: &lights_group_button_style |
             ha-card {
-              padding: 12px 14px 14px;
+              min-height: {% if is_state(config.entity, 'on') %}76px{% else %}54px{% endif %};
+              border-radius: 22px;
+              padding: 6px 10px 8px;
+              border: 1px solid {% if is_state(config.entity, 'on') %}rgba(245, 158, 11, 0.32){% else %}rgba(148, 163, 184, 0.14){% endif %};
+              background: {% if is_state(config.entity, 'on') %}linear-gradient(180deg, rgba(254, 243, 199, 0.28), rgba(251, 191, 36, 0.12)){% else %}rgba(15, 23, 42, 0.36){% endif %};
+              box-shadow: {% if is_state(config.entity, 'on') %}inset 0 1px 0 rgba(255, 255, 255, 0.14), 0 8px 18px rgba(245, 158, 11, 0.08){% else %}none{% endif %};
+            }
+            mushroom-shape-icon {
+              --shape-size: 24px;
+              --icon-size: 8px;
+              --shape-color: {% if is_state(config.entity, 'on') %}rgba(245, 158, 11, 0.24){% else %}rgba(148, 163, 184, 0.12){% endif %};
+            }
+            ha-state-icon {
+              color: {% if is_state(config.entity, 'on') %}#d97706{% else %}#94a3b8{% endif %};
+            }
+            mushroom-state-info {
+              --card-primary-font-size: 14px;
+              --card-primary-font-weight: 760;
+              --card-secondary-font-size: 11px;
             }
             mushroom-light-brightness-control {
-              --control-height: 28px;
-              margin-top: 8px;
+              --control-height: 18px;
+              margin-top: 4px;
             }
             mushroom-light-brightness-control mushroom-slider,
             mushroom-light-brightness-control ha-slider {
-              --main-height: 8px;
-              --md-slider-active-track-height: 8px;
-              --md-slider-inactive-track-height: 8px;
+              --main-height: 4px;
+              --md-slider-active-track-height: 4px;
+              --md-slider-inactive-track-height: 4px;
             }
 
       - type: grid
@@ -7070,7 +7089,7 @@ views:
           - type: custom:mushroom-light-card
             entity: light.front_foyer_ceiling_lights
             name: Foyer Ceiling
-            icon: mdi:ceiling-light
+            icon: mdi:circle
             tap_action: &lights_transition_tap_action
               action: perform-action
               perform_action: script.light_transition_toggle
@@ -7079,45 +7098,62 @@ views:
                 transition_seconds: 3
             show_brightness_control: true
             collapsible_controls: true
-            use_light_color: true
+            use_light_color: false
             card_mod:
-              style: &common_area_light_tile_style |
+              style: &lights_button_style |
                 ha-card {
-                  min-height: 110px;
-                  padding: 10px 12px 12px;
+                  min-height: {% if is_state(config.entity, 'on') %}72px{% else %}54px{% endif %};
+                  border-radius: 20px;
+                  padding: 6px 8px 8px;
+                  border: 1px solid {% if is_state(config.entity, 'on') %}rgba(245, 158, 11, 0.28){% else %}rgba(148, 163, 184, 0.12){% endif %};
+                  background: {% if is_state(config.entity, 'on') %}linear-gradient(180deg, rgba(254, 243, 199, 0.24), rgba(251, 191, 36, 0.10)){% else %}rgba(15, 23, 42, 0.30){% endif %};
+                  box-shadow: {% if is_state(config.entity, 'on') %}inset 0 1px 0 rgba(255, 255, 255, 0.12), 0 8px 16px rgba(245, 158, 11, 0.07){% else %}none{% endif %};
                   display: flex;
                   flex-direction: column;
                   justify-content: center;
+                }
+                mushroom-shape-icon {
+                  --shape-size: 22px;
+                  --icon-size: 7px;
+                  --shape-color: {% if is_state(config.entity, 'on') %}rgba(245, 158, 11, 0.24){% else %}rgba(148, 163, 184, 0.10){% endif %};
+                }
+                ha-state-icon {
+                  color: {% if is_state(config.entity, 'on') %}#d97706{% else %}#94a3b8{% endif %};
+                }
+                mushroom-state-info {
+                  --card-primary-font-size: 12px;
+                  --card-primary-font-weight: 740;
+                  --card-secondary-font-size: 10px;
                 }
                 mushroom-state-item {
                   flex: 0 0 auto;
                 }
                 mushroom-light-brightness-control {
-                  --control-height: 26px;
-                  margin-top: 10px;
+                  --control-height: 18px;
+                  margin-top: 4px;
                 }
                 mushroom-light-brightness-control mushroom-slider,
                 mushroom-light-brightness-control ha-slider {
-                  --main-height: 8px;
-                  --md-slider-active-track-height: 8px;
-                  --md-slider-inactive-track-height: 8px;
+                  --main-height: 4px;
+                  --md-slider-active-track-height: 4px;
+                  --md-slider-inactive-track-height: 4px;
                 }
           - type: custom:mushroom-light-card
             entity: light.front_foyer_chandelier
             name: Chandelier
-            icon: mdi:ceiling-light
+            icon: mdi:circle
             tap_action:
               action: perform-action
               perform_action: script.foyer_chandelier_toggle
             show_brightness_control: true
             collapsible_controls: true
-            use_light_color: true
+            use_light_color: false
             card_mod:
-              style: *common_area_light_tile_style
+              style: *lights_button_style
           - type: custom:mushroom-light-card
             entity: light.stairs_front_stairs
             name: Front Stairs
-            icon: mdi:stairs
+            icon: mdi:circle
             tap_action:
               <<: *lights_transition_tap_action
               data:
@@ -7125,13 +7161,13 @@ views:
                 transition_seconds: 3
             show_brightness_control: true
             collapsible_controls: true
-            use_light_color: true
+            use_light_color: false
             card_mod:
-              style: *common_area_light_tile_style
+              style: *lights_button_style
           - type: custom:mushroom-light-card
             entity: light.back_stairs_back_stairs
             name: Back Stairs
-            icon: mdi:stairs
+            icon: mdi:circle
             tap_action:
               <<: *lights_transition_tap_action
               data:
@@ -7139,13 +7175,13 @@ views:
                 transition_seconds: 3
             show_brightness_control: true
             collapsible_controls: true
-            use_light_color: true
+            use_light_color: false
             card_mod:
-              style: *common_area_light_tile_style
+              style: *lights_button_style
           - type: custom:mushroom-light-card
             entity: light.upstairs_hallway_main_lights
             name: Upstairs Hall
-            icon: mdi:ceiling-light
+            icon: mdi:circle
             tap_action:
               <<: *lights_transition_tap_action
               data:
@@ -7153,13 +7189,13 @@ views:
                 transition_seconds: 3
             show_brightness_control: true
             collapsible_controls: true
-            use_light_color: true
+            use_light_color: false
             card_mod:
-              style: *common_area_light_tile_style
+              style: *lights_button_style
           - type: custom:mushroom-light-card
             entity: light.vestibule_main_lights
             name: Vestibule
-            icon: mdi:wall-sconce-flat
+            icon: mdi:circle
             tap_action:
               <<: *lights_transition_tap_action
               data:
@@ -7167,13 +7203,13 @@ views:
                 transition_seconds: 3
             show_brightness_control: true
             collapsible_controls: true
-            use_light_color: true
+            use_light_color: false
             card_mod:
-              style: *common_area_light_tile_style
+              style: *lights_button_style
           - type: custom:mushroom-light-card
             entity: light.back_patio_light
             name: Back Patio
-            icon: mdi:string-lights
+            icon: mdi:circle
             tap_action:
               <<: *lights_transition_tap_action
               data:
@@ -7181,9 +7217,9 @@ views:
                 transition_seconds: 3
             show_brightness_control: true
             collapsible_controls: true
-            use_light_color: true
+            use_light_color: false
             card_mod:
-              style: *common_area_light_tile_style
+              style: *lights_button_style
 
       - type: custom:mushroom-title-card
         title: Kitchen
@@ -7191,7 +7227,7 @@ views:
       - type: custom:mushroom-light-card
         entity: light.kitchen
         name: Kitchen
-        icon: mdi:countertop-outline
+        icon: mdi:circle
         tap_action:
           <<: *lights_transition_tap_action
           data:
@@ -7199,10 +7235,11 @@ views:
             transition_seconds: 3
         show_brightness_control: true
         show_color_temp_control: false
-        use_light_color: true
+        collapsible_controls: true
+        use_light_color: false
         fill_container: true
         card_mod:
-          style: *lights_compact_card_style
+          style: *lights_group_button_style
 
       - type: grid
         columns: 2
@@ -7211,7 +7248,7 @@ views:
           - type: custom:mushroom-light-card
             entity: light.kitchen_main
             name: Main
-            icon: mdi:ceiling-light
+            icon: mdi:circle
             tap_action:
               <<: *lights_transition_tap_action
               data:
@@ -7219,13 +7256,13 @@ views:
                 transition_seconds: 3
             show_brightness_control: true
             collapsible_controls: true
-            use_light_color: true
+            use_light_color: false
             card_mod:
-              style: *lights_compact_card_style
+              style: *lights_button_style
           - type: custom:mushroom-light-card
             entity: light.kitchen_island
             name: Island
-            icon: mdi:countertop
+            icon: mdi:circle
             tap_action:
               <<: *lights_transition_tap_action
               data:
@@ -7233,13 +7270,13 @@ views:
                 transition_seconds: 3
             show_brightness_control: true
             collapsible_controls: true
-            use_light_color: true
+            use_light_color: false
             card_mod:
-              style: *lights_compact_card_style
+              style: *lights_button_style
           - type: custom:mushroom-light-card
             entity: light.kitchen_table_lights
             name: Table
-            icon: mdi:table-chair
+            icon: mdi:circle
             tap_action:
               <<: *lights_transition_tap_action
               data:
@@ -7247,13 +7284,13 @@ views:
                 transition_seconds: 3
             show_brightness_control: true
             collapsible_controls: true
-            use_light_color: true
+            use_light_color: false
             card_mod:
-              style: *lights_compact_card_style
+              style: *lights_button_style
           - type: custom:mushroom-light-card
             entity: light.kitchen_sink_light
             name: Sink
-            icon: mdi:faucet
+            icon: mdi:circle
             tap_action:
               <<: *lights_transition_tap_action
               data:
@@ -7261,13 +7298,13 @@ views:
                 transition_seconds: 3
             show_brightness_control: true
             collapsible_controls: true
-            use_light_color: true
+            use_light_color: false
             card_mod:
-              style: *lights_compact_card_style
+              style: *lights_button_style
           - type: custom:mushroom-light-card
             entity: light.kitchen_coffee_bar
             name: Coffee Bar
-            icon: mdi:coffee
+            icon: mdi:circle
             tap_action:
               <<: *lights_transition_tap_action
               data:
@@ -7275,9 +7312,9 @@ views:
                 transition_seconds: 3
             show_brightness_control: true
             collapsible_controls: true
-            use_light_color: true
+            use_light_color: false
             card_mod:
-              style: *lights_compact_card_style
+              style: *lights_button_style
 
       - type: custom:mushroom-title-card
         title: Family Room
@@ -7285,7 +7322,7 @@ views:
       - type: custom:mushroom-light-card
         entity: light.family_room
         name: Family Room
-        icon: mdi:sofa-outline
+        icon: mdi:circle
         tap_action:
           <<: *lights_transition_tap_action
           data:
@@ -7293,10 +7330,11 @@ views:
             transition_seconds: 3
         show_brightness_control: true
         show_color_temp_control: false
-        use_light_color: true
+        collapsible_controls: true
+        use_light_color: false
         fill_container: true
         card_mod:
-          style: *lights_compact_card_style
+          style: *lights_group_button_style
 
       - type: grid
         columns: 2
@@ -7305,7 +7343,7 @@ views:
           - type: custom:mushroom-light-card
             entity: light.family_room_main_lights_1
             name: Family Room 1
-            icon: mdi:ceiling-light
+            icon: mdi:circle
             tap_action:
               <<: *lights_transition_tap_action
               data:
@@ -7313,13 +7351,13 @@ views:
                 transition_seconds: 3
             show_brightness_control: true
             collapsible_controls: true
-            use_light_color: true
+            use_light_color: false
             card_mod:
-              style: *lights_compact_card_style
+              style: *lights_button_style
           - type: custom:mushroom-light-card
             entity: light.family_room_main_lights_2
             name: Family Room 2
-            icon: mdi:ceiling-light
+            icon: mdi:circle
             tap_action:
               <<: *lights_transition_tap_action
               data:
@@ -7327,13 +7365,13 @@ views:
                 transition_seconds: 3
             show_brightness_control: true
             collapsible_controls: true
-            use_light_color: true
+            use_light_color: false
             card_mod:
-              style: *lights_compact_card_style
+              style: *lights_button_style
           - type: custom:mushroom-light-card
             entity: light.family_room_main_lights_3
             name: Family Room 3
-            icon: mdi:ceiling-light
+            icon: mdi:circle
             tap_action:
               <<: *lights_transition_tap_action
               data:
@@ -7341,9 +7379,9 @@ views:
                 transition_seconds: 3
             show_brightness_control: true
             collapsible_controls: true
-            use_light_color: true
+            use_light_color: false
             card_mod:
-              style: *lights_compact_card_style
+              style: *lights_button_style
 
       - type: custom:mushroom-title-card
         title: Great Room
@@ -7357,7 +7395,7 @@ views:
             primary: Uplight
             secondary: >-
               {{ 'On' if is_state('switch.great_room_uplights', 'on') else 'Off' }}
-            icon: mdi:floor-lamp
+            icon: mdi:circle
             icon_color: >-
               {{ 'amber' if is_state('switch.great_room_uplights', 'on') else 'grey' }}
             tap_action:
@@ -7365,7 +7403,7 @@ views:
             hold_action:
               action: more-info
             card_mod:
-              style: *lights_compact_card_style
+              style: *lights_button_style
 
       - type: custom:mushroom-title-card
         title: Wynn's Room
@@ -7373,7 +7411,7 @@ views:
       - type: custom:mushroom-light-card
         entity: light.wynn_s_room
         name: Wynn's Room
-        icon: mdi:lamp
+        icon: mdi:circle
         tap_action:
           <<: *lights_transition_tap_action
           data:
@@ -7381,10 +7419,11 @@ views:
             transition_seconds: 3
         show_brightness_control: true
         show_color_temp_control: false
-        use_light_color: true
+        collapsible_controls: true
+        use_light_color: false
         fill_container: true
         card_mod:
-          style: *lights_compact_card_style
+          style: *lights_group_button_style
 
       - type: grid
         columns: 2
@@ -7393,7 +7432,7 @@ views:
           - type: custom:mushroom-light-card
             entity: light.wynn_s_room_chandelier
             name: Chandelier
-            icon: mdi:ceiling-light
+            icon: mdi:circle
             tap_action:
               <<: *lights_transition_tap_action
               data:
@@ -7401,13 +7440,13 @@ views:
                 transition_seconds: 3
             show_brightness_control: true
             collapsible_controls: true
-            use_light_color: true
+            use_light_color: false
             card_mod:
-              style: *lights_compact_card_style
+              style: *lights_button_style
           - type: custom:mushroom-light-card
             entity: light.wynn_s_room_ceiling_lights
             name: Ceiling
-            icon: mdi:lightbulb-group-outline
+            icon: mdi:circle
             tap_action:
               <<: *lights_transition_tap_action
               data:
@@ -7415,9 +7454,9 @@ views:
                 transition_seconds: 3
             show_brightness_control: true
             collapsible_controls: true
-            use_light_color: true
+            use_light_color: false
             card_mod:
-              style: *lights_compact_card_style
+              style: *lights_button_style
 
       - type: custom:mushroom-title-card
         title: Master Bedroom
@@ -7429,7 +7468,7 @@ views:
           - type: custom:mushroom-light-card
             entity: light.master_bedroom_sconces
             name: Sconces
-            icon: mdi:wall-sconce-flat
+            icon: mdi:circle
             tap_action:
               <<: *lights_transition_tap_action
               data:
@@ -7438,13 +7477,13 @@ views:
             show_brightness_control: true
             collapsible_controls: true
             show_color_temp_control: false
-            use_light_color: true
+            use_light_color: false
             card_mod:
-              style: *lights_compact_card_style
+              style: *lights_button_style
           - type: custom:mushroom-light-card
             entity: light.master_casey_s_closet
             name: Casey's closet
-            icon: mdi:wardrobe-outline
+            icon: mdi:circle
             tap_action:
               <<: *lights_transition_tap_action
               data:
@@ -7453,9 +7492,9 @@ views:
             show_brightness_control: true
             collapsible_controls: true
             show_color_temp_control: false
-            use_light_color: true
+            use_light_color: false
             card_mod:
-              style: *lights_compact_card_style
+              style: *lights_button_style
 
       - type: vertical-stack
         cards:
@@ -7465,7 +7504,7 @@ views:
           - type: custom:mushroom-light-card
             entity: light.mudroom
             name: Mudroom
-            icon: mdi:door-sliding
+            icon: mdi:circle
             tap_action:
               <<: *lights_transition_tap_action
               data:
@@ -7473,10 +7512,11 @@ views:
                 transition_seconds: 3
             show_brightness_control: true
             show_color_temp_control: false
-            use_light_color: true
+            collapsible_controls: true
+            use_light_color: false
             fill_container: true
             card_mod:
-              style: *lights_compact_card_style
+              style: *lights_group_button_style
 
           - type: grid
             columns: 2
@@ -7485,7 +7525,7 @@ views:
               - type: custom:mushroom-light-card
                 entity: light.mudroom_main_lights
                 name: Main
-                icon: mdi:ceiling-light
+                icon: mdi:circle
                 tap_action:
                   <<: *lights_transition_tap_action
                   data:
@@ -7493,13 +7533,13 @@ views:
                     transition_seconds: 3
                 show_brightness_control: true
                 collapsible_controls: true
-                use_light_color: true
+                use_light_color: false
                 card_mod:
-                  style: *lights_compact_card_style
+                  style: *lights_button_style
               - type: custom:mushroom-light-card
                 entity: light.mudroom_nook_lights
                 name: Nooks
-                icon: mdi:wall-sconce-flat
+                icon: mdi:circle
                 tap_action:
                   <<: *lights_transition_tap_action
                   data:
@@ -7507,15 +7547,15 @@ views:
                     transition_seconds: 3
                 show_brightness_control: true
                 collapsible_controls: true
-                use_light_color: true
+                use_light_color: false
                 card_mod:
-                  style: *lights_compact_card_style
+                  style: *lights_button_style
               - type: custom:mushroom-template-card
                 entity: switch.exterior_mud_room_stairs
                 primary: Exterior Stairs
                 secondary: >-
                   {{ 'On' if is_state('switch.exterior_mud_room_stairs', 'on') else 'Off' }}
-                icon: mdi:stairs
+                icon: mdi:circle
                 icon_color: >-
                   {{ 'amber' if is_state('switch.exterior_mud_room_stairs', 'on') else 'grey' }}
                 tap_action:
@@ -7523,13 +7563,13 @@ views:
                 hold_action:
                   action: more-info
                 card_mod:
-                  style: *lights_compact_card_style
+                  style: *lights_button_style
               - type: custom:mushroom-template-card
                 entity: switch.garage_garage_lights
                 primary: Garage Light
                 secondary: >-
                   {{ 'On' if is_state('switch.garage_garage_lights', 'on') else 'Off' }}
-                icon: mdi:garage-variant
+                icon: mdi:circle
                 icon_color: >-
                   {{ 'amber' if is_state('switch.garage_garage_lights', 'on') else 'grey' }}
                 tap_action:
@@ -7537,7 +7577,7 @@ views:
                 hold_action:
                   action: more-info
                 card_mod:
-                  style: *lights_compact_card_style
+                  style: *lights_button_style
 
   - title: Water
     path: water
