@@ -7,8 +7,8 @@ A human-readable map of the Home Assistant device model. The full audit dump is 
 | Thing | Count |
 | --- | --- |
 | Devices | 216 |
-| Entities | 2165 |
-| Control entities | 744 |
+| Entities | 2167 |
+| Control entities | 746 |
 | Telemetry entities | 986 |
 | Network clients | 129 |
 | Areas | 32 |

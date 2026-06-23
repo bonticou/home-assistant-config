@@ -5,6 +5,10 @@ homeassistant:
   customize:
     light.master_casey_s_closet:
       friendly_name: Casey's closet
+    switch.uplight:
+      friendly_name: Great Room Uplight 1
+    switch.great_room_uplights:
+      friendly_name: Great Room uplights
     cover.ratgdo32disco_c26634_door:
       friendly_name: Casey's garage door
     cover.ratgdo32_4536e8_door:
@@ -933,6 +937,110 @@ recorder:
 # After editing, restart HA (not just reload — templates need restart).
 # ─────────────────────────────────────────────────────────────
 template:
+  - switch:
+      - name: "Great Room Uplights"
+        unique_id: great_room_uplights
+        icon: mdi:floor-lamp
+        availability: >
+          {% set ns = namespace(count=0) %}
+          {% for item in states.switch %}
+            {% set entity = item.entity_id | lower %}
+            {% set label = ((item.name | default('', true)) ~ ' ' ~ entity) | lower %}
+            {% set excluded = item.entity_id == 'switch.great_room_uplights'
+               or '_led' in entity
+               or 'auto_' in entity
+               or 'auto-' in label
+               or 'restart' in entity
+               or 'power_protection' in entity
+               or 'turn_off_in' in entity %}
+            {% set member = item.entity_id == 'switch.uplight'
+               or ('great room uplight' in label and not excluded)
+               or ('uplight 2' in label and not excluded)
+               or ('uplight_2' in entity and not excluded) %}
+            {% if member and item.state not in ['unknown', 'unavailable'] %}
+              {% set ns.count = ns.count + 1 %}
+            {% endif %}
+          {% endfor %}
+          {{ ns.count > 0 }}
+        state: >
+          {% set ns = namespace(on=false) %}
+          {% for item in states.switch %}
+            {% set entity = item.entity_id | lower %}
+            {% set label = ((item.name | default('', true)) ~ ' ' ~ entity) | lower %}
+            {% set excluded = item.entity_id == 'switch.great_room_uplights'
+               or '_led' in entity
+               or 'auto_' in entity
+               or 'auto-' in label
+               or 'restart' in entity
+               or 'power_protection' in entity
+               or 'turn_off_in' in entity %}
+            {% set member = item.entity_id == 'switch.uplight'
+               or ('great room uplight' in label and not excluded)
+               or ('uplight 2' in label and not excluded)
+               or ('uplight_2' in entity and not excluded) %}
+            {% if member and item.state == 'on' %}
+              {% set ns.on = true %}
+            {% endif %}
+          {% endfor %}
+          {{ ns.on }}
+        turn_on:
+          - variables:
+              great_room_uplight_members: >
+                {% set ns = namespace(ids=[]) %}
+                {% for item in states.switch %}
+                  {% set entity = item.entity_id | lower %}
+                  {% set label = ((item.name | default('', true)) ~ ' ' ~ entity) | lower %}
+                  {% set excluded = item.entity_id == 'switch.great_room_uplights'
+                     or '_led' in entity
+                     or 'auto_' in entity
+                     or 'auto-' in label
+                     or 'restart' in entity
+                     or 'power_protection' in entity
+                     or 'turn_off_in' in entity %}
+                  {% set member = item.entity_id == 'switch.uplight'
+                     or ('great room uplight' in label and not excluded)
+                     or ('uplight 2' in label and not excluded)
+                     or ('uplight_2' in entity and not excluded) %}
+                  {% if member and item.state not in ['unknown', 'unavailable'] %}
+                    {% set ns.ids = ns.ids + [item.entity_id] %}
+                  {% endif %}
+                {% endfor %}
+                {{ ns.ids | unique | join(',') }}
+          - repeat:
+              for_each: "{{ great_room_uplight_members.split(',') | reject('eq', '') | list }}"
+              sequence:
+                - action: switch.turn_on
+                  target:
+                    entity_id: "{{ repeat.item }}"
+        turn_off:
+          - variables:
+              great_room_uplight_members: >
+                {% set ns = namespace(ids=[]) %}
+                {% for item in states.switch %}
+                  {% set entity = item.entity_id | lower %}
+                  {% set label = ((item.name | default('', true)) ~ ' ' ~ entity) | lower %}
+                  {% set excluded = item.entity_id == 'switch.great_room_uplights'
+                     or '_led' in entity
+                     or 'auto_' in entity
+                     or 'auto-' in label
+                     or 'restart' in entity
+                     or 'power_protection' in entity
+                     or 'turn_off_in' in entity %}
+                  {% set member = item.entity_id == 'switch.uplight'
+                     or ('great room uplight' in label and not excluded)
+                     or ('uplight 2' in label and not excluded)
+                     or ('uplight_2' in entity and not excluded) %}
+                  {% if member and item.state not in ['unknown', 'unavailable'] %}
+                    {% set ns.ids = ns.ids + [item.entity_id] %}
+                  {% endif %}
+                {% endfor %}
+                {{ ns.ids | unique | join(',') }}
+          - repeat:
+              for_each: "{{ great_room_uplight_members.split(',') | reject('eq', '') | list }}"
+              sequence:
+                - action: switch.turn_off
+                  target:
+                    entity_id: "{{ repeat.item }}"
   - sensor:
       - name: "Radon Level Status"
         unique_id: radon_level_status
@@ -2172,7 +2280,7 @@ template:
              and states('sensor.vacation_activity_window') in ['evening', 'pre_sunrise'] %}
           {% set lighting_switch_count =
             (1 if is_state('switch.garage_garage_lights', 'on') else 0)
-            + (1 if is_state('switch.uplight', 'on') and not vacation_window_active else 0)
+            + (1 if is_state('switch.great_room_uplights', 'on') and not vacation_window_active else 0)
             + (1 if is_state('switch.exterior_mud_room_stairs', 'on')
                    and not vacation_window_active else 0) %}
           {{ (ns.lights | count) + lighting_switch_count }}
@@ -2218,8 +2326,8 @@ template:
             {% endfor %}
             {% set vacation_window_active = is_state('input_boolean.vacation_mode', 'on')
                and states('sensor.vacation_activity_window') in ['evening', 'pre_sunrise'] %}
-            {% if is_state('switch.uplight', 'on') and not vacation_window_active %}
-              {% set ns.names = ns.names + ['Uplight'] %}
+            {% if is_state('switch.great_room_uplights', 'on') and not vacation_window_active %}
+              {% set ns.names = ns.names + ['Great Room uplights'] %}
             {% endif %}
             {% if is_state('switch.garage_garage_lights', 'on') %}
               {% set ns.names = ns.names + ['Garage Light'] %}
@@ -2266,8 +2374,8 @@ template:
             {% endfor %}
             {% set vacation_window_active = is_state('input_boolean.vacation_mode', 'on')
                and states('sensor.vacation_activity_window') in ['evening', 'pre_sunrise'] %}
-            {% if is_state('switch.uplight', 'on') and not vacation_window_active %}
-              {% set ns.ids = ns.ids + ['switch.uplight'] %}
+            {% if is_state('switch.great_room_uplights', 'on') and not vacation_window_active %}
+              {% set ns.ids = ns.ids + ['switch.great_room_uplights'] %}
             {% endif %}
             {% if is_state('switch.garage_garage_lights', 'on') %}
               {% set ns.ids = ns.ids + ['switch.garage_garage_lights'] %}
@@ -2289,7 +2397,7 @@ template:
             'switch.master_lantern'
           ] %}
           {% set switch_lights = [
-            'switch.uplight',
+            'switch.great_room_uplights',
             'switch.garage_garage_lights',
             'switch.exterior_mud_room_stairs'
           ] %}
@@ -2321,7 +2429,7 @@ template:
               'switch.master_lantern'
             ] %}
             {% set switch_lights = {
-              'switch.uplight': 'Uplight',
+              'switch.great_room_uplights': 'Great Room uplights',
               'switch.garage_garage_lights': 'Garage light',
               'switch.exterior_mud_room_stairs': 'Mudroom exterior stairs'
             } %}
@@ -2348,7 +2456,7 @@ template:
               'switch.master_lantern'
             ] %}
             {% set switch_lights = [
-              'switch.uplight',
+              'switch.great_room_uplights',
               'switch.garage_garage_lights',
               'switch.exterior_mud_room_stairs'
             ] %}

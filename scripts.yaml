@@ -255,7 +255,7 @@ common_areas_transition_toggle:
 
 lights_evening_scene:
   alias: Lights Evening Scene
-  description: Set the common evening lights to a calm 10 percent level, keep the kitchen island bright, leave Mudroom and Wynn's room alone, turn on the family room uplight, and softly bring the chandelier up to 10 percent only if it happens to be off.
+  description: Set the common evening lights to a calm 10 percent level, keep the kitchen island bright, leave Mudroom and Wynn's room alone, turn on the great room uplights, and softly bring the chandelier up to 10 percent only if it happens to be off.
   icon: mdi:weather-sunset
   mode: single
   sequence:
@@ -316,7 +316,7 @@ lights_evening_scene:
         transition: 3
     - action: switch.turn_on
       data:
-        entity_id: switch.uplight
+        entity_id: switch.great_room_uplights
     - if:
         - condition: template
           value_template: "{{ front_stairs_target_pct > 0 and front_stairs_current_pct < front_stairs_target_pct }}"
@@ -451,11 +451,6 @@ lights_tv_scene:
         - sequence:
             - alias: Wake the family room TV and route it to Apple TV
               action: script.family_room_tv_mode_on
-        - sequence:
-            - alias: Turn on the family room uplight
-              action: switch.turn_on
-              data:
-                entity_id: switch.uplight
     - if:
         - condition: template
           value_template: "{{ front_stairs_target_pct > 0 and front_stairs_current_pct < front_stairs_target_pct }}"
@@ -575,7 +570,7 @@ lights_all_off_scene:
     - action: switch.turn_off
       data:
         entity_id:
-          - switch.uplight
+          - switch.great_room_uplights
           - switch.garage_garage_lights
           - switch.exterior_mud_room_stairs
     - action: script.turn_on
@@ -667,7 +662,7 @@ lights_bedtime_scene:
     - action: switch.turn_off
       data:
         entity_id:
-          - switch.uplight
+          - switch.great_room_uplights
           - switch.garage_garage_lights
           - switch.exterior_mud_room_stairs
     - choose:
@@ -759,7 +754,7 @@ lights_late_night_exterior_off:
     - action: switch.turn_off
       data:
         entity_id:
-          - switch.uplight
+          - switch.great_room_uplights
           - switch.garage_garage_lights
           - switch.exterior_mud_room_stairs
     - if:
@@ -975,7 +970,7 @@ vacation_mode_end:
     - action: switch.turn_off
       data:
         entity_id:
-          - switch.uplight
+          - switch.great_room_uplights
           - switch.exterior_mud_room_stairs
     - choose:
         - conditions:
@@ -1069,7 +1064,7 @@ vacation_activity_apply:
                         transition: 8
                     - action: switch.turn_on
                       data:
-                        entity_id: switch.uplight
+                        entity_id: switch.great_room_uplights
                 - sequence:
                     - action: light.turn_on
                       data:
@@ -1132,7 +1127,7 @@ vacation_activity_apply:
                         transition: 240
                     - action: switch.turn_on
                       data:
-                        entity_id: switch.uplight
+                        entity_id: switch.great_room_uplights
                 - sequence:
                     - action: light.turn_on
                       data:
@@ -1195,7 +1190,7 @@ vacation_activity_apply:
                         transition: 10
                     - action: switch.turn_on
                       data:
-                        entity_id: switch.uplight
+                        entity_id: switch.great_room_uplights
                 - sequence:
                     - action: light.turn_off
                       data:
@@ -1254,7 +1249,7 @@ vacation_activity_apply:
             transition: 8
         - action: switch.turn_off
           data:
-            entity_id: switch.uplight
+            entity_id: switch.great_room_uplights
         - if:
             - condition: state
               entity_id: binary_sensor.door_lights_schedule_active

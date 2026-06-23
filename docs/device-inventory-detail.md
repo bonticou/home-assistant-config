@@ -4,15 +4,15 @@ Full generated audit view. For the readable overview, use [device-inventory.md](
 
 ## Last Updated
 
-- Summary: 216 devices, 2165 entities, 129 network clients
+- Summary: 216 devices, 2167 entities, 129 network clients
 
 ## Summary
 
 | Metric | Count |
 | --- | --- |
 | Devices | 216 |
-| Entities | 2165 |
-| Orphan entities | 707 |
+| Entities | 2167 |
+| Orphan entities | 709 |
 | Network clients | 129 |
 | Areas | 32 |
 | Integrations | 42 |
@@ -21,7 +21,7 @@ Full generated audit view. For the readable overview, use [device-inventory.md](
 
 | Role | Entities |
 | --- | --- |
-| control | 744 |
+| control | 746 |
 | network | 129 |
 | other | 306 |
 | telemetry | 986 |
@@ -33,7 +33,7 @@ Full generated audit view. For the readable overview, use [device-inventory.md](
 | unifiprotect | 399 |
 | unifi | 279 |
 | hydrawise | 191 |
-| template | 190 |
+| template | 191 |
 | automation | 164 |
 | sonos | 155 |
 | script | 130 |
@@ -4445,6 +4445,7 @@ _No registered entities._
 | `sensor.wine_temperature_30d_stats` | Wine Temperature 30d Stats | telemetry | statistics | available |
 | `sensor.wine_temperature_7d_stats` | Wine Temperature 7d Stats | telemetry | statistics | available |
 | `stt.home_assistant_cloud` | Home Assistant Cloud | other | cloud | unknown |
+| `switch.great_room_uplights` | Great Room Uplights | control | template | unknown |
 | `todo.shopping_list` | Shopping List | other | shopping_list | available |
 | `tts.home_assistant_cloud` | Home Assistant Cloud | other | cloud | available |
 

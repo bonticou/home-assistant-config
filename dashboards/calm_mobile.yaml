@@ -1230,7 +1230,7 @@ views:
                           - color: rgba(254, 243, 199, 0.9)
                 - type: custom:button-card
                   name: TV
-                  label: TV + uplight
+                  label: Frame TV
                   icon: mdi:television
                   entity: input_select.lighting_active_scene
                   show_state: false
@@ -5919,7 +5919,7 @@ views:
                     - color: rgba(254, 243, 199, 0.9)
           - type: custom:button-card
             name: TV
-            label: TV + uplight
+            label: Frame TV
             icon: mdi:television
             entity: input_select.lighting_active_scene
             show_state: false
@@ -7345,13 +7345,13 @@ views:
             card_mod:
               style: *lights_compact_card_style
           - type: custom:mushroom-template-card
-            entity: switch.uplight
-            primary: Uplight
+            entity: switch.great_room_uplights
+            primary: Great Room uplights
             secondary: >-
-              {{ 'On' if is_state('switch.uplight', 'on') else 'Off' }}
+              {{ 'On' if is_state('switch.great_room_uplights', 'on') else 'Off' }}
             icon: mdi:floor-lamp
             icon_color: >-
-              {{ 'amber' if is_state('switch.uplight', 'on') else 'grey' }}
+              {{ 'amber' if is_state('switch.great_room_uplights', 'on') else 'grey' }}
             tap_action:
               action: toggle
             hold_action:
