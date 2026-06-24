@@ -255,7 +255,7 @@ common_areas_transition_toggle:
 
 lights_evening_scene:
   alias: Lights Evening Scene
-  description: Set the common evening lights to a calm 10 percent level, keep the kitchen island bright, leave Mudroom and Wynn's room alone, turn on the great room uplights, and softly bring the chandelier up to 10 percent only if it happens to be off.
+  description: Set the common evening lights and Mudroom interior lights to a calm 10 percent level, keep the kitchen island bright, leave Wynn's room and exterior utility lights alone, turn on the great room uplights, and softly bring the chandelier up to 10 percent only if it happens to be off.
   icon: mdi:weather-sunset
   mode: single
   sequence:
@@ -311,6 +311,8 @@ lights_evening_scene:
           - light.kitchen_table_lights
           - light.kitchen_sink_light
           - light.kitchen_coffee_bar
+          - light.mudroom_main_lights
+          - light.mudroom_nook_lights
           - light.back_patio_light
         brightness_pct: 10
         transition: 3
