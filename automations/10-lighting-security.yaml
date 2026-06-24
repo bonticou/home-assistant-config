@@ -351,7 +351,7 @@
 
 - id: foyer_chandelier_schedule_sync
   alias: "Lights — Foyer Chandelier Schedule Sync"
-  description: Keep the foyer chandelier synced to the front stairs evening schedule while honoring the guest lighting override and bedtime hold for the rest of the night.
+  description: Keep the foyer chandelier on only during its evening schedule while honoring the guest lighting override and bedtime hold.
   triggers:
     - trigger: homeassistant
       event: start
@@ -364,11 +364,11 @@
       to: "off"
       id: guest_override_off
     - trigger: state
-      entity_id: binary_sensor.front_stairs_schedule_active
+      entity_id: binary_sensor.foyer_chandelier_schedule_active
       to: "on"
       id: schedule_on
     - trigger: state
-      entity_id: binary_sensor.front_stairs_schedule_active
+      entity_id: binary_sensor.foyer_chandelier_schedule_active
       to: "off"
       for:
         minutes: 2
@@ -382,9 +382,6 @@
         - conditions:
             - condition: trigger
               id: schedule_off
-            - condition: state
-              entity_id: sun.sun
-              state: "above_horizon"
           sequence:
             - action: script.foyer_chandelier_schedule_off
             - action: input_boolean.turn_off
@@ -402,15 +399,16 @@
             - condition: trigger
               id: startup
             - condition: state
-              entity_id: binary_sensor.front_stairs_schedule_active
+              entity_id: binary_sensor.foyer_chandelier_schedule_active
               state: "off"
           sequence:
+            - action: script.foyer_chandelier_schedule_off
             - action: input_boolean.turn_off
               target:
                 entity_id: input_boolean.foyer_chandelier_sleep_hold
         - conditions:
             - condition: state
-              entity_id: binary_sensor.front_stairs_schedule_active
+              entity_id: binary_sensor.foyer_chandelier_schedule_active
               state: "on"
             - condition: state
               entity_id: input_boolean.foyer_chandelier_sleep_hold

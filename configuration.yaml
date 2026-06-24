@@ -2157,7 +2157,7 @@ template:
         unique_id: foyer_chandelier_schedule_brightness
         unit_of_measurement: "%"
         state: >
-          {% if is_state('binary_sensor.front_stairs_schedule_active', 'off') %}
+          {% if is_state('binary_sensor.foyer_chandelier_schedule_active', 'off') %}
             0
           {% else %}
             10
@@ -2247,7 +2247,7 @@ template:
           {% if is_state('binary_sensor.front_stairs_schedule_active', 'on') %}
             {% set exempt.entity_ids = exempt.entity_ids + ['light.stairs_front_stairs'] %}
           {% endif %}
-          {% if is_state('binary_sensor.front_stairs_schedule_active', 'on')
+          {% if is_state('binary_sensor.foyer_chandelier_schedule_active', 'on')
              and is_state('input_boolean.foyer_chandelier_sleep_hold', 'off') %}
             {% set exempt.entity_ids = exempt.entity_ids + ['light.front_foyer_chandelier'] %}
           {% endif %}
@@ -2295,7 +2295,7 @@ template:
             {% if is_state('binary_sensor.front_stairs_schedule_active', 'on') %}
               {% set exempt.entity_ids = exempt.entity_ids + ['light.stairs_front_stairs'] %}
             {% endif %}
-            {% if is_state('binary_sensor.front_stairs_schedule_active', 'on')
+            {% if is_state('binary_sensor.foyer_chandelier_schedule_active', 'on')
                and is_state('input_boolean.foyer_chandelier_sleep_hold', 'off') %}
               {% set exempt.entity_ids = exempt.entity_ids + ['light.front_foyer_chandelier'] %}
             {% endif %}
@@ -2343,7 +2343,7 @@ template:
             {% if is_state('binary_sensor.front_stairs_schedule_active', 'on') %}
               {% set exempt.entity_ids = exempt.entity_ids + ['light.stairs_front_stairs'] %}
             {% endif %}
-            {% if is_state('binary_sensor.front_stairs_schedule_active', 'on')
+            {% if is_state('binary_sensor.foyer_chandelier_schedule_active', 'on')
                and is_state('input_boolean.foyer_chandelier_sleep_hold', 'off') %}
               {% set exempt.entity_ids = exempt.entity_ids + ['light.front_foyer_chandelier'] %}
             {% endif %}
@@ -5133,7 +5133,11 @@ template:
         unique_id: foyer_chandelier_schedule_active
         icon: mdi:chandelier
         state: >
-          {{ is_state('binary_sensor.front_stairs_schedule_active', 'on') }}
+          {% set evening_tail_end = as_timestamp(today_at('23:45')) %}
+          {{ is_state('binary_sensor.front_stairs_schedule_active', 'on')
+             and not is_state_attr('sun.sun', 'rising', true)
+             and now().hour >= 12
+             and as_timestamp(now()) < evening_tail_end }}
 
       - name: "Espresso Water Backflush Due"
         unique_id: espresso_water_backflush_due

@@ -975,7 +975,7 @@ vacation_mode_end:
     - choose:
         - conditions:
             - condition: state
-              entity_id: binary_sensor.front_stairs_schedule_active
+              entity_id: binary_sensor.foyer_chandelier_schedule_active
               state: "on"
             - condition: state
               entity_id: input_boolean.foyer_chandelier_sleep_hold
@@ -1261,7 +1261,7 @@ vacation_activity_apply:
         - choose:
             - conditions:
                 - condition: state
-                  entity_id: binary_sensor.front_stairs_schedule_active
+                  entity_id: binary_sensor.foyer_chandelier_schedule_active
                   state: "on"
                 - condition: state
                   entity_id: input_boolean.foyer_chandelier_sleep_hold
