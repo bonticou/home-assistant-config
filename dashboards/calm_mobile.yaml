@@ -7081,6 +7081,21 @@ views:
               --md-slider-inactive-track-height: 4px;
             }
 
+      - type: custom:mushroom-light-card
+        entity: light.foyer
+        name: Foyer
+        icon: mdi:circle
+        tap_action:
+          action: perform-action
+          perform_action: script.foyer_transition_toggle
+        show_brightness_control: true
+        show_color_temp_control: false
+        collapsible_controls: true
+        use_light_color: false
+        fill_container: true
+        card_mod:
+          style: *lights_group_button_style
+
       - type: grid
         columns: 2
         square: false
@@ -7161,6 +7176,25 @@ views:
             card_mod:
               style: *lights_button_style
           - type: custom:mushroom-light-card
+            entity: light.vestibule_main_lights
+            name: Vestibule
+            icon: mdi:circle
+            tap_action:
+              <<: *lights_transition_tap_action
+              data:
+                light_entity: light.vestibule_main_lights
+                transition_seconds: 3
+            show_brightness_control: true
+            collapsible_controls: true
+            use_light_color: false
+            card_mod:
+              style: *lights_button_style
+
+      - type: grid
+        columns: 2
+        square: false
+        cards:
+          - type: custom:mushroom-light-card
             entity: light.back_stairs_back_stairs
             name: Back Stairs
             icon: mdi:circle
@@ -7182,20 +7216,6 @@ views:
               <<: *lights_transition_tap_action
               data:
                 light_entity: light.upstairs_hallway_main_lights
-                transition_seconds: 3
-            show_brightness_control: true
-            collapsible_controls: true
-            use_light_color: false
-            card_mod:
-              style: *lights_button_style
-          - type: custom:mushroom-light-card
-            entity: light.vestibule_main_lights
-            name: Vestibule
-            icon: mdi:circle
-            tap_action:
-              <<: *lights_transition_tap_action
-              data:
-                light_entity: light.vestibule_main_lights
                 transition_seconds: 3
             show_brightness_control: true
             collapsible_controls: true
@@ -7386,20 +7406,66 @@ views:
         columns: 2
         square: false
         cards:
-          - type: custom:mushroom-template-card
+          - type: custom:button-card
             entity: switch.great_room_uplights
-            primary: Uplight
-            secondary: >-
-              {{ 'On' if is_state('switch.great_room_uplights', 'on') else 'Off' }}
-            icon: mdi:circle
-            icon_color: >-
-              {{ 'amber' if is_state('switch.great_room_uplights', 'on') else 'grey' }}
+            name: Uplight
+            label: |
+              [[[
+                if (!entity) return 'Unavailable';
+                if (entity.state === 'on') return 'On';
+                if (entity.state === 'off') return 'Off';
+                return entity.state;
+              ]]]
+            show_icon: false
+            show_label: true
             tap_action:
               action: toggle
             hold_action:
               action: more-info
-            card_mod:
-              style: *lights_button_style
+            styles: &lights_switch_button_styles
+              card:
+                - min-height: 42px
+                - border-radius: 17px
+                - padding: 5px 8px 6px
+                - border: |
+                    [[[
+                      return entity && entity.state === 'on'
+                        ? '1px solid rgba(245, 158, 11, 0.28)'
+                        : '1px solid rgba(148, 163, 184, 0.12)';
+                    ]]]
+                - background: |
+                    [[[
+                      return entity && entity.state === 'on'
+                        ? 'linear-gradient(180deg, rgba(254, 243, 199, 0.24), rgba(251, 191, 36, 0.10))'
+                        : 'rgba(15, 23, 42, 0.30)';
+                    ]]]
+                - box-shadow: |
+                    [[[
+                      return entity && entity.state === 'on'
+                        ? 'inset 0 1px 0 rgba(255, 255, 255, 0.12), 0 7px 14px rgba(245, 158, 11, 0.07)'
+                        : 'none';
+                    ]]]
+              grid:
+                - grid-template-areas: '"n" "l"'
+                - grid-template-columns: 1fr
+                - grid-template-rows: min-content min-content
+                - row-gap: 1px
+                - align-content: center
+                - justify-items: start
+              name:
+                - justify-self: start
+                - color: '#f8fafc'
+                - font-size: 12px
+                - font-weight: 740
+                - line-height: 1.12
+                - text-align: left
+              label:
+                - justify-self: start
+                - color: '#cbd5e1'
+                - font-size: 10px
+                - font-weight: 500
+                - line-height: 1.12
+                - text-align: left
 
       - type: custom:mushroom-title-card
         title: Wynn's Room
@@ -7546,28 +7612,40 @@ views:
                 use_light_color: false
                 card_mod:
                   style: *lights_button_style
-              - type: custom:mushroom-template-card
+              - type: custom:button-card
                 entity: switch.exterior_mud_room_stairs
-                primary: Exterior Stairs
-                secondary: >-
-                  {{ 'On' if is_state('switch.exterior_mud_room_stairs', 'on') else 'Off' }}
+                name: Exterior Stairs
+                label: |
+                  [[[
+                    if (!entity) return 'Unavailable';
+                    if (entity.state === 'on') return 'On';
+                    if (entity.state === 'off') return 'Off';
+                    return entity.state;
+                  ]]]
+                show_icon: false
+                show_label: true
                 tap_action:
                   action: toggle
                 hold_action:
                   action: more-info
-                card_mod:
-                  style: *lights_button_style
-              - type: custom:mushroom-template-card
+                styles: *lights_switch_button_styles
+              - type: custom:button-card
                 entity: switch.garage_garage_lights
-                primary: Garage Light
-                secondary: >-
-                  {{ 'On' if is_state('switch.garage_garage_lights', 'on') else 'Off' }}
+                name: Garage Light
+                label: |
+                  [[[
+                    if (!entity) return 'Unavailable';
+                    if (entity.state === 'on') return 'On';
+                    if (entity.state === 'off') return 'Off';
+                    return entity.state;
+                  ]]]
+                show_icon: false
+                show_label: true
                 tap_action:
                   action: toggle
                 hold_action:
                   action: more-info
-                card_mod:
-                  style: *lights_button_style
+                styles: *lights_switch_button_styles
 
   - title: Water
     path: water

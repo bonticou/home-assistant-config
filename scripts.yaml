@@ -204,7 +204,7 @@ foyer_chandelier_toggle:
 
 common_areas_transition_toggle:
   alias: Common Areas Transition Toggle
-  description: Toggle the common area lights while letting the foyer chandelier use its bespoke fade.
+  description: Toggle the non-foyer common area lights.
   icon: mdi:home-lightbulb-outline
   mode: restart
   sequence:
@@ -216,14 +216,40 @@ common_areas_transition_toggle:
             - action: light.turn_off
               data:
                 entity_id:
-                  - light.front_foyer_ceiling_lights
-                  - light.stairs_front_stairs
                   - light.back_stairs_back_stairs
                   - light.upstairs_hallway_main_lights
-                  - light.vestibule_main_lights
                   - light.mudroom_main_lights
                   - light.mudroom_nook_lights
                   - light.back_patio_light
+                transition: 3
+      default:
+        - action: light.turn_on
+          data:
+            entity_id:
+              - light.back_stairs_back_stairs
+              - light.upstairs_hallway_main_lights
+              - light.mudroom_main_lights
+              - light.mudroom_nook_lights
+              - light.back_patio_light
+            transition: 3
+
+foyer_transition_toggle:
+  alias: Foyer Transition Toggle
+  description: Toggle the foyer lights while letting the chandelier use its bespoke fade.
+  icon: mdi:chandelier
+  mode: restart
+  sequence:
+    - choose:
+        - conditions:
+            - condition: template
+              value_template: "{{ is_state('light.foyer', 'on') }}"
+          sequence:
+            - action: light.turn_off
+              data:
+                entity_id:
+                  - light.front_foyer_ceiling_lights
+                  - light.stairs_front_stairs
+                  - light.vestibule_main_lights
                 transition: 3
             - action: script.turn_on
               target:
@@ -238,12 +264,7 @@ common_areas_transition_toggle:
             entity_id:
               - light.front_foyer_ceiling_lights
               - light.stairs_front_stairs
-              - light.back_stairs_back_stairs
-              - light.upstairs_hallway_main_lights
               - light.vestibule_main_lights
-              - light.mudroom_main_lights
-              - light.mudroom_nook_lights
-              - light.back_patio_light
             transition: 3
         - action: script.turn_on
           target:
