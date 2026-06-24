@@ -7103,21 +7103,6 @@ views:
             use_light_color: false
             card_mod:
               style: *lights_button_style
-          - type: custom:mushroom-light-card
-            entity: light.back_patio_light
-            name: Back Patio
-            icon: mdi:circle
-            tap_action:
-              <<: *lights_transition_tap_action
-              data:
-                light_entity: light.back_patio_light
-                transition_seconds: 3
-            show_brightness_control: true
-            collapsible_controls: true
-            use_light_color: false
-            card_mod:
-              style: *lights_button_style
-
       - type: custom:mushroom-title-card
         title: Foyer
 
@@ -7536,7 +7521,7 @@ views:
       - type: vertical-stack
         cards:
           - type: custom:mushroom-title-card
-            title: Mudroom & Garage
+            title: Mudroom, etc.
 
           - type: custom:mushroom-light-card
             entity: light.mudroom
@@ -7581,6 +7566,20 @@ views:
                   <<: *lights_transition_tap_action
                   data:
                     light_entity: light.mudroom_nook_lights
+                    transition_seconds: 3
+                show_brightness_control: true
+                collapsible_controls: true
+                use_light_color: false
+                card_mod:
+                  style: *lights_button_style
+              - type: custom:mushroom-light-card
+                entity: light.back_patio_light
+                name: Back Patio
+                icon: mdi:circle
+                tap_action:
+                  <<: *lights_transition_tap_action
+                  data:
+                    light_entity: light.back_patio_light
                     transition_seconds: 3
                 show_brightness_control: true
                 collapsible_controls: true
