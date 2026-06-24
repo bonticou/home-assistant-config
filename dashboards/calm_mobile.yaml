@@ -7081,34 +7081,19 @@ views:
               --md-slider-inactive-track-height: 4px;
             }
 
-      - type: custom:mushroom-light-card
-        entity: light.foyer
-        name: Foyer
-        icon: mdi:circle
-        tap_action:
-          action: perform-action
-          perform_action: script.foyer_transition_toggle
-        show_brightness_control: true
-        show_color_temp_control: false
-        collapsible_controls: true
-        use_light_color: false
-        fill_container: true
-        card_mod:
-          style: *lights_group_button_style
-
       - type: grid
         columns: 2
         square: false
         cards:
           - type: custom:mushroom-light-card
-            entity: light.front_foyer_ceiling_lights
-            name: Foyer Ceiling
+            entity: light.back_stairs_back_stairs
+            name: Back Stairs
             icon: mdi:circle
             tap_action: &lights_transition_tap_action
               action: perform-action
               perform_action: script.light_transition_toggle
               data:
-                light_entity: light.front_foyer_ceiling_lights
+                light_entity: light.back_stairs_back_stairs
                 transition_seconds: 3
             show_brightness_control: true
             collapsible_controls: true
@@ -7150,6 +7135,56 @@ views:
                   --md-slider-inactive-track-height: 4px;
                 }
           - type: custom:mushroom-light-card
+            entity: light.upstairs_hallway_main_lights
+            name: Upstairs Hall
+            icon: mdi:circle
+            tap_action:
+              <<: *lights_transition_tap_action
+              data:
+                light_entity: light.upstairs_hallway_main_lights
+                transition_seconds: 3
+            show_brightness_control: true
+            collapsible_controls: true
+            use_light_color: false
+            card_mod:
+              style: *lights_button_style
+          - type: custom:mushroom-light-card
+            entity: light.back_patio_light
+            name: Back Patio
+            icon: mdi:circle
+            tap_action:
+              <<: *lights_transition_tap_action
+              data:
+                light_entity: light.back_patio_light
+                transition_seconds: 3
+            show_brightness_control: true
+            collapsible_controls: true
+            use_light_color: false
+            card_mod:
+              style: *lights_button_style
+
+      - type: custom:mushroom-title-card
+        title: Foyer
+
+      - type: grid
+        columns: 2
+        square: false
+        cards:
+          - type: custom:mushroom-light-card
+            entity: light.front_foyer_ceiling_lights
+            name: Foyer Ceiling
+            icon: mdi:circle
+            tap_action:
+              <<: *lights_transition_tap_action
+              data:
+                light_entity: light.front_foyer_ceiling_lights
+                transition_seconds: 3
+            show_brightness_control: true
+            collapsible_controls: true
+            use_light_color: false
+            card_mod:
+              style: *lights_button_style
+          - type: custom:mushroom-light-card
             entity: light.front_foyer_chandelier
             name: Chandelier
             icon: mdi:circle
@@ -7183,53 +7218,6 @@ views:
               <<: *lights_transition_tap_action
               data:
                 light_entity: light.vestibule_main_lights
-                transition_seconds: 3
-            show_brightness_control: true
-            collapsible_controls: true
-            use_light_color: false
-            card_mod:
-              style: *lights_button_style
-
-      - type: grid
-        columns: 2
-        square: false
-        cards:
-          - type: custom:mushroom-light-card
-            entity: light.back_stairs_back_stairs
-            name: Back Stairs
-            icon: mdi:circle
-            tap_action:
-              <<: *lights_transition_tap_action
-              data:
-                light_entity: light.back_stairs_back_stairs
-                transition_seconds: 3
-            show_brightness_control: true
-            collapsible_controls: true
-            use_light_color: false
-            card_mod:
-              style: *lights_button_style
-          - type: custom:mushroom-light-card
-            entity: light.upstairs_hallway_main_lights
-            name: Upstairs Hall
-            icon: mdi:circle
-            tap_action:
-              <<: *lights_transition_tap_action
-              data:
-                light_entity: light.upstairs_hallway_main_lights
-                transition_seconds: 3
-            show_brightness_control: true
-            collapsible_controls: true
-            use_light_color: false
-            card_mod:
-              style: *lights_button_style
-          - type: custom:mushroom-light-card
-            entity: light.back_patio_light
-            name: Back Patio
-            icon: mdi:circle
-            tap_action:
-              <<: *lights_transition_tap_action
-              data:
-                light_entity: light.back_patio_light
                 transition_seconds: 3
             show_brightness_control: true
             collapsible_controls: true

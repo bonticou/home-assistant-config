@@ -2,19 +2,15 @@
   name: Interior (Test)
   unique_id: interior_test_group
   entities:
-    - light.back_stairs_back_stairs
-    - light.upstairs_hallway_main_lights
-    - light.mudroom_main_lights
-    - light.mudroom_nook_lights
-    - light.back_patio_light
-- platform: group
-  name: Foyer
-  unique_id: foyer_group
-  entities:
     - light.front_foyer_ceiling_lights
     - light.front_foyer_chandelier
     - light.stairs_front_stairs
+    - light.back_stairs_back_stairs
+    - light.upstairs_hallway_main_lights
     - light.vestibule_main_lights
+    - light.mudroom_main_lights
+    - light.mudroom_nook_lights
+    - light.back_patio_light
 - platform: group
   name: Mudroom
   unique_id: mudroom_group
