@@ -7036,51 +7036,6 @@ views:
       - type: custom:mushroom-title-card
         title: Common areas
 
-      - type: custom:mushroom-light-card
-        entity: light.interior_test
-        name: Common areas
-        icon: mdi:circle
-        tap_action:
-          action: perform-action
-          perform_action: script.common_areas_transition_toggle
-        show_brightness_control: true
-        show_color_temp_control: false
-        collapsible_controls: true
-        use_light_color: false
-        fill_container: true
-        card_mod:
-          style: &lights_group_button_style |
-            ha-card {
-              min-height: {% if is_state(config.entity, 'on') %}64px{% else %}42px{% endif %};
-              border-radius: 18px;
-              padding: 5px 10px 6px;
-              border: 1px solid {% if is_state(config.entity, 'on') %}rgba(245, 158, 11, 0.32){% else %}rgba(148, 163, 184, 0.14){% endif %};
-              background: {% if is_state(config.entity, 'on') %}linear-gradient(180deg, rgba(254, 243, 199, 0.28), rgba(251, 191, 36, 0.12)){% else %}rgba(15, 23, 42, 0.36){% endif %};
-              box-shadow: {% if is_state(config.entity, 'on') %}inset 0 1px 0 rgba(255, 255, 255, 0.14), 0 7px 16px rgba(245, 158, 11, 0.08){% else %}none{% endif %};
-            }
-            mushroom-state-item {
-              --shape-size: 0px;
-              --icon-size: 0px;
-            }
-            mushroom-shape-icon {
-              display: none;
-            }
-            mushroom-state-info {
-              --card-primary-font-size: 13px;
-              --card-primary-font-weight: 760;
-              --card-secondary-font-size: 11px;
-            }
-            mushroom-light-brightness-control {
-              --control-height: 18px;
-              margin-top: 4px;
-            }
-            mushroom-light-brightness-control mushroom-slider,
-            mushroom-light-brightness-control ha-slider {
-              --main-height: 4px;
-              --md-slider-active-track-height: 4px;
-              --md-slider-inactive-track-height: 4px;
-            }
-
       - type: grid
         columns: 2
         square: false
@@ -7243,7 +7198,37 @@ views:
         use_light_color: false
         fill_container: true
         card_mod:
-          style: *lights_group_button_style
+          style: &lights_group_button_style |
+            ha-card {
+              min-height: {% if is_state(config.entity, 'on') %}64px{% else %}42px{% endif %};
+              border-radius: 18px;
+              padding: 5px 10px 6px;
+              border: 1px solid {% if is_state(config.entity, 'on') %}rgba(245, 158, 11, 0.32){% else %}rgba(148, 163, 184, 0.14){% endif %};
+              background: {% if is_state(config.entity, 'on') %}linear-gradient(180deg, rgba(254, 243, 199, 0.28), rgba(251, 191, 36, 0.12)){% else %}rgba(15, 23, 42, 0.36){% endif %};
+              box-shadow: {% if is_state(config.entity, 'on') %}inset 0 1px 0 rgba(255, 255, 255, 0.14), 0 7px 16px rgba(245, 158, 11, 0.08){% else %}none{% endif %};
+            }
+            mushroom-state-item {
+              --shape-size: 0px;
+              --icon-size: 0px;
+            }
+            mushroom-shape-icon {
+              display: none;
+            }
+            mushroom-state-info {
+              --card-primary-font-size: 13px;
+              --card-primary-font-weight: 760;
+              --card-secondary-font-size: 11px;
+            }
+            mushroom-light-brightness-control {
+              --control-height: 18px;
+              margin-top: 4px;
+            }
+            mushroom-light-brightness-control mushroom-slider,
+            mushroom-light-brightness-control ha-slider {
+              --main-height: 4px;
+              --md-slider-active-track-height: 4px;
+              --md-slider-inactive-track-height: 4px;
+            }
 
       - type: grid
         columns: 2
@@ -7412,9 +7397,11 @@ views:
               action: more-info
             styles: &lights_switch_button_styles
               card:
-                - min-height: 42px
+                - height: 70px
+                - min-height: 70px
                 - border-radius: 17px
-                - padding: 5px 8px 6px
+                - padding: 0 12px 0 64px
+                - box-sizing: border-box
                 - border: |
                     [[[
                       return entity && entity.state === 'on'
@@ -7437,7 +7424,7 @@ views:
                 - grid-template-areas: '"n" "l"'
                 - grid-template-columns: 1fr
                 - grid-template-rows: min-content min-content
-                - row-gap: 1px
+                - row-gap: 3px
                 - align-content: center
                 - justify-items: start
               name:
