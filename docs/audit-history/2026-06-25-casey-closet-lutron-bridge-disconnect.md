@@ -68,7 +68,7 @@ quiet auto-off.
 - `git diff --check` passed.
 - Python/PyYAML parsing was not available in the local environment because the
   `yaml` module was not installed.
-- Live config deployment was attempted but did not complete:
+- First live config deployment attempt did not complete:
   - the File Editor page initially mounted with `hass.connected: true`;
   - the standard browser deploy helper reached the File Editor ingress path but
     received `401 Unauthorized` from `api/save`;
@@ -79,18 +79,26 @@ quiet auto-off.
   timeout to the Remote UI host.
 - Local `homeassistant.local:8123` probe at 8:34 AM showed DNS and TCP success
   but HTTP and websocket timeout.
+- A later local File Editor deploy attempt succeeded far enough to write
+  `/homeassistant/automations/10-lighting-security.yaml`, read it back with the
+  expected SHA-256, and run a valid Home Assistant config check with no errors
+  or warnings.
+- Automation reload and loaded-config verification were not conclusively
+  recorded because the browser helper remained in `reloading`, then local
+  Home Assistant HTTP/websocket probes timed out again at 9:43 AM.
 
 ## Deployment Status
 
-Not deployed as of this entry. Local repo fix is ready, but live Home Assistant
-was unreachable/unreliable over both the Remote UI and local HTTP/websocket
-paths during deployment.
+Partially deployed as of this entry. The live automation file was written and
+read back successfully, and HA config check was valid. Automation reload and
+live loaded-config verification remain unconfirmed because Home Assistant became
+unresponsive again over HTTP/websocket during the reload/verification step.
 
 ## Residual Risks And Next Follow-Ups
 
-- Deploy `automations/10-lighting-security.yaml` when Home Assistant access
-  recovers, then run HA config check, `automation.reload`, and live config
-  verification for `casey_closet_auto_off`.
+- When Home Assistant access stabilizes, run `automation.reload` again if
+  needed and verify the live `casey_closet_auto_off` config contains the retry
+  loop.
 - If another walk-in fails after this retry hardening is live, inspect Lutron
   bridge connectivity and Home Assistant system logs around the failure window.
 - Consider adding a direct physical closet door/contact trigger or another
