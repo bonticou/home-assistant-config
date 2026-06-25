@@ -1064,6 +1064,10 @@
           {{ current_due_date not in ['unknown', 'unavailable', 'none', '']
              and last_notified not in ['unknown', 'unavailable', 'none', '']
              and last_notified[:10] >= current_due_date }}
+        due_cycle_opened_on_weekend: >-
+          {{ current_due_date not in ['unknown', 'unavailable', 'none', '']
+             and current_due_date <= today
+             and strptime(current_due_date, '%Y-%m-%d').weekday() in [5, 6] }}
         last_notified_weekend_current_cycle: >-
           {% set last_ts = as_timestamp(last_notified, 0) %}
           {{ last_notified_current_cycle | bool
@@ -1088,6 +1092,7 @@
              and not (last_notified_weekend_current_cycle | bool) }}
         notification_policy_allowed: >-
           {{ weekend_now | bool
+             or due_cycle_opened_on_weekend | bool
              or snoozed_from_weekend_alert | bool
              or away_weekend_deferral_active | bool }}
         trigger_allowed: >-

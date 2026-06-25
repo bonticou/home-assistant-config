@@ -2812,7 +2812,9 @@ template:
             {% set ts = as_timestamp(states('input_datetime.espresso_last_water_backflush'), 0) %}
             {% if ts > 0 %}
               {% set last_date = ts | timestamp_custom('%Y-%m-%d', true) %}
-              {{ (strptime(last_date, '%Y-%m-%d') + timedelta(days=7)).strftime('%Y-%m-%d') }}
+              {% set ready = strptime(last_date, '%Y-%m-%d') + timedelta(days=7) %}
+              {% set weekend_offset = 5 - ready.weekday() if ready.weekday() < 5 else -1 if ready.weekday() == 6 else 0 %}
+              {{ (ready + timedelta(days=weekend_offset)).strftime('%Y-%m-%d') }}
             {% else %}
               {{ '' }}
             {% endif %}
@@ -2820,15 +2822,29 @@ template:
             {% set ts = as_timestamp(states('input_datetime.espresso_last_cafiza_clean'), 0) %}
             {% if ts > 0 %}
               {% set last_date = ts | timestamp_custom('%Y-%m-%d', true) %}
-              {{ (strptime(last_date, '%Y-%m-%d') + timedelta(days=60)).strftime('%Y-%m-%d') }}
+              {% set due = strptime(last_date, '%Y-%m-%d') + timedelta(days=60) %}
+              {% set weekend_offset = 5 - due.weekday() if due.weekday() < 5 else -1 if due.weekday() == 6 else 0 %}
+              {{ (due + timedelta(days=weekend_offset)).strftime('%Y-%m-%d') }}
             {% else %}
               {{ '' }}
             {% endif %}
           next_due_date: >
             {% set water_ts = as_timestamp(states('input_datetime.espresso_last_water_backflush'), 0) %}
             {% set cafiza_ts = as_timestamp(states('input_datetime.espresso_last_cafiza_clean'), 0) %}
-            {% set water_date = (strptime(water_ts | timestamp_custom('%Y-%m-%d', true), '%Y-%m-%d') + timedelta(days=7)).strftime('%Y-%m-%d') if water_ts > 0 else '' %}
-            {% set cafiza_date = (strptime(cafiza_ts | timestamp_custom('%Y-%m-%d', true), '%Y-%m-%d') + timedelta(days=60)).strftime('%Y-%m-%d') if cafiza_ts > 0 else '' %}
+            {% if water_ts > 0 %}
+              {% set water_raw = strptime(water_ts | timestamp_custom('%Y-%m-%d', true), '%Y-%m-%d') + timedelta(days=7) %}
+              {% set water_offset = 5 - water_raw.weekday() if water_raw.weekday() < 5 else -1 if water_raw.weekday() == 6 else 0 %}
+              {% set water_date = (water_raw + timedelta(days=water_offset)).strftime('%Y-%m-%d') %}
+            {% else %}
+              {% set water_date = '' %}
+            {% endif %}
+            {% if cafiza_ts > 0 %}
+              {% set cafiza_raw = strptime(cafiza_ts | timestamp_custom('%Y-%m-%d', true), '%Y-%m-%d') + timedelta(days=60) %}
+              {% set cafiza_offset = 5 - cafiza_raw.weekday() if cafiza_raw.weekday() < 5 else -1 if cafiza_raw.weekday() == 6 else 0 %}
+              {% set cafiza_date = (cafiza_raw + timedelta(days=cafiza_offset)).strftime('%Y-%m-%d') %}
+            {% else %}
+              {% set cafiza_date = '' %}
+            {% endif %}
             {% set dates = ([water_date, cafiza_date] | reject('eq', '') | list | sort) %}
             {{ dates[0] if dates | count > 0 else '' }}
           due_kind: >
@@ -2848,7 +2864,8 @@ template:
           weekend_gate_at: >
             {% set value = states('input_datetime.espresso_maintenance_weekend_gate_at') %}
             {{ value if value not in ['unknown', 'unavailable', 'none', ''] else '' }}
-          notification_policy: Weekend first; weekday only after a snoozed weekend alert or an away-weekend deferral.
+          due_policy: Interval dates open on Saturday; weekday dates roll forward and Sunday dates pull back one day.
+          notification_policy: Weekend first; weekday only after a weekend-originated cycle remains open.
           notification_window_start: "06:00"
           notification_window_end: "12:00"
 
@@ -3845,11 +3862,19 @@ template:
             {% set cafiza_last = as_timestamp(states('input_datetime.espresso_last_cafiza_clean'), 0) %}
             {% if water_last > 0 %}
               {% set water_last_date = water_last | timestamp_custom('%Y-%m-%d', true) %}
-              {% set water_next = (strptime(water_last_date, '%Y-%m-%d') + timedelta(days=7)).strftime('%Y-%m-%d') %}
+              {% set water_raw = strptime(water_last_date, '%Y-%m-%d') + timedelta(days=7) %}
+              {% set water_offset = 5 - water_raw.weekday() if water_raw.weekday() < 5 else -1 if water_raw.weekday() == 6 else 0 %}
+              {% set water_next = (water_raw + timedelta(days=water_offset)).strftime('%Y-%m-%d') %}
             {% else %}
               {% set water_next = '' %}
             {% endif %}
-            {% set cafiza_next = (strptime(cafiza_last | timestamp_custom('%Y-%m-%d', true), '%Y-%m-%d') + timedelta(days=60)).strftime('%Y-%m-%d') if cafiza_last > 0 else '' %}
+            {% if cafiza_last > 0 %}
+              {% set cafiza_raw = strptime(cafiza_last | timestamp_custom('%Y-%m-%d', true), '%Y-%m-%d') + timedelta(days=60) %}
+              {% set cafiza_offset = 5 - cafiza_raw.weekday() if cafiza_raw.weekday() < 5 else -1 if cafiza_raw.weekday() == 6 else 0 %}
+              {% set cafiza_next = (cafiza_raw + timedelta(days=cafiza_offset)).strftime('%Y-%m-%d') %}
+            {% else %}
+              {% set cafiza_next = '' %}
+            {% endif %}
             {% set wine_filter = states('sensor.wine_cave_next_charcoal_filter_due') %}
             {% set wine_clean = states('sensor.wine_cave_next_cleaning_due') %}
             {% set robison_tune = now().year ~ '-03-25' %}
@@ -3904,11 +3929,19 @@ template:
             {% set cafiza_last = as_timestamp(states('input_datetime.espresso_last_cafiza_clean'), 0) %}
             {% if water_last > 0 %}
               {% set water_last_date = water_last | timestamp_custom('%Y-%m-%d', true) %}
-              {% set water_next = (strptime(water_last_date, '%Y-%m-%d') + timedelta(days=7)).strftime('%Y-%m-%d') %}
+              {% set water_raw = strptime(water_last_date, '%Y-%m-%d') + timedelta(days=7) %}
+              {% set water_offset = 5 - water_raw.weekday() if water_raw.weekday() < 5 else -1 if water_raw.weekday() == 6 else 0 %}
+              {% set water_next = (water_raw + timedelta(days=water_offset)).strftime('%Y-%m-%d') %}
             {% else %}
               {% set water_next = '' %}
             {% endif %}
-            {% set cafiza_next = (strptime(cafiza_last | timestamp_custom('%Y-%m-%d', true), '%Y-%m-%d') + timedelta(days=60)).strftime('%Y-%m-%d') if cafiza_last > 0 else '' %}
+            {% if cafiza_last > 0 %}
+              {% set cafiza_raw = strptime(cafiza_last | timestamp_custom('%Y-%m-%d', true), '%Y-%m-%d') + timedelta(days=60) %}
+              {% set cafiza_offset = 5 - cafiza_raw.weekday() if cafiza_raw.weekday() < 5 else -1 if cafiza_raw.weekday() == 6 else 0 %}
+              {% set cafiza_next = (cafiza_raw + timedelta(days=cafiza_offset)).strftime('%Y-%m-%d') %}
+            {% else %}
+              {% set cafiza_next = '' %}
+            {% endif %}
             {% set robison_tune = now().year ~ '-03-25' %}
             {% set robison_price = now().year ~ '-08-20' %}
             {% set ns = namespace(dates=[]) %}
@@ -4204,11 +4237,19 @@ template:
             {% set cafiza_last = as_timestamp(states('input_datetime.espresso_last_cafiza_clean'), 0) %}
             {% if water_last > 0 %}
               {% set water_last_date = water_last | timestamp_custom('%Y-%m-%d', true) %}
-              {% set water_due = (strptime(water_last_date, '%Y-%m-%d') + timedelta(days=7)).strftime('%Y-%m-%d') %}
+              {% set water_raw = strptime(water_last_date, '%Y-%m-%d') + timedelta(days=7) %}
+              {% set water_offset = 5 - water_raw.weekday() if water_raw.weekday() < 5 else -1 if water_raw.weekday() == 6 else 0 %}
+              {% set water_due = (water_raw + timedelta(days=water_offset)).strftime('%Y-%m-%d') %}
             {% else %}
               {% set water_due = '' %}
             {% endif %}
-            {% set cafiza_due = (strptime(cafiza_last | timestamp_custom('%Y-%m-%d', true), '%Y-%m-%d') + timedelta(days=60)).strftime('%Y-%m-%d') if cafiza_last > 0 else '' %}
+            {% if cafiza_last > 0 %}
+              {% set cafiza_raw = strptime(cafiza_last | timestamp_custom('%Y-%m-%d', true), '%Y-%m-%d') + timedelta(days=60) %}
+              {% set cafiza_offset = 5 - cafiza_raw.weekday() if cafiza_raw.weekday() < 5 else -1 if cafiza_raw.weekday() == 6 else 0 %}
+              {% set cafiza_due = (cafiza_raw + timedelta(days=cafiza_offset)).strftime('%Y-%m-%d') %}
+            {% else %}
+              {% set cafiza_due = '' %}
+            {% endif %}
             {% set espresso_dates = ([water_due, cafiza_due] | reject('eq', '') | list | sort) %}
             {% if is_state('input_boolean.espresso_maintenance_enabled', 'on') and espresso_dates | count > 0 %}
               {% set espresso_actions = [] %}
@@ -5148,7 +5189,9 @@ template:
             false
           {% else %}
             {% set last_date = last_ts | timestamp_custom('%Y-%m-%d', true) %}
-            {% set ready_date = (strptime(last_date, '%Y-%m-%d') + timedelta(days=7)).strftime('%Y-%m-%d') %}
+            {% set ready_raw = strptime(last_date, '%Y-%m-%d') + timedelta(days=7) %}
+            {% set weekend_offset = 5 - ready_raw.weekday() if ready_raw.weekday() < 5 else -1 if ready_raw.weekday() == 6 else 0 %}
+            {% set ready_date = (ready_raw + timedelta(days=weekend_offset)).strftime('%Y-%m-%d') %}
             {{ now().strftime('%Y-%m-%d') >= ready_date }}
           {% endif %}
         icon: >
@@ -5163,7 +5206,9 @@ template:
             false
           {% else %}
             {% set last_date = last_ts | timestamp_custom('%Y-%m-%d', true) %}
-            {% set due_date = (strptime(last_date, '%Y-%m-%d') + timedelta(days=60)).strftime('%Y-%m-%d') %}
+            {% set due_raw = strptime(last_date, '%Y-%m-%d') + timedelta(days=60) %}
+            {% set weekend_offset = 5 - due_raw.weekday() if due_raw.weekday() < 5 else -1 if due_raw.weekday() == 6 else 0 %}
+            {% set due_date = (due_raw + timedelta(days=weekend_offset)).strftime('%Y-%m-%d') %}
             {{ now().strftime('%Y-%m-%d') >= due_date }}
           {% endif %}
         icon: >
