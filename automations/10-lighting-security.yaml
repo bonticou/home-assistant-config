@@ -528,11 +528,19 @@
               entity_id: light.master_casey_s_closet
               state: "off"
           sequence:
-            - action: light.turn_on
-              target:
-                entity_id: light.master_casey_s_closet
-              data:
-                brightness_pct: "{{ closet_brightness_pct }}"
+            - repeat:
+                count: 4
+                sequence:
+                  - condition: template
+                    value_template: "{{ not is_state('light.master_casey_s_closet', 'on') }}"
+                  - action: light.turn_on
+                    continue_on_error: true
+                    target:
+                      entity_id: light.master_casey_s_closet
+                    data:
+                      brightness_pct: "{{ closet_brightness_pct }}"
+                  - delay:
+                      seconds: 2
         - conditions:
             - condition: trigger
               id: quiet
@@ -541,6 +549,7 @@
               state: "on"
           sequence:
             - action: light.turn_off
+              continue_on_error: true
               target:
                 entity_id: light.master_casey_s_closet
               data:
@@ -559,6 +568,7 @@
                 {{ changed is not none and (now() - changed).total_seconds() >= 12 * 60 }}
           sequence:
             - action: light.turn_off
+              continue_on_error: true
               target:
                 entity_id: light.master_casey_s_closet
               data:
