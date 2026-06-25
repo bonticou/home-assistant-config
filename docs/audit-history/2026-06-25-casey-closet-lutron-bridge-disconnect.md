@@ -86,19 +86,26 @@ quiet auto-off.
 - Automation reload and loaded-config verification were not conclusively
   recorded because the browser helper remained in `reloading`, then local
   Home Assistant HTTP/websocket probes timed out again at 9:43 AM.
+- After Safari/Nabu access recovered, a targeted `automation.reload` completed
+  successfully.
+- Live `casey_closet_auto_off` config verification confirmed the retry loop was
+  loaded:
+  - `repeat` present;
+  - `count: 4` present;
+  - `continue_on_error: true` present.
+- Lutron live-state verification showed:
+  - `light.master_casey_s_closet` available and `off`;
+  - `device_tracker.lutron_06926f09` state `home`;
+  - `switch.unassigned_smart_away` available and `off`.
 
 ## Deployment Status
 
-Partially deployed as of this entry. The live automation file was written and
-read back successfully, and HA config check was valid. Automation reload and
-live loaded-config verification remain unconfirmed because Home Assistant became
-unresponsive again over HTTP/websocket during the reload/verification step.
+Deployed and verified. The live automation file was written and read back
+successfully, HA config check was valid, `automation.reload` succeeded, and the
+loaded `casey_closet_auto_off` config contains the retry hardening.
 
 ## Residual Risks And Next Follow-Ups
 
-- When Home Assistant access stabilizes, run `automation.reload` again if
-  needed and verify the live `casey_closet_auto_off` config contains the retry
-  loop.
 - If another walk-in fails after this retry hardening is live, inspect Lutron
   bridge connectivity and Home Assistant system logs around the failure window.
 - Consider adding a direct physical closet door/contact trigger or another
