@@ -34,6 +34,17 @@ quiet auto-off.
 - The prior quiet-off run at 8:12:32 AM also showed a service-level failure
   (`TimeoutError`) while calling `light.turn_off`, which is consistent with a
   flaky Lutron bridge/integration path rather than bad motion logic.
+- Follow-up history review from 7:00-10:10 AM showed the Lutron hub's UniFi
+  tracker was only `unavailable` from 7:22:33 AM to 7:22:47 AM, about 15
+  seconds, and then returned to `home`. That brief tracker gap aligned with a
+  Home Assistant starting event and did not overlap the 8:17 AM failed closet
+  turn-on.
+- Representative Lutron control entities did not show a broad `unavailable`
+  period in Recorder history during the 8:12-8:17 AM command failures.
+- The Lutron/Caseta config entry was `loaded` when checked later, and HA live
+  state showed the Lutron hub tracker `home`.
+- No matching Lutron/Caseta/bridge lines were found in HA's system-log surface
+  during the follow-up check.
 - The Safari Home Assistant shell was stale/disconnected during the
   investigation, so live API/history/websocket reads were treated as the source
   of truth instead of frontend state.
@@ -47,7 +58,14 @@ quiet auto-off.
    called `light.turn_on`.
 3. Medium-high confidence: this was not caused by the YAML conditions, disabled
    automation, motion sensitivity, or a stale entity reference.
-4. Medium confidence: short service retries are an appropriate minimal
+4. Medium-high confidence: the bridge was not offline at the LAN-presence layer
+   during the failed 8:17 AM turn-on. The evidence points instead to a transient
+   Lutron integration/bridge command-session failure inside HA or between HA
+   and the bridge.
+5. Medium confidence: the command path was degraded for at least the interval
+   from 8:12:32 AM to 8:17:26 AM, about 4 minutes 54 seconds. The exact recovery
+   moment was not captured by a later successful command in that window.
+6. Medium confidence: short service retries are an appropriate minimal
    hardening step for momentary bridge disconnects, but they cannot fix a
    bridge that remains disconnected for an extended period.
 
@@ -97,6 +115,11 @@ quiet auto-off.
   - `light.master_casey_s_closet` available and `off`;
   - `device_tracker.lutron_06926f09` state `home`;
   - `switch.unassigned_smart_away` available and `off`.
+- Follow-up outage-duration check showed:
+  - network tracker unavailable only from 7:22:33 AM to 7:22:47 AM;
+  - command/service path degraded at least from 8:12:32 AM to 8:17:26 AM;
+  - no precise recovery timestamp for the command path was captured before the
+    later verified healthy state.
 
 ## Deployment Status
 
