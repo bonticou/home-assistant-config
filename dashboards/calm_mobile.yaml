@@ -189,7 +189,7 @@ views:
           entity: input_boolean.interior_lights_guest_override
           name: Guest lighting mode on
           label: Interior schedules are paused. Front door lights still run.
-          icon: mdi:account-group-outline
+          icon: mdi:home-clock-outline
           show_label: true
           show_state: false
           tap_action:
