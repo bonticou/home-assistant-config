@@ -1552,7 +1552,8 @@
     - condition: template
       value_template: >
         {{ trigger.event.data.action in [
-          'SNOOZE_AWAY_MOTION_SECURITY_30'
+          'SNOOZE_AWAY_MOTION_SECURITY_30',
+          'PAUSE_AWAY_MOTION_SECURITY_GUESTS'
         ] }}
   actions:
     - choose:
@@ -1561,6 +1562,11 @@
               value_template: "{{ trigger.event.data.action == 'SNOOZE_AWAY_MOTION_SECURITY_30' }}"
           sequence:
             - action: script.away_motion_security_snooze_30
+        - conditions:
+            - condition: template
+              value_template: "{{ trigger.event.data.action == 'PAUSE_AWAY_MOTION_SECURITY_GUESTS' }}"
+          sequence:
+            - action: script.away_motion_security_guest_stay_start
   mode: parallel
   max: 10
 
@@ -1609,6 +1615,10 @@
       value_template: >
         {{ is_state('binary_sensor.downstairs_everyone_away', 'on')
            and (as_timestamp(now()) - as_timestamp(states.binary_sensor.downstairs_everyone_away.last_changed, 0)) >= 300 }}
+    - condition: template
+      value_template: >
+        {{ is_state('input_boolean.away_motion_security_guest_stay', 'off')
+           and is_state('binary_sensor.away_motion_security_housekeeper_window', 'off') }}
     - condition: template
       value_template: >
         {% set snooze = states('input_datetime.away_motion_security_snooze_until') %}

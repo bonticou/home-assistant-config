@@ -7,9 +7,9 @@ A human-readable map of the Home Assistant device model. The full audit dump is 
 | Thing | Count |
 | --- | --- |
 | Devices | 216 |
-| Entities | 2167 |
-| Control entities | 746 |
-| Telemetry entities | 986 |
+| Entities | 2171 |
+| Control entities | 747 |
+| Telemetry entities | 987 |
 | Network clients | 129 |
 | Areas | 32 |
 
@@ -47,7 +47,7 @@ A human-readable map of the Home Assistant device model. The full audit dump is 
 | Mudroom | 8 | 43 | 2 | 54 | 3 |
 | Office | 2 | 7 | 0 | 4 | 0 |
 | Stairs | 1 | 1 | 1 | 0 | 0 |
-| Unassigned | 136 | 298 | 10 | 416 | 52 |
+| Unassigned | 136 | 299 | 10 | 417 | 52 |
 | Unnamed Room | 6 | 63 | 0 | 6 | 6 |
 | Upstairs Hallway | 1 | 1 | 1 | 0 | 0 |
 | Vestibule | 1 | 1 | 1 | 0 | 0 |

@@ -685,6 +685,9 @@ input_boolean:
   front_stairs_sleep_override:
     name: Front Stairs Sleep Override
     icon: mdi:stairs
+  away_motion_security_guest_stay:
+    name: Motion Watch Guest Stay
+    icon: mdi:home-account
   downstairs_pilot_enabled:
     name: Main Floor Pilot Enabled
     icon: mdi:home-thermometer-outline
@@ -4964,6 +4967,18 @@ template:
           {{ ting_risk and context_supports }}
         icon: >
           {{ 'mdi:snowflake-alert' if is_state('binary_sensor.ting_freeze_risk_watch', 'on') else 'mdi:snowflake-check' }}
+
+      - name: "Away Motion Security Housekeeper Window"
+        unique_id: away_motion_security_housekeeper_window
+        state: >
+          {% set minutes = now().hour * 60 + now().minute %}
+          {{ now().weekday() == 1 and minutes >= 465 and minutes < 900 }}
+        icon: >
+          {{ 'mdi:broom' if is_state('binary_sensor.away_motion_security_housekeeper_window', 'on') else 'mdi:motion-sensor' }}
+        attributes:
+          schedule: "Tuesdays 7:45 AM-3:00 PM"
+          expected_visit: "Usually Tuesdays 8:00 AM-2:30 PM"
+          resume_time: "{{ today_at('15:00:00').strftime('%Y-%m-%d %H:%M:%S') }}"
 
       - name: "away_security_garage_door_open"
         unique_id: away_security_garage_door_open

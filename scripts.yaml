@@ -4195,6 +4195,9 @@ away_motion_security_resume:
   icon: mdi:motion-sensor
   mode: restart
   sequence:
+    - action: input_boolean.turn_off
+      target:
+        entity_id: input_boolean.away_motion_security_guest_stay
     - action: input_datetime.set_datetime
       target:
         entity_id: input_datetime.away_motion_security_snooze_until
@@ -4202,28 +4205,49 @@ away_motion_security_resume:
         datetime: "{{ (now() - timedelta(minutes=1)).strftime('%Y-%m-%d %H:%M:%S') }}"
     - action: script.away_motion_security_clear_alert
 
+away_motion_security_guest_stay_start:
+  alias: Away Motion Security Guest Stay Start
+  description: Pauses away motion security while expected house guests are staying, until Trevor or Casey returns.
+  icon: mdi:home-account
+  mode: restart
+  sequence:
+    - action: input_boolean.turn_on
+      target:
+        entity_id: input_boolean.away_motion_security_guest_stay
+    - action: script.away_motion_security_clear_alert
+
 away_motion_security_guest_toggle:
   alias: Away Motion Security Guest Toggle
-  description: Temporarily pauses or resumes away motion security for a sitter, cleaner, or other expected person inside while everyone is away.
+  description: Toggles the house-guest away motion security pause.
   icon: mdi:motion-sensor-off
   mode: restart
   sequence:
     - choose:
         - conditions:
-            - condition: template
-              value_template: >
-                {% set until = states('input_datetime.away_motion_security_snooze_until') %}
-                {{ until not in ['unknown', 'unavailable', '']
-                   and as_timestamp(until, 0) > as_timestamp(now()) }}
+            - condition: state
+              entity_id: input_boolean.away_motion_security_guest_stay
+              state: "on"
           sequence:
             - action: script.away_motion_security_resume
       default:
-        - action: input_datetime.set_datetime
-          target:
-            entity_id: input_datetime.away_motion_security_snooze_until
-          data:
-            datetime: "{{ (now() + timedelta(hours=4)).strftime('%Y-%m-%d %H:%M:%S') }}"
-        - action: script.away_motion_security_clear_alert
+        - action: script.away_motion_security_guest_stay_start
+
+away_motion_security_housekeeper_today:
+  alias: Away Motion Security Housekeeper Today
+  description: Pauses away motion security for today's expected housekeeper visit, with a conservative afternoon buffer.
+  icon: mdi:broom
+  mode: restart
+  sequence:
+    - variables:
+        resume_at: >-
+          {% set today_resume = today_at('15:00:00') %}
+          {{ (today_resume if now() < today_resume else now() + timedelta(hours=4)).strftime('%Y-%m-%d %H:%M:%S') }}
+    - action: input_datetime.set_datetime
+      target:
+        entity_id: input_datetime.away_motion_security_snooze_until
+      data:
+        datetime: "{{ resume_at }}"
+    - action: script.away_motion_security_clear_alert
 
 away_motion_security_snooze_30:
   alias: Away Motion Security Snooze 30 Minutes
@@ -4316,6 +4340,8 @@ away_motion_security_send_alert:
               uri: unifi-protect://
             - action: SNOOZE_AWAY_MOTION_SECURITY_30
               title: Sleep 30 min
+            - action: PAUSE_AWAY_MOTION_SECURITY_GUESTS
+              title: House guests
 
 away_security_snooze_30:
   alias: Away Security Snooze 30 Minutes
