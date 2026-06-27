@@ -182,6 +182,73 @@ views:
 
       - type: conditional
         conditions:
+          - entity: input_boolean.interior_lights_guest_override
+            state: "on"
+        card:
+          type: custom:button-card
+          entity: input_boolean.interior_lights_guest_override
+          name: Guest lighting mode on
+          label: Interior schedules are paused. Front door lights still run.
+          icon: mdi:account-group-outline
+          show_label: true
+          show_state: false
+          tap_action:
+            action: fire-dom-event
+            browser_mod:
+              service: browser_mod.popup
+              data:
+                popup_card_id: lights-overrides-popup
+          hold_action:
+            action: more-info
+          styles:
+            card:
+              - min-height: 50px
+              - padding: 9px 11px
+              - border-radius: 18px
+              - border: 1px solid rgba(245, 158, 11, 0.18)
+              - background: linear-gradient(180deg, rgba(255, 251, 235, 0.96), rgba(254, 243, 199, 0.82))
+              - box-shadow: none
+              - text-align: left
+            grid:
+              - grid-template-areas: '"i n" "i l"'
+              - grid-template-columns: 32px minmax(0, 1fr)
+              - grid-template-rows: min-content min-content
+              - column-gap: 9px
+              - align-items: center
+            icon:
+              - width: 21px
+              - color: rgba(180, 83, 9, 0.94)
+            img_cell:
+              - justify-content: center
+              - align-items: center
+              - width: 32px
+              - height: 32px
+              - border-radius: 999px
+              - background: rgba(245, 158, 11, 0.14)
+            name:
+              - justify-self: start
+              - align-self: end
+              - min-width: 0
+              - font-size: 13px
+              - font-weight: 700
+              - line-height: 1.12
+              - letter-spacing: 0
+              - color: rgba(120, 53, 15, 0.94)
+            label:
+              - justify-self: start
+              - align-self: start
+              - min-width: 0
+              - overflow: hidden
+              - text-overflow: ellipsis
+              - white-space: nowrap
+              - font-size: 12px
+              - font-weight: 540
+              - line-height: 1.25
+              - letter-spacing: 0
+              - color: rgba(120, 53, 15, 0.74)
+
+      - type: conditional
+        conditions:
           - entity: binary_sensor.metro_north_commute_card_active
             state: "on"
         card:
