@@ -35,6 +35,7 @@ unless the exact value is necessary and safe to store.
 
 | Date | Entry | Scope |
 | --- | --- | --- |
+| 2026-06-29 | [Irrigation Hunter Flow review](2026-06-29-irrigation-hunter-flow-review.md) | Reviews what direct Hunter irrigation flow enables for notifications and dashboard design, and identifies primitive irrigation tab items to remove or demote |
 | 2026-06-25 | [Profitec Saturday due policy](2026-06-25-profitec-saturday-due-policy.md) | Opens water backflush and Cafiza due cycles on Saturday, including Sunday pull-forward, while weekday reminders continue only for open weekend-originated cycles |
 | 2026-06-25 | [Casey closet Lutron bridge disconnect](2026-06-25-casey-closet-lutron-bridge-disconnect.md) | Motion reached HA and automation matched, but Lutron light service failed with bridge disconnect; added motion-on retries |
 | 2026-06-24 | [Foyer chandelier overnight schedule](2026-06-24-foyer-chandelier-overnight-schedule.md) | Separates foyer chandelier from front-stairs overnight schedule so it is evening-only and turns off before overnight |
