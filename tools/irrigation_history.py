@@ -75,6 +75,8 @@ def sanitize_note(note: Any) -> str:
 
 
 def is_flo_derived_event(event: dict[str, Any]) -> bool:
+    if clean_text(event.get("flow_source")).lower() == "hunter":
+        return False
     kind = base_event_kind(event.get("kind"))
     if kind in FLO_DERIVED_EVENT_KINDS:
         return True
@@ -169,6 +171,7 @@ def event_payload(
     session_id: str = "",
     zone: str = "",
     zone_name: str = "",
+    flow_source: str = "",
 ) -> dict[str, Any]:
     return {
         "at": at,
@@ -179,6 +182,7 @@ def event_payload(
         "session_id": clean_text(session_id),
         "zone": clean_text(zone),
         "zone_name": clean_text(zone_name),
+        "flow_source": clean_text(flow_source),
     }
 
 
@@ -201,6 +205,7 @@ def session_start(args: argparse.Namespace, data: dict[str, Any]) -> None:
         "start_pressure": round(parse_float(args.pressure), 2),
         "start_flow": round(parse_float(args.flow), 3),
         "start_gallons": round(parse_float(args.gallons), 2),
+        "flow_source": clean_text(args.flow_source),
         "next_cycle": clean_text(args.next_cycle),
         "alerts": [],
     }
@@ -215,6 +220,7 @@ def session_start(args: argparse.Namespace, data: dict[str, Any]) -> None:
             session_id=session["session_id"],
             zone=session["start_zone"],
             zone_name=session["start_zone_name"],
+            flow_source=session["flow_source"],
         ),
     )
 
@@ -242,6 +248,7 @@ def session_finish(args: argparse.Namespace, data: dict[str, Any]) -> None:
         "start_zone_name": clean_text(args.start_zone_name) or clean_text(active.get("start_zone_name")),
         "min_pressure": round(parse_float(args.min_pressure), 2),
         "max_flow": round(parse_float(args.max_flow), 3),
+        "flow_source": clean_text(args.flow_source) or clean_text(active.get("flow_source")),
         "current_pressure": round(parse_float(args.current_pressure), 2),
         "recovery_status": clean_text(args.recovery_status) or "watching",
         "alert_outcome": alert_outcome or "None",
@@ -260,6 +267,7 @@ def session_finish(args: argparse.Namespace, data: dict[str, Any]) -> None:
             session_id=session_id,
             zone=start_zone,
             zone_name=session["start_zone_name"],
+            flow_source=session["flow_source"],
         ),
     )
 
@@ -276,6 +284,7 @@ def zone_start(args: argparse.Namespace, data: dict[str, Any]) -> None:
         "start_pressure": round(parse_float(args.pressure), 2),
         "start_flow": round(parse_float(args.flow), 3),
         "start_gallons": round(parse_float(args.gallons), 2),
+        "flow_source": clean_text(args.flow_source),
         "active_count": parse_int(args.active_count),
     }
     add_event(
@@ -288,6 +297,7 @@ def zone_start(args: argparse.Namespace, data: dict[str, Any]) -> None:
             session_id=args.session_id,
             zone=zone,
             zone_name=zone_name,
+            flow_source=args.flow_source,
         ),
     )
 
@@ -323,6 +333,7 @@ def zone_finish(args: argparse.Namespace, data: dict[str, Any]) -> None:
         "gallons": round(gallons, 2),
         "avg_flow": round(parse_float(args.avg_flow) or parse_float(latest_sample.get("avg_flow")), 3),
         "max_flow": round(parse_float(args.max_flow) or parse_float(latest_sample.get("max_flow")), 3),
+        "flow_source": clean_text(args.flow_source) or clean_text(active.get("flow_source")),
         "pressure_drop": round(
             parse_float(args.pressure_drop) or parse_float(latest_sample.get("pressure_drop")), 2
         ),
@@ -349,6 +360,7 @@ def zone_finish(args: argparse.Namespace, data: dict[str, Any]) -> None:
             session_id=run["session_id"],
             zone=zone,
             zone_name=zone_name,
+            flow_source=run["flow_source"],
         ),
     )
 
@@ -365,15 +377,33 @@ def generic_event(args: argparse.Namespace, data: dict[str, Any]) -> None:
             session_id=args.session_id,
             zone=args.zone,
             zone_name=args.zone_name,
+            flow_source=args.flow_source,
         ),
     )
 
 
 def purge_flo_derived(data: dict[str, Any]) -> None:
-    data["active_session"] = {}
-    data["active_zones"] = {}
-    data["sessions"] = []
-    data["zone_runs"] = []
+    active_session = data.get("active_session") or {}
+    data["active_session"] = (
+        active_session
+        if clean_text(active_session.get("flow_source")).lower() == "hunter"
+        else {}
+    )
+    data["active_zones"] = {
+        zone: payload
+        for zone, payload in (data.get("active_zones") or {}).items()
+        if clean_text(payload.get("flow_source")).lower() == "hunter"
+    }
+    data["sessions"] = [
+        session
+        for session in data.get("sessions", [])
+        if clean_text(session.get("flow_source")).lower() == "hunter"
+    ][:MAX_SESSIONS]
+    data["zone_runs"] = [
+        run
+        for run in data.get("zone_runs", [])
+        if clean_text(run.get("flow_source")).lower() == "hunter"
+    ][:MAX_ZONE_RUNS]
 
     retained_events = []
     for event in data.get("events", []):
@@ -433,6 +463,7 @@ def build_parser() -> argparse.ArgumentParser:
     event.add_argument("--session-id", default="")
     event.add_argument("--zone", default="")
     event.add_argument("--zone-name", default="")
+    event.add_argument("--flow-source", default="")
 
     start = subparsers.add_parser("session-start")
     start.add_argument("--session-id", required=True)
@@ -442,6 +473,7 @@ def build_parser() -> argparse.ArgumentParser:
     start.add_argument("--pressure", default="0")
     start.add_argument("--flow", default="0")
     start.add_argument("--gallons", default="0")
+    start.add_argument("--flow-source", default="")
     start.add_argument("--next-cycle", default="")
     start.add_argument("--note", default="")
 
@@ -451,6 +483,7 @@ def build_parser() -> argparse.ArgumentParser:
     finish.add_argument("--started-at", default="")
     finish.add_argument("--runtime-minutes", default="0")
     finish.add_argument("--gallons", default="0")
+    finish.add_argument("--flow-source", default="")
     finish.add_argument("--start-zone", default="")
     finish.add_argument("--start-zone-name", default="")
     finish.add_argument("--min-pressure", default="0")
@@ -468,6 +501,7 @@ def build_parser() -> argparse.ArgumentParser:
     zone_start_parser.add_argument("--pressure", default="0")
     zone_start_parser.add_argument("--flow", default="0")
     zone_start_parser.add_argument("--gallons", default="0")
+    zone_start_parser.add_argument("--flow-source", default="")
     zone_start_parser.add_argument("--active-count", default="1")
     zone_start_parser.add_argument("--note", default="")
 
@@ -479,6 +513,7 @@ def build_parser() -> argparse.ArgumentParser:
     zone_finish_parser.add_argument("--started-at", default="")
     zone_finish_parser.add_argument("--duration-minutes", default="0")
     zone_finish_parser.add_argument("--gallons", default="0")
+    zone_finish_parser.add_argument("--flow-source", default="")
     zone_finish_parser.add_argument("--avg-flow", default="0")
     zone_finish_parser.add_argument("--max-flow", default="0")
     zone_finish_parser.add_argument("--pressure-drop", default="0")

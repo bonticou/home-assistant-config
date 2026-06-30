@@ -739,6 +739,8 @@
             {{ states('sensor.irrigation_active_zone') }}
           {% endif %}
         current_pressure: "{{ states('sensor.flo_shutoff_water_pressure') | float(0) | round(1) }}"
+        hunter_total: "{{ states('sensor.45_crr_daily_total_water_use') | float(0) | round(2) }}"
+        current_flow: "{{ states('sensor.irrigation_flow_rate') | float(0) | round(2) }}"
         next_cycle: "{{ states('sensor.irrigation_next_cycle') }}"
     - action: input_text.set_value
       target:
@@ -765,22 +767,82 @@
         entity_id:
           - input_number.irrigation_session_start_pressure
           - input_number.irrigation_session_min_pressure
+          - input_number.irrigation_zone_start_pressure
+          - input_number.irrigation_zone_min_pressure
       data:
         value: "{{ current_pressure }}"
-    - action: shell_command.irrigation_history_event
+    - action: input_number.set_value
+      target:
+        entity_id:
+          - input_number.irrigation_flow_rate
+          - input_number.irrigation_session_gallons
+          - input_number.irrigation_session_peak_flow
+          - input_number.irrigation_zone_gallons
+          - input_number.irrigation_zone_peak_flow
       data:
-        kind: session_started
+        value: 0
+    - action: input_number.set_value
+      target:
+        entity_id: input_number.irrigation_flow_meter_last_total
+      data:
+        value: "{{ hunter_total }}"
+    - action: input_datetime.set_datetime
+      target:
+        entity_id:
+          - input_datetime.irrigation_flow_last_sample_at
+          - input_datetime.irrigation_flow_meter_last_seen_at
+      data:
+        datetime: "{{ now().strftime('%Y-%m-%d %H:%M:%S') }}"
+    - action: shell_command.irrigation_history_session_start
+      data:
         at: "{{ now().isoformat() }}"
-        severity: info
-        title: "Sprinklers started"
         zone: "{{ active_zone_stable }}"
         zone_name: "{{ active_zone }}"
         session_id: "{{ session_id }}"
+        pressure: "{{ current_pressure }}"
+        flow: "{{ current_flow }}"
+        gallons: 0
+        flow_source: hunter
+        next_cycle: "{{ next_cycle }}"
         note: >-
-          {{ active_zone }} started. Shared well pressure is {{ current_pressure }} psi.
+          {{ active_zone }} started. Hunter meter source is {{ hunter_total }} gal;
+          shared well pressure is {{ current_pressure }} psi.
+    - if:
+        - condition: template
+          value_template: >-
+            {{ active_zone_stable not in ['unknown', 'unavailable', 'none', '', 'None', 'Unknown'] }}
+      then:
+        - action: shell_command.irrigation_flow_baseline_start
+          data:
+            zone: "{{ active_zone_stable }}"
+            at: "{{ now().isoformat() }}"
+            pressure: "{{ current_pressure }}"
+            flow: "{{ current_flow }}"
+            gallons: 0
+            active_count: "{{ states('sensor.irrigation_active_zone_count') | int(1) }}"
+        - action: shell_command.irrigation_history_zone_start
+          data:
+            zone: "{{ active_zone_stable }}"
+            zone_name: "{{ active_zone }}"
+            session_id: "{{ session_id }}"
+            at: "{{ now().isoformat() }}"
+            pressure: "{{ current_pressure }}"
+            flow: "{{ current_flow }}"
+            gallons: 0
+            flow_source: hunter
+            active_count: "{{ states('sensor.irrigation_active_zone_count') | int(1) }}"
+            note: >-
+              {{ active_zone }} started with Hunter-derived flow at {{ current_flow }} gal/min.
+        - action: input_text.set_value
+          target:
+            entity_id: input_text.irrigation_current_zone
+          data:
+            value: "{{ active_zone }}"
     - action: homeassistant.update_entity
       target:
-        entity_id: sensor.irrigation_history_status
+        entity_id:
+          - sensor.irrigation_history_status
+          - sensor.irrigation_flow_baseline_status
     - if:
         - condition: state
           entity_id: input_boolean.irrigation_notifications_enabled
@@ -792,7 +854,7 @@
             severity: info
             message: >-
               Sprinklers started on {{ active_zone }}.
-              Shared well pressure is {{ current_pressure }} psi.
+              Hunter flow is initializing from the irrigation meter; shared well pressure is {{ current_pressure }} psi.
               {% if next_cycle not in ['unknown', 'unavailable', 'none', ''] %}
                 Next scheduled Hydrawise cycle is {{ as_timestamp(next_cycle, 0) | timestamp_custom('%a %-I:%M %p', true) }}.
               {% endif %}
@@ -827,12 +889,59 @@
           {% endif %}
         now_label: "{{ now().isoformat() }}"
         current_pressure: "{{ states('sensor.flo_shutoff_water_pressure') | float(0) | round(2) }}"
+        current_flow: "{{ states('sensor.irrigation_flow_rate') | float(0) | round(2) }}"
+        session_id: "{{ states('input_text.irrigation_session_id') }}"
+        current_zone_before: "{{ states('input_text.irrigation_current_zone') }}"
+        zone_gallons: "{{ states('input_number.irrigation_zone_gallons') | float(0) | round(2) }}"
+        zone_peak_flow: "{{ states('input_number.irrigation_zone_peak_flow') | float(0) | round(2) }}"
+        zone_started: "{{ states('input_datetime.irrigation_zone_started_at') }}"
+        zone_min_pressure: "{{ states('input_number.irrigation_zone_min_pressure') | float(current_pressure) | round(2) }}"
+        duration_minutes: >-
+          {% set started_ts = as_timestamp(states('input_datetime.irrigation_zone_started_at'), 0) %}
+          {{ (((as_timestamp(now()) - started_ts) / 60) if started_ts > 0 else 0) | round(2) }}
+        avg_flow: >-
+          {% set minutes = (((as_timestamp(now()) - as_timestamp(states('input_datetime.irrigation_zone_started_at'), 0)) / 60) if as_timestamp(states('input_datetime.irrigation_zone_started_at'), 0) > 0 else 0) %}
+          {{ ((states('input_number.irrigation_zone_gallons') | float(0)) / minutes if minutes > 0 else 0) | round(2) }}
+        pressure_drop: "{{ ([0, states('input_number.irrigation_zone_start_pressure') | float(0) - states('input_number.irrigation_zone_min_pressure') | float(0)] | max) | round(2) }}"
         active_count: "{{ states('sensor.irrigation_active_zone_count') | int(0) }}"
     - if:
         - condition: template
           value_template: >-
+            {{ from_zone not in ['unknown', 'unavailable', 'none', '', 'None']
+               and from_zone != to_zone
+               and current_zone_before == from_zone }}
+      then:
+        - action: shell_command.irrigation_flow_baseline_finish
+          data:
+            zone: "{{ from_zone_stable }}"
+            at: "{{ now_label }}"
+            pressure: "{{ current_pressure }}"
+            flow: "{{ current_flow }}"
+            gallons: "{{ zone_gallons }}"
+            active_count: "{{ active_count }}"
+        - action: shell_command.irrigation_history_zone_finish
+          data:
+            zone: "{{ from_zone_stable }}"
+            zone_name: "{{ from_zone }}"
+            session_id: "{{ session_id }}"
+            at: "{{ now_label }}"
+            started_at: "{{ zone_started }}"
+            duration_minutes: "{{ duration_minutes }}"
+            gallons: "{{ zone_gallons }}"
+            flow_source: hunter
+            avg_flow: "{{ avg_flow }}"
+            max_flow: "{{ zone_peak_flow }}"
+            pressure_drop: "{{ pressure_drop }}"
+            min_pressure: "{{ zone_min_pressure }}"
+            note: >-
+              {{ from_zone }} finished after about {{ duration_minutes }} minutes,
+              using {{ zone_gallons }} gal from the Hunter meter.
+    - if:
+        - condition: template
+          value_template: >-
             {{ to_zone not in ['unknown', 'unavailable', 'none', '', 'None']
-               and from_zone != to_zone }}
+               and from_zone != to_zone
+               and current_zone_before != to_zone }}
       then:
         - action: input_text.set_value
           target:
@@ -846,9 +955,39 @@
             datetime: "{{ now().strftime('%Y-%m-%d %H:%M:%S') }}"
         - action: input_number.set_value
           target:
-            entity_id: input_number.irrigation_zone_start_pressure
+            entity_id:
+              - input_number.irrigation_zone_start_pressure
+              - input_number.irrigation_zone_min_pressure
           data:
             value: "{{ current_pressure }}"
+        - action: input_number.set_value
+          target:
+            entity_id:
+              - input_number.irrigation_zone_gallons
+              - input_number.irrigation_zone_peak_flow
+          data:
+            value: 0
+        - action: shell_command.irrigation_flow_baseline_start
+          data:
+            zone: "{{ to_zone_stable }}"
+            at: "{{ now_label }}"
+            pressure: "{{ current_pressure }}"
+            flow: "{{ current_flow }}"
+            gallons: 0
+            active_count: "{{ active_count }}"
+        - action: shell_command.irrigation_history_zone_start
+          data:
+            zone: "{{ to_zone_stable }}"
+            zone_name: "{{ to_zone }}"
+            session_id: "{{ session_id }}"
+            at: "{{ now_label }}"
+            pressure: "{{ current_pressure }}"
+            flow: "{{ current_flow }}"
+            gallons: 0
+            flow_source: hunter
+            active_count: "{{ active_count }}"
+            note: >-
+              {{ to_zone }} started with Hunter-derived flow at {{ current_flow }} gal/min.
     - if:
         - condition: template
           value_template: "{{ to_zone in ['unknown', 'unavailable', 'none', '', 'None'] }}"
@@ -858,36 +997,238 @@
             entity_id: input_text.irrigation_current_zone
           data:
             value: "None"
+    - action: homeassistant.update_entity
+      target:
+        entity_id:
+          - sensor.irrigation_history_status
+          - sensor.irrigation_flow_baseline_status
   mode: queued
   max: 10
 
 - id: irrigation_session_telemetry_tracking
-  alias: "Irrigation — Shared Well Pressure Tracking"
-  description: Keeps session min pressure and the Hydrawise grace window current while irrigation is running.
+  alias: "Irrigation — Hunter Flow And Shared Well Tracking"
+  description: Derives Hunter irrigation flow from Hydrawise water-use deltas and keeps shared-well pressure context current.
   triggers:
     - trigger: time_pattern
       minutes: "/1"
-  conditions:
-    - condition: state
-      entity_id: binary_sensor.irrigation_active
-      state: "on"
+    - trigger: state
+      entity_id: sensor.45_crr_daily_total_water_use
+  conditions: []
   actions:
     - variables:
+        source_total_raw: "{{ states('sensor.45_crr_daily_total_water_use') }}"
+        source_total: "{{ states('sensor.45_crr_daily_total_water_use') | float(0) }}"
+        last_total: "{{ states('input_number.irrigation_flow_meter_last_total') | float(0) }}"
+        last_sample_ts: "{{ as_timestamp(states('input_datetime.irrigation_flow_last_sample_at'), 0) }}"
+        now_ts: "{{ as_timestamp(now()) }}"
+        elapsed_minutes: >-
+          {% set last = as_timestamp(states('input_datetime.irrigation_flow_last_sample_at'), 0) %}
+          {{ (((as_timestamp(now()) - last) / 60) if last > 0 else 0) | round(3) }}
+        initialized: >-
+          {{ as_timestamp(states('input_datetime.irrigation_flow_last_sample_at'), 0) > 0
+             and states('input_number.irrigation_flow_meter_last_total') | float(0) > 0 }}
+        total_reset: >-
+          {{ states('sensor.45_crr_daily_total_water_use') | float(0)
+             < states('input_number.irrigation_flow_meter_last_total') | float(0) }}
+        raw_delta: >-
+          {% set delta = states('sensor.45_crr_daily_total_water_use') | float(0)
+             - states('input_number.irrigation_flow_meter_last_total') | float(0) %}
+          {{ ([0, delta] | max) | round(2) }}
+        delta_valid: >-
+          {% set delta = states('sensor.45_crr_daily_total_water_use') | float(0)
+             - states('input_number.irrigation_flow_meter_last_total') | float(0) %}
+          {% set last = as_timestamp(states('input_datetime.irrigation_flow_last_sample_at'), 0) %}
+          {% set minutes = ((as_timestamp(now()) - last) / 60) if last > 0 else 0 %}
+          {{ is_number(states('sensor.45_crr_daily_total_water_use'))
+             and last > 0
+             and delta > 0
+             and minutes > 0
+             and minutes <= 30
+             and delta <= 5000 }}
+        delta_gallons: >-
+          {% set delta = states('sensor.45_crr_daily_total_water_use') | float(0)
+             - states('input_number.irrigation_flow_meter_last_total') | float(0) %}
+          {% set last = as_timestamp(states('input_datetime.irrigation_flow_last_sample_at'), 0) %}
+          {% set minutes = ((as_timestamp(now()) - last) / 60) if last > 0 else 0 %}
+          {% if is_number(states('sensor.45_crr_daily_total_water_use'))
+             and last > 0
+             and delta > 0
+             and minutes > 0
+             and minutes <= 30
+             and delta <= 5000 %}
+            {{ delta | round(2) }}
+          {% else %}
+            0
+          {% endif %}
+        derived_flow: >-
+          {% set delta = states('sensor.45_crr_daily_total_water_use') | float(0)
+             - states('input_number.irrigation_flow_meter_last_total') | float(0) %}
+          {% set last = as_timestamp(states('input_datetime.irrigation_flow_last_sample_at'), 0) %}
+          {% set minutes = ((as_timestamp(now()) - last) / 60) if last > 0 else 0 %}
+          {% if is_number(states('sensor.45_crr_daily_total_water_use'))
+             and last > 0
+             and delta > 0
+             and minutes > 0
+             and minutes <= 30
+             and delta <= 5000 %}
+            {{ (delta / minutes) | round(2) }}
+          {% else %}
+            0
+          {% endif %}
+        stale_seconds: >-
+          {% set last = as_timestamp(states('input_datetime.irrigation_flow_last_sample_at'), 0) %}
+          {{ ((as_timestamp(now()) - last) if last > 0 else 999999) | round(0) }}
         current_pressure: "{{ states('sensor.flo_shutoff_water_pressure') | float(0) | round(2) }}"
-    - action: input_datetime.set_datetime
-      target:
-        entity_id: input_datetime.irrigation_expected_water_use_until
-      data:
-        datetime: "{{ (now() + timedelta(minutes=15)).strftime('%Y-%m-%d %H:%M:%S') }}"
+        active_zone: "{{ states('sensor.irrigation_active_zone') }}"
+        active_zone_key: >-
+          {% set entity = state_attr('sensor.irrigation_active_zone', 'entity_id') | default('', true) %}
+          {% if entity.startswith('binary_sensor.zone_') and entity.endswith('_watering') %}
+            {{ 'Zone ' ~ (entity | regex_replace('^binary_sensor.zone_(\\d+)_watering$', '\\1')) }}
+          {% else %}
+            {{ states('sensor.irrigation_active_zone') }}
+          {% endif %}
+        active_count: "{{ states('sensor.irrigation_active_zone_count') | int(0) }}"
+        new_session_gallons: "{{ (states('input_number.irrigation_session_gallons') | float(0) + delta_gallons | float(0)) | round(2) }}"
+        new_zone_gallons: "{{ (states('input_number.irrigation_zone_gallons') | float(0) + delta_gallons | float(0)) | round(2) }}"
+        new_session_peak_flow: "{{ ([states('input_number.irrigation_session_peak_flow') | float(0), derived_flow | float(0)] | max) | round(2) }}"
+        new_zone_peak_flow: "{{ ([states('input_number.irrigation_zone_peak_flow') | float(0), derived_flow | float(0)] | max) | round(2) }}"
+    - condition: template
+      value_template: "{{ is_number(source_total_raw) }}"
+    - choose:
+        - conditions:
+            - condition: template
+              value_template: >-
+                {{ initialized in [false, 'false', 'False', '0', 0]
+                   or total_reset in [true, 'true', 'True', '1', 1]
+                   or elapsed_minutes | float(0) > 30 }}
+          sequence:
+            - action: input_number.set_value
+              target:
+                entity_id: input_number.irrigation_flow_meter_last_total
+              data:
+                value: "{{ source_total }}"
+            - action: input_number.set_value
+              target:
+                entity_id: input_number.irrigation_flow_rate
+              data:
+                value: 0
+            - action: input_datetime.set_datetime
+              target:
+                entity_id:
+                  - input_datetime.irrigation_flow_last_sample_at
+                  - input_datetime.irrigation_flow_meter_last_seen_at
+              data:
+                datetime: "{{ now().strftime('%Y-%m-%d %H:%M:%S') }}"
+        - conditions:
+            - condition: template
+              value_template: "{{ delta_valid in [true, 'true', 'True', '1', 1] }}"
+          sequence:
+            - action: input_number.set_value
+              target:
+                entity_id: input_number.irrigation_flow_rate
+              data:
+                value: "{{ derived_flow }}"
+            - action: input_number.set_value
+              target:
+                entity_id: input_number.irrigation_flow_meter_last_total
+              data:
+                value: "{{ source_total }}"
+            - action: input_datetime.set_datetime
+              target:
+                entity_id:
+                  - input_datetime.irrigation_flow_last_sample_at
+                  - input_datetime.irrigation_flow_meter_last_seen_at
+              data:
+                datetime: "{{ now().strftime('%Y-%m-%d %H:%M:%S') }}"
+            - if:
+                - condition: state
+                  entity_id: binary_sensor.irrigation_active
+                  state: "on"
+              then:
+                - action: input_number.set_value
+                  target:
+                    entity_id: input_number.irrigation_session_gallons
+                  data:
+                    value: "{{ new_session_gallons }}"
+                - action: input_number.set_value
+                  target:
+                    entity_id: input_number.irrigation_zone_gallons
+                  data:
+                    value: "{{ new_zone_gallons }}"
+                - action: input_number.set_value
+                  target:
+                    entity_id: input_number.irrigation_session_peak_flow
+                  data:
+                    value: "{{ new_session_peak_flow }}"
+                - action: input_number.set_value
+                  target:
+                    entity_id: input_number.irrigation_zone_peak_flow
+                  data:
+                    value: "{{ new_zone_peak_flow }}"
+      default:
+        - action: input_datetime.set_datetime
+          target:
+            entity_id: input_datetime.irrigation_flow_meter_last_seen_at
+          data:
+            datetime: "{{ now().strftime('%Y-%m-%d %H:%M:%S') }}"
+        - if:
+            - condition: template
+              value_template: "{{ stale_seconds | float(999999) > 180 }}"
+          then:
+            - action: input_number.set_value
+              target:
+                entity_id: input_number.irrigation_flow_rate
+              data:
+                value: 0
+    - if:
+        - condition: state
+          entity_id: binary_sensor.irrigation_active
+          state: "on"
+      then:
+        - action: input_datetime.set_datetime
+          target:
+            entity_id: input_datetime.irrigation_expected_water_use_until
+          data:
+            datetime: "{{ (now() + timedelta(minutes=15)).strftime('%Y-%m-%d %H:%M:%S') }}"
+        - if:
+            - condition: template
+              value_template: "{{ current_pressure | float(0) < states('input_number.irrigation_session_min_pressure') | float(150) }}"
+          then:
+            - action: input_number.set_value
+              target:
+                entity_id: input_number.irrigation_session_min_pressure
+              data:
+                value: "{{ current_pressure }}"
+        - if:
+            - condition: template
+              value_template: "{{ current_pressure | float(0) < states('input_number.irrigation_zone_min_pressure') | float(150) }}"
+          then:
+            - action: input_number.set_value
+              target:
+                entity_id: input_number.irrigation_zone_min_pressure
+              data:
+                value: "{{ current_pressure }}"
+        - if:
+            - condition: template
+              value_template: "{{ active_zone_key not in ['unknown', 'unavailable', 'none', '', 'None', 'Unknown'] }}"
+          then:
+            - action: shell_command.irrigation_flow_baseline_touch
+              data:
+                zone: "{{ active_zone_key }}"
+                at: "{{ now().isoformat() }}"
+                pressure: "{{ current_pressure }}"
+                flow: "{{ states('sensor.irrigation_flow_rate') | float(0) | round(2) }}"
+                active_count: "{{ active_count }}"
     - if:
         - condition: template
-          value_template: "{{ current_pressure | float(0) < states('input_number.irrigation_session_min_pressure') | float(150) }}"
+          value_template: "{{ delta_valid in [true, 'true', 'True', '1', 1] }}"
       then:
-        - action: input_number.set_value
+        - action: homeassistant.update_entity
           target:
-            entity_id: input_number.irrigation_session_min_pressure
-          data:
-            value: "{{ current_pressure }}"
+            entity_id:
+              - sensor.irrigation_flow_rate
+              - sensor.irrigation_session_gallons
+              - sensor.irrigation_flow_baseline_status
   mode: single
 
 - id: irrigation_session_finished
@@ -916,6 +1257,8 @@
         min_pressure: "{{ states('input_number.irrigation_session_min_pressure') | float(0) | round(1) }}"
         current_pressure: "{{ states('sensor.flo_shutoff_water_pressure') | float(0) | round(1) }}"
         start_zone: "{{ states('input_text.irrigation_session_start_zone') }}"
+        session_gallons: "{{ states('sensor.irrigation_session_gallons') | float(0) | round(1) }}"
+        session_peak_flow: "{{ states('input_number.irrigation_session_peak_flow') | float(0) | round(1) }}"
     - action: input_datetime.set_datetime
       target:
         entity_id: input_datetime.irrigation_session_ended_at
@@ -936,21 +1279,29 @@
         entity_id: input_datetime.irrigation_recovery_failed_check_at
       data:
         datetime: "{{ (now() + timedelta(minutes=15)).strftime('%Y-%m-%d %H:%M:%S') }}"
-    - action: shell_command.irrigation_history_event
+    - action: shell_command.irrigation_history_session_finish
       data:
-        kind: session_finished
         at: "{{ now().isoformat() }}"
-        severity: info
-        title: "Sprinklers finished"
         session_id: "{{ session_id }}"
-        zone: "{{ start_zone }}"
-        zone_name: "{{ start_zone }}"
+        started_at: "{{ states('input_datetime.irrigation_session_started_at') }}"
+        runtime_minutes: "{{ runtime_minutes }}"
+        gallons: "{{ session_gallons }}"
+        flow_source: hunter
+        start_zone: "{{ start_zone }}"
+        start_zone_name: "{{ start_zone }}"
+        min_pressure: "{{ min_pressure }}"
+        max_flow: "{{ session_peak_flow }}"
+        current_pressure: "{{ current_pressure }}"
+        recovery_status: watching
         note: >-
           Sprinklers finished after about {{ runtime_minutes }} minutes.
+          Hunter meter recorded {{ session_gallons }} gal with peak flow {{ session_peak_flow }} gal/min.
           Lowest shared well pressure was {{ min_pressure }} psi; pressure is now {{ current_pressure }} psi.
     - action: homeassistant.update_entity
       target:
-        entity_id: sensor.irrigation_history_status
+        entity_id:
+          - sensor.irrigation_history_status
+          - sensor.irrigation_flow_baseline_status
     - if:
         - condition: state
           entity_id: input_boolean.irrigation_notifications_enabled
@@ -962,6 +1313,7 @@
             severity: info
             message: >-
               Sprinklers finished after about {{ runtime_minutes }} minutes.
+              Hunter meter recorded {{ session_gallons }} gal with peak flow {{ session_peak_flow }} gal/min.
               Lowest shared well pressure was {{ min_pressure }} psi,
               and pressure is now {{ current_pressure }} psi.
               Session started on {{ start_zone }}.
@@ -1160,6 +1512,255 @@
           Hydrawise reports {{ states('sensor.irrigation_active_zone_count') }} zones watering at once:
           {{ state_attr('sensor.irrigation_active_zone', 'active_zones') }}.
           Shared well pressure is {{ states('sensor.flo_shutoff_water_pressure') | float(0) | round(1) }} psi.
+  mode: single
+
+- id: irrigation_no_flow
+  alias: "Irrigation — Hunter No Flow"
+  description: Critical alert when Hydrawise says a zone is watering but the Hunter meter total is not moving.
+  triggers:
+    - trigger: time_pattern
+      minutes: "/1"
+    - trigger: state
+      entity_id: binary_sensor.irrigation_active
+      to: "on"
+      for:
+        minutes: 4
+  conditions:
+    - condition: state
+      entity_id: input_boolean.irrigation_notifications_enabled
+      state: "on"
+    - condition: state
+      entity_id: binary_sensor.irrigation_active
+      state: "on"
+    - condition: state
+      entity_id: binary_sensor.irrigation_flow_meter_available
+      state: "on"
+    - condition: template
+      value_template: "{{ states('sensor.irrigation_flow_rate') | float(0) < 0.3 }}"
+    - condition: template
+      value_template: >-
+        {% set started = as_timestamp(states('input_datetime.irrigation_zone_started_at'), 0) %}
+        {{ started > 0 and (as_timestamp(now()) - started) >= 180 }}
+    - condition: template
+      value_template: >-
+        {% set key = states('input_text.irrigation_session_id') ~ ':' ~ states('sensor.irrigation_active_zone') %}
+        {{ states('input_text.irrigation_last_no_flow_alert_key') != key }}
+  actions:
+    - variables:
+        alert_key: "{{ states('input_text.irrigation_session_id') ~ ':' ~ states('sensor.irrigation_active_zone') }}"
+    - action: script.water_send_alert
+      data:
+        alert_kind: irrigation_no_flow
+        severity: critical
+        message: >-
+          {{ states('sensor.irrigation_active_zone') }} has been watering for several minutes,
+          but the Hunter irrigation meter is still reading {{ states('sensor.irrigation_flow_rate') | float(0) | round(1) }} gal/min.
+          Shared well pressure is {{ states('sensor.flo_shutoff_water_pressure') | float(0) | round(1) }} psi.
+    - action: input_text.set_value
+      target:
+        entity_id: input_text.irrigation_last_no_flow_alert_key
+      data:
+        value: "{{ alert_key }}"
+  mode: single
+
+- id: irrigation_high_flow
+  alias: "Irrigation — Hunter Flow High"
+  description: Critical alert when a learned zone is flowing far above its Hunter baseline.
+  triggers:
+    - trigger: state
+      entity_id: binary_sensor.irrigation_flow_baseline_high_alert
+      to: "on"
+      for:
+        minutes: 2
+  conditions:
+    - condition: state
+      entity_id: input_boolean.irrigation_notifications_enabled
+      state: "on"
+    - condition: state
+      entity_id: binary_sensor.irrigation_active
+      state: "on"
+    - condition: template
+      value_template: >-
+        {% set key = states('input_text.irrigation_session_id') ~ ':' ~ states('sensor.irrigation_active_zone') %}
+        {{ states('input_text.irrigation_last_high_flow_alert_key') != key }}
+  actions:
+    - variables:
+        alert_key: "{{ states('input_text.irrigation_session_id') ~ ':' ~ states('sensor.irrigation_active_zone') }}"
+    - action: script.water_send_alert
+      data:
+        alert_kind: irrigation_high_flow
+        severity: critical
+        message: >-
+          {{ states('sensor.irrigation_active_zone') }} is above its learned Hunter flow baseline at
+          {{ states('sensor.irrigation_flow_rate') | float(0) | round(1) }} gal/min.
+          Session total is {{ states('sensor.irrigation_session_gallons') | float(0) | round(1) }} gal and
+          shared well pressure is {{ states('sensor.flo_shutoff_water_pressure') | float(0) | round(1) }} psi.
+    - action: input_text.set_value
+      target:
+        entity_id: input_text.irrigation_last_high_flow_alert_key
+      data:
+        value: "{{ alert_key }}"
+  mode: single
+
+- id: irrigation_low_flow
+  alias: "Irrigation — Hunter Flow Low"
+  description: Warning when a learned zone is flowing far below its Hunter baseline.
+  triggers:
+    - trigger: state
+      entity_id: binary_sensor.irrigation_flow_baseline_low_alert
+      to: "on"
+      for:
+        minutes: 3
+  conditions:
+    - condition: state
+      entity_id: input_boolean.irrigation_notifications_enabled
+      state: "on"
+    - condition: state
+      entity_id: binary_sensor.irrigation_active
+      state: "on"
+    - condition: template
+      value_template: >-
+        {% set key = states('input_text.irrigation_session_id') ~ ':' ~ states('sensor.irrigation_active_zone') %}
+        {{ states('input_text.irrigation_last_low_flow_alert_key') != key }}
+  actions:
+    - variables:
+        alert_key: "{{ states('input_text.irrigation_session_id') ~ ':' ~ states('sensor.irrigation_active_zone') }}"
+    - action: script.water_send_alert
+      data:
+        alert_kind: irrigation_low_flow
+        severity: warning
+        message: >-
+          {{ states('sensor.irrigation_active_zone') }} is below its learned Hunter flow baseline at
+          {{ states('sensor.irrigation_flow_rate') | float(0) | round(1) }} gal/min.
+          This can mean a partially closed valve, clogged head, or meter lag.
+          Session total is {{ states('sensor.irrigation_session_gallons') | float(0) | round(1) }} gal.
+    - action: input_text.set_value
+      target:
+        entity_id: input_text.irrigation_last_low_flow_alert_key
+      data:
+        value: "{{ alert_key }}"
+  mode: single
+
+- id: irrigation_flow_after_stop
+  alias: "Irrigation — Hunter Flow After Stop"
+  description: Warning when the Hunter irrigation meter still shows flow after Hydrawise reports all zones stopped.
+  triggers:
+    - trigger: numeric_state
+      entity_id: sensor.irrigation_flow_rate
+      above: 0.5
+      for:
+        minutes: 3
+  conditions:
+    - condition: state
+      entity_id: input_boolean.irrigation_notifications_enabled
+      state: "on"
+    - condition: state
+      entity_id: binary_sensor.irrigation_active
+      state: "off"
+    - condition: state
+      entity_id: binary_sensor.irrigation_expected_water_use
+      state: "on"
+    - condition: template
+      value_template: "{{ states('input_text.irrigation_last_flow_after_stop_alert_key') != states('input_text.irrigation_session_id') }}"
+  actions:
+    - action: script.water_send_alert
+      data:
+        alert_kind: irrigation_flow_after_stop
+        severity: warning
+        message: >-
+          Hydrawise is no longer reporting an active zone, but the Hunter irrigation meter is still
+          showing {{ states('sensor.irrigation_flow_rate') | float(0) | round(1) }} gal/min.
+          Session total is {{ states('sensor.irrigation_session_gallons') | float(0) | round(1) }} gal.
+    - action: input_text.set_value
+      target:
+        entity_id: input_text.irrigation_last_flow_after_stop_alert_key
+      data:
+        value: "{{ states('input_text.irrigation_session_id') }}"
+  mode: single
+
+- id: irrigation_unscheduled_flow
+  alias: "Irrigation — Hunter Unscheduled Flow"
+  description: Warning when the Hunter irrigation meter moves while Hydrawise and the grace window are quiet.
+  triggers:
+    - trigger: numeric_state
+      entity_id: sensor.irrigation_flow_rate
+      above: 0.5
+      for:
+        minutes: 5
+  conditions:
+    - condition: state
+      entity_id: input_boolean.irrigation_notifications_enabled
+      state: "on"
+    - condition: state
+      entity_id: binary_sensor.irrigation_active
+      state: "off"
+    - condition: state
+      entity_id: binary_sensor.irrigation_expected_water_use
+      state: "off"
+    - condition: template
+      value_template: >-
+        {% set key = now().strftime('%Y%m%d%H') %}
+        {{ states('input_text.irrigation_last_unscheduled_flow_alert_key') != key }}
+  actions:
+    - variables:
+        alert_key: "{{ now().strftime('%Y%m%d%H') }}"
+    - action: script.water_send_alert
+      data:
+        alert_kind: irrigation_unscheduled_flow
+        severity: warning
+        message: >-
+          Hunter irrigation flow is {{ states('sensor.irrigation_flow_rate') | float(0) | round(1) }} gal/min,
+          but Hydrawise is quiet and the post-run grace window is closed.
+          Check for manual watering or a stuck irrigation valve.
+    - action: input_text.set_value
+      target:
+        entity_id: input_text.irrigation_last_unscheduled_flow_alert_key
+      data:
+        value: "{{ alert_key }}"
+  mode: single
+
+- id: irrigation_flow_meter_stale
+  alias: "Irrigation — Hunter Flow Meter Stale"
+  description: Warning when the Hunter/Hydrawise meter source is stale during an irrigation window.
+  triggers:
+    - trigger: state
+      entity_id: binary_sensor.irrigation_flow_meter_available
+      to: "off"
+      for:
+        minutes: 5
+    - trigger: time_pattern
+      minutes: "/5"
+  conditions:
+    - condition: state
+      entity_id: input_boolean.irrigation_notifications_enabled
+      state: "on"
+    - condition: state
+      entity_id: binary_sensor.irrigation_flow_meter_available
+      state: "off"
+    - condition: template
+      value_template: >-
+        {{ is_state('binary_sensor.irrigation_active', 'on')
+           or is_state('binary_sensor.irrigation_expected_water_use', 'on') }}
+    - condition: template
+      value_template: >-
+        {% set key = states('input_text.irrigation_session_id') ~ ':' ~ now().strftime('%Y%m%d') %}
+        {{ states('input_text.irrigation_last_flow_meter_stale_alert_key') != key }}
+  actions:
+    - variables:
+        alert_key: "{{ states('input_text.irrigation_session_id') ~ ':' ~ now().strftime('%Y%m%d') }}"
+    - action: script.water_send_alert
+      data:
+        alert_kind: irrigation_flow_meter_stale
+        severity: warning
+        message: >-
+          Hunter/Hydrawise irrigation meter data is stale or unavailable while irrigation is active
+          or still in the recovery watch window. Hydrawise controller status is
+          {{ states('binary_sensor.hydrawise_controller_online') }}.
+    - action: input_text.set_value
+      target:
+        entity_id: input_text.irrigation_last_flow_meter_stale_alert_key
+      data:
+        value: "{{ alert_key }}"
   mode: single
 
 - id: irrigation_controller_offline_before_watering
@@ -1409,6 +2010,11 @@
       above: 30
       for:
         minutes: 5
+    - trigger: numeric_state
+      entity_id: sensor.irrigation_flow_rate
+      below: 0.5
+      for:
+        minutes: 5
   conditions:
     - condition: state
       entity_id: binary_sensor.irrigation_active
@@ -1421,13 +2027,23 @@
       above: 30
     - condition: template
       value_template: >-
+        {{ states('sensor.irrigation_flow_rate') | float(0) < 0.5
+           or states('input_text.irrigation_active_alert_kind') == 'irrigation_flow_meter_stale' }}
+    - condition: template
+      value_template: >-
         {{ states('input_text.irrigation_active_alert_kind') in [
           'irrigation_pressure_collapse',
           'irrigation_recovery_slow',
           'irrigation_recovery_failed',
           'irrigation_zone_ran_too_long',
           'irrigation_valve_mismatch',
-          'irrigation_multiple_zones'
+          'irrigation_multiple_zones',
+          'irrigation_no_flow',
+          'irrigation_high_flow',
+          'irrigation_low_flow',
+          'irrigation_flow_after_stop',
+          'irrigation_unscheduled_flow',
+          'irrigation_flow_meter_stale'
         ] }}
   actions:
     - action: input_boolean.turn_off
@@ -1446,6 +2062,12 @@
           - water-irrigation_zone_ran_too_long
           - water-irrigation_valve_mismatch
           - water-irrigation_multiple_zones
+          - water-irrigation_no_flow
+          - water-irrigation_high_flow
+          - water-irrigation_low_flow
+          - water-irrigation_flow_after_stop
+          - water-irrigation_unscheduled_flow
+          - water-irrigation_flow_meter_stale
         sequence:
           - action: script.notify_trevor_phone
             data:

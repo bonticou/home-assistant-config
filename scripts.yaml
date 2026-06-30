@@ -3280,6 +3280,18 @@ water_send_alert:
             Irrigation valve mismatch
           {% elif kind == 'irrigation_multiple_zones' %}
             Multiple irrigation zones
+          {% elif kind == 'irrigation_no_flow' %}
+            Irrigation no flow
+          {% elif kind == 'irrigation_high_flow' %}
+            Irrigation flow high
+          {% elif kind == 'irrigation_low_flow' %}
+            Irrigation flow low
+          {% elif kind == 'irrigation_flow_after_stop' %}
+            Irrigation flow after stop
+          {% elif kind == 'irrigation_unscheduled_flow' %}
+            Unscheduled irrigation flow
+          {% elif kind == 'irrigation_flow_meter_stale' %}
+            Irrigation flow meter stale
           {% elif kind == 'irrigation_scheduled_not_started' %}
             Scheduled irrigation did not start
           {% elif kind == 'irrigation_controller_offline' %}
@@ -3308,7 +3320,9 @@ water_send_alert:
             'irrigation_recovery_failed',
             'irrigation_zone_ran_too_long',
             'irrigation_valve_mismatch',
-            'irrigation_multiple_zones'
+            'irrigation_multiple_zones',
+            'irrigation_no_flow',
+            'irrigation_high_flow'
           ] %}
             critical
           {% elif kind in ['irrigation_started', 'irrigation_finished'] %}
@@ -3361,6 +3375,18 @@ water_send_alert:
             🚨 Irrigation valve state mismatch
           {% elif kind == 'irrigation_multiple_zones' %}
             🚨 Multiple irrigation zones active
+          {% elif kind == 'irrigation_no_flow' %}
+            🚨 Irrigation no flow
+          {% elif kind == 'irrigation_high_flow' %}
+            🚨 Irrigation flow high
+          {% elif kind == 'irrigation_low_flow' %}
+            ⚠️ Irrigation flow low
+          {% elif kind == 'irrigation_flow_after_stop' %}
+            ⚠️ Irrigation flow after stop
+          {% elif kind == 'irrigation_unscheduled_flow' %}
+            ⚠️ Unscheduled irrigation flow
+          {% elif kind == 'irrigation_flow_meter_stale' %}
+            ⚠️ Irrigation flow meter stale
           {% elif kind == 'irrigation_scheduled_not_started' %}
             ⚠️ Scheduled watering did not start
           {% elif kind == 'irrigation_controller_offline' %}
@@ -3371,6 +3397,7 @@ water_send_alert:
             💧 Water update
           {% endif %}
         event_at: "{{ now().strftime('%Y-%m-%d %H:%M:%S') }}"
+        notification_url: "{{ '/calm-mobile/irrigation' if kind[:11] == 'irrigation_' else '/calm-mobile/water' }}"
         event_domain: >-
           {% if kind in ['overnight_flow', 'sustained_flow', 'burst_day', 'burst_night'] %}
             flow
@@ -3499,6 +3526,12 @@ water_send_alert:
                   'irrigation_zone_ran_too_long',
                   'irrigation_valve_mismatch',
                   'irrigation_multiple_zones',
+                  'irrigation_no_flow',
+                  'irrigation_high_flow',
+                  'irrigation_low_flow',
+                  'irrigation_flow_after_stop',
+                  'irrigation_unscheduled_flow',
+                  'irrigation_flow_meter_stale',
                   'irrigation_controller_offline',
                   'irrigation_controller_offline_during_watering'
                 ] }}
@@ -3523,7 +3556,7 @@ water_send_alert:
                 data:
                   group: water
                   tag: "water-{{ kind }}"
-                  url: /calm-mobile/water
+                  url: "{{ notification_url }}"
                   sticky: true
                   ttl: 0
                   priority: high
@@ -3541,7 +3574,9 @@ water_send_alert:
                   'irrigation_recovery_failed',
                   'irrigation_zone_ran_too_long',
                   'irrigation_valve_mismatch',
-                  'irrigation_multiple_zones'
+                  'irrigation_multiple_zones',
+                  'irrigation_no_flow',
+                  'irrigation_high_flow'
                 ] }}
           sequence:
             - action: script.notify_trevor_phone
@@ -3551,7 +3586,7 @@ water_send_alert:
                 data:
                   group: water
                   tag: "water-{{ kind }}"
-                  url: /calm-mobile/water
+                  url: "{{ notification_url }}"
                   sticky: true
                   ttl: 0
                   priority: high
@@ -3572,7 +3607,7 @@ water_send_alert:
                 data:
                   group: water
                   tag: "water-{{ kind }}"
-                  url: /calm-mobile/water
+                  url: "{{ notification_url }}"
                   sticky: true
                   ttl: 0
                   priority: high
@@ -3589,7 +3624,7 @@ water_send_alert:
                     data:
                       group: water
                       tag: "water-{{ kind }}"
-                      url: /calm-mobile/water
+                      url: "{{ notification_url }}"
                       sticky: false
                       actions:
                         - action: "{{ expected_action }}"
@@ -3605,7 +3640,7 @@ water_send_alert:
                 data:
                   group: water
                   tag: "water-{{ kind }}"
-                  url: /calm-mobile/water
+                  url: "{{ notification_url }}"
                   sticky: false
 
 away_security_lock_unlocked_entry_doors:

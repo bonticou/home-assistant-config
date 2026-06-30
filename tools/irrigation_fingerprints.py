@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Maintain resettable legacy irrigation fingerprint memory."""
+"""Maintain resettable irrigation flow baseline memory."""
 
 from __future__ import annotations
 
@@ -251,9 +251,9 @@ def finish_sample(args: argparse.Namespace, data: dict[str, Any]) -> None:
     }
 
     zone = data.setdefault("zones", {}).setdefault(args.zone, {"samples": []})
+    candidate = anomaly_for(zone, finished)
     zone.setdefault("samples", []).append(finished)
     zone["samples"] = zone["samples"][-MAX_SAMPLES_PER_ZONE:]
-    candidate = anomaly_for(zone, finished)
     anomaly: dict[str, str] = {}
     if candidate.get("kind") == "clog_possible":
         zone["clog_candidate_count"] = parse_int(zone.get("clog_candidate_count")) + 1
@@ -283,8 +283,8 @@ def finish_sample(args: argparse.Namespace, data: dict[str, Any]) -> None:
 
 def build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("--data-file", type=Path, default=Path(".irrigation_fingerprints.json"))
-    parser.add_argument("--status-file", type=Path, default=Path(".irrigation_fingerprint_status.json"))
+    parser.add_argument("--data-file", type=Path, default=Path(".irrigation_flow_baselines.json"))
+    parser.add_argument("--status-file", type=Path, default=Path(".irrigation_flow_baseline_status.json"))
     parser.add_argument("--status", action="store_true")
     subparsers = parser.add_subparsers(dest="command")
 

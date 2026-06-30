@@ -58,6 +58,8 @@ class IrrigationHistoryTests(unittest.TestCase):
                 "5.4",
                 "--gallons",
                 "100",
+                "--flow-source",
+                "hunter",
             )
             self.run_tool(
                 temp_dir,
@@ -74,6 +76,8 @@ class IrrigationHistoryTests(unittest.TestCase):
                 "5.4",
                 "--gallons",
                 "100",
+                "--flow-source",
+                "hunter",
             )
             status = self.run_tool(
                 temp_dir,
@@ -88,6 +92,8 @@ class IrrigationHistoryTests(unittest.TestCase):
                 "10",
                 "--gallons",
                 "54",
+                "--flow-source",
+                "hunter",
                 "--avg-flow",
                 "5.4",
                 "--max-flow",
@@ -98,6 +104,7 @@ class IrrigationHistoryTests(unittest.TestCase):
             self.assertEqual(status["zone_run_count"], 1)
             self.assertEqual(status["latest_zone_run"]["zone"], "Zone 1")
             self.assertEqual(status["latest_zone_run"]["duration_minutes"], 10)
+            self.assertEqual(status["latest_zone_run"]["flow_source"], "hunter")
 
             status = self.run_tool(
                 temp_dir,
@@ -110,6 +117,8 @@ class IrrigationHistoryTests(unittest.TestCase):
                 "12",
                 "--gallons",
                 "54",
+                "--flow-source",
+                "hunter",
                 "--min-pressure",
                 "46",
                 "--max-flow",
@@ -119,6 +128,7 @@ class IrrigationHistoryTests(unittest.TestCase):
             )
             self.assertEqual(status["session_count"], 1)
             self.assertEqual(status["latest_session"]["runtime_minutes"], 12)
+            self.assertEqual(status["latest_session"]["flow_source"], "hunter")
             self.assertEqual(status["latest_event"]["kind"], "session_finished")
 
     def test_bounds_history_lists(self):
@@ -199,6 +209,42 @@ class IrrigationHistoryTests(unittest.TestCase):
         ])
         self.assertEqual(data["events"][0]["note"], "Zone 4 ran for 48 minutes.")
         self.assertNotIn("gpm", data["events"][0]["note"])
+
+    def test_purge_flo_derived_preserves_hunter_history(self):
+        data = history.initial_data()
+        data["active_session"] = {"session_id": "s2", "flow_source": "hunter"}
+        data["active_zones"] = {"Zone 2": {"zone": "Zone 2", "flow_source": "hunter"}}
+        data["sessions"] = [
+            {"session_id": "s2", "gallons": 55, "flow_source": "hunter"},
+            {"session_id": "old", "gallons": 40},
+        ]
+        data["zone_runs"] = [
+            {"zone": "Zone 2", "avg_flow": 5.5, "flow_source": "hunter"},
+            {"zone": "Zone 1", "avg_flow": 4.2},
+        ]
+        data["events"] = [
+            history.event_payload(
+                kind="zone_finished",
+                at="2026-06-29T10:00:00+00:00",
+                title="Zone 2 finished",
+                note="Hunter flow baseline run used 55 gallons at 5.5 gpm.",
+                flow_source="hunter",
+            ),
+            history.event_payload(
+                kind="zone_finished",
+                at="2026-06-09T10:00:00+00:00",
+                title="Zone 1 finished",
+                note="Zone 1 used 40 gallons at 4 gpm.",
+            ),
+        ]
+
+        history.purge_flo_derived(data)
+
+        self.assertEqual(data["active_session"]["session_id"], "s2")
+        self.assertEqual(list(data["active_zones"]), ["Zone 2"])
+        self.assertEqual([session["session_id"] for session in data["sessions"]], ["s2"])
+        self.assertEqual([run["zone"] for run in data["zone_runs"]], ["Zone 2"])
+        self.assertEqual([event["title"] for event in data["events"]], ["Zone 2 finished"])
 
 
 if __name__ == "__main__":

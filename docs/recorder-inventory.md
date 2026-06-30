@@ -7,13 +7,13 @@ A recording-focused inventory for Home Assistant Recorder. This sits next to the
 | Thing | Count |
 | --- | --- |
 | Configured retention | 30 days |
-| Entities reviewed | 2195 |
-| Recorder candidates | 1794 |
-| Excluded by Recorder config | 21 |
-| Disabled in registry | 380 |
-| Low stateful-need candidates | 594 |
-| Medium stateful-need candidates | 472 |
-| High stateful-need candidates | 429 |
+| Entities reviewed | 2328 |
+| Recorder candidates | 1914 |
+| Excluded by Recorder config | 20 |
+| Disabled in registry | 394 |
+| Low stateful-need candidates | 618 |
+| Medium stateful-need candidates | 479 |
+| High stateful-need candidates | 485 |
 
 ## Data Quality
 
@@ -34,45 +34,45 @@ A recording-focused inventory for Home Assistant Recorder. This sits next to the
 
 | Category | Entities | Low | Medium | High | DB rows | Live attr bytes |
 | --- | --- | --- | --- | --- | --- | --- |
-| integration_config_or_update_state | 365 | 365 | 0 | 0 |  |  |
-| derived_summary_or_dashboard_state | 168 | 168 | 0 | 0 |  |  |
+| integration_config_or_update_state | 377 | 377 | 0 | 0 |  |  |
+| derived_summary_or_dashboard_state | 178 | 178 | 0 | 0 |  |  |
 | infrastructure_health_diagnostic | 35 | 35 | 0 | 0 |  |  |
-| camera_or_event_state | 23 | 23 | 0 | 0 |  |  |
+| camera_or_event_state | 25 | 25 | 0 | 0 |  |  |
 | signal_quality_diagnostic | 3 | 3 | 0 | 0 |  |  |
-| operational_state_history | 402 | 0 | 402 | 0 |  |  |
-| event_or_safety_history | 366 | 0 | 0 | 366 |  |  |
-| uncategorized | 299 | 0 | 0 | 0 |  |  |
-| infrastructure_or_camera_misc | 70 | 0 | 70 | 0 |  |  |
-| physical_timeseries | 63 | 0 | 0 | 63 |  |  |
+| event_or_safety_history | 416 | 0 | 0 | 416 |  |  |
+| operational_state_history | 408 | 0 | 408 | 0 |  |  |
+| uncategorized | 332 | 0 | 0 | 0 |  |  |
+| infrastructure_or_camera_misc | 71 | 0 | 71 | 0 |  |  |
+| physical_timeseries | 69 | 0 | 0 | 69 |  |  |
 
 ## Domain Review
 
 | Domain | Recorder candidates | Low | Medium | High | Unknown | DB rows |
 | --- | --- | --- | --- | --- | --- | --- |
-| sensor | 413 | 163 | 19 | 162 | 69 |  |
-| binary_sensor | 266 | 4 | 48 | 137 | 77 |  |
-| switch | 259 | 199 | 0 | 57 | 3 |  |
-| automation | 164 | 12 | 152 | 0 | 0 |  |
-| script | 130 | 9 | 121 | 0 | 0 |  |
-| device_tracker | 107 | 0 | 107 | 0 | 0 |  |
-| number | 93 | 93 | 0 | 0 | 0 |  |
-| input_datetime | 69 | 4 | 0 | 13 | 52 |  |
-| input_boolean | 39 | 2 | 0 | 7 | 30 |  |
-| light | 35 | 0 | 3 | 2 | 30 |  |
-| select | 31 | 31 | 0 | 0 | 0 |  |
+| sensor | 476 | 169 | 19 | 206 | 82 |  |
+| binary_sensor | 279 | 5 | 49 | 141 | 84 |  |
+| switch | 271 | 203 | 0 | 63 | 5 |  |
+| automation | 178 | 12 | 166 | 0 | 0 |  |
+| script | 144 | 10 | 134 | 0 | 0 |  |
+| number | 100 | 100 | 0 | 0 | 0 |  |
+| device_tracker | 84 | 0 | 84 | 0 | 0 |  |
+| input_datetime | 80 | 5 | 0 | 13 | 62 |  |
+| input_boolean | 42 | 2 | 0 | 8 | 32 |  |
+| light | 36 | 0 | 3 | 2 | 31 |  |
+| select | 32 | 32 | 0 | 0 | 0 |  |
 | button | 30 | 30 | 0 | 0 | 0 |  |
-| valve | 27 | 0 | 0 | 27 | 0 |  |
-| media_player | 22 | 0 | 22 | 0 | 0 |  |
+| valve | 30 | 0 | 0 | 30 | 0 |  |
+| media_player | 24 | 0 | 24 | 0 | 0 |  |
 | update | 22 | 22 | 0 | 0 | 0 |  |
-| input_number | 18 | 0 | 0 | 4 | 14 |  |
-| input_text | 15 | 2 | 0 | 5 | 8 |  |
-| event | 13 | 13 | 0 | 0 | 0 |  |
+| input_text | 17 | 3 | 0 | 5 | 9 |  |
+| event | 15 | 15 | 0 | 0 | 0 |  |
+| input_number | 15 | 0 | 0 | 4 | 11 |  |
 | camera | 10 | 10 | 0 | 0 | 0 |  |
 | lock | 4 | 0 | 0 | 4 | 0 |  |
 | climate | 3 | 0 | 0 | 3 | 0 |  |
-| conversation | 3 | 0 | 0 | 1 | 2 |  |
 | input_select | 3 | 0 | 0 | 0 | 3 |  |
 | remote | 3 | 0 | 0 | 0 | 3 |  |
+| tts | 3 | 0 | 0 | 1 | 2 |  |
 
 ## High-Impact Entities To Review First
 
@@ -94,6 +94,7 @@ A recording-focused inventory for Home Assistant Recorder. This sits next to the
 | `binary_sensor.fios_router_wan_status` | derived_summary_or_dashboard_state | upnp | Derived summary/status data is usually regenerated or shown as current state. |  |  |  |
 | `binary_sensor.foyer_chandelier_schedule_active` | derived_summary_or_dashboard_state | template | Derived summary/status data is usually regenerated or shown as current state. |  |  |  |
 | `binary_sensor.front_stairs_schedule_active` | derived_summary_or_dashboard_state | template | Derived summary/status data is usually regenerated or shown as current state. |  |  |  |
+| `binary_sensor.metro_north_commute_card_active` | derived_summary_or_dashboard_state | template | Derived summary/status data is usually regenerated or shown as current state. |  |  |  |
 | `button.aqara_hub_m100_identify` | integration_config_or_update_state | matter | Config/update controls rarely need 30-day Recorder history. |  |  |  |
 | `button.bonticou_gateway_port_4_power_cycle` | integration_config_or_update_state | unifi | Config/update controls rarely need 30-day Recorder history. |  |  |  |
 | `button.bonticou_gateway_restart` | integration_config_or_update_state | unifi | Config/update controls rarely need 30-day Recorder history. |  |  |  |
@@ -107,7 +108,6 @@ A recording-focused inventory for Home Assistant Recorder. This sits next to the
 | `button.office_clear_hold` | integration_config_or_update_state | homekit_controller | Config/update controls rarely need 30-day Recorder history. |  |  |  |
 | `button.office_identify` | integration_config_or_update_state | homekit_controller | Config/update controls rarely need 30-day Recorder history. |  |  |  |
 | `button.ratgdo32_4536e8_query_status` | derived_summary_or_dashboard_state | esphome | Derived summary/status data is usually regenerated or shown as current state. |  |  |  |
-| `button.ratgdo32_4536e8_restart` | integration_config_or_update_state | esphome | Config/update controls rarely need 30-day Recorder history. |  |  |  |
 
 ## Largest Live Attribute Payloads
 

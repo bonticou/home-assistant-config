@@ -10429,18 +10429,20 @@ views:
         cards:
           - type: custom:mushroom-title-card
             title: Irrigation
-            subtitle: Hydrawise schedule and shared well pressure
+            subtitle: Hunter flow, Hydrawise schedule, shared well pressure
 
           - type: custom:mushroom-template-card
             entity: sensor.irrigation_dashboard_status
             primary: >-
-              Status
+              {{ states('sensor.irrigation_dashboard_status') }}
             secondary: >-
               {% set status = states('sensor.irrigation_dashboard_status') %}
               {% if status == 'Needs attention' %}
                 Needs attention · {{ state_attr('sensor.irrigation_dashboard_status', 'reason') }}
+              {% elif status == 'Learning flow' %}
+                {{ states('sensor.irrigation_active_zone') }} · {{ states('sensor.irrigation_flow_rate') | float(0) | round(1) }} gal/min · learning baseline
               {% elif is_state('binary_sensor.irrigation_active', 'on') %}
-                Running · {{ states('sensor.irrigation_active_zone') }}
+                {{ states('sensor.irrigation_active_zone') }} · {{ states('sensor.irrigation_flow_rate') | float(0) | round(1) }} gal/min · {{ states('sensor.irrigation_session_gallons') | float(0) | round(0) }} gal
               {% elif status == 'Recovering' %}
                 Recently finished; watching shared well pressure.
               {% elif status in ['Weather skip likely', 'Controller offline'] %}
@@ -10455,6 +10457,7 @@ views:
               {% if severity == 'critical' %}red
               {% elif severity == 'warning' %}orange
               {% elif states('sensor.irrigation_dashboard_status') == 'Running' %}blue
+              {% elif states('sensor.irrigation_dashboard_status') == 'Learning flow' %}amber
               {% elif states('sensor.irrigation_dashboard_status') == 'Weather skip likely' %}amber
               {% else %}teal{% endif %}
             multiline_secondary: true
@@ -10489,43 +10492,54 @@ views:
         square: false
         cards:
           - type: custom:mushroom-template-card
+            entity: sensor.irrigation_flow_rate
+            primary: Flow now
+            secondary: >-
+              {% if is_state('binary_sensor.irrigation_flow_meter_available', 'on') %}
+                {{ states('sensor.irrigation_flow_rate') | float(0) | round(1) }} gal/min
+              {% else %}
+                Meter unavailable
+              {% endif %}
+            icon: mdi:water-pump
+            icon_color: >-
+              {% set flow = states('sensor.irrigation_flow_rate') | float(0) %}
+              {% if is_state('binary_sensor.irrigation_flow_meter_available', 'off') %}orange
+              {% elif flow > 20 %}red
+              {% elif flow > 0.5 %}blue
+              {% else %}teal{% endif %}
+            tap_action:
+              action: more-info
+            card_mod:
+              style: *water_status_card_style
+          - type: custom:mushroom-template-card
+            entity: sensor.irrigation_session_gallons
+            primary: Session
+            secondary: >-
+              {% if is_state('binary_sensor.irrigation_active', 'on') %}
+                {{ states('sensor.irrigation_session_gallons') | float(0) | round(0) }} gal · peak {{ states('input_number.irrigation_session_peak_flow') | float(0) | round(1) }} gpm
+              {% elif is_state('binary_sensor.irrigation_expected_water_use', 'on') %}
+                Last run {{ states('sensor.irrigation_session_gallons') | float(0) | round(0) }} gal
+              {% else %}
+                Quiet
+              {% endif %}
+            icon: mdi:counter
+            icon_color: "{{ 'blue' if is_state('binary_sensor.irrigation_active', 'on') else 'teal' }}"
+            tap_action:
+              action: more-info
+            card_mod:
+              style: *water_status_card_style
+          - type: custom:mushroom-template-card
             entity: sensor.irrigation_active_zone
-            primary: Status
+            primary: Zone
             secondary: >-
               {% if is_state('binary_sensor.irrigation_active', 'on') %}
                 {{ states('sensor.irrigation_active_zone') }} · {{ state_attr('sensor.irrigation_running_context', 'elapsed_minutes') }} min
               {% else %}
-                Not running
+                Next {{ states('sensor.irrigation_up_next_zone') }}
               {% endif %}
             icon: mdi:sprinkler
-            icon_color: "{{ 'blue' if is_state('binary_sensor.irrigation_active', 'on') else 'grey' }}"
-            tap_action:
-              action: more-info
-            card_mod:
-              style: *water_status_card_style
-          - type: custom:mushroom-template-card
-            entity: sensor.irrigation_up_next_zone
-            primary: Up next
-            secondary: >-
-              {{ states('sensor.irrigation_up_next_zone') }}
-              {% set next = state_attr('sensor.irrigation_up_next_zone', 'next_cycle') %}
-              {% if next not in ['unknown', 'unavailable', 'none', ''] %}
-                · {{ as_timestamp(next, 0) | timestamp_custom('%a %-I:%M %p', true) }}
-              {% endif %}
-            icon: mdi:calendar-clock-outline
-            icon_color: teal
-            tap_action:
-              action: more-info
-            card_mod:
-              style: *water_status_card_style
-          - type: custom:mushroom-template-card
-            entity: binary_sensor.hydrawise_controller_online
-            primary: Controller
-            secondary: >-
-              {{ 'Online' if is_state('binary_sensor.hydrawise_controller_online', 'on') else 'Offline' }}
-            icon: mdi:cloud-check-outline
             icon_color: >-
-              {{ 'teal' if is_state('binary_sensor.hydrawise_controller_online', 'on') else 'orange' }}
+              {{ 'blue' if is_state('binary_sensor.irrigation_active', 'on') else 'teal' }}
             tap_action:
               action: more-info
             card_mod:
@@ -10535,6 +10549,9 @@ views:
             primary: Shared well
             secondary: >-
               {{ states('sensor.flo_shutoff_water_pressure') | float(0) | round(0) }} psi
+              {% if is_state('binary_sensor.irrigation_active', 'on') %}
+                · min {{ states('input_number.irrigation_session_min_pressure') | float(0) | round(0) }}
+              {% endif %}
             icon: mdi:gauge
             icon_color: >-
               {% set pressure = states('sensor.flo_shutoff_water_pressure') | float(0) %}
@@ -10550,12 +10567,60 @@ views:
         entity: sensor.irrigation_schedule_summary
         primary: Schedule
         secondary: >-
-          {{ states('sensor.irrigation_schedule_summary') }} · tap for Hydrawise zones
+          {{ states('sensor.irrigation_schedule_summary') }} · active, upcoming, and attention zones
         icon: mdi:calendar-month-outline
         icon_color: teal
         multiline_secondary: true
         tap_action:
           action: more-info
+        card_mod:
+          style: *water_status_card_style
+
+      - type: custom:apexcharts-card
+        graph_span: 6h
+        header:
+          show: false
+        apex_config:
+          chart:
+            height: 220
+          stroke:
+            curve: smooth
+          grid:
+            borderColor: rgba(120, 120, 120, 0.16)
+          legend:
+            show: true
+            position: top
+            labels:
+              colors: '#cbd5e1'
+          tooltip:
+            theme: dark
+        yaxis:
+          - id: flow
+            min: 0
+            decimals: 0
+          - id: pressure
+            opposite: true
+            min: 0
+            decimals: 0
+        series:
+          - entity: sensor.irrigation_flow_rate
+            name: Hunter flow
+            yaxis_id: flow
+            type: area
+            color: '#38bdf8'
+            stroke_width: 2
+            group_by:
+              func: max
+              duration: 2min
+          - entity: sensor.flo_shutoff_water_pressure
+            name: Well pressure
+            yaxis_id: pressure
+            type: line
+            color: '#94a3b8'
+            stroke_width: 2
+            group_by:
+              func: avg
+              duration: 2min
         card_mod:
           style: *water_status_card_style
 
@@ -10710,28 +10775,63 @@ views:
                 action: none
               card_mod:
                 style: *calm_popup_hero_style
-            - type: entities
-              title: Live context
-              show_header_toggle: false
-              entities:
-                - entity: binary_sensor.irrigation_active
-                  name: Irrigation active
-                - entity: sensor.irrigation_active_zone
-                  name: Active zone
-                - entity: sensor.irrigation_up_next_zone
-                  name: Up next
-                - entity: sensor.irrigation_active_zone_count
-                  name: Active zone count
-                - entity: input_text.irrigation_active_alert_kind
-                  name: Active alert
-                - entity: binary_sensor.hydrawise_controller_online
-                  name: Controller online
-                - entity: sensor.flo_shutoff_water_pressure
-                  name: Shared well pressure
-                - entity: sensor.irrigation_weather_skip_context
-                  name: Weather context
-              card_mod:
-                style: *calm_popup_panel_style
+            - type: custom:button-card
+              entity: sensor.irrigation_dashboard_status
+              show_icon: false
+              show_name: false
+              show_state: false
+              tap_action:
+                action: none
+              custom_fields:
+                rows: >-
+                  [[[
+                    const row = (label, value) => `<div class="irrigation-context-row"><span>${label}</span><b>${value}</b></div>`;
+                    const state = (id) => hass.states[id]?.state ?? 'unknown';
+                    const next = hass.states['sensor.irrigation_up_next_zone']?.attributes?.next_cycle;
+                    const when = next ? new Date(String(next).replace(' ', 'T')).toLocaleString(undefined, { weekday: 'short', hour: 'numeric', minute: '2-digit' }) : 'unknown';
+                    return [
+                      row('Flow now', `${Number(state('sensor.irrigation_flow_rate') || 0).toFixed(1)} gal/min`),
+                      row('Session', `${Number(state('sensor.irrigation_session_gallons') || 0).toFixed(0)} gal`),
+                      row('Active zone', state('sensor.irrigation_active_zone')),
+                      row('Up next', `${state('sensor.irrigation_up_next_zone')} · ${when}`),
+                      row('Flow meter', state('binary_sensor.irrigation_flow_meter_available') === 'on' ? 'Available' : 'Stale'),
+                      row('Shared well', `${Number(state('sensor.flo_shutoff_water_pressure') || 0).toFixed(0)} psi`)
+                    ].join('');
+                  ]]]
+              styles:
+                card:
+                  - padding: 14px
+                  - border-radius: 16px
+                  - box-shadow: none
+                  - background: rgba(15, 23, 42, 0.48)
+                  - border: 1px solid rgba(148, 163, 184, 0.14)
+                grid:
+                  - grid-template-areas: '"rows"'
+              extra_styles: |
+                .irrigation-context-row {
+                  align-items: center;
+                  border-bottom: 1px solid rgba(148, 163, 184, 0.12);
+                  display: grid;
+                  gap: 12px;
+                  grid-template-columns: minmax(0, 1fr) minmax(0, 1.25fr);
+                  min-height: 34px;
+                }
+                .irrigation-context-row:last-child { border-bottom: none; }
+                .irrigation-context-row span {
+                  color: rgba(203, 213, 225, 0.72);
+                  font-size: 12px;
+                  text-align: left;
+                }
+                .irrigation-context-row b {
+                  color: rgba(248, 250, 252, 0.94);
+                  font-size: 13px;
+                  font-weight: 650;
+                  min-width: 0;
+                  overflow: hidden;
+                  text-align: right;
+                  text-overflow: ellipsis;
+                  white-space: nowrap;
+                }
 
   - title: Wine
     path: wine
