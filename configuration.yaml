@@ -5158,11 +5158,8 @@ template:
         device_class: connectivity
         state: >
           {% set source = states('sensor.45_crr_daily_total_water_use') %}
-          {% set updated = states.sensor
-            | selectattr('entity_id', 'eq', 'sensor.45_crr_daily_total_water_use')
-            | map(attribute='last_updated')
-            | first %}
-          {% set age = as_timestamp(now()) - as_timestamp(updated, 0) if updated else 999999 %}
+          {% set seen = as_timestamp(states('input_datetime.irrigation_flow_meter_last_seen_at'), 0) %}
+          {% set age = as_timestamp(now()) - seen if seen > 0 else 999999 %}
           {{ is_number(source)
              and is_state('binary_sensor.hydrawise_controller_online', 'on')
              and age < 1800 }}

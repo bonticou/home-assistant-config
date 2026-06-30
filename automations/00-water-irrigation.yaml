@@ -2000,11 +2000,20 @@
   alias: "Irrigation — Clear Transient Alerts When Normal"
   description: Clears live irrigation danger state after Hydrawise is quiet and shared well pressure is above the recovery floor.
   triggers:
+    - trigger: homeassistant
+      event: start
+    - trigger: time_pattern
+      minutes: "/5"
     - trigger: state
       entity_id: binary_sensor.irrigation_expected_water_use
       to: "off"
       for:
         minutes: 5
+    - trigger: state
+      entity_id: binary_sensor.irrigation_flow_meter_available
+      to: "on"
+      for:
+        minutes: 2
     - trigger: numeric_state
       entity_id: sensor.flo_shutoff_water_pressure
       above: 30

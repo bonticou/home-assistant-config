@@ -112,6 +112,14 @@ The target posture was:
   - `binary_sensor.irrigation_flow_meter_available` is `on`.
   - `sensor.irrigation_flow_baseline_status` exists.
   - `sensor.45_crr_daily_total_water_use` is present as the Hunter source.
+- A post-restart dashboard check exposed a restored stale-meter transient alert
+  even though the Hunter meter was available. The clear automation was tightened
+  to also wake on Home Assistant start, periodic checks, and meter-available
+  recovery while preserving the same all-clear conditions.
+- The flow-meter availability template was also corrected to use the sampler's
+  `input_datetime.irrigation_flow_meter_last_seen_at` heartbeat instead of the
+  cumulative total sensor's raw `last_updated`, which may not change while
+  irrigation is idle.
 
 ## Residual Risks And Follow-Ups
 
