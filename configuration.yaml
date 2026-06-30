@@ -234,6 +234,35 @@ command_line:
         - sessions
         - zone_runs
         - events
+  - sensor:
+      name: Irrigation Rainfall Actuals
+      unique_id: irrigation_rainfall_actuals
+      command: >-
+        python3 /config/tools/irrigation_rain_actuals.py
+        --config-dir /config
+        --cache-file /config/.irrigation_rain_actuals.json
+        --days 14
+      command_timeout: 30
+      scan_interval: 21600
+      unit_of_measurement: "in"
+      device_class: precipitation
+      value_template: >
+        {{ value_json.latest_rain_in if value_json.latest_rain_in is defined else 0 }}
+      json_attributes:
+        - updated_at
+        - source
+        - source_type
+        - location_source
+        - unit
+        - start_date
+        - end_date
+        - day_count
+        - latest_date
+        - latest_rain_in
+        - total_rain_in
+        - days
+        - stale
+        - error
 
 shell_command:
   refresh_device_inventory: >-
@@ -3587,6 +3616,21 @@ template:
           last_total_gallons: "{{ states('input_number.irrigation_flow_meter_last_total') }}"
           last_sample_at: "{{ states('input_datetime.irrigation_flow_last_sample_at') }}"
           meter_last_seen_at: "{{ states('input_datetime.irrigation_flow_meter_last_seen_at') }}"
+
+      - name: "Irrigation Daily Gallons"
+        unique_id: irrigation_daily_gallons
+        unit_of_measurement: "gal"
+        device_class: water
+        state_class: total_increasing
+        state: "{{ states('sensor.45_crr_daily_total_water_use') | float(0) | round(1) }}"
+        icon: mdi:chart-bar
+        attributes:
+          flow_source: hunter
+          source_entity: sensor.45_crr_daily_total_water_use
+          source_total_gallons: "{{ states('sensor.45_crr_daily_total_water_use') }}"
+          reset_period: daily
+          max_reasonable_daily_gallons: 2000
+          derived_from: "Hydrawise/Hunter daily total water use"
 
       - name: "Irrigation Session Gallons"
         unique_id: irrigation_session_gallons

@@ -4,16 +4,16 @@ Full generated audit view. For the readable overview, use [device-inventory.md](
 
 ## Last Updated
 
-- Snapshot: `2026-06-30T01:59:32.401404+00:00`
-- Summary: 223 devices, 2328 entities, 138 network clients, 33 Lutron Caséta entities
+- Snapshot: `2026-06-30T15:32:28.018303+00:00`
+- Summary: 223 devices, 2356 entities, 138 network clients, 33 Lutron Caséta entities
 
 ## Summary
 
 | Metric | Count |
 | --- | --- |
 | Devices | 223 |
-| Entities | 2328 |
-| Orphan entities | 764 |
+| Entities | 2356 |
+| Orphan entities | 792 |
 | Network clients | 138 |
 | Areas | 32 |
 | Integrations | 44 |
@@ -22,10 +22,10 @@ Full generated audit view. For the readable overview, use [device-inventory.md](
 
 | Role | Entities |
 | --- | --- |
-| control | 787 |
+| control | 802 |
 | network | 138 |
-| other | 334 |
-| telemetry | 1069 |
+| other | 339 |
+| telemetry | 1077 |
 
 ### Top Integrations
 
@@ -34,11 +34,11 @@ Full generated audit view. For the readable overview, use [device-inventory.md](
 | unifiprotect | 399 |
 | unifi | 290 |
 | hydrawise | 245 |
-| template | 200 |
+| template | 206 |
+| automation | 183 |
 | sonos | 179 |
-| automation | 178 |
 | script | 144 |
-| input_datetime | 80 |
+| input_datetime | 82 |
 | sensorpush_cloud | 56 |
 | esphome | 55 |
 | whisker_ting | 48 |
@@ -49,8 +49,8 @@ Full generated audit view. For the readable overview, use [device-inventory.md](
 | hassio | 35 |
 | lutron_caseta | 33 |
 | mobile_app | 26 |
-| matter | 22 |
-| tplink | 21 |
+| input_text | 23 |
+| input_number | 22 |
 
 ## Devices By Area
 
@@ -219,7 +219,7 @@ Full generated audit view. For the readable overview, use [device-inventory.md](
 
 - Device ID: `device_582d95951335`
 - Integration: unifi, unifiprotect
-- Model: Ubiquiti UCGF
+- Model: Ubiquiti UCG Fiber
 - Capability mix: 35 telemetry, 12 control, 1 network, 0 other
 
 | Entity | Name | Role | Integration | Detail | Availability |
@@ -3978,7 +3978,12 @@ _No registered entities._
 | `automation.irrigation_clear_transient_alerts_when_normal` | Irrigation — Clear Transient Alerts When Normal | other | automation | not_enriched |
 | `automation.irrigation_fingerprint_anomaly_notification` | Irrigation — Fingerprint Anomaly Notification | other | automation | not_enriched |
 | `automation.irrigation_flo_telemetry_unavailable_during_watering` | Irrigation — Flo Telemetry Unavailable During Watering | other | automation | not_enriched |
-| `automation.irrigation_flow_after_stop` | Irrigation — Flow After Stop | other | automation | not_enriched |
+| `automation.irrigation_flow_after_stop` | Irrigation — Hunter Flow After Stop | other | automation | not_enriched |
+| `automation.irrigation_hunter_flow_high` | Irrigation — Hunter Flow High | other | automation | not_enriched |
+| `automation.irrigation_hunter_flow_low` | Irrigation — Hunter Flow Low | other | automation | not_enriched |
+| `automation.irrigation_hunter_flow_meter_stale` | Irrigation — Hunter Flow Meter Stale | other | automation | not_enriched |
+| `automation.irrigation_hunter_no_flow` | Irrigation — Hunter No Flow | other | automation | not_enriched |
+| `automation.irrigation_hunter_unscheduled_flow` | Irrigation — Hunter Unscheduled Flow | other | automation | not_enriched |
 | `automation.irrigation_hydrawise_offline_before_watering` | Irrigation — Hydrawise Offline Before Watering | other | automation | not_enriched |
 | `automation.irrigation_hydrawise_offline_during_watering` | Irrigation — Hydrawise Offline During Watering | other | automation | not_enriched |
 | `automation.irrigation_multiple_zones_active` | Irrigation — Multiple Zones Active | other | automation | not_enriched |
@@ -3987,7 +3992,7 @@ _No registered entities._
 | `automation.irrigation_scheduled_cycle_did_not_start_watch` | Irrigation — Scheduled Cycle Did Not Start Watch | other | automation | not_enriched |
 | `automation.irrigation_session_finished_notification_and_recovery_watch` | Irrigation — Session Finished Notification And Recovery Watch | other | automation | not_enriched |
 | `automation.irrigation_session_started_notification` | Irrigation — Session Started Notification | other | automation | not_enriched |
-| `automation.irrigation_session_telemetry_tracking` | Irrigation — Shared Well Pressure Tracking | other | automation | not_enriched |
+| `automation.irrigation_session_telemetry_tracking` | Irrigation — Hunter Flow And Shared Well Tracking | other | automation | not_enriched |
 | `automation.irrigation_valve_state_mismatch` | Irrigation — Valve State Mismatch | other | automation | not_enriched |
 | `automation.irrigation_weather_skip_buffer_tracking` | Irrigation — Weather Skip Buffer Tracking | other | automation | not_enriched |
 | `automation.irrigation_well_recovery_failed_follow_up` | Irrigation — Well Recovery Failed Follow-Up | other | automation | not_enriched |
@@ -4155,6 +4160,9 @@ _No registered entities._
 | `binary_sensor.irrigation_break_signature_active` | Irrigation Break Signature Active | telemetry | template | not_enriched |
 | `binary_sensor.irrigation_expected_water_use` | Irrigation Expected Water Use | telemetry | template | not_enriched |
 | `binary_sensor.irrigation_flo_telemetry_available` | Irrigation Flo Telemetry Available | telemetry | template | not_enriched |
+| `binary_sensor.irrigation_flow_baseline_high_alert` | Irrigation Flow Baseline High Alert | telemetry | template | not_enriched |
+| `binary_sensor.irrigation_flow_baseline_low_alert` | Irrigation Flow Baseline Low Alert | telemetry | template | not_enriched |
+| `binary_sensor.irrigation_flow_meter_available` | Irrigation Flow Meter Available | telemetry | template | not_enriched |
 | `binary_sensor.irrigation_valve_state_mismatch` | Irrigation Valve State Mismatch | telemetry | template | not_enriched |
 | `binary_sensor.irrigation_weather_skip_buffer_active` | Irrigation Weather Skip Buffer Active | telemetry | template | not_enriched |
 | `binary_sensor.irrigation_well_pressure_proxy_available` | Irrigation Well Pressure Proxy Available | telemetry | template | not_enriched |
@@ -4319,6 +4327,8 @@ _No registered entities._
 | `input_datetime.home_assistant_remote_ui_last_recovery_attempt` | HA Remote UI Last Recovery Attempt | control | input_datetime | not_enriched |
 | `input_datetime.home_assistant_remote_ui_last_restored_at` | HA Remote UI Last Restored At | control | input_datetime | not_enriched |
 | `input_datetime.irrigation_expected_water_use_until` | Irrigation Expected Water Use Until | control | input_datetime | not_enriched |
+| `input_datetime.irrigation_flow_last_sample_at` | Irrigation Flow Last Sample At | control | input_datetime | not_enriched |
+| `input_datetime.irrigation_flow_meter_last_seen_at` | Irrigation Flow Meter Last Seen At | control | input_datetime | not_enriched |
 | `input_datetime.irrigation_recovery_failed_check_at` | Irrigation Recovery Failed Check At | control | input_datetime | not_enriched |
 | `input_datetime.irrigation_recovery_slow_check_at` | Irrigation Recovery Slow Check At | control | input_datetime | not_enriched |
 | `input_datetime.irrigation_schedule_candidate_at` | Irrigation Schedule Candidate At | control | input_datetime | not_enriched |
@@ -4374,8 +4384,15 @@ _No registered entities._
 | `input_number.downstairs_vacation_profile_delay_hours` | Downstairs Vacation Delay | control | input_number | not_enriched |
 | `input_number.downstairs_winter_day_target` | Downstairs Winter Day Target | control | input_number | not_enriched |
 | `input_number.downstairs_winter_night_target` | Downstairs Winter Night Target | control | input_number | not_enriched |
+| `input_number.irrigation_flow_meter_last_total` | Irrigation Flow Meter Last Total | control | input_number | not_enriched |
+| `input_number.irrigation_flow_rate` | Irrigation Flow Rate | control | input_number | not_enriched |
+| `input_number.irrigation_session_gallons` | Irrigation Session Gallons | control | input_number | not_enriched |
 | `input_number.irrigation_session_min_pressure` | Irrigation Session Min Pressure | control | input_number | not_enriched |
+| `input_number.irrigation_session_peak_flow` | Irrigation Session Peak Flow | control | input_number | not_enriched |
 | `input_number.irrigation_session_start_pressure` | Irrigation Session Start Pressure | control | input_number | not_enriched |
+| `input_number.irrigation_zone_gallons` | Irrigation Zone Gallons | control | input_number | not_enriched |
+| `input_number.irrigation_zone_min_pressure` | Irrigation Zone Min Pressure | control | input_number | not_enriched |
+| `input_number.irrigation_zone_peak_flow` | Irrigation Zone Peak Flow | control | input_number | not_enriched |
 | `input_number.irrigation_zone_start_pressure` | Irrigation Zone Start Pressure | control | input_number | not_enriched |
 | `input_select.downstairs_season_mode` | Main Floor Season Mode | control | input_select | not_enriched |
 | `input_select.irrigation_dashboard_zone_focus` | Irrigation Dashboard Zone Focus | control | input_select | not_enriched |
@@ -4389,7 +4406,13 @@ _No registered entities._
 | `input_text.home_assistant_remote_ui_watchdog_last_status` | HA Remote UI Watchdog Last Status | control | input_text | not_enriched |
 | `input_text.irrigation_active_alert_kind` | Irrigation Active Alert Kind | control | input_text | not_enriched |
 | `input_text.irrigation_current_zone` | Irrigation Current Zone | control | input_text | not_enriched |
+| `input_text.irrigation_last_flow_after_stop_alert_key` | Irrigation Last Flow After Stop Alert Key | control | input_text | not_enriched |
+| `input_text.irrigation_last_flow_meter_stale_alert_key` | Irrigation Last Flow Meter Stale Alert Key | control | input_text | not_enriched |
+| `input_text.irrigation_last_high_flow_alert_key` | Irrigation Last High Flow Alert Key | control | input_text | not_enriched |
+| `input_text.irrigation_last_low_flow_alert_key` | Irrigation Last Low Flow Alert Key | control | input_text | not_enriched |
+| `input_text.irrigation_last_no_flow_alert_key` | Irrigation Last No Flow Alert Key | control | input_text | not_enriched |
 | `input_text.irrigation_last_schedule_miss_key` | Irrigation Last Schedule Miss Key | control | input_text | not_enriched |
+| `input_text.irrigation_last_unscheduled_flow_alert_key` | Irrigation Last Unscheduled Flow Alert Key | control | input_text | not_enriched |
 | `input_text.irrigation_session_id` | Irrigation Session ID | control | input_text | not_enriched |
 | `input_text.irrigation_session_start_zone` | Irrigation Session Start Zone | control | input_text | not_enriched |
 | `input_text.latest_camera_motion_entity` | Latest Camera Motion Entity | control | input_text | not_enriched |
@@ -4618,13 +4641,18 @@ _No registered entities._
 | `sensor.house_notice_timeline` | House Notice Timeline | telemetry | template | not_enriched |
 | `sensor.irrigation_active_zone` | Irrigation Active Zone | telemetry | template | not_enriched |
 | `sensor.irrigation_active_zone_count` | Irrigation Active Zone Count | telemetry | template | not_enriched |
+| `sensor.irrigation_daily_gallons` | Irrigation Daily Gallons | telemetry | template | not_enriched |
 | `sensor.irrigation_dashboard_status` | Irrigation Dashboard Status | telemetry | template | not_enriched |
 | `sensor.irrigation_fingerprint_status` | Irrigation Fingerprint Status | telemetry | command_line | not_enriched |
+| `sensor.irrigation_flow_baseline_status` | Irrigation Flow Baseline Status | telemetry | command_line | not_enriched |
+| `sensor.irrigation_flow_rate` | Irrigation Flow Rate | telemetry | template | not_enriched |
 | `sensor.irrigation_focus_zone_detail` | Irrigation Focus Zone Detail | telemetry | template | not_enriched |
 | `sensor.irrigation_history_status` | Irrigation History Status | telemetry | command_line | not_enriched |
 | `sensor.irrigation_next_cycle` | Irrigation Next Cycle | telemetry | template | not_enriched |
+| `sensor.irrigation_rainfall_actuals` | Irrigation Rainfall Actuals | telemetry | command_line | not_enriched |
 | `sensor.irrigation_running_context` | Irrigation Running Context | telemetry | template | not_enriched |
 | `sensor.irrigation_schedule_summary` | Irrigation Schedule Summary | telemetry | template | not_enriched |
+| `sensor.irrigation_session_gallons` | Irrigation Session Gallons | telemetry | template | not_enriched |
 | `sensor.irrigation_up_next_zone` | Irrigation Up Next Zone | telemetry | template | not_enriched |
 | `sensor.irrigation_weather_skip_context` | Irrigation Weather Skip Context | telemetry | template | not_enriched |
 | `sensor.irrigation_zone_attention_summary` | Irrigation Zone Attention Summary | telemetry | template | not_enriched |

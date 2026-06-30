@@ -10624,6 +10624,304 @@ views:
         card_mod:
           style: *water_status_card_style
 
+      - type: custom:mushroom-title-card
+        title: Daily usage + rainfall
+        subtitle: Last 7 days · Hunter irrigation · historical rainfall
+
+      - type: custom:apexcharts-card
+        graph_span: 7d
+        span:
+          end: day
+        header:
+          show: false
+        apex_config:
+          chart:
+            height: 224
+            type: line
+            parentHeightOffset: 0
+            toolbar:
+              show: false
+          plotOptions:
+            bar:
+              borderRadius: 7
+              borderRadiusApplication: end
+              columnWidth: 36%
+          dataLabels:
+            enabled: false
+          stroke:
+            curve: straight
+            width:
+              - 0
+              - 2
+              - 2
+            dashArray:
+              - 0
+              - 5
+              - 0
+          fill:
+            opacity:
+              - 0.86
+              - 1
+              - 0.28
+            type:
+              - gradient
+              - solid
+              - gradient
+            gradient:
+              shade: dark
+              type: vertical
+              opacityFrom: 0.96
+              opacityTo: 0.56
+          grid:
+            borderColor: rgba(148, 163, 184, 0.10)
+            strokeDashArray: 4
+            padding:
+              top: 8
+              right: 10
+              bottom: 4
+              left: 2
+          legend:
+            show: true
+            position: top
+            horizontalAlign: left
+            fontSize: 11px
+            labels:
+              colors: rgba(226, 232, 240, 0.64)
+            markers:
+              width: 7
+              height: 7
+              radius: 7
+          markers:
+            size:
+              - 0
+              - 0
+              - 3
+          states:
+            hover:
+              filter:
+                type: lighten
+                value: 0.08
+          tooltip:
+            theme: dark
+            shared: true
+            intersect: false
+            x:
+              formatter: |
+                EVAL:function(value, opts) {
+                  const seriesIndex = opts?.seriesIndex ?? 0;
+                  const dataPointIndex = opts?.dataPointIndex ?? 0;
+                  const source = opts?.w?.globals?.seriesX?.[seriesIndex]?.[dataPointIndex] ?? value;
+                  const numeric = typeof source === 'number' ? source : Number(source);
+                  const date = Number.isFinite(numeric) ? new Date(numeric) : new Date(source);
+                  if (Number.isNaN(date.getTime())) return value ?? '';
+                  const today = new Date();
+                  const isToday = date.getFullYear() === today.getFullYear()
+                    && date.getMonth() === today.getMonth()
+                    && date.getDate() === today.getDate();
+                  const weekday = date.toLocaleDateString(undefined, { weekday: 'short' });
+                  const day = isToday ? `Today (${weekday})` : weekday;
+                  const month = date.toLocaleDateString(undefined, { month: 'short', day: 'numeric' });
+                  return `${day}, ${month}`;
+                }
+            'y':
+              formatter: |
+                EVAL:function(value, opts) {
+                  const numeric = Number(value);
+                  if (!Number.isFinite(numeric)) return value;
+                  const name = opts?.w?.globals?.seriesNames?.[opts?.seriesIndex ?? 0] || '';
+                  if (/rain/i.test(name)) return `${numeric.toFixed(2)} in`;
+                  return `${Math.round(numeric)} gal`;
+                }
+          xaxis:
+            tickAmount: 7
+            axisBorder:
+              show: false
+            axisTicks:
+              show: false
+            labels:
+              datetimeUTC: false
+              hideOverlappingLabels: false
+              maxHeight: 38
+              rotate: 0
+              showDuplicates: true
+              trim: false
+              formatter: |
+                EVAL:function(value, timestamp) {
+                  const source = timestamp ?? value;
+                  const numeric = typeof source === 'number' ? source : Number(source);
+                  const date = Number.isFinite(numeric) ? new Date(numeric) : new Date(source);
+                  if (Number.isNaN(date.getTime())) return value ?? '';
+                  const today = new Date();
+                  today.setHours(0, 0, 0, 0);
+                  const tomorrow = new Date(today);
+                  tomorrow.setDate(tomorrow.getDate() + 1);
+                  if (date >= tomorrow) return '';
+                  if (date.getFullYear() === today.getFullYear()
+                    && date.getMonth() === today.getMonth()
+                    && date.getDate() === today.getDate()) {
+                    return 'Today';
+                  }
+                  return date.toLocaleDateString(undefined, { weekday: 'short' });
+                }
+              style:
+                colors: rgba(226, 232, 240, 0.74)
+                fontSize: 11px
+                fontWeight: 500
+        yaxis:
+          - id: gallons
+            min: 0
+            max: "~500"
+            align_to: 100
+            decimals: 0
+            apex_config:
+              tickAmount: 4
+          - id: rain
+            opposite: true
+            min: 0
+            max: "~0.5"
+            decimals: 2
+            apex_config:
+              tickAmount: 3
+              labels:
+                formatter: |
+                  EVAL:function(value) {
+                    const numeric = Number(value);
+                    return Number.isFinite(numeric) ? `${numeric.toFixed(1)}"` : value;
+                  }
+        series:
+          - entity: sensor.irrigation_daily_gallons
+            name: Daily irrigation
+            yaxis_id: gallons
+            type: column
+            color: '#22c55e'
+            stroke_width: 0
+            float_precision: 0
+            data_generator: |
+              const sourceEntityId = entity.attributes?.source_entity || 'sensor.45_crr_daily_total_water_use';
+              const sourceEntity = hass.states[sourceEntityId] || entity;
+              const dayMs = 24 * 60 * 60 * 1000;
+              const today = new Date();
+              today.setHours(0, 0, 0, 0);
+              const firstDay = new Date(today);
+              firstDay.setDate(firstDay.getDate() - 6);
+              const spanEnd = new Date(today.getTime() + dayMs);
+              const path = `history/period/${firstDay.toISOString()}?filter_entity_id=${encodeURIComponent(sourceEntityId)}&end_time=${encodeURIComponent(spanEnd.toISOString())}`;
+              const response = await hass.callApi('GET', path);
+              const rows = Array.isArray(response?.[0]) ? response[0] : [];
+              const sane = (value) => Number.isFinite(value) && value >= 0 && value <= 2000;
+              const keyFor = (date) => [
+                date.getFullYear(),
+                String(date.getMonth() + 1).padStart(2, '0'),
+                String(date.getDate()).padStart(2, '0')
+              ].join('-');
+              const buckets = new Map();
+              for (const row of rows) {
+                const value = Number(row.state);
+                if (!sane(value)) continue;
+                const changed = row.last_changed || row.last_updated;
+                const date = new Date(changed);
+                if (Number.isNaN(date.getTime())) continue;
+                const key = keyFor(date);
+                const previous = buckets.get(key);
+                buckets.set(key, previous === undefined ? value : Math.max(previous, value));
+              }
+              const current = Number(sourceEntity.state);
+              if (sane(current)) {
+                const key = keyFor(today);
+                const previous = buckets.get(key);
+                buckets.set(key, previous === undefined ? current : Math.max(previous, current));
+              }
+              return Array.from({ length: 7 }, (_, index) => {
+                const day = new Date(firstDay.getTime() + index * dayMs);
+                const value = buckets.get(keyFor(day));
+                return [day.getTime(), Number.isFinite(value) ? value : null];
+              });
+          - entity: sensor.irrigation_daily_gallons
+            name: 7-day avg
+            yaxis_id: gallons
+            type: line
+            color: rgba(226, 232, 240, 0.58)
+            stroke_width: 2
+            stroke_dash: 5
+            float_precision: 0
+            data_generator: |
+              const sourceEntityId = entity.attributes?.source_entity || 'sensor.45_crr_daily_total_water_use';
+              const sourceEntity = hass.states[sourceEntityId] || entity;
+              const dayMs = 24 * 60 * 60 * 1000;
+              const today = new Date();
+              today.setHours(0, 0, 0, 0);
+              const firstDay = new Date(today);
+              firstDay.setDate(firstDay.getDate() - 6);
+              const spanEnd = new Date(today.getTime() + dayMs);
+              const path = `history/period/${firstDay.toISOString()}?filter_entity_id=${encodeURIComponent(sourceEntityId)}&end_time=${encodeURIComponent(spanEnd.toISOString())}`;
+              const response = await hass.callApi('GET', path);
+              const rows = Array.isArray(response?.[0]) ? response[0] : [];
+              const sane = (value) => Number.isFinite(value) && value >= 0 && value <= 2000;
+              const keyFor = (date) => [
+                date.getFullYear(),
+                String(date.getMonth() + 1).padStart(2, '0'),
+                String(date.getDate()).padStart(2, '0')
+              ].join('-');
+              const buckets = new Map();
+              for (const row of rows) {
+                const value = Number(row.state);
+                if (!sane(value)) continue;
+                const changed = row.last_changed || row.last_updated;
+                const date = new Date(changed);
+                if (Number.isNaN(date.getTime())) continue;
+                const key = keyFor(date);
+                const previous = buckets.get(key);
+                buckets.set(key, previous === undefined ? value : Math.max(previous, value));
+              }
+              const current = Number(sourceEntity.state);
+              if (sane(current)) {
+                const key = keyFor(today);
+                const previous = buckets.get(key);
+                buckets.set(key, previous === undefined ? current : Math.max(previous, current));
+              }
+              const days = Array.from({ length: 7 }, (_, index) => new Date(firstDay.getTime() + index * dayMs));
+              const values = days
+                .map((day) => buckets.get(keyFor(day)))
+                .filter((value) => Number.isFinite(value));
+              if (!values.length) return [];
+              const average = values.reduce((sum, value) => sum + value, 0) / values.length;
+              return days.map((day) => [day.getTime(), average]);
+          - entity: sensor.irrigation_rainfall_actuals
+            name: Rainfall actuals
+            yaxis_id: rain
+            type: area
+            color: '#38bdf8'
+            stroke_width: 2
+            float_precision: 2
+            data_generator: |
+              const dayMs = 24 * 60 * 60 * 1000;
+              const today = new Date();
+              today.setHours(0, 0, 0, 0);
+              const firstDay = new Date(today);
+              firstDay.setDate(firstDay.getDate() - 6);
+              const keyFor = (date) => [
+                date.getFullYear(),
+                String(date.getMonth() + 1).padStart(2, '0'),
+                String(date.getDate()).padStart(2, '0')
+              ].join('-');
+              const buckets = new Map();
+              const days = Array.isArray(entity.attributes?.days) ? entity.attributes.days : [];
+              for (const item of days) {
+                const value = Number(item.rain_in ?? item.precipitation_in);
+                if (!Number.isFinite(value) || value < 0) continue;
+                const date = new Date(`${item.date}T00:00:00`);
+                if (Number.isNaN(date.getTime())) continue;
+                buckets.set(keyFor(date), value);
+              }
+
+              return Array.from({ length: 7 }, (_, index) => {
+                const day = new Date(firstDay.getTime() + index * dayMs);
+                const value = buckets.get(keyFor(day));
+                return [day.getTime(), Number.isFinite(value) && value > 0 ? value : null];
+              });
+        card_mod:
+          style: *water_chart_card_style
+
       - type: custom:popup-card
         target:
           entity_id: sensor.irrigation_schedule_summary
