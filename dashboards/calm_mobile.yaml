@@ -10652,20 +10652,16 @@ views:
             curve: straight
             width:
               - 0
-              - 1.4
               - 0
             dashArray:
               - 0
-              - 5
               - 0
           fill:
             opacity:
               - 0.86
-              - 1
               - 0.5
             type:
               - gradient
-              - solid
               - gradient
             gradient:
               shade: dark
@@ -10697,7 +10693,6 @@ views:
               radius: 7
           markers:
             size:
-              - 0
               - 0
               - 0
           states:
@@ -10842,58 +10837,6 @@ views:
                 const value = buckets.get(keyFor(day));
                 return [day.getTime(), Number.isFinite(value) ? value : null];
               });
-          - entity: sensor.irrigation_daily_gallons
-            name: 7-day avg
-            yaxis_id: gallons
-            type: line
-            color: rgba(226, 232, 240, 0.48)
-            stroke_width: 1.4
-            stroke_dash: 5
-            float_precision: 0
-            show:
-              legend_value: false
-            data_generator: |
-              const sourceEntityId = entity.attributes?.source_entity || 'sensor.45_crr_daily_total_water_use';
-              const sourceEntity = hass.states[sourceEntityId] || entity;
-              const dayMs = 24 * 60 * 60 * 1000;
-              const today = new Date();
-              today.setHours(0, 0, 0, 0);
-              const firstDay = new Date(today);
-              firstDay.setDate(firstDay.getDate() - 6);
-              const spanEnd = new Date(today.getTime() + dayMs);
-              const path = `history/period/${firstDay.toISOString()}?filter_entity_id=${encodeURIComponent(sourceEntityId)}&end_time=${encodeURIComponent(spanEnd.toISOString())}`;
-              const response = await hass.callApi('GET', path);
-              const rows = Array.isArray(response?.[0]) ? response[0] : [];
-              const sane = (value) => Number.isFinite(value) && value >= 0 && value <= 2000;
-              const keyFor = (date) => [
-                date.getFullYear(),
-                String(date.getMonth() + 1).padStart(2, '0'),
-                String(date.getDate()).padStart(2, '0')
-              ].join('-');
-              const buckets = new Map();
-              for (const row of rows) {
-                const value = Number(row.state);
-                if (!sane(value)) continue;
-                const changed = row.last_changed || row.last_updated;
-                const date = new Date(changed);
-                if (Number.isNaN(date.getTime())) continue;
-                const key = keyFor(date);
-                const previous = buckets.get(key);
-                buckets.set(key, previous === undefined ? value : Math.max(previous, value));
-              }
-              const current = Number(sourceEntity.state);
-              if (sane(current)) {
-                const key = keyFor(today);
-                const previous = buckets.get(key);
-                buckets.set(key, previous === undefined ? current : Math.max(previous, current));
-              }
-              const days = Array.from({ length: 7 }, (_, index) => new Date(firstDay.getTime() + index * dayMs));
-              const values = days
-                .map((day) => buckets.get(keyFor(day)))
-                .filter((value) => Number.isFinite(value));
-              if (!values.length) return [];
-              const average = values.reduce((sum, value) => sum + value, 0) / values.length;
-              return days.map((day) => [day.getTime(), average]);
           - entity: sensor.irrigation_rainfall_actuals
             name: Rainfall actuals
             yaxis_id: rain
