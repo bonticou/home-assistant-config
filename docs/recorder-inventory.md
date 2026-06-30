@@ -7,11 +7,11 @@ A recording-focused inventory for Home Assistant Recorder. This sits next to the
 | Thing | Count |
 | --- | --- |
 | Configured retention | 30 days |
-| Entities reviewed | 2355 |
-| Recorder candidates | 1941 |
+| Entities reviewed | 2356 |
+| Recorder candidates | 1942 |
 | Excluded by Recorder config | 20 |
 | Disabled in registry | 394 |
-| Low stateful-need candidates | 624 |
+| Low stateful-need candidates | 625 |
 | Medium stateful-need candidates | 483 |
 | High stateful-need candidates | 488 |
 
@@ -35,7 +35,7 @@ A recording-focused inventory for Home Assistant Recorder. This sits next to the
 | Category | Entities | Low | Medium | High | DB rows | Live attr bytes |
 | --- | --- | --- | --- | --- | --- | --- |
 | integration_config_or_update_state | 377 | 377 | 0 | 0 |  |  |
-| derived_summary_or_dashboard_state | 184 | 184 | 0 | 0 |  |  |
+| derived_summary_or_dashboard_state | 185 | 185 | 0 | 0 |  |  |
 | infrastructure_health_diagnostic | 35 | 35 | 0 | 0 |  |  |
 | camera_or_event_state | 25 | 25 | 0 | 0 |  |  |
 | signal_quality_diagnostic | 3 | 3 | 0 | 0 |  |  |
@@ -49,7 +49,7 @@ A recording-focused inventory for Home Assistant Recorder. This sits next to the
 
 | Domain | Recorder candidates | Low | Medium | High | Unknown | DB rows |
 | --- | --- | --- | --- | --- | --- | --- |
-| sensor | 480 | 173 | 19 | 206 | 82 |  |
+| sensor | 481 | 174 | 19 | 206 | 82 |  |
 | binary_sensor | 282 | 5 | 49 | 144 | 84 |  |
 | switch | 271 | 203 | 0 | 63 | 5 |  |
 | automation | 183 | 13 | 170 | 0 | 0 |  |

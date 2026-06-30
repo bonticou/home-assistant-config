@@ -3629,7 +3629,7 @@ template:
           source_entity: sensor.45_crr_daily_total_water_use
           source_total_gallons: "{{ states('sensor.45_crr_daily_total_water_use') }}"
           reset_period: daily
-          max_reasonable_daily_gallons: 2000
+          max_reasonable_daily_gallons: 50000
           derived_from: "Hydrawise/Hunter daily total water use"
 
       - name: "Irrigation Session Gallons"

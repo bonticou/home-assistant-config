@@ -10729,7 +10729,7 @@ views:
                   if (!Number.isFinite(numeric)) return value;
                   const name = opts?.w?.globals?.seriesNames?.[opts?.seriesIndex ?? 0] || '';
                   if (/rain/i.test(name)) return `${numeric.toFixed(2)} in`;
-                  return `${Math.round(numeric)} gal`;
+                  return `${Math.round(numeric).toLocaleString()} gal`;
                 }
           xaxis:
             tickAmount: 7
@@ -10774,6 +10774,14 @@ views:
             decimals: 0
             apex_config:
               tickAmount: 4
+              labels:
+                formatter: |
+                  EVAL:function(value) {
+                    const numeric = Number(value);
+                    if (!Number.isFinite(numeric)) return value;
+                    if (Math.abs(numeric) >= 1000) return `${Math.round(numeric / 1000)}k`;
+                    return `${Math.round(numeric)}`;
+                  }
           - id: rain
             opposite: true
             min: 0
@@ -10809,7 +10817,8 @@ views:
               const path = `history/period/${firstDay.toISOString()}?filter_entity_id=${encodeURIComponent(sourceEntityId)}&end_time=${encodeURIComponent(spanEnd.toISOString())}`;
               const response = await hass.callApi('GET', path);
               const rows = Array.isArray(response?.[0]) ? response[0] : [];
-              const sane = (value) => Number.isFinite(value) && value >= 0 && value <= 2000;
+              const maxReasonable = Math.max(50000, Number(entity.attributes?.max_reasonable_daily_gallons ?? 0));
+              const sane = (value) => Number.isFinite(value) && value >= 0 && value <= maxReasonable;
               const keyFor = (date) => [
                 date.getFullYear(),
                 String(date.getMonth() + 1).padStart(2, '0'),

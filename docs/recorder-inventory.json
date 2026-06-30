@@ -47,12 +47,12 @@
     {
       "category": "derived_summary_or_dashboard_state",
       "db_rows": null,
-      "entities": 200,
+      "entities": 201,
       "high_stateful_need": 0,
       "live_attr_bytes": null,
-      "low_stateful_need": 184,
+      "low_stateful_need": 185,
       "medium_stateful_need": 0,
-      "recorded_candidates": 184,
+      "recorded_candidates": 185,
       "unknown_stateful_need": 0
     },
     {
@@ -115,12 +115,12 @@
     {
       "db_rows": null,
       "domain": "sensor",
-      "entities": 714,
+      "entities": 715,
       "high_stateful_need": 206,
       "live_attr_bytes": null,
-      "low_stateful_need": 173,
+      "low_stateful_need": 174,
       "medium_stateful_need": 19,
-      "recorded_candidates": 480,
+      "recorded_candidates": 481,
       "unknown_stateful_need": 82
     },
     {
@@ -38436,6 +38436,31 @@
       "disabled_by": "",
       "domain": "sensor",
       "entity_category": "",
+      "entity_id": "sensor.irrigation_rainfall_actuals",
+      "exclude_match": "",
+      "friendly_name": "Irrigation Rainfall Actuals",
+      "hidden_by": "",
+      "live_age_seconds": null,
+      "live_attr_bytes": null,
+      "live_last_reported": null,
+      "platform": "command_line",
+      "reason": "Template/command-line dashboard sensors should prove they need long raw Recorder history.",
+      "recommendation": "review_current_only",
+      "recorder_status": "recorded_candidate",
+      "retention_days": 30,
+      "role": "telemetry",
+      "stateful_need": "low",
+      "unit": ""
+    },
+    {
+      "area": "",
+      "availability": "not_enriched",
+      "category": "derived_summary_or_dashboard_state",
+      "db": null,
+      "device_class": "",
+      "disabled_by": "",
+      "domain": "sensor",
+      "entity_category": "",
       "entity_id": "sensor.irrigation_running_context",
       "exclude_match": "",
       "friendly_name": "Irrigation Running Context",
@@ -59353,7 +59378,7 @@
       "unit": ""
     }
   ],
-  "generated_at": "2026-06-30T14:47:22+00:00",
+  "generated_at": "2026-06-30T16:52:49+00:00",
   "integrations": [
     {
       "db_rows": null,
@@ -59621,13 +59646,13 @@
     },
     {
       "db_rows": null,
-      "entities": 8,
+      "entities": 9,
       "high_stateful_need": 0,
       "live_attr_bytes": null,
-      "low_stateful_need": 8,
+      "low_stateful_need": 9,
       "medium_stateful_need": 0,
       "platform": "command_line",
-      "recorded_candidates": 8,
+      "recorded_candidates": 9,
       "unknown_stateful_need": 0
     },
     {
@@ -59867,7 +59892,7 @@
   "summary": {
     "category_counts": {
       "camera_or_event_state": 25,
-      "derived_summary_or_dashboard_state": 184,
+      "derived_summary_or_dashboard_state": 185,
       "event_or_safety_history": 416,
       "infrastructure_health_diagnostic": 35,
       "infrastructure_or_camera_misc": 71,
@@ -59881,21 +59906,21 @@
       "available": false
     },
     "disabled_count": 394,
-    "entity_count": 2355,
+    "entity_count": 2356,
     "excluded_by_config_count": 20,
     "recommendation_counts": {
       "keep": 416,
       "keep_or_shorten_by_dashboard_need": 72,
       "review": 346,
-      "review_current_only": 599,
+      "review_current_only": 600,
       "review_selectively": 483,
       "review_short_or_current_only": 25
     },
-    "recorded_candidate_count": 1941,
+    "recorded_candidate_count": 1942,
     "retention_days": 30,
     "stateful_need_counts": {
       "high": 488,
-      "low": 624,
+      "low": 625,
       "medium": 483,
       "unknown": 346
     }
