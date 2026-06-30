@@ -10625,8 +10625,8 @@ views:
           style: *water_status_card_style
 
       - type: custom:mushroom-title-card
-        title: Daily usage + rainfall
-        subtitle: Last 7 days · Hunter irrigation · historical rainfall
+        title: Irrigation + rainfall
+        subtitle: Last 7 days · daily totals · historical actuals
 
       - type: custom:apexcharts-card
         graph_span: 7d
@@ -10645,15 +10645,15 @@ views:
             bar:
               borderRadius: 7
               borderRadiusApplication: end
-              columnWidth: 36%
+              columnWidth: 34%
           dataLabels:
             enabled: false
           stroke:
             curve: straight
             width:
               - 0
-              - 2
-              - 2
+              - 1.4
+              - 0
             dashArray:
               - 0
               - 5
@@ -10662,7 +10662,7 @@ views:
             opacity:
               - 0.86
               - 1
-              - 0.28
+              - 0.5
             type:
               - gradient
               - solid
@@ -10685,6 +10685,10 @@ views:
             position: top
             horizontalAlign: left
             fontSize: 11px
+            formatter: |
+              EVAL:function(seriesName) {
+                return seriesName;
+              }
             labels:
               colors: rgba(226, 232, 240, 0.64)
             markers:
@@ -10695,7 +10699,7 @@ views:
             size:
               - 0
               - 0
-              - 3
+              - 0
           states:
             hover:
               filter:
@@ -10778,7 +10782,7 @@ views:
           - id: rain
             opposite: true
             min: 0
-            max: "~0.5"
+            max: "~0.8"
             decimals: 2
             apex_config:
               tickAmount: 3
@@ -10796,6 +10800,8 @@ views:
             color: '#22c55e'
             stroke_width: 0
             float_precision: 0
+            show:
+              legend_value: false
             data_generator: |
               const sourceEntityId = entity.attributes?.source_entity || 'sensor.45_crr_daily_total_water_use';
               const sourceEntity = hass.states[sourceEntityId] || entity;
@@ -10840,10 +10846,12 @@ views:
             name: 7-day avg
             yaxis_id: gallons
             type: line
-            color: rgba(226, 232, 240, 0.58)
-            stroke_width: 2
+            color: rgba(226, 232, 240, 0.48)
+            stroke_width: 1.4
             stroke_dash: 5
             float_precision: 0
+            show:
+              legend_value: false
             data_generator: |
               const sourceEntityId = entity.attributes?.source_entity || 'sensor.45_crr_daily_total_water_use';
               const sourceEntity = hass.states[sourceEntityId] || entity;
@@ -10889,10 +10897,12 @@ views:
           - entity: sensor.irrigation_rainfall_actuals
             name: Rainfall actuals
             yaxis_id: rain
-            type: area
+            type: column
             color: '#38bdf8'
-            stroke_width: 2
+            stroke_width: 0
             float_precision: 2
+            show:
+              legend_value: false
             data_generator: |
               const dayMs = 24 * 60 * 60 * 1000;
               const today = new Date();
@@ -10917,7 +10927,7 @@ views:
               return Array.from({ length: 7 }, (_, index) => {
                 const day = new Date(firstDay.getTime() + index * dayMs);
                 const value = buckets.get(keyFor(day));
-                return [day.getTime(), Number.isFinite(value) && value > 0 ? value : null];
+                return [day.getTime(), Number.isFinite(value) ? value : null];
               });
         card_mod:
           style: *water_chart_card_style
