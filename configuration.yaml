@@ -22,7 +22,7 @@ lovelace:
   resources:
     - url: /local/calm-mobile-scrollbars.js?v=6
       type: module
-    - url: /local/house-notices-card.js?v=45
+    - url: /local/house-notices-card.js?v=46
       type: module
     - url: /local/radon-air-quality-card.js?v=6
       type: module
@@ -771,12 +771,12 @@ input_datetime:
     has_date: true
     has_time: true
   # NWP parking pass expiration. The replacement action advances this to the
-  # last day of the chosen 1-month or 3-month pass window.
+  # last day of the chosen 1-month or 3-month pass window. Do not set an
+  # `initial` value here; the live helper state is the durable current cycle.
   nwp_parking_pass_expiration_date:
     name: NWP Parking Pass Expiration Date
     has_date: true
     has_time: false
-    initial: "2026-06-30"
   nwp_parking_pass_snooze_until:
     name: NWP Parking Pass Snooze Until
     has_date: true
@@ -795,6 +795,9 @@ input_datetime:
     has_time: true
 
 input_text:
+  nwp_parking_pass_replaced_expiration_date:
+    name: NWP Parking Pass Replaced Expiration Date
+    max: 10
   water_latest_alert_kind:
     name: Water Latest Alert Kind
     max: 80
@@ -2251,6 +2254,7 @@ template:
         state: >
           {% set expires = states('input_datetime.nwp_parking_pass_expiration_date') %}
           {% set replaced = states('input_datetime.nwp_parking_pass_replaced_at') %}
+          {% set replaced_cycle = states('input_text.nwp_parking_pass_replaced_expiration_date') %}
           {% set snooze = states('input_datetime.nwp_parking_pass_snooze_until') %}
           {% set snoozed = snooze not in ['unknown', 'unavailable', 'none', '']
              and as_timestamp(snooze, 0) > as_timestamp(now()) %}
@@ -2260,10 +2264,11 @@ template:
             Missing expiry
           {% else %}
             {% set reminder_opens = strptime(expires, '%Y-%m-%d') - timedelta(days=1) %}
-            {% set replaced_after_open = replaced not in ['unknown', 'unavailable', 'none', '']
+            {% set replaced_current_cycle = replaced_cycle == expires
+               and replaced not in ['unknown', 'unavailable', 'none', '']
                and replaced[:10] >= reminder_opens.strftime('%Y-%m-%d') %}
             {% set days_until = ((strptime(expires, '%Y-%m-%d')).date() - now().date()).days %}
-            {% if replaced_after_open %}
+            {% if replaced_current_cycle %}
               Replaced
             {% elif snoozed %}
               Snoozed
@@ -4130,12 +4135,23 @@ template:
             'binary_sensor.environment_attic_humidity_high_alert',
             'binary_sensor.environment_basement_radon_high_alert'
           ] %}
+          {% set today = now().strftime('%Y-%m-%d') %}
           {% set ns = namespace(count=0, env_active=false) %}
           {% for entity_id in env_entities %}
             {% if is_state(entity_id, 'on') %}
               {% set ns.env_active = true %}
             {% endif %}
           {% endfor %}
+          {% set espresso_due = state_attr('sensor.espresso_maintenance_status', 'next_due_date') %}
+          {% set garden_due = state_attr('sensor.garden_fertilizer_status', 'current_cycle') %}
+          {% set dehumidifier_due = state_attr('sensor.dehumidifier_air_filter_status', 'current_cycle') %}
+          {% set piano_due = states('sensor.piano_next_tuning_due') %}
+          {% set dryer_due = states('sensor.dryer_vent_next_cleaning_due') %}
+          {% set nwp_due = states('input_datetime.nwp_parking_pass_expiration_date') %}
+          {% set llc_due = states('sensor.bonticou_llc_de_franchise_tax_due_date') %}
+          {% set garbage_due = states('sensor.garbage_recycling_next_pickup') %}
+          {% set wine_filter_due = states('sensor.wine_cave_next_charcoal_filter_due') %}
+          {% set wine_cleaning_due = states('sensor.wine_cave_next_cleaning_due') %}
           {% for active in [
             is_state('binary_sensor.water_notification_alert_active', 'on'),
             states('sensor.ting_notification_status') not in ['Quiet', 'unknown', 'unavailable', 'none', ''],
@@ -4144,19 +4160,21 @@ template:
             is_state('binary_sensor.house_low_battery_alert', 'on'),
             is_state('binary_sensor.wine_cave_actionable_alert', 'on'),
             is_state('binary_sensor.wine_cave_sensor_unavailable', 'on'),
-            is_state('binary_sensor.espresso_maintenance_due', 'on'),
-            is_state('binary_sensor.garden_fertilizer_due', 'on'),
-            is_state('binary_sensor.dehumidifier_air_filter_due', 'on'),
-            is_state('binary_sensor.piano_tuning_due', 'on'),
-            is_state('binary_sensor.dryer_vent_cleaning_due', 'on'),
-            is_state('binary_sensor.passport_renewal_due', 'on'),
-            is_state('binary_sensor.driver_license_renewal_due', 'on'),
-            is_state('binary_sensor.casey_passport_renewal_due', 'on'),
-            is_state('binary_sensor.casey_driver_license_renewal_due', 'on'),
-            is_state('binary_sensor.nwp_parking_pass_due', 'on'),
-            is_state('binary_sensor.bonticou_llc_de_franchise_tax_due', 'on'),
-            is_state('binary_sensor.garbage_recycling_takeout_due', 'on'),
-            is_state('binary_sensor.wine_cave_maintenance_due', 'on')
+            is_state('binary_sensor.espresso_maintenance_due', 'on') and espresso_due not in ['unknown', 'unavailable', 'none', ''] and espresso_due <= today,
+            is_state('binary_sensor.garden_fertilizer_due', 'on') and garden_due not in ['unknown', 'unavailable', 'none', ''] and garden_due <= today,
+            is_state('binary_sensor.dehumidifier_air_filter_due', 'on') and dehumidifier_due not in ['unknown', 'unavailable', 'none', ''] and dehumidifier_due <= today,
+            is_state('binary_sensor.piano_tuning_due', 'on') and piano_due not in ['unknown', 'unavailable', 'none', ''] and piano_due <= today,
+            is_state('binary_sensor.dryer_vent_cleaning_due', 'on') and dryer_due not in ['unknown', 'unavailable', 'none', ''] and dryer_due <= today,
+            is_state('binary_sensor.passport_renewal_due', 'on') and states('input_datetime.passport_expiration_date') <= today,
+            is_state('binary_sensor.driver_license_renewal_due', 'on') and states('input_datetime.driver_license_expiration_date') <= today,
+            is_state('binary_sensor.casey_passport_renewal_due', 'on') and states('input_datetime.casey_passport_expiration_date') <= today,
+            is_state('binary_sensor.casey_driver_license_renewal_due', 'on') and states('input_datetime.casey_driver_license_expiration_date') <= today,
+            is_state('binary_sensor.nwp_parking_pass_due', 'on') and nwp_due not in ['unknown', 'unavailable', 'none', ''] and nwp_due <= today,
+            is_state('binary_sensor.bonticou_llc_de_franchise_tax_due', 'on') and llc_due not in ['unknown', 'unavailable', 'none', ''] and llc_due <= today,
+            is_state('binary_sensor.garbage_recycling_takeout_due', 'on') and garbage_due not in ['unknown', 'unavailable', 'none', ''] and garbage_due <= today,
+            (is_state('binary_sensor.wine_cave_charcoal_filter_due', 'on') and wine_filter_due not in ['unknown', 'unavailable', 'none', ''] and wine_filter_due <= today)
+              or (is_state('binary_sensor.wine_cave_cabinet_cleaning_due', 'on') and wine_cleaning_due not in ['unknown', 'unavailable', 'none', ''] and wine_cleaning_due <= today),
+            is_state('input_boolean.wine_cave_rating_plate_captured', 'off')
           ] %}
             {% if active %}
               {% set ns.count = ns.count + 1 %}
@@ -4187,12 +4205,23 @@ template:
               'binary_sensor.environment_attic_humidity_high_alert',
               'binary_sensor.environment_basement_radon_high_alert'
             ] %}
+            {% set today = now().strftime('%Y-%m-%d') %}
             {% set ns = namespace(count=0, env_active=false) %}
             {% for entity_id in env_entities %}
               {% if is_state(entity_id, 'on') %}
                 {% set ns.env_active = true %}
               {% endif %}
             {% endfor %}
+            {% set espresso_due = state_attr('sensor.espresso_maintenance_status', 'next_due_date') %}
+            {% set garden_due = state_attr('sensor.garden_fertilizer_status', 'current_cycle') %}
+            {% set dehumidifier_due = state_attr('sensor.dehumidifier_air_filter_status', 'current_cycle') %}
+            {% set piano_due = states('sensor.piano_next_tuning_due') %}
+            {% set dryer_due = states('sensor.dryer_vent_next_cleaning_due') %}
+            {% set nwp_due = states('input_datetime.nwp_parking_pass_expiration_date') %}
+            {% set llc_due = states('sensor.bonticou_llc_de_franchise_tax_due_date') %}
+            {% set garbage_due = states('sensor.garbage_recycling_next_pickup') %}
+            {% set wine_filter_due = states('sensor.wine_cave_next_charcoal_filter_due') %}
+            {% set wine_cleaning_due = states('sensor.wine_cave_next_cleaning_due') %}
             {% for active in [
               is_state('binary_sensor.water_notification_alert_active', 'on'),
               states('sensor.ting_notification_status') not in ['Quiet', 'unknown', 'unavailable', 'none', ''],
@@ -4201,19 +4230,21 @@ template:
               is_state('binary_sensor.house_low_battery_alert', 'on'),
               is_state('binary_sensor.wine_cave_actionable_alert', 'on'),
               is_state('binary_sensor.wine_cave_sensor_unavailable', 'on'),
-              is_state('binary_sensor.espresso_maintenance_due', 'on'),
-              is_state('binary_sensor.garden_fertilizer_due', 'on'),
-              is_state('binary_sensor.dehumidifier_air_filter_due', 'on'),
-              is_state('binary_sensor.piano_tuning_due', 'on'),
-              is_state('binary_sensor.dryer_vent_cleaning_due', 'on'),
-              is_state('binary_sensor.passport_renewal_due', 'on'),
-              is_state('binary_sensor.driver_license_renewal_due', 'on'),
-              is_state('binary_sensor.casey_passport_renewal_due', 'on'),
-              is_state('binary_sensor.casey_driver_license_renewal_due', 'on'),
-              is_state('binary_sensor.nwp_parking_pass_due', 'on'),
-              is_state('binary_sensor.bonticou_llc_de_franchise_tax_due', 'on'),
-              is_state('binary_sensor.garbage_recycling_takeout_due', 'on'),
-              is_state('binary_sensor.wine_cave_maintenance_due', 'on')
+              is_state('binary_sensor.espresso_maintenance_due', 'on') and espresso_due not in ['unknown', 'unavailable', 'none', ''] and espresso_due <= today,
+              is_state('binary_sensor.garden_fertilizer_due', 'on') and garden_due not in ['unknown', 'unavailable', 'none', ''] and garden_due <= today,
+              is_state('binary_sensor.dehumidifier_air_filter_due', 'on') and dehumidifier_due not in ['unknown', 'unavailable', 'none', ''] and dehumidifier_due <= today,
+              is_state('binary_sensor.piano_tuning_due', 'on') and piano_due not in ['unknown', 'unavailable', 'none', ''] and piano_due <= today,
+              is_state('binary_sensor.dryer_vent_cleaning_due', 'on') and dryer_due not in ['unknown', 'unavailable', 'none', ''] and dryer_due <= today,
+              is_state('binary_sensor.passport_renewal_due', 'on') and states('input_datetime.passport_expiration_date') <= today,
+              is_state('binary_sensor.driver_license_renewal_due', 'on') and states('input_datetime.driver_license_expiration_date') <= today,
+              is_state('binary_sensor.casey_passport_renewal_due', 'on') and states('input_datetime.casey_passport_expiration_date') <= today,
+              is_state('binary_sensor.casey_driver_license_renewal_due', 'on') and states('input_datetime.casey_driver_license_expiration_date') <= today,
+              is_state('binary_sensor.nwp_parking_pass_due', 'on') and nwp_due not in ['unknown', 'unavailable', 'none', ''] and nwp_due <= today,
+              is_state('binary_sensor.bonticou_llc_de_franchise_tax_due', 'on') and llc_due not in ['unknown', 'unavailable', 'none', ''] and llc_due <= today,
+              is_state('binary_sensor.garbage_recycling_takeout_due', 'on') and garbage_due not in ['unknown', 'unavailable', 'none', ''] and garbage_due <= today,
+              (is_state('binary_sensor.wine_cave_charcoal_filter_due', 'on') and wine_filter_due not in ['unknown', 'unavailable', 'none', ''] and wine_filter_due <= today)
+                or (is_state('binary_sensor.wine_cave_cabinet_cleaning_due', 'on') and wine_cleaning_due not in ['unknown', 'unavailable', 'none', ''] and wine_cleaning_due <= today),
+              is_state('input_boolean.wine_cave_rating_plate_captured', 'off')
             ] %}
               {% if active %}
                 {% set ns.count = ns.count + 1 %}
@@ -4645,9 +4676,9 @@ template:
                 'actions': espresso_actions
               }] %}
             {% endif %}
-            {% set fertilizer_due = state_attr('sensor.garden_fertilizer_status', 'next_due_date') %}
+            {% set fertilizer_active = is_state('binary_sensor.garden_fertilizer_due', 'on') %}
+            {% set fertilizer_due = state_attr('sensor.garden_fertilizer_status', 'current_cycle') if fertilizer_active else state_attr('sensor.garden_fertilizer_status', 'next_due_date') %}
             {% if is_state('input_boolean.garden_fertilizer_notifications_enabled', 'on') and fertilizer_due not in ['unknown', 'unavailable', 'none', ''] %}
-              {% set fertilizer_active = is_state('binary_sensor.garden_fertilizer_due', 'on') %}
               {% set ns.items = ns.items + [{
                 'id': 'garden-fertilizer-' ~ fertilizer_due,
                 'title': 'Fertilizer time',
@@ -4670,9 +4701,9 @@ template:
                 ] if fertilizer_active else [])
               }] %}
             {% endif %}
-            {% set dehumidifier_filter_due = state_attr('sensor.dehumidifier_air_filter_status', 'next_due_date') %}
+            {% set dehumidifier_filter_active = is_state('binary_sensor.dehumidifier_air_filter_due', 'on') %}
+            {% set dehumidifier_filter_due = state_attr('sensor.dehumidifier_air_filter_status', 'current_cycle') if dehumidifier_filter_active else state_attr('sensor.dehumidifier_air_filter_status', 'next_due_date') %}
             {% if is_state('input_boolean.dehumidifier_air_filter_notifications_enabled', 'on') and dehumidifier_filter_due not in ['unknown', 'unavailable', 'none', ''] %}
-              {% set dehumidifier_filter_active = is_state('binary_sensor.dehumidifier_air_filter_due', 'on') %}
               {% set dehumidifier_filter_last_done = state_attr('sensor.dehumidifier_air_filter_status', 'last_done_at') | default('', true) %}
               {% set ns.items = ns.items + [{
                 'id': 'dehumidifier-air-filter-' ~ dehumidifier_filter_due,
@@ -4825,11 +4856,13 @@ template:
                and nwp_expires not in ['unknown', 'unavailable', 'none', ''] %}
               {% set nwp_reminder = states('sensor.nwp_parking_pass_reminder_opens') %}
               {% set nwp_replaced = states('input_datetime.nwp_parking_pass_replaced_at') %}
-              {% set nwp_replaced_after_open = nwp_replaced not in ['unknown', 'unavailable', 'none', '']
+              {% set nwp_replaced_cycle = states('input_text.nwp_parking_pass_replaced_expiration_date') %}
+              {% set nwp_replaced_current_cycle = nwp_replaced_cycle == nwp_expires
+                 and nwp_replaced not in ['unknown', 'unavailable', 'none', '']
                  and nwp_reminder not in ['unknown', 'unavailable', 'none', '']
                  and nwp_replaced[:10] >= nwp_reminder %}
               {% set nwp_active = is_state('binary_sensor.nwp_parking_pass_due', 'on') %}
-              {% if not nwp_replaced_after_open and (nwp_active or (nwp_expires >= today and nwp_expires <= horizon)) %}
+              {% if not nwp_replaced_current_cycle and (nwp_active or (nwp_expires >= today and nwp_expires <= horizon)) %}
                 {% set nwp_days_until = ((strptime(nwp_expires, '%Y-%m-%d')).date() - now().date()).days %}
                 {% set ns.items = ns.items + [{
                   'id': 'nwp-parking-pass-' ~ nwp_expires,
@@ -4858,7 +4891,7 @@ template:
                       'Current status: ' ~ states('sensor.nwp_parking_pass_status')
                     ],
                     'after_action': 'After you choose the 1-month or 3-month replacement, Home Assistant stamps this pass cycle as handled, advances the expiration to the last day of that pass window, and clears the push notification.',
-                    'tracking': 'Upcoming uses the real expiration date. Needs Attention opens one day before expiration, so June 29 says expires tomorrow while the Upcoming timeline still points at June 30.'
+                    'tracking': 'Upcoming uses the real expiration date. The mobile push reminder opens one day before expiration; Needs Attention waits until the pass is actually expiring or expired.'
                   },
                   'actions': ([{'label': 'Replaced (1-mo)', 'service': 'script.nwp_parking_pass_mark_replaced', 'data': {'months': 1}, 'confirm': true, 'inline': false},
                     {'label': 'Replaced (3-mo)', 'service': 'script.nwp_parking_pass_mark_replaced', 'data': {'months': 3}, 'confirm': true, 'inline': false},
@@ -5915,6 +5948,7 @@ template:
         state: >
           {% set expires = states('input_datetime.nwp_parking_pass_expiration_date') %}
           {% set replaced = states('input_datetime.nwp_parking_pass_replaced_at') %}
+          {% set replaced_cycle = states('input_text.nwp_parking_pass_replaced_expiration_date') %}
           {% set snooze = states('input_datetime.nwp_parking_pass_snooze_until') %}
           {% set snoozed = snooze not in ['unknown', 'unavailable', 'none', '']
              and as_timestamp(snooze, 0) > as_timestamp(now()) %}
@@ -5923,10 +5957,11 @@ template:
             false
           {% else %}
             {% set reminder_opens = strptime(expires, '%Y-%m-%d') - timedelta(days=1) %}
-            {% set replaced_after_open = replaced not in ['unknown', 'unavailable', 'none', '']
+            {% set replaced_current_cycle = replaced_cycle == expires
+               and replaced not in ['unknown', 'unavailable', 'none', '']
                and replaced[:10] >= reminder_opens.strftime('%Y-%m-%d') %}
             {{ not snoozed
-               and not replaced_after_open
+               and not replaced_current_cycle
                and now().strftime('%Y-%m-%d') >= reminder_opens.strftime('%Y-%m-%d') }}
           {% endif %}
         icon: >

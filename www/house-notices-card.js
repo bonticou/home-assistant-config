@@ -72,6 +72,14 @@ class HouseNoticesCard extends HTMLElement {
     return target >= today && target <= horizon;
   }
 
+  isAttentionItem(item) {
+    if (!item) return false;
+    if (item.state === "active") return true;
+    if (item.state !== "due") return false;
+    const days = this.dayDelta(item.date);
+    return days === null || days <= 0;
+  }
+
   formatDate(value, opts = {}) {
     const date = this.parseDate(value);
     if (!date) return "";
@@ -245,10 +253,10 @@ class HouseNoticesCard extends HTMLElement {
     const items = this.normalizeItems(this.parseJson(timelineState?.attributes?.items_json, []));
     const history = this.recentHistory(this.parseJson(historyState?.attributes?.events_json, []))
       .filter((event) => !this._dismissedHistoryIds.has(event.id));
-    const attention = items.filter((item) => ["active", "due"].includes(item.state));
+    const attention = items.filter((item) => this.isAttentionItem(item));
     const upcoming = items.filter((item) => {
       if (!this.isInUpcomingWindow(item)) return false;
-      return !["active", "due"].includes(item.state) || item.show_in_upcoming === true;
+      return !this.isAttentionItem(item) || item.show_in_upcoming === true;
     });
     const detailItem = this._detailItemId ? items.find((item) => item.id === this._detailItemId) : null;
     if (this._detailItemId && !detailItem) this._detailItemId = null;
@@ -992,7 +1000,7 @@ class HouseNoticesCard extends HTMLElement {
     const pill = this.itemPill(item, opts);
     const actions = Array.isArray(item.actions) ? item.actions : [];
     const inlineActionIndex = actions.findIndex((action) => action.inline !== false && !action.confirm);
-    const inlineAction = ["active", "due"].includes(item.state) && inlineActionIndex >= 0
+    const inlineAction = this.isAttentionItem(item) && inlineActionIndex >= 0
       ? `<div class="inline-actions"><button class="inline-primary" data-action-for="${this.escapeAttr(item.id)}" data-action-index="${inlineActionIndex}">${this.escape(actions[inlineActionIndex].label || "Done")}</button></div>`
       : "";
     return `
@@ -1014,7 +1022,7 @@ class HouseNoticesCard extends HTMLElement {
   }
 
   renderDetail(item) {
-    const actions = Array.isArray(item.actions) ? item.actions : [];
+    const actions = this.isAttentionItem(item) && Array.isArray(item.actions) ? item.actions : [];
     const open = item.url ? `<button data-open="${this.escapeAttr(item.url)}">Open page</button>` : "";
     const more = `<button class="primary" data-detail-for="${this.escapeAttr(item.id)}">Details</button>`;
     const actionButtons = actions
@@ -1117,7 +1125,7 @@ class HouseNoticesCard extends HTMLElement {
   }
 
   renderSheetActions(item) {
-    const actions = Array.isArray(item.actions) ? item.actions : [];
+    const actions = this.isAttentionItem(item) && Array.isArray(item.actions) ? item.actions : [];
     const actionButtons = actions
       .map((action, index) => `<button class="${index === 0 ? "primary" : ""}" data-action-for="${this.escapeAttr(item.id)}" data-action-index="${index}">${this.escape(action.label || "Done")}</button>`)
       .join("");

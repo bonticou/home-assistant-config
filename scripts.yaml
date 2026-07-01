@@ -3027,6 +3027,12 @@ nwp_parking_pass_mark_replaced:
           - input_datetime.nwp_parking_pass_snooze_until
       data:
         datetime: "{{ pass_now }}"
+    - action: input_text.set_value
+      target:
+        entity_id: input_text.nwp_parking_pass_replaced_expiration_date
+      data:
+        value: >-
+          {{ current_expiration if current_expiration not in ['unknown', 'unavailable', 'none', ''] else '' }}
     - action: script.nwp_parking_pass_clear_notification
 
 nwp_parking_pass_snooze:

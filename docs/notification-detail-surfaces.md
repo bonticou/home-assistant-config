@@ -103,14 +103,14 @@ For notices with a real due date, model two concepts separately:
 
 - Timeline date: the actual due, expiration, review, or maintenance date. This
   drives Upcoming, sorting, and the visible `Due ...` line.
-- Action window: when Trevor should start doing something. This drives Needs
-  Attention, push reminders, snoozes, and completion actions.
+- Action window: when Trevor should start doing something. This can drive push
+  reminders, snoozes, and completion actions.
 
-If the action window is open and the due date is still inside the Upcoming
-horizon, show the same current-cycle notice in both sections. Needs Attention
-answers "what do I need to handle now?" Upcoming answers "what is coming when?"
-Do not replace the due date with the reminder-open date just to make it appear
-sooner.
+Needs Attention is reserved for active guardrails and dated items whose visible
+due, expiration, pickup, or deadline date is today or overdue. If a push
+reminder opens before that date, keep the item in Upcoming with the real due
+date and supporting action-window context. Do not replace the due date with the
+reminder-open date just to make it appear sooner.
 
 Completion should clear the current cycle only. For recurring notices, stamp the
 specific bill/month/year, tax year, document renewal window, or maintenance
