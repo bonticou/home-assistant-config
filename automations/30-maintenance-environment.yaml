@@ -917,15 +917,27 @@
       value_template: >
         {{ trigger.event.data.action in [
           'NWP_PARKING_PASS_REPLACED',
+          'NWP_PARKING_PASS_REPLACED_1MO',
+          'NWP_PARKING_PASS_REPLACED_3MO',
           'NWP_PARKING_PASS_SNOOZE_1'
         ] }}
   actions:
     - choose:
         - conditions:
             - condition: template
-              value_template: "{{ trigger.event.data.action == 'NWP_PARKING_PASS_REPLACED' }}"
+              value_template: "{{ trigger.event.data.action in ['NWP_PARKING_PASS_REPLACED', 'NWP_PARKING_PASS_REPLACED_1MO'] }}"
           sequence:
             - action: script.nwp_parking_pass_mark_replaced
+              data:
+                months: 1
+
+        - conditions:
+            - condition: template
+              value_template: "{{ trigger.event.data.action == 'NWP_PARKING_PASS_REPLACED_3MO' }}"
+          sequence:
+            - action: script.nwp_parking_pass_mark_replaced
+              data:
+                months: 3
 
         - conditions:
             - condition: template

@@ -737,8 +737,8 @@ input_datetime:
     name: Casey Driver License Renewed At
     has_date: true
     has_time: true
-  # NWP parking pass expiration. When Trevor gets a new pass, update only the
-  # expiration date; the one-day reminder and Upcoming date stay derived from it.
+  # NWP parking pass expiration. The replacement action advances this to the
+  # last day of the chosen 1-month or 3-month pass window.
   nwp_parking_pass_expiration_date:
     name: NWP Parking Pass Expiration Date
     has_date: true
@@ -4824,10 +4824,11 @@ template:
                       'Reminder opens: ' ~ (strptime(nwp_reminder, '%Y-%m-%d').strftime('%B %d, %Y') if nwp_reminder not in ['unknown', 'unavailable', 'none', ''] else 'unknown'),
                       'Current status: ' ~ states('sensor.nwp_parking_pass_status')
                     ],
-                    'after_action': 'After you mark it replaced, Home Assistant stamps this pass cycle as handled and clears the push notification. When a new pass has a new expiration date, update the saved expiration and the same pattern repeats.',
+                    'after_action': 'After you choose the 1-month or 3-month replacement, Home Assistant stamps this pass cycle as handled, advances the expiration to the last day of that pass window, and clears the push notification.',
                     'tracking': 'Upcoming uses the real expiration date. Needs Attention opens one day before expiration, so June 29 says expires tomorrow while the Upcoming timeline still points at June 30.'
                   },
-                  'actions': ([{'label': 'Replaced', 'service': 'script.nwp_parking_pass_mark_replaced', 'confirm': true, 'inline': false},
+                  'actions': ([{'label': 'Replaced (1-mo)', 'service': 'script.nwp_parking_pass_mark_replaced', 'data': {'months': 1}, 'confirm': true, 'inline': false},
+                    {'label': 'Replaced (3-mo)', 'service': 'script.nwp_parking_pass_mark_replaced', 'data': {'months': 3}, 'confirm': true, 'inline': false},
                     {'label': 'Snooze 1d', 'service': 'script.nwp_parking_pass_snooze', 'data': {'days': 1}, 'inline': false}] if nwp_active else [])
                 }] %}
               {% endif %}
