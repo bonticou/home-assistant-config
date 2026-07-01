@@ -2799,8 +2799,8 @@ template:
               'cover.ratgdo32_4536e8_door': "your garage door open"
             } %}
             {% set locks = {
-              'lock.garage_entry_lock': 'Garage entry lock unlocked',
-              'lock.mudroom_door_lock': 'Mudroom door unlocked'
+              'lock.garage_entry_lock': 'Garage unlocked',
+              'lock.mudroom_door_lock': 'Mudroom unlocked'
             } %}
             {% set ns = namespace(issues=[]) %}
             {% for entity_id, label in garage_doors.items() %}
@@ -2869,8 +2869,8 @@ template:
               'cover.ratgdo32_4536e8_door': "your garage door open"
             } %}
             {% set locks = {
-              'lock.garage_entry_lock': 'Garage entry lock unlocked',
-              'lock.mudroom_door_lock': 'Mudroom door unlocked'
+              'lock.garage_entry_lock': 'Garage unlocked',
+              'lock.mudroom_door_lock': 'Mudroom unlocked'
             } %}
             {% set ns = namespace(issues=[]) %}
             {% for entity_id, label in garage_doors.items() %}
@@ -3006,8 +3006,8 @@ template:
             {% endif %}
           issue: >
             {% set locks = {
-              'lock.garage_entry_lock': 'Garage entry lock',
-              'lock.mudroom_door_lock': 'Mudroom door'
+              'lock.garage_entry_lock': 'Garage unlocked',
+              'lock.mudroom_door_lock': 'Mudroom unlocked'
             } %}
             {% set ns = namespace(names=[]) %}
             {% for entity_id, label in locks.items() %}
@@ -3017,7 +3017,7 @@ template:
             {% endfor %}
             {% set names = ns.names %}
             {% if names | count == 1 %}
-              {{ names[0] }} unlocked
+              {{ names[0] }}
             {% elif names | count > 1 %}
               {{ names | count }} entry doors unlocked
             {% else %}
