@@ -10655,17 +10655,20 @@ views:
                 const rainPct = rain > 0 ? Math.max(4, Math.round((Number.isFinite(rainRatio) ? rainRatio : 0) * 100)) : 0;
                 const rowClass = day.is_today ? 'ledger-row today' : 'ledger-row';
                 const dayLabel = day.is_today ? 'Today' : day.weekday;
+                const zones = day.zones_label || (gallons > 0 ? 'Zone history unavailable' : 'No irrigation');
+                const rainContext = day.rain_context || (rain > 0 ? 'Rain recorded' : 'No rain');
                 return `<div class="${rowClass}">
                   <div class="ledger-day"><b>${escapeHtml(dayLabel)}</b><span>${escapeHtml(day.short_date || day.date)}</span></div>
                   <div class="ledger-metric water">
                     <div class="metric-top"><span>Irrigation</span><b>${escapeHtml(day.gallons_label || formatGallons(gallons))}</b></div>
                     <div class="track"><i style="width:${waterPct}%"></i></div>
+                    <div class="metric-sub">${escapeHtml(zones)}</div>
                   </div>
                   <div class="ledger-metric rain">
                     <div class="metric-top"><span>Rain</span><b>${escapeHtml(day.rain_label || formatRain(rain))}</b></div>
                     <div class="track"><i style="width:${rainPct}%"></i></div>
+                    <div class="metric-sub">${escapeHtml(rainContext)}</div>
                   </div>
-                  <div class="ledger-note">${escapeHtml(day.summary || 'Quiet')}</div>
                 </div>`;
               }).join('');
               const empty = `<div class="ledger-empty">Waiting for seven-day irrigation history.</div>`;
@@ -10730,11 +10733,9 @@ views:
             border-radius: 12px;
             display: grid;
             gap: 5px 9px;
-            grid-template-areas:
-              "day water rain"
-              "day note note";
+            grid-template-areas: "day water rain";
             grid-template-columns: 52px minmax(0, 1fr) minmax(76px, 0.62fr);
-            min-height: 54px;
+            min-height: 62px;
             padding: 8px 9px;
           }
           .ledger-row.today {
@@ -10794,21 +10795,27 @@ views:
             display: block;
             height: 100%;
           }
+          .metric-sub {
+            color: rgba(203, 213, 225, 0.70);
+            font-size: 10px;
+            line-height: 1.15;
+            margin-top: 5px;
+            min-height: 12px;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+          }
+          .water .metric-sub {
+            color: rgba(187, 247, 208, 0.78);
+          }
+          .rain .metric-sub {
+            color: rgba(186, 230, 253, 0.78);
+          }
           .water .track i {
             background: linear-gradient(90deg, #16a34a, #86efac);
           }
           .rain .track i {
             background: linear-gradient(90deg, #0ea5e9, #7dd3fc);
-          }
-          .ledger-note {
-            color: rgba(203, 213, 225, 0.74);
-            font-size: 11px;
-            grid-area: note;
-            line-height: 1.2;
-            min-width: 0;
-            overflow: hidden;
-            text-overflow: ellipsis;
-            white-space: nowrap;
           }
           .ledger-footer {
             align-items: center;
@@ -10859,8 +10866,7 @@ views:
             .ledger-row {
               grid-template-areas:
                 "day water"
-                "day rain"
-                "day note";
+                "day rain";
               grid-template-columns: 48px minmax(0, 1fr);
             }
             .ledger-footer {
@@ -10872,7 +10878,7 @@ views:
             .footer-total {
               text-align: left;
             }
-            .ledger-note {
+            .metric-sub {
               white-space: normal;
             }
           }
