@@ -10429,7 +10429,7 @@ views:
         cards:
           - type: custom:mushroom-title-card
             title: Irrigation
-            subtitle: Hunter flow, Hydrawise schedule, shared well pressure
+            subtitle: Schedule, actual water, rain, and flow safety
 
           - type: custom:mushroom-template-card
             entity: sensor.irrigation_dashboard_status
@@ -10487,187 +10487,204 @@ views:
                   --shape-color: rgba(255, 255, 255, 0.06) !important;
                 }
 
-      - type: grid
-        columns: 2
-        square: false
-        cards:
-          - type: custom:mushroom-template-card
-            entity: sensor.irrigation_flow_rate
-            primary: Flow now
-            secondary: >-
-              {% if is_state('binary_sensor.irrigation_flow_meter_available', 'on') %}
-                {{ states('sensor.irrigation_flow_rate') | float(0) | round(1) }} gal/min
-              {% else %}
-                Meter unavailable
-              {% endif %}
-            icon: mdi:water-pump
-            icon_color: >-
-              {% set flow = states('sensor.irrigation_flow_rate') | float(0) %}
-              {% if is_state('binary_sensor.irrigation_flow_meter_available', 'off') %}orange
-              {% elif flow > 20 %}red
-              {% elif flow > 0.5 %}blue
-              {% else %}teal{% endif %}
-            tap_action:
-              action: more-info
-            card_mod:
-              style: *water_status_card_style
-          - type: custom:mushroom-template-card
-            entity: sensor.irrigation_session_gallons
-            primary: Session
-            secondary: >-
-              {% if is_state('binary_sensor.irrigation_active', 'on') %}
-                {{ states('sensor.irrigation_session_gallons') | float(0) | round(0) }} gal · peak {{ states('input_number.irrigation_session_peak_flow') | float(0) | round(1) }} gpm
-              {% elif is_state('binary_sensor.irrigation_expected_water_use', 'on') %}
-                Last run {{ states('sensor.irrigation_session_gallons') | float(0) | round(0) }} gal
-              {% else %}
-                Quiet
-              {% endif %}
-            icon: mdi:counter
-            icon_color: "{{ 'blue' if is_state('binary_sensor.irrigation_active', 'on') else 'teal' }}"
-            tap_action:
-              action: more-info
-            card_mod:
-              style: *water_status_card_style
-          - type: custom:mushroom-template-card
-            entity: sensor.irrigation_active_zone
-            primary: Zone
-            secondary: >-
-              {% if is_state('binary_sensor.irrigation_active', 'on') %}
-                {{ states('sensor.irrigation_active_zone') }} · {{ state_attr('sensor.irrigation_running_context', 'elapsed_minutes') }} min
-              {% else %}
-                Next {{ states('sensor.irrigation_up_next_zone') }}
-              {% endif %}
-            icon: mdi:sprinkler
-            icon_color: >-
-              {{ 'blue' if is_state('binary_sensor.irrigation_active', 'on') else 'teal' }}
-            tap_action:
-              action: more-info
-            card_mod:
-              style: *water_status_card_style
-          - type: custom:mushroom-template-card
-            entity: sensor.flo_shutoff_water_pressure
-            primary: Shared well
-            secondary: >-
-              {{ states('sensor.flo_shutoff_water_pressure') | float(0) | round(0) }} psi
-              {% if is_state('binary_sensor.irrigation_active', 'on') %}
-                · min {{ states('input_number.irrigation_session_min_pressure') | float(0) | round(0) }}
-              {% endif %}
-            icon: mdi:gauge
-            icon_color: >-
-              {% set pressure = states('sensor.flo_shutoff_water_pressure') | float(0) %}
-              {% if pressure < 25 %}red
-              {% elif pressure < 35 %}orange
-              {% else %}blue{% endif %}
-            tap_action:
-              action: more-info
-            card_mod:
-              style: *water_status_card_style
-
-      - type: custom:mushroom-template-card
+      - type: custom:button-card
         entity: sensor.irrigation_schedule_summary
-        primary: Schedule
-        secondary: >-
-          {{ states('sensor.irrigation_schedule_summary') }} · active, upcoming, and attention zones
-        icon: mdi:calendar-month-outline
-        icon_color: teal
-        multiline_secondary: true
+        triggers_update:
+          - sensor.irrigation_schedule_summary
+          - sensor.irrigation_dashboard_status
+          - sensor.irrigation_7_day_ledger
+          - sensor.irrigation_flow_rate
+          - sensor.irrigation_session_gallons
+          - sensor.flo_shutoff_water_pressure
+          - binary_sensor.irrigation_active
+          - binary_sensor.irrigation_flow_meter_available
+        show_icon: false
+        show_name: false
+        show_state: false
         tap_action:
           action: more-info
-        card_mod:
-          style: *water_status_card_style
+        custom_fields:
+          context: >-
+            [[[
+              const escapeHtml = (value) => String(value ?? '').replace(/[&<>"']/g, (char) => ({
+                '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;'
+              }[char]));
+              const state = (id) => hass.states[id]?.state ?? '';
+              const attrs = (id) => hass.states[id]?.attributes || {};
+              const valid = (value) => value !== undefined && value !== null && !['', 'unknown', 'unavailable', 'none', 'Unknown'].includes(String(value));
+              const parseDate = (value) => {
+                if (!valid(value)) return null;
+                const date = new Date(String(value).replace(' ', 'T'));
+                return Number.isNaN(date.getTime()) ? null : date;
+              };
+              const formatWhen = (value) => {
+                const date = parseDate(value);
+                if (!date) return 'No run scheduled';
+                const today = new Date();
+                today.setHours(0, 0, 0, 0);
+                const target = new Date(date);
+                target.setHours(0, 0, 0, 0);
+                const diff = Math.round((target - today) / 86400000);
+                const day = diff === 0 ? 'Today'
+                  : diff === 1 ? 'Tomorrow'
+                  : diff > 1 && diff < 7 ? date.toLocaleDateString(undefined, { weekday: 'short' })
+                  : date.toLocaleDateString(undefined, { month: 'short', day: 'numeric' });
+                const time = date.toLocaleTimeString(undefined, { hour: 'numeric', minute: '2-digit' });
+                return `${day} ${time}`;
+              };
+              const chip = (tone, icon, label, value, meta) => `
+                <div class="irrigation-chip ${tone}">
+                  <ha-icon icon="${icon}"></ha-icon>
+                  <div class="chip-copy">
+                    <span>${escapeHtml(label)}</span>
+                    <b>${escapeHtml(value)}</b>
+                    <em>${escapeHtml(meta)}</em>
+                  </div>
+                </div>`;
 
-      - type: conditional
-        conditions:
-          - entity: binary_sensor.irrigation_active
-            state: "on"
-        card:
-          type: custom:apexcharts-card
-          graph_span: 6h
-          header:
-            show: true
-            title: Active irrigation watch
-            show_states: true
-            colorize_states: true
-          apex_config:
-            chart:
-              height: 224
-              parentHeightOffset: 0
-              toolbar:
-                show: false
-            stroke:
-              curve: straight
-              width:
-                - 2
-                - 2
-            fill:
-              opacity:
-                - 0.22
-                - 1
-            grid:
-              borderColor: rgba(148, 163, 184, 0.10)
-              strokeDashArray: 4
-              padding:
-                top: 6
-                right: 6
-                bottom: 2
-                left: 0
-            legend:
-              show: true
-              position: top
-              horizontalAlign: left
-              fontSize: 11px
-              labels:
-                colors: rgba(226, 232, 240, 0.72)
-              markers:
-                width: 8
-                height: 8
-                radius: 8
-            tooltip:
-              theme: dark
-              shared: true
-              intersect: false
-            xaxis:
-              labels:
-                datetimeUTC: false
-                style:
-                  colors: rgba(226, 232, 240, 0.68)
-                  fontSize: 11px
-          yaxis:
-            - id: flow
-              min: 0
-              max: "~30"
-              decimals: 0
-              apex_config:
-                tickAmount: 4
-            - id: pressure
-              opposite: true
-              min: "~35"
-              max: "~75"
-              decimals: 0
-              apex_config:
-                tickAmount: 4
-          series:
-            - entity: sensor.irrigation_flow_rate
-              name: Hunter flow
-              yaxis_id: flow
-              type: area
-              color: '#38bdf8'
-              stroke_width: 2
-              group_by:
-                func: max
-                duration: 1min
-            - entity: sensor.flo_shutoff_water_pressure
-              name: Well pressure
-              yaxis_id: pressure
-              type: line
-              color: '#94a3b8'
-              stroke_width: 2
-              group_by:
-                func: avg
-                duration: 1min
-                fill: last
-          card_mod:
-            style: *water_chart_card_style
+              const schedule = attrs('sensor.irrigation_schedule_summary');
+              const nextZone = state('sensor.irrigation_up_next_zone');
+              const nextAt = schedule.next_cycle || attrs('sensor.irrigation_up_next_zone').next_cycle || state('sensor.irrigation_next_cycle');
+              const ledger = attrs('sensor.irrigation_7_day_ledger');
+              const days = Array.isArray(ledger.days) ? ledger.days : [];
+              const latestIrrigation = days.slice().reverse().find((day) => Number(day.gallons) > 0);
+              const gallons7 = ledger.gallons_7_day_label || 'Gathering gallons';
+              const rain7 = ledger.rain_7_day_label || 'rain settling';
+              const active = state('binary_sensor.irrigation_active') === 'on';
+              const meterAvailable = state('binary_sensor.irrigation_flow_meter_available') === 'on';
+              const flow = Number(state('sensor.irrigation_flow_rate')) || 0;
+              const pressure = Number(state('sensor.flo_shutoff_water_pressure')) || 0;
+              const sessionGallons = Number(state('sensor.irrigation_session_gallons')) || 0;
+              const status = state('sensor.irrigation_dashboard_status');
+
+              const chips = [];
+              if (active || !meterAvailable || pressure < 35 || status === 'Needs attention') {
+                const liveTone = status === 'Needs attention' || !meterAvailable || pressure < 35 ? 'warn' : 'live';
+                const liveValue = !meterAvailable ? 'Meter stale'
+                  : active ? `${flow.toFixed(1)} gpm · ${pressure.toFixed(0)} psi`
+                  : `${pressure.toFixed(0)} psi`;
+                const liveMeta = active ? `${state('sensor.irrigation_active_zone')} · ${sessionGallons.toFixed(0)} gal`
+                  : !meterAvailable ? 'Hunter flow unavailable'
+                  : 'Shared well pressure low';
+                chips.push(chip(liveTone, 'mdi:pulse', active ? 'Live run' : 'Live check', liveValue, liveMeta));
+              }
+              chips.push(chip(
+                'next',
+                'mdi:calendar-clock-outline',
+                'Next run',
+                formatWhen(nextAt),
+                valid(nextZone) ? nextZone : 'Hydrawise schedule'
+              ));
+              chips.push(chip(
+                'actuals',
+                'mdi:water-opacity',
+                '7-day actuals',
+                String(gallons7).replace('gallons', 'gal'),
+                `${rain7} rain`
+              ));
+              chips.push(chip(
+                'last',
+                'mdi:history',
+                'Last irrigation',
+                latestIrrigation ? `${latestIrrigation.short_date || latestIrrigation.weekday || latestIrrigation.date} · ${latestIrrigation.gallons_label}` : 'No gallons this week',
+                latestIrrigation?.zones_label || 'No recent zone run'
+              ));
+              return `<div class="irrigation-context-strip">${chips.join('')}</div>`;
+            ]]]
+        styles:
+          card:
+            - padding: 0
+            - border-radius: 18px
+            - box-shadow: none
+            - background: rgba(15, 23, 42, 0.42)
+            - border: 1px solid rgba(148, 163, 184, 0.12)
+            - overflow: hidden
+          grid:
+            - grid-template-areas: '"context"'
+            - grid-template-columns: 1fr
+          custom_fields:
+            context:
+              - min-width: 0
+        extra_styles: |
+          .irrigation-context-strip {
+            display: grid;
+            gap: 8px;
+            grid-template-columns: repeat(3, minmax(0, 1fr));
+            padding: 10px;
+            text-align: left;
+          }
+          .irrigation-chip {
+            align-items: center;
+            background: rgba(15, 23, 42, 0.32);
+            border: 1px solid rgba(148, 163, 184, 0.10);
+            border-radius: 14px;
+            display: grid;
+            gap: 8px;
+            grid-template-columns: 24px minmax(0, 1fr);
+            min-height: 58px;
+            padding: 9px 10px;
+          }
+          .irrigation-chip ha-icon {
+            color: #5eead4;
+            height: 20px;
+            width: 20px;
+          }
+          .irrigation-chip.actuals ha-icon {
+            color: #86efac;
+          }
+          .irrigation-chip.last ha-icon {
+            color: #93c5fd;
+          }
+          .irrigation-chip.live ha-icon {
+            color: #38bdf8;
+          }
+          .irrigation-chip.warn {
+            background: rgba(180, 83, 9, 0.16);
+            border-color: rgba(251, 191, 36, 0.24);
+          }
+          .irrigation-chip.warn ha-icon {
+            color: #fbbf24;
+          }
+          .chip-copy {
+            display: grid;
+            gap: 2px;
+            min-width: 0;
+          }
+          .chip-copy span {
+            color: rgba(148, 163, 184, 0.82);
+            font-size: 10px;
+            font-weight: 650;
+            letter-spacing: 0;
+            line-height: 1.05;
+            text-transform: uppercase;
+          }
+          .chip-copy b {
+            color: rgba(248, 250, 252, 0.96);
+            font-size: 13px;
+            font-weight: 740;
+            letter-spacing: 0;
+            line-height: 1.15;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+          }
+          .chip-copy em {
+            color: rgba(203, 213, 225, 0.72);
+            font-size: 11px;
+            font-style: normal;
+            line-height: 1.12;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+          }
+          @media (max-width: 680px) {
+            .irrigation-context-strip {
+              grid-template-columns: 1fr;
+            }
+            .irrigation-chip {
+              min-height: 54px;
+            }
+          }
 
       - type: custom:button-card
         entity: sensor.irrigation_7_day_ledger
@@ -10927,6 +10944,99 @@ views:
               white-space: normal;
             }
           }
+
+      - type: conditional
+        conditions:
+          - entity: binary_sensor.irrigation_active
+            state: "on"
+        card:
+          type: custom:apexcharts-card
+          graph_span: 6h
+          header:
+            show: true
+            title: Active irrigation watch
+            show_states: true
+            colorize_states: true
+          apex_config:
+            chart:
+              height: 224
+              parentHeightOffset: 0
+              toolbar:
+                show: false
+            stroke:
+              curve: straight
+              width:
+                - 2
+                - 2
+            fill:
+              opacity:
+                - 0.22
+                - 1
+            grid:
+              borderColor: rgba(148, 163, 184, 0.10)
+              strokeDashArray: 4
+              padding:
+                top: 6
+                right: 6
+                bottom: 2
+                left: 0
+            legend:
+              show: true
+              position: top
+              horizontalAlign: left
+              fontSize: 11px
+              labels:
+                colors: rgba(226, 232, 240, 0.72)
+              markers:
+                width: 8
+                height: 8
+                radius: 8
+            tooltip:
+              theme: dark
+              shared: true
+              intersect: false
+            xaxis:
+              labels:
+                datetimeUTC: false
+                style:
+                  colors: rgba(226, 232, 240, 0.68)
+                  fontSize: 11px
+          yaxis:
+            - id: flow
+              min: 0
+              max: "~30"
+              decimals: 0
+              apex_config:
+                tickAmount: 4
+            - id: pressure
+              opposite: true
+              min: "~35"
+              max: "~75"
+              decimals: 0
+              apex_config:
+                tickAmount: 4
+          series:
+            - entity: sensor.irrigation_flow_rate
+              name: Hunter flow
+              yaxis_id: flow
+              type: area
+              color: '#38bdf8'
+              stroke_width: 2
+              group_by:
+                func: max
+                duration: 1min
+            - entity: sensor.flo_shutoff_water_pressure
+              name: Well pressure
+              yaxis_id: pressure
+              type: line
+              color: '#94a3b8'
+              stroke_width: 2
+              group_by:
+                func: avg
+                duration: 1min
+                fill: last
+          card_mod:
+            style: *water_chart_card_style
 
       - type: custom:popup-card
         target:
