@@ -263,6 +263,39 @@ command_line:
         - days
         - stale
         - error
+  - sensor:
+      name: Irrigation 7 Day Ledger
+      unique_id: irrigation_7_day_ledger
+      command: >-
+        python3 /config/tools/irrigation_7day_ledger.py
+        --config-dir /config
+        --db /config/home-assistant_v2.db
+        --rain-cache /config/.irrigation_rain_actuals.json
+        --entity-id sensor.45_crr_daily_total_water_use
+        --days 7
+        --max-daily-gallons 50000
+      command_timeout: 20
+      scan_interval: 900
+      value_template: >
+        {{ value_json.subtitle
+           if value_json.subtitle is defined
+           else 'Last 7 days: gathering irrigation history' }}
+      json_attributes:
+        - updated_at
+        - source
+        - source_entity
+        - start_date
+        - end_date
+        - day_count
+        - gallons_7_day
+        - rain_7_day_in
+        - gallons_7_day_label
+        - rain_7_day_label
+        - subtitle
+        - max_daily_gallons
+        - max_daily_rain_in
+        - days
+        - error
 
 shell_command:
   refresh_device_inventory: >-

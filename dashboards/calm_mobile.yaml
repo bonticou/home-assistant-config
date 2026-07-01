@@ -10624,265 +10624,258 @@ views:
         card_mod:
           style: *water_status_card_style
 
-      - type: custom:mushroom-title-card
-        title: Irrigation + rainfall
-        subtitle: Last 7 days · daily totals · historical actuals
-
-      - type: custom:apexcharts-card
-        graph_span: 7d
-        span:
-          end: day
-        header:
-          show: false
-        apex_config:
-          chart:
-            height: 224
-            type: line
-            parentHeightOffset: 0
-            toolbar:
-              show: false
-          plotOptions:
-            bar:
-              borderRadius: 7
-              borderRadiusApplication: end
-              columnWidth: 34%
-          dataLabels:
-            enabled: false
-          stroke:
-            curve: straight
-            width:
-              - 0
-              - 0
-            dashArray:
-              - 0
-              - 0
-          fill:
-            opacity:
-              - 0.86
-              - 0.5
-            type:
-              - gradient
-              - gradient
-            gradient:
-              shade: dark
-              type: vertical
-              opacityFrom: 0.96
-              opacityTo: 0.56
+      - type: custom:button-card
+        entity: sensor.irrigation_7_day_ledger
+        triggers_update:
+          - sensor.irrigation_7_day_ledger
+        show_icon: false
+        show_name: false
+        show_state: false
+        tap_action:
+          action: none
+        custom_fields:
+          ledger: >-
+            [[[
+              const attrs = entity?.attributes || {};
+              const days = Array.isArray(attrs.days) ? attrs.days : [];
+              const escapeHtml = (value) => String(value ?? '').replace(/[&<>"']/g, (char) => ({
+                '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;'
+              }[char]));
+              const formatGallons = (value) => `${Math.round(Number(value) || 0).toLocaleString()} gal`;
+              const formatRain = (value) => `${(Number(value) || 0).toFixed(2)} in`;
+              const subtitle = attrs.subtitle || entity?.state || 'Last 7 days: gathering irrigation history';
+              const totalGallons = attrs.gallons_7_day_label || formatGallons(attrs.gallons_7_day).replace(' gal', ' gallons');
+              const totalRain = attrs.rain_7_day_label || `${formatRain(attrs.rain_7_day_in).replace(' in', '')} inches`;
+              const rows = days.slice().reverse().map((day) => {
+                const gallons = Number(day.gallons) || 0;
+                const rain = Number(day.rain_in) || 0;
+                const waterRatio = Number(day.irrigation_ratio);
+                const rainRatio = Number(day.rain_ratio);
+                const waterPct = gallons > 0 ? Math.max(3, Math.round((Number.isFinite(waterRatio) ? waterRatio : 0) * 100)) : 0;
+                const rainPct = rain > 0 ? Math.max(4, Math.round((Number.isFinite(rainRatio) ? rainRatio : 0) * 100)) : 0;
+                const rowClass = day.is_today ? 'ledger-row today' : 'ledger-row';
+                const dayLabel = day.is_today ? 'Today' : day.weekday;
+                return `<div class="${rowClass}">
+                  <div class="ledger-day"><b>${escapeHtml(dayLabel)}</b><span>${escapeHtml(day.short_date || day.date)}</span></div>
+                  <div class="ledger-metric water">
+                    <div class="metric-top"><span>Irrigation</span><b>${escapeHtml(day.gallons_label || formatGallons(gallons))}</b></div>
+                    <div class="track"><i style="width:${waterPct}%"></i></div>
+                  </div>
+                  <div class="ledger-metric rain">
+                    <div class="metric-top"><span>Rain</span><b>${escapeHtml(day.rain_label || formatRain(rain))}</b></div>
+                    <div class="track"><i style="width:${rainPct}%"></i></div>
+                  </div>
+                  <div class="ledger-note">${escapeHtml(day.summary || 'Quiet')}</div>
+                </div>`;
+              }).join('');
+              const empty = `<div class="ledger-empty">Waiting for seven-day irrigation history.</div>`;
+              return `<div class="ledger-card">
+                <div class="ledger-heading">
+                  <div class="ledger-title">Irrigation + rainfall</div>
+                  <div class="ledger-subtitle">${escapeHtml(subtitle)}</div>
+                </div>
+                <div class="ledger-footer">
+                  <div class="footer-label">Rolling 7-day total</div>
+                  <div class="footer-total water"><span>Irrigation</span><b>${escapeHtml(totalGallons)}</b></div>
+                  <div class="footer-total rain"><span>Rainfall</span><b>${escapeHtml(totalRain)}</b></div>
+                </div>
+                <div class="ledger-rows">${rows || empty}</div>
+              </div>`;
+            ]]]
+        styles:
+          card:
+            - padding: 0
+            - border-radius: 18px
+            - box-shadow: none
+            - background: rgba(15, 23, 42, 0.48)
+            - border: 1px solid rgba(148, 163, 184, 0.14)
+            - overflow: hidden
           grid:
-            borderColor: rgba(148, 163, 184, 0.10)
-            strokeDashArray: 4
-            padding:
-              top: 8
-              right: 10
-              bottom: 4
-              left: 2
-          legend:
-            show: true
-            position: top
-            horizontalAlign: left
-            fontSize: 11px
-            formatter: |
-              EVAL:function(seriesName) {
-                return seriesName;
-              }
-            labels:
-              colors: rgba(226, 232, 240, 0.64)
-            markers:
-              width: 7
-              height: 7
-              radius: 7
-          markers:
-            size:
-              - 0
-              - 0
-          states:
-            hover:
-              filter:
-                type: lighten
-                value: 0.08
-          tooltip:
-            theme: dark
-            shared: true
-            intersect: false
-            x:
-              formatter: |
-                EVAL:function(value, opts) {
-                  const seriesIndex = opts?.seriesIndex ?? 0;
-                  const dataPointIndex = opts?.dataPointIndex ?? 0;
-                  const source = opts?.w?.globals?.seriesX?.[seriesIndex]?.[dataPointIndex] ?? value;
-                  const numeric = typeof source === 'number' ? source : Number(source);
-                  const date = Number.isFinite(numeric) ? new Date(numeric) : new Date(source);
-                  if (Number.isNaN(date.getTime())) return value ?? '';
-                  const today = new Date();
-                  const isToday = date.getFullYear() === today.getFullYear()
-                    && date.getMonth() === today.getMonth()
-                    && date.getDate() === today.getDate();
-                  const weekday = date.toLocaleDateString(undefined, { weekday: 'short' });
-                  const day = isToday ? `Today (${weekday})` : weekday;
-                  const month = date.toLocaleDateString(undefined, { month: 'short', day: 'numeric' });
-                  return `${day}, ${month}`;
-                }
-            'y':
-              formatter: |
-                EVAL:function(value, opts) {
-                  const numeric = Number(value);
-                  if (!Number.isFinite(numeric)) return value;
-                  const name = opts?.w?.globals?.seriesNames?.[opts?.seriesIndex ?? 0] || '';
-                  if (/rain/i.test(name)) return `${numeric.toFixed(2)} in`;
-                  return `${Math.round(numeric).toLocaleString()} gal`;
-                }
-          xaxis:
-            tickAmount: 7
-            axisBorder:
-              show: false
-            axisTicks:
-              show: false
-            labels:
-              datetimeUTC: false
-              hideOverlappingLabels: false
-              maxHeight: 38
-              rotate: 0
-              showDuplicates: true
-              trim: false
-              formatter: |
-                EVAL:function(value, timestamp) {
-                  const source = timestamp ?? value;
-                  const numeric = typeof source === 'number' ? source : Number(source);
-                  const date = Number.isFinite(numeric) ? new Date(numeric) : new Date(source);
-                  if (Number.isNaN(date.getTime())) return value ?? '';
-                  const today = new Date();
-                  today.setHours(0, 0, 0, 0);
-                  const tomorrow = new Date(today);
-                  tomorrow.setDate(tomorrow.getDate() + 1);
-                  if (date >= tomorrow) return '';
-                  if (date.getFullYear() === today.getFullYear()
-                    && date.getMonth() === today.getMonth()
-                    && date.getDate() === today.getDate()) {
-                    return 'Today';
-                  }
-                  return date.toLocaleDateString(undefined, { weekday: 'short' });
-                }
-              style:
-                colors: rgba(226, 232, 240, 0.74)
-                fontSize: 11px
-                fontWeight: 500
-        yaxis:
-          - id: gallons
-            min: 0
-            max: "~500"
-            align_to: 100
-            decimals: 0
-            apex_config:
-              tickAmount: 4
-              labels:
-                formatter: |
-                  EVAL:function(value) {
-                    const numeric = Number(value);
-                    if (!Number.isFinite(numeric)) return value;
-                    if (Math.abs(numeric) >= 1000) return `${Math.round(numeric / 1000)}k`;
-                    return `${Math.round(numeric)}`;
-                  }
-          - id: rain
-            opposite: true
-            min: 0
-            max: "~0.8"
-            decimals: 2
-            apex_config:
-              tickAmount: 3
-              labels:
-                formatter: |
-                  EVAL:function(value) {
-                    const numeric = Number(value);
-                    return Number.isFinite(numeric) ? `${numeric.toFixed(1)}"` : value;
-                  }
-        series:
-          - entity: sensor.irrigation_daily_gallons
-            name: Daily irrigation
-            yaxis_id: gallons
-            type: column
-            color: '#22c55e'
-            stroke_width: 0
-            float_precision: 0
-            show:
-              legend_value: false
-            data_generator: |
-              const sourceEntityId = entity.attributes?.source_entity || 'sensor.45_crr_daily_total_water_use';
-              const sourceEntity = hass.states[sourceEntityId] || entity;
-              const dayMs = 24 * 60 * 60 * 1000;
-              const today = new Date();
-              today.setHours(0, 0, 0, 0);
-              const firstDay = new Date(today);
-              firstDay.setDate(firstDay.getDate() - 6);
-              const spanEnd = new Date(today.getTime() + dayMs);
-              const path = `history/period/${firstDay.toISOString()}?filter_entity_id=${encodeURIComponent(sourceEntityId)}&end_time=${encodeURIComponent(spanEnd.toISOString())}`;
-              const response = await hass.callApi('GET', path);
-              const rows = Array.isArray(response?.[0]) ? response[0] : [];
-              const maxReasonable = Math.max(50000, Number(entity.attributes?.max_reasonable_daily_gallons ?? 0));
-              const sane = (value) => Number.isFinite(value) && value >= 0 && value <= maxReasonable;
-              const keyFor = (date) => [
-                date.getFullYear(),
-                String(date.getMonth() + 1).padStart(2, '0'),
-                String(date.getDate()).padStart(2, '0')
-              ].join('-');
-              const buckets = new Map();
-              for (const row of rows) {
-                const value = Number(row.state);
-                if (!sane(value)) continue;
-                const changed = row.last_changed || row.last_updated;
-                const date = new Date(changed);
-                if (Number.isNaN(date.getTime())) continue;
-                const key = keyFor(date);
-                const previous = buckets.get(key);
-                buckets.set(key, previous === undefined ? value : Math.max(previous, value));
-              }
-              const current = Number(sourceEntity.state);
-              if (sane(current)) {
-                const key = keyFor(today);
-                const previous = buckets.get(key);
-                buckets.set(key, previous === undefined ? current : Math.max(previous, current));
-              }
-              return Array.from({ length: 7 }, (_, index) => {
-                const day = new Date(firstDay.getTime() + index * dayMs);
-                const value = buckets.get(keyFor(day));
-                return [day.getTime(), Number.isFinite(value) ? value : null];
-              });
-          - entity: sensor.irrigation_rainfall_actuals
-            name: Rainfall actuals
-            yaxis_id: rain
-            type: column
-            color: '#38bdf8'
-            stroke_width: 0
-            float_precision: 2
-            show:
-              legend_value: false
-            data_generator: |
-              const dayMs = 24 * 60 * 60 * 1000;
-              const today = new Date();
-              today.setHours(0, 0, 0, 0);
-              const firstDay = new Date(today);
-              firstDay.setDate(firstDay.getDate() - 6);
-              const keyFor = (date) => [
-                date.getFullYear(),
-                String(date.getMonth() + 1).padStart(2, '0'),
-                String(date.getDate()).padStart(2, '0')
-              ].join('-');
-              const buckets = new Map();
-              const days = Array.isArray(entity.attributes?.days) ? entity.attributes.days : [];
-              for (const item of days) {
-                const value = Number(item.rain_in ?? item.precipitation_in);
-                if (!Number.isFinite(value) || value < 0) continue;
-                const date = new Date(`${item.date}T00:00:00`);
-                if (Number.isNaN(date.getTime())) continue;
-                buckets.set(keyFor(date), value);
-              }
-
-              return Array.from({ length: 7 }, (_, index) => {
-                const day = new Date(firstDay.getTime() + index * dayMs);
-                const value = buckets.get(keyFor(day));
-                return [day.getTime(), Number.isFinite(value) ? value : null];
-              });
-        card_mod:
-          style: *water_chart_card_style
+            - grid-template-areas: '"ledger"'
+            - grid-template-columns: 1fr
+          custom_fields:
+            ledger:
+              - min-width: 0
+        extra_styles: |
+          .ledger-card {
+            padding: 15px 14px 13px;
+            text-align: left;
+          }
+          .ledger-heading {
+            display: grid;
+            gap: 5px;
+            margin-bottom: 12px;
+          }
+          .ledger-title {
+            color: rgba(248, 250, 252, 0.96);
+            font-size: 20px;
+            font-weight: 560;
+            letter-spacing: 0;
+            line-height: 1.18;
+          }
+          .ledger-subtitle {
+            color: rgba(203, 213, 225, 0.82);
+            font-size: 13px;
+            line-height: 1.25;
+          }
+          .ledger-rows {
+            display: grid;
+            gap: 7px;
+            margin-top: 10px;
+          }
+          .ledger-row {
+            align-items: center;
+            background: rgba(15, 23, 42, 0.36);
+            border: 1px solid rgba(148, 163, 184, 0.11);
+            border-radius: 12px;
+            display: grid;
+            gap: 5px 9px;
+            grid-template-areas:
+              "day water rain"
+              "day note note";
+            grid-template-columns: 52px minmax(0, 1fr) minmax(76px, 0.62fr);
+            min-height: 54px;
+            padding: 8px 9px;
+          }
+          .ledger-row.today {
+            background: rgba(14, 116, 144, 0.12);
+            border-color: rgba(56, 189, 248, 0.26);
+          }
+          .ledger-day {
+            align-content: center;
+            display: grid;
+            gap: 1px;
+            grid-area: day;
+            min-width: 0;
+          }
+          .ledger-day b {
+            color: rgba(248, 250, 252, 0.94);
+            font-size: 12px;
+            font-weight: 720;
+            line-height: 1.1;
+          }
+          .ledger-day span {
+            color: rgba(148, 163, 184, 0.86);
+            font-size: 10px;
+            line-height: 1.1;
+            white-space: nowrap;
+          }
+          .ledger-metric.water {
+            grid-area: water;
+          }
+          .ledger-metric.rain {
+            grid-area: rain;
+          }
+          .metric-top {
+            align-items: baseline;
+            color: rgba(148, 163, 184, 0.88);
+            display: flex;
+            font-size: 10px;
+            gap: 6px;
+            justify-content: space-between;
+            line-height: 1.1;
+            margin-bottom: 4px;
+          }
+          .metric-top b {
+            color: rgba(248, 250, 252, 0.92);
+            font-size: 11px;
+            font-weight: 730;
+            letter-spacing: 0;
+            white-space: nowrap;
+          }
+          .track {
+            background: rgba(148, 163, 184, 0.14);
+            border-radius: 999px;
+            height: 6px;
+            overflow: hidden;
+          }
+          .track i {
+            border-radius: inherit;
+            display: block;
+            height: 100%;
+          }
+          .water .track i {
+            background: linear-gradient(90deg, #16a34a, #86efac);
+          }
+          .rain .track i {
+            background: linear-gradient(90deg, #0ea5e9, #7dd3fc);
+          }
+          .ledger-note {
+            color: rgba(203, 213, 225, 0.74);
+            font-size: 11px;
+            grid-area: note;
+            line-height: 1.2;
+            min-width: 0;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+          }
+          .ledger-footer {
+            align-items: center;
+            background: rgba(148, 163, 184, 0.08);
+            border: 1px solid rgba(148, 163, 184, 0.12);
+            border-radius: 14px;
+            display: grid;
+            gap: 8px;
+            grid-template-columns: minmax(0, 1fr) minmax(86px, max-content) minmax(74px, max-content);
+            padding: 10px 11px;
+          }
+          .footer-label {
+            color: rgba(226, 232, 240, 0.92);
+            font-size: 12px;
+            font-weight: 680;
+            letter-spacing: 0;
+            min-width: 0;
+          }
+          .footer-total {
+            display: grid;
+            gap: 2px;
+            text-align: right;
+          }
+          .footer-total span {
+            color: rgba(148, 163, 184, 0.82);
+            font-size: 9px;
+            line-height: 1;
+          }
+          .footer-total b {
+            font-size: 12px;
+            font-weight: 760;
+            letter-spacing: 0;
+            line-height: 1.1;
+            white-space: nowrap;
+          }
+          .footer-total.water b {
+            color: #bbf7d0;
+          }
+          .footer-total.rain b {
+            color: #bae6fd;
+          }
+          .ledger-empty {
+            color: rgba(203, 213, 225, 0.72);
+            font-size: 12px;
+            padding: 8px 0 2px;
+          }
+          @media (max-width: 380px) {
+            .ledger-row {
+              grid-template-areas:
+                "day water"
+                "day rain"
+                "day note";
+              grid-template-columns: 48px minmax(0, 1fr);
+            }
+            .ledger-footer {
+              grid-template-columns: 1fr 1fr;
+            }
+            .footer-label {
+              grid-column: 1 / -1;
+            }
+            .footer-total {
+              text-align: left;
+            }
+            .ledger-note {
+              white-space: normal;
+            }
+          }
 
       - type: custom:popup-card
         target:
