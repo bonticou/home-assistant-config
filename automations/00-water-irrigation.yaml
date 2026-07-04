@@ -1515,8 +1515,8 @@
   mode: single
 
 - id: irrigation_no_flow
-  alias: "Irrigation — Hunter No Flow"
-  description: Critical alert when Hydrawise says a zone is watering but the Hunter meter total is not moving.
+  alias: "Irrigation — Hunter Flow Not Confirmed"
+  description: Warns when Hydrawise says a zone is watering but neither Hunter gallons nor shared-well pressure corroborate flow.
   triggers:
     - trigger: time_pattern
       minutes: "/1"
@@ -1524,7 +1524,7 @@
       entity_id: binary_sensor.irrigation_active
       to: "on"
       for:
-        minutes: 4
+        minutes: 10
   conditions:
     - condition: state
       entity_id: input_boolean.irrigation_notifications_enabled
@@ -1540,7 +1540,22 @@
     - condition: template
       value_template: >-
         {% set started = as_timestamp(states('input_datetime.irrigation_zone_started_at'), 0) %}
-        {{ started > 0 and (as_timestamp(now()) - started) >= 180 }}
+        {{ started > 0 and (as_timestamp(now()) - started) >= 600 }}
+    - condition: template
+      value_template: >-
+        {{ states('input_number.irrigation_zone_gallons') | float(0) < 1 }}
+    - condition: template
+      value_template: >-
+        {% set zone_start = states('input_number.irrigation_zone_start_pressure') | float(0) %}
+        {% set zone_min = states('input_number.irrigation_zone_min_pressure') | float(zone_start) %}
+        {% set session_start = states('input_number.irrigation_session_start_pressure') | float(0) %}
+        {% set session_min = states('input_number.irrigation_session_min_pressure') | float(session_start) %}
+        {% set fallback = zone_start if zone_start > 0 else session_start %}
+        {% set current = states('sensor.flo_shutoff_water_pressure') | float(fallback) %}
+        {% set zone_drop = zone_start - ([zone_min, current] | min) if zone_start > 0 else 0 %}
+        {% set session_drop = session_start - ([session_min, current] | min) if session_start > 0 else 0 %}
+        {% set pressure_is_already_low = current > 0 and current < 50 %}
+        {{ zone_drop < 6 and session_drop < 5 and not pressure_is_already_low }}
     - condition: template
       value_template: >-
         {% set key = states('input_text.irrigation_session_id') ~ ':' ~ states('sensor.irrigation_active_zone') %}
@@ -1548,14 +1563,31 @@
   actions:
     - variables:
         alert_key: "{{ states('input_text.irrigation_session_id') ~ ':' ~ states('sensor.irrigation_active_zone') }}"
+        zone_age_minutes: >-
+          {% set started = as_timestamp(states('input_datetime.irrigation_zone_started_at'), 0) %}
+          {{ (((as_timestamp(now()) - started) / 60) if started > 0 else 0) | round(0) }}
+        pressure_drop: >-
+          {% set start = states('input_number.irrigation_zone_start_pressure') | float(0) %}
+          {% set min_seen = states('input_number.irrigation_zone_min_pressure') | float(start) %}
+          {% set current = states('sensor.flo_shutoff_water_pressure') | float(start) %}
+          {{ ([0, start - ([min_seen, current] | min)] | max) | round(1) }}
+        session_pressure_drop: >-
+          {% set start = states('input_number.irrigation_session_start_pressure') | float(0) %}
+          {% set min_seen = states('input_number.irrigation_session_min_pressure') | float(start) %}
+          {% set current = states('sensor.flo_shutoff_water_pressure') | float(start) %}
+          {{ ([0, start - ([min_seen, current] | min)] | max) | round(1) }}
     - action: script.water_send_alert
       data:
         alert_kind: irrigation_no_flow
-        severity: critical
+        severity: warning
         message: >-
-          {{ states('sensor.irrigation_active_zone') }} has been watering for several minutes,
-          but the Hunter irrigation meter is still reading {{ states('sensor.irrigation_flow_rate') | float(0) | round(1) }} gal/min.
-          Shared well pressure is {{ states('sensor.flo_shutoff_water_pressure') | float(0) | round(1) }} psi.
+          {{ states('sensor.irrigation_active_zone') }} has been reported watering for about
+          {{ zone_age_minutes }} minutes, but Hunter has not reported measurable irrigation gallons yet
+          and shared-well pressure has not dropped like a normal run.
+          Current Hunter flow is {{ states('sensor.irrigation_flow_rate') | float(0) | round(1) }} gal/min;
+          zone gallons are {{ states('input_number.irrigation_zone_gallons') | float(0) | round(1) }} gal;
+          shared-well pressure is {{ states('sensor.flo_shutoff_water_pressure') | float(0) | round(1) }} psi
+          with a {{ pressure_drop }} psi zone drop and {{ session_pressure_drop }} psi session drop.
     - action: input_text.set_value
       target:
         entity_id: input_text.irrigation_last_no_flow_alert_key
