@@ -35,6 +35,7 @@ unless the exact value is necessary and safe to store.
 
 | Date | Entry | Scope |
 | --- | --- | --- |
+| 2026-07-06 | [File Editor ingress 401 after update](2026-07-06-file-editor-ingress-401-after-update.md) | Diagnoses File Editor `6.0.0` panel load failure after update as stale duplicate ingress-session cookies, not add-on or YAML failure |
 | 2026-07-04 | [Irrigation no-flow false alerts](2026-07-04-irrigation-no-flow-false-alerts.md) | Diagnoses Hunter cumulative-total lag causing critical no-flow false positives and downgrades the alert to pressure-corroborated flow-not-confirmed warning |
 | 2026-07-01 | [Notification Center due boundaries and parking pass cycle](2026-07-01-notification-center-due-boundaries.md) | Hardens Needs Attention due-date filtering and fixes NWP parking pass replacement cycle tracking after a 1-month renewal |
 | 2026-06-30 | [Hunter Flow irrigation build](2026-06-30-hunter-flow-irrigation-build.md) | Implements Hunter-derived irrigation measurement, flow-baseline alerts, dashboard rebuild, inventory refresh, and live deployment/restart validation |
