@@ -7812,24 +7812,26 @@ views:
               style: &water_status_card_style |
                 ha-card {
                   border: 1px solid rgba(148, 163, 184, 0.16);
-                  border-radius: 20px;
+                  border-radius: 18px;
                   box-shadow: none;
-                  padding: 6px 8px;
+                  padding: 2px 8px;
                   background: linear-gradient(180deg, rgba(15, 23, 42, 0.72), rgba(15, 23, 42, 0.52));
                 }
                 mushroom-shape-icon {
                   --shape-color: rgba(255, 255, 255, 0.06) !important;
-                  width: 42px;
-                  height: 42px;
+                  width: 36px;
+                  height: 36px;
                 }
                 .primary {
                   font-size: 16px !important;
                   font-weight: 620 !important;
+                  line-height: 1.12 !important;
                   letter-spacing: 0;
                 }
                 .secondary {
                   color: rgba(226, 232, 240, 0.82) !important;
                   font-size: 13px !important;
+                  line-height: 1.16 !important;
                   letter-spacing: 0;
                 }
           - type: custom:mushroom-template-card
