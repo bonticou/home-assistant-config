@@ -274,6 +274,7 @@ command_line:
         --entity-id sensor.45_crr_daily_total_water_use
         --days 7
         --max-daily-gallons 50000
+        --zone-count 30
       command_timeout: 20
       scan_interval: 900
       value_template: >
@@ -1045,6 +1046,9 @@ input_select:
       - Zone 25
       - Zone 26
       - Zone 27
+      - Zone 28
+      - Zone 29
+      - Zone 30
     initial: Zone 1
     icon: mdi:map-marker-radius-outline
   downstairs_season_mode:
@@ -3428,7 +3432,10 @@ template:
             'binary_sensor.zone_24_watering',
             'binary_sensor.zone_25_watering',
             'binary_sensor.zone_26_watering',
-            'binary_sensor.zone_27_watering'
+            'binary_sensor.zone_27_watering',
+            'binary_sensor.zone_28_watering',
+            'binary_sensor.zone_29_watering',
+            'binary_sensor.zone_30_watering'
           ]) %}
           {{ zones | selectattr('state', 'eq', 'on') | list | count }}
         icon: mdi:sprinkler-variant
@@ -3463,7 +3470,10 @@ template:
             'binary_sensor.zone_24_watering',
             'binary_sensor.zone_25_watering',
             'binary_sensor.zone_26_watering',
-            'binary_sensor.zone_27_watering'
+            'binary_sensor.zone_27_watering',
+            'binary_sensor.zone_28_watering',
+            'binary_sensor.zone_29_watering',
+            'binary_sensor.zone_30_watering'
           ]) | selectattr('state', 'eq', 'on') | list %}
           {% set valves = expand([
             'valve.zone_1',
@@ -3492,7 +3502,10 @@ template:
             'valve.zone_24',
             'valve.zone_25',
             'valve.zone_26',
-            'valve.zone_27'
+            'valve.zone_27',
+            'valve.zone_28',
+            'valve.zone_29',
+            'valve.zone_30'
           ]) | selectattr('state', 'eq', 'open') | list %}
           {% if watering | count > 0 %}
             {{ watering[0].name | regex_replace(' Watering$', '') }}
@@ -3531,7 +3544,10 @@ template:
               'binary_sensor.zone_24_watering',
               'binary_sensor.zone_25_watering',
               'binary_sensor.zone_26_watering',
-              'binary_sensor.zone_27_watering'
+              'binary_sensor.zone_27_watering',
+              'binary_sensor.zone_28_watering',
+              'binary_sensor.zone_29_watering',
+              'binary_sensor.zone_30_watering'
             ]) | selectattr('state', 'eq', 'on') | list %}
             {% set valves = expand([
               'valve.zone_1',
@@ -3560,7 +3576,10 @@ template:
               'valve.zone_24',
               'valve.zone_25',
               'valve.zone_26',
-              'valve.zone_27'
+              'valve.zone_27',
+              'valve.zone_28',
+              'valve.zone_29',
+              'valve.zone_30'
             ]) | selectattr('state', 'eq', 'open') | list %}
             {% if watering | count > 0 %}
               {{ watering[0].entity_id }}
@@ -3597,7 +3616,10 @@ template:
               'binary_sensor.zone_24_watering',
               'binary_sensor.zone_25_watering',
               'binary_sensor.zone_26_watering',
-              'binary_sensor.zone_27_watering'
+              'binary_sensor.zone_27_watering',
+              'binary_sensor.zone_28_watering',
+              'binary_sensor.zone_29_watering',
+              'binary_sensor.zone_30_watering'
             ]) | selectattr('state', 'eq', 'on') | map(attribute='name') | list | join(', ') }}
 
       - name: "Irrigation Next Cycle"
@@ -3645,7 +3667,7 @@ template:
         unique_id: irrigation_up_next_zone
         state: >
           {% set ns = namespace(ts=none, name='Unknown') %}
-          {% for zone in range(1, 28) %}
+          {% for zone in range(1, 31) %}
             {% set next_entity = 'sensor.zone_' ~ zone ~ '_next_cycle' %}
             {% set watering_entity = 'binary_sensor.zone_' ~ zone ~ '_watering' %}
             {% set ts = as_timestamp(states(next_entity), 0) %}
@@ -3659,7 +3681,7 @@ template:
         attributes:
           zone_number: >
             {% set ns = namespace(ts=none, zone='') %}
-            {% for zone in range(1, 28) %}
+            {% for zone in range(1, 31) %}
               {% set ts = as_timestamp(states('sensor.zone_' ~ zone ~ '_next_cycle'), 0) %}
               {% if ts > as_timestamp(now()) and not is_state('binary_sensor.zone_' ~ zone ~ '_watering', 'on') and (ns.ts is none or ts < ns.ts) %}
                 {% set ns.ts = ts %}
@@ -3669,7 +3691,7 @@ template:
             {{ ns.zone }}
           next_cycle: >
             {% set ns = namespace(ts=none) %}
-            {% for zone in range(1, 28) %}
+            {% for zone in range(1, 31) %}
               {% set ts = as_timestamp(states('sensor.zone_' ~ zone ~ '_next_cycle'), 0) %}
               {% if ts > as_timestamp(now()) and not is_state('binary_sensor.zone_' ~ zone ~ '_watering', 'on') and (ns.ts is none or ts < ns.ts) %}
                 {% set ns.ts = ts %}
@@ -3678,7 +3700,7 @@ template:
             {{ ns.ts | timestamp_local if ns.ts is not none else 'unknown' }}
           entity_id: >
             {% set ns = namespace(ts=none, entity='') %}
-            {% for zone in range(1, 28) %}
+            {% for zone in range(1, 31) %}
               {% set entity = 'sensor.zone_' ~ zone ~ '_next_cycle' %}
               {% set ts = as_timestamp(states(entity), 0) %}
               {% if ts > as_timestamp(now()) and not is_state('binary_sensor.zone_' ~ zone ~ '_watering', 'on') and (ns.ts is none or ts < ns.ts) %}
@@ -3885,7 +3907,7 @@ template:
           next_cycle: "{{ state_attr('sensor.irrigation_up_next_zone', 'next_cycle') }}"
           zones_json: >
             {% set ns = namespace(items=[]) %}
-            {% for zone in range(1, 28) %}
+            {% for zone in range(1, 31) %}
               {% set key = 'Zone ' ~ zone %}
               {% set watering_entity = 'binary_sensor.zone_' ~ zone ~ '_watering' %}
               {% set next_entity = 'sensor.zone_' ~ zone ~ '_next_cycle' %}
@@ -5217,7 +5239,10 @@ template:
             'binary_sensor.zone_24_watering',
             'binary_sensor.zone_25_watering',
             'binary_sensor.zone_26_watering',
-            'binary_sensor.zone_27_watering'
+            'binary_sensor.zone_27_watering',
+            'binary_sensor.zone_28_watering',
+            'binary_sensor.zone_29_watering',
+            'binary_sensor.zone_30_watering'
           ]) | selectattr('state', 'eq', 'on') | list | count %}
           {% set valves = expand([
             'valve.zone_1',
@@ -5246,7 +5271,10 @@ template:
             'valve.zone_24',
             'valve.zone_25',
             'valve.zone_26',
-            'valve.zone_27'
+            'valve.zone_27',
+            'valve.zone_28',
+            'valve.zone_29',
+            'valve.zone_30'
           ]) | selectattr('state', 'eq', 'open') | list | count %}
           {{ watering > 0 or valves > 0 }}
 
@@ -5277,7 +5305,7 @@ template:
         device_class: problem
         state: >
           {% set ns = namespace(mismatches=[]) %}
-          {% for zone in range(1, 28) %}
+          {% for zone in range(1, 31) %}
             {% set watering_entity = 'binary_sensor.zone_' ~ zone ~ '_watering' %}
             {% set valve_entity = 'valve' ~ '.zone_' ~ zone %}
             {% set watering = states(watering_entity) %}
@@ -5294,7 +5322,7 @@ template:
         attributes:
           mismatches: >
             {% set ns = namespace(mismatches=[]) %}
-            {% for zone in range(1, 28) %}
+            {% for zone in range(1, 31) %}
               {% set watering_entity = 'binary_sensor.zone_' ~ zone ~ '_watering' %}
               {% set valve_entity = 'valve' ~ '.zone_' ~ zone %}
               {% set watering = states(watering_entity) %}

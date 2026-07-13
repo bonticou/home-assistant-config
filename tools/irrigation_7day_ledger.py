@@ -388,11 +388,75 @@ def merge_zone_sources(
     primary: dict[str, list[dict[str, Any]]],
     fallback: dict[str, list[dict[str, Any]]],
     day_keys: list[str],
+    zone_names: dict[str, str],
 ) -> dict[str, list[dict[str, Any]]]:
+    name_to_zone = {
+        normalize_zone_name(name): f"zone:{zone.split()[-1]}"
+        for zone, name in zone_names.items()
+        if normalize_zone_name(name) and zone.lower().startswith("zone ")
+    }
     return {
-        day: primary.get(day) or fallback.get(day) or []
+        day: merge_zone_day(primary.get(day, []), fallback.get(day, []), name_to_zone)
         for day in day_keys
     }
+
+
+def source_tokens(value: Any) -> set[str]:
+    return {part.strip() for part in str(value or "").split("+") if part.strip()}
+
+
+def normalize_zone_name(value: Any) -> str:
+    return " ".join(str(value or "").strip().lower().split())
+
+
+def zone_identity(item: dict[str, Any], name_to_zone: dict[str, str]) -> str:
+    for key in ("zone", "zone_name"):
+        text = normalize_zone_name(item.get(key))
+        parts = text.split()
+        if len(parts) == 2 and parts[0] == "zone" and parts[1].isdigit():
+            return f"zone:{int(parts[1])}"
+        if text in name_to_zone:
+            return name_to_zone[text]
+    fallback = normalize_zone_name(item.get("zone_name") or item.get("zone"))
+    return f"name:{fallback}" if fallback else ""
+
+
+def merge_zone_day(
+    primary: list[dict[str, Any]],
+    fallback: list[dict[str, Any]],
+    name_to_zone: dict[str, str],
+) -> list[dict[str, Any]]:
+    merged: dict[str, dict[str, Any]] = {}
+    for source_items in (fallback, primary):
+        for item in source_items:
+            identity = zone_identity(item, name_to_zone)
+            if not identity:
+                continue
+            existing = merged.get(identity)
+            if existing is None:
+                merged[identity] = dict(item)
+                continue
+            existing["duration_minutes"] = round(
+                max(
+                    float(existing.get("duration_minutes") or 0),
+                    float(item.get("duration_minutes") or 0),
+                ),
+                2,
+            )
+            existing["gallons"] = round(
+                max(float(existing.get("gallons") or 0), float(item.get("gallons") or 0)),
+                2,
+            )
+            if not str(existing.get("zone_name") or "").strip() or str(existing.get("zone_name")) == existing.get("zone"):
+                existing["zone_name"] = item.get("zone_name") or existing.get("zone_name")
+            if not str(existing.get("zone") or "").lower().startswith("zone "):
+                existing["zone"] = item.get("zone") or existing.get("zone")
+            sources = source_tokens(existing.get("source")) | source_tokens(item.get("source"))
+            existing["source"] = "+".join(sorted(sources))
+    return sorted(
+        merged.values(),
+        key=lambda item: (-float(item.get("duration_minutes") or 0), str(item.get("zone") or "")),
+    )
 
 
 def format_minutes(value: float) -> str:
@@ -411,7 +475,10 @@ def zones_label(zones: list[dict[str, Any]], gallons: float) -> str:
     if len(zones) == 1:
         return f"{names[0]} \u00b7 {minutes}" if minutes else names[0]
     if len(zones) > 6:
-        return f"Full cycle \u00b7 {len(zones)} zones" if gallons >= 5000 else f"{len(zones)} zones"
+        sources = {str(zone.get("source") or "") for zone in zones}
+        if any("hydrawise_daily_active_time" in source for source in sources):
+            return f"Hydrawise logged {len(zones)} zones"
+        return f"{len(zones)} zones recorded"
     label = f"{names[0]} + {len(zones) - 1} more"
     return f"{label} \u00b7 {minutes}" if minutes else label
 
@@ -440,7 +507,7 @@ def format_inches(value: float) -> str:
 
 def day_summary(gallons: float, rain_in: float) -> str:
     if gallons >= 5000:
-        return "Full irrigation run"
+        return "Heavy irrigation"
     if gallons > 0 and rain_in >= 0.1:
         return "Irrigation and rain"
     if gallons > 0:
@@ -485,6 +552,7 @@ def build_ledger(args: argparse.Namespace) -> dict[str, Any]:
                 zone_count=args.zone_count,
             ),
             day_keys,
+            zone_names,
         )
     except Exception as exc:  # noqa: BLE001 - zone context should not break the ledger.
         zones_by_day = {day: [] for day in day_keys}
@@ -500,6 +568,7 @@ def build_ledger(args: argparse.Namespace) -> dict[str, Any]:
         gallons = round(gallons_by_day.get(key, 0.0), 1)
         rain = round(rain_by_day.get(key, 0.0), 2)
         zones = zones_by_day.get(key, [])
+        zone_sources = sorted({source for zone in zones for source in source_tokens(zone.get("source"))})
         days.append(
             {
                 "date": key,
@@ -512,8 +581,10 @@ def build_ledger(args: argparse.Namespace) -> dict[str, Any]:
                 "rain_label": f"{format_inches(rain)} in",
                 "rain_context": rain_context(rain),
                 "zones": zones,
+                "zone_count": len(zones),
                 "zones_label": zones_label(zones, gallons),
-                "zone_source": zones[0].get("source", "") if zones else "",
+                "zone_source": "+".join(zone_sources),
+                "zone_sources": zone_sources,
                 "summary": day_summary(gallons, rain),
                 "irrigation_ratio": round(gallons / max_gallons, 4) if max_gallons > 0 else 0,
                 "rain_ratio": round(rain / max_rain, 4) if max_rain > 0 else 0,
@@ -548,7 +619,7 @@ def main(argv: list[str] | None = None) -> int:
     parser.add_argument("--entity-id", default="sensor.45_crr_daily_total_water_use")
     parser.add_argument("--days", type=int, default=7)
     parser.add_argument("--max-daily-gallons", type=float, default=50000.0)
-    parser.add_argument("--zone-count", type=int, default=27)
+    parser.add_argument("--zone-count", type=int, default=30)
     args = parser.parse_args(argv)
     args.days = max(args.days, 1)
     args.zone_count = max(args.zone_count, 1)
