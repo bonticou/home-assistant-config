@@ -136,7 +136,8 @@ Residual live status:
 - Recorder remained recording and its thread was running.
 - Recorder migration was inactive.
 - Recorder backlog rose during cleanup and was still non-zero in the final
-  checks, last observed at `782`. No additional DB operations should be stacked
+  checks, last observed at `3703`. Recent `home-assistant.log` tail showed no
+  Recorder/SQLite/database errors. No additional DB operations should be stacked
   until it drains.
 
 ## Residual Risks
