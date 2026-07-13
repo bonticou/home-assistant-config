@@ -197,9 +197,33 @@ Recommended next DB-backed step:
 
 ## Deployment Status
 
-Configuration was changed in the repo but not yet deployed to the live HA
-instance in this pass. A deploy/restart is required for Recorder config changes
-to affect future recording scope.
+Configuration was deployed to the live HA instance on 2026-07-13 through File
+Editor ingress after a clean read-back and Home Assistant config check.
+
+Live deployment checks:
+
+- File Editor write/read-back succeeded for `/homeassistant/configuration.yaml`.
+- Home Assistant config check returned valid before restart.
+- Core restart was called successfully.
+- Post-restart Core state was `RUNNING`.
+- Remote UI was `on` / `online`.
+- Recorder was recording, its thread was running, migration was inactive, and
+  backlog was `0`.
+- Live read-back confirmed the deployed Recorder block contains the new
+  `button`, `camera`, and `update` domain exclusions plus the explicit generated
+  sensor exclusions.
+- Live read-back confirmed `sensor.house_notice_history` was not added to the
+  Recorder exclusion block.
+
+Storage impact:
+
+- Before the change, the live database was `20,462,624,768` bytes and the WAL
+  was about `21.8 MB`.
+- After deployment/restart, the live database was still `20,462,624,768` bytes
+  and the WAL was about `21.0 MB`.
+- This is expected: the slice reduces future Recorder writes but does not reclaim
+  existing database space. Actual space recovery requires a targeted purge and
+  possible repack/vacuum after backup and free-space checks.
 
 Checks run:
 
