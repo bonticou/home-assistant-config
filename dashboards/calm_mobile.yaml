@@ -11202,7 +11202,7 @@ views:
     type: masonry
     cards:
       - type: custom:mushroom-title-card
-        title: Wine Cave
+        title: Wine cave
 
       - type: custom:button-card
         show_icon: true
@@ -11528,361 +11528,485 @@ views:
             tap_action:
               action: more-info
 
-      - type: custom:apexcharts-card
-        graph_span: 24h
-        header:
-          show: false
-        apex_config:
-          chart:
-            height: 240
-            background: transparent
-          stroke:
-            curve: straight
-          xaxis:
-            tickAmount: 6
-            labels:
-              formatter: |
-                EVAL:function(value, timestamp) {
-                  const source = timestamp ?? value;
-                  if (source === null || source === undefined || source === '') return value ?? '';
-                  const numeric = typeof source === 'number' ? source : Number(source);
-                  const date = Number.isFinite(numeric) ? new Date(numeric) : new Date(source);
-                  if (Number.isNaN(date.getTime())) return value ?? '';
-                  let hour = date.getHours();
-                  const suffix = hour >= 12 ? 'p' : 'a';
-                  hour = hour % 12 || 12;
-                  return `${hour}${suffix}`;
-                }
+      - type: custom:button-card
+        entity: input_boolean.wine_chart_24h_expanded
+        show_icon: false
+        show_name: false
+        show_state: false
+        custom_fields:
+          summary: >-
+            [[[
+              const value = (id, digits, suffix) => {
+                const raw = Number(hass.states[id]?.state);
+                return Number.isFinite(raw) ? `${raw.toFixed(digits)}${suffix}` : '--';
+              };
+              const temp = value('sensor.wine_temperature_24h_stats', 1, '°F');
+              const humidity = value('sensor.wine_humidity_24h_stats', 0, '%');
+              return `
+                <div class="wine-trend-summary">
+                  <div class="wine-trend-kicker">24 hours</div>
+                  <div class="wine-trend-main">
+                    <div class="wine-trend-copy">
+                      <div class="wine-trend-title">24-hour trends</div>
+                      <div class="wine-trend-subtitle">Short-term cellar rhythm · avg temp ${temp} · avg humidity ${humidity}</div>
+                    </div>
+                    <div class="wine-trend-metrics">
+                      <div class="wine-trend-pill" style="--wine-trend-pill-color:#ef5350"><ha-icon icon="mdi:thermometer"></ha-icon><span>${temp}</span></div>
+                      <div class="wine-trend-pill" style="--wine-trend-pill-color:#42a5f5"><ha-icon icon="mdi:water-percent"></ha-icon><span>${humidity}</span></div>
+                    </div>
+                  </div>
+                </div>
+              `;
+            ]]]
+          chevron: >-
+            [[[
+              const expanded = entity?.state === 'on';
+              return `<div class="wine-trend-chevron"><ha-icon icon="${expanded ? 'mdi:chevron-up' : 'mdi:chevron-down'}"></ha-icon></div>`;
+            ]]]
+        tap_action:
+          action: call-service
+          service: input_boolean.toggle
+          service_data:
+            entity_id: input_boolean.wine_chart_24h_expanded
+        hold_action:
+          action: more-info
+        styles: &wine_trend_summary_card_styles
+          card:
+            - border-radius: 24px
+            - padding: 16px 18px
+            - min-height: 106px
+            - border: 1px solid rgba(148, 163, 184, 0.18)
+            - box-shadow: 0 10px 20px rgba(2, 8, 23, 0.18)
+            - background: linear-gradient(180deg, rgba(15, 23, 42, 0.78), rgba(30, 41, 59, 0.72))
+            - backdrop-filter: blur(16px) saturate(160%)
+            - -webkit-backdrop-filter: blur(16px) saturate(160%)
+            - cursor: pointer
+          grid:
+            - grid-template-areas: '"summary chevron"'
+            - grid-template-columns: minmax(0, 1fr) 36px
+            - align-items: center
+            - column-gap: 14px
+          custom_fields:
+            summary:
+              - justify-self: stretch
+              - align-self: center
+              - min-width: 0
+            chevron:
+              - justify-self: end
+              - align-self: center
+              - width: 34px
+              - height: 34px
+              - display: flex
+              - align-items: center
+              - justify-content: center
+              - border-radius: 999px
+              - border: 1px solid rgba(148, 163, 184, 0.18)
+              - background: rgba(15, 23, 42, 0.34)
+              - color: rgba(226, 232, 240, 0.86)
+        extra_styles: &wine_trend_summary_card_extra |
+          .wine-trend-summary {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            min-width: 0;
+            width: 100%;
+          }
+          .wine-trend-kicker {
+            color: rgba(226, 232, 240, 0.56);
+            font-size: 11px;
+            font-weight: 700;
+            letter-spacing: 0.08em;
+            line-height: 1.1;
+            text-transform: uppercase;
+          }
+          .wine-trend-main {
+            display: flex;
+            align-items: flex-end;
+            justify-content: space-between;
+            gap: 14px;
+            min-width: 0;
+          }
+          .wine-trend-copy {
+            min-width: 0;
+          }
+          .wine-trend-title {
+            color: #f8fafc;
+            font-size: 20px;
+            font-weight: 560;
+            letter-spacing: 0;
+            line-height: 1.15;
+            text-align: left;
+          }
+          .wine-trend-subtitle {
+            margin-top: 5px;
+            color: rgba(226, 232, 240, 0.64);
+            font-size: 13px;
+            font-weight: 400;
+            letter-spacing: 0;
+            line-height: 1.3;
+            text-align: left;
+          }
+          .wine-trend-metrics {
+            display: flex;
+            flex: none;
+            flex-wrap: wrap;
+            justify-content: flex-end;
+            gap: 7px;
+            max-width: 45%;
+          }
+          .wine-trend-pill {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            min-height: 30px;
+            padding: 0 10px;
+            border-radius: 999px;
+            border: 1px solid rgba(148, 163, 184, 0.18);
+            background: rgba(15, 23, 42, 0.40);
+            color: rgba(248, 250, 252, 0.92);
+            font-size: 13px;
+            font-weight: 700;
+            font-variant-numeric: tabular-nums;
+            white-space: nowrap;
+          }
+          .wine-trend-pill ha-icon {
+            --mdc-icon-size: 15px;
+            color: var(--wine-trend-pill-color, rgba(226, 232, 240, 0.82));
+          }
+          .wine-trend-chevron ha-icon {
+            --mdc-icon-size: 22px;
+          }
+          @media (max-width: 390px) {
+            .wine-trend-main {
+              align-items: flex-start;
+              flex-direction: column;
+            }
+            .wine-trend-metrics {
+              justify-content: flex-start;
+              max-width: none;
+            }
+          }
+
+      - type: conditional
+        conditions:
+          - entity: input_boolean.wine_chart_24h_expanded
+            state: "on"
+        card:
+          type: custom:apexcharts-card
+          graph_span: 24h
+          header:
+            show: false
+          apex_config:
+            chart:
+              height: 240
+              background: transparent
+            stroke:
+              curve: straight
+            xaxis:
+              tickAmount: 6
+              labels:
+                formatter: |
+                  EVAL:function(value, timestamp) {
+                    const source = timestamp ?? value;
+                    if (source === null || source === undefined || source === '') return value ?? '';
+                    const numeric = typeof source === 'number' ? source : Number(source);
+                    const date = Number.isFinite(numeric) ? new Date(numeric) : new Date(source);
+                    if (Number.isNaN(date.getTime())) return value ?? '';
+                    let hour = date.getHours();
+                    const suffix = hour >= 12 ? 'p' : 'a';
+                    hour = hour % 12 || 12;
+                    return `${hour}${suffix}`;
+                  }
+              tooltip:
+                enabled: false
+            grid:
+              borderColor: rgba(120, 120, 120, 0.16)
+            legend:
+              show: false
             tooltip:
-              enabled: false
-          grid:
-            borderColor: rgba(120, 120, 120, 0.16)
-          legend:
-            show: false
-          tooltip:
-            theme: dark
-            x:
-              formatter: |
-                EVAL:function(value, opts) {
-                  const seriesIndex = opts?.seriesIndex ?? 0;
-                  const dataPointIndex = opts?.dataPointIndex ?? 0;
-                  const source = opts?.w?.globals?.seriesX?.[seriesIndex]?.[dataPointIndex] ?? value;
-                  if (source === null || source === undefined || source === '') return value ?? '';
-                  const numeric = typeof source === 'number' ? source : Number(source);
-                  const date = Number.isFinite(numeric) ? new Date(numeric) : new Date(source);
-                  if (Number.isNaN(date.getTime())) return value ?? '';
-                  let hour = date.getHours();
-                  const suffix = hour >= 12 ? 'p' : 'a';
-                  hour = hour % 12 || 12;
-                  return `${hour}${suffix}`;
-                }
-        yaxis:
-          - id: temp
-            min: "~52"
-            max: "~60"
-            align_to: 1
-            decimals: 1
-            apex_config:
-              tickAmount: 4
-          - id: humidity
-            min: "~45"
-            max: "~72"
-            align_to: 1
-            opposite: true
-            decimals: 0
-            apex_config:
-              tickAmount: 4
-        series:
-          - entity: sensor.wine_temperature
-            name: Temperature
-            yaxis_id: temp
-            type: line
-            color: '#ef5350'
-            stroke_width: 1.5
-            group_by:
-              func: avg
-              duration: 10min
-              fill: last
-          - entity: sensor.wine_humidity
-            name: Humidity
-            yaxis_id: humidity
-            type: line
-            color: '#42a5f5'
-            stroke_width: 1.5
-            group_by:
-              func: avg
-              duration: 10min
-              fill: last
-        card_mod:
-          style: |
-            ha-card {
-              --wine-chart-title: "24-hour trends";
-              --wine-chart-subtitle: "{% set temp = states('sensor.wine_temperature_24h_stats') %}{% set humidity = states('sensor.wine_humidity_24h_stats') %}{% if is_number(temp) and is_number(humidity) %}Mean temp {{ temp | float | round(1) }}°F · Mean humidity {{ humidity | float | round(0) }}%{% else %}Mean settling in{% endif %}";
-              border: 1px solid rgba(148, 163, 184, 0.18);
-              box-shadow: 0 10px 20px rgba(2, 8, 23, 0.18);
-              border-radius: 24px;
-              padding: 0;
-              position: relative;
-              background: linear-gradient(180deg, rgba(15, 23, 42, 0.78), rgba(30, 41, 59, 0.72)) !important;
-              backdrop-filter: blur(16px) saturate(160%);
-              -webkit-backdrop-filter: blur(16px) saturate(160%);
-              overflow: hidden;
-              --primary-text-color: #f8fafc;
-              --secondary-text-color: #94a3b8;
-            }
-            ha-card::before {
-              content: var(--wine-chart-title);
-              position: absolute;
-              top: 16px;
-              left: 18px;
-              right: 18px;
-              color: #f8fafc;
-              font-size: 20px;
-              line-height: 1.15;
-              font-weight: 500;
-              letter-spacing: 0;
-              pointer-events: none;
-              z-index: 1;
-            }
-            ha-card::after {
-              content: var(--wine-chart-subtitle);
-              position: absolute;
-              top: 42px;
-              left: 18px;
-              right: 18px;
-              color: rgba(226, 232, 240, 0.64);
-              font-size: 12px;
-              line-height: 1.25;
-              font-weight: 400;
-              letter-spacing: 0;
-              pointer-events: none;
-              z-index: 1;
-            }
-            #graph-wrapper {
-              padding: 58px 10px 0 !important;
-              background: linear-gradient(180deg, rgba(15, 23, 42, 0.78), rgba(30, 41, 59, 0.72)) !important;
-            }
-            .apexcharts-canvas,
-            .apexcharts-svg,
-            .apexcharts-inner,
-            svg {
-              background: transparent !important;
-            }
+              theme: dark
+              x:
+                formatter: |
+                  EVAL:function(value, opts) {
+                    const seriesIndex = opts?.seriesIndex ?? 0;
+                    const dataPointIndex = opts?.dataPointIndex ?? 0;
+                    const source = opts?.w?.globals?.seriesX?.[seriesIndex]?.[dataPointIndex] ?? value;
+                    if (source === null || source === undefined || source === '') return value ?? '';
+                    const numeric = typeof source === 'number' ? source : Number(source);
+                    const date = Number.isFinite(numeric) ? new Date(numeric) : new Date(source);
+                    if (Number.isNaN(date.getTime())) return value ?? '';
+                    let hour = date.getHours();
+                    const suffix = hour >= 12 ? 'p' : 'a';
+                    hour = hour % 12 || 12;
+                    return `${hour}${suffix}`;
+                  }
+          yaxis:
+            - id: temp
+              min: "~52"
+              max: "~60"
+              align_to: 1
+              decimals: 1
+              apex_config:
+                tickAmount: 4
+            - id: humidity
+              min: "~45"
+              max: "~72"
+              align_to: 1
+              opposite: true
+              decimals: 0
+              apex_config:
+                tickAmount: 4
+          series:
+            - entity: sensor.wine_temperature
+              name: Temperature
+              yaxis_id: temp
+              type: line
+              color: '#ef5350'
+              stroke_width: 1.5
+              group_by:
+                func: avg
+                duration: 10min
+                fill: last
+            - entity: sensor.wine_humidity
+              name: Humidity
+              yaxis_id: humidity
+              type: line
+              color: '#42a5f5'
+              stroke_width: 1.5
+              group_by:
+                func: avg
+                duration: 10min
+                fill: last
+          card_mod: &wine_trend_chart_card_mod
+            style: |
+              ha-card {
+                border: 1px solid rgba(148, 163, 184, 0.18);
+                box-shadow: 0 10px 20px rgba(2, 8, 23, 0.18);
+                border-radius: 24px;
+                padding: 0;
+                background: linear-gradient(180deg, rgba(15, 23, 42, 0.78), rgba(30, 41, 59, 0.72)) !important;
+                backdrop-filter: blur(16px) saturate(160%);
+                -webkit-backdrop-filter: blur(16px) saturate(160%);
+                overflow: hidden;
+                --primary-text-color: #f8fafc;
+                --secondary-text-color: #94a3b8;
+              }
+              #graph-wrapper {
+                padding: 8px 10px 0 !important;
+                background: linear-gradient(180deg, rgba(15, 23, 42, 0.78), rgba(30, 41, 59, 0.72)) !important;
+              }
+              .apexcharts-canvas,
+              .apexcharts-svg,
+              .apexcharts-inner,
+              svg {
+                background: transparent !important;
+              }
 
-      - type: custom:apexcharts-card
-        graph_span: 7d
-        header:
-          show: false
-        apex_config:
-          chart:
-            height: 240
-            background: transparent
-          stroke:
-            curve: straight
-          grid:
-            borderColor: rgba(120, 120, 120, 0.16)
-          legend:
-            show: false
-          tooltip:
-            theme: dark
-        yaxis:
-          - id: temp
-            min: "~50"
-            max: "~62"
-            align_to: 1
-            decimals: 1
-          - id: humidity
-            min: "~45"
-            max: "~72"
-            align_to: 1
-            opposite: true
-            decimals: 0
-        series:
-          - entity: sensor.wine_temperature
-            name: Temperature
-            yaxis_id: temp
-            type: line
-            color: '#ef5350'
-            stroke_width: 1.5
-            group_by:
-              func: avg
-              duration: 2h
-              fill: last
-          - entity: sensor.wine_humidity
-            name: Humidity
-            yaxis_id: humidity
-            type: line
-            color: '#42a5f5'
-            stroke_width: 1.5
-            group_by:
-              func: avg
-              duration: 2h
-              fill: last
-        card_mod:
-          style: |
-            ha-card {
-              --wine-chart-title: "7-day trends";
-              --wine-chart-subtitle: "{% set temp = states('sensor.wine_temperature_7d_stats') %}{% set humidity = states('sensor.wine_humidity_7d_stats') %}{% if is_number(temp) and is_number(humidity) %}Mean temp {{ temp | float | round(1) }}°F · Mean humidity {{ humidity | float | round(0) }}%{% else %}Week mean settling in{% endif %}";
-              border: 1px solid rgba(148, 163, 184, 0.18);
-              box-shadow: 0 10px 20px rgba(2, 8, 23, 0.18);
-              border-radius: 24px;
-              padding: 0;
-              position: relative;
-              background: linear-gradient(180deg, rgba(15, 23, 42, 0.78), rgba(30, 41, 59, 0.72)) !important;
-              backdrop-filter: blur(16px) saturate(160%);
-              -webkit-backdrop-filter: blur(16px) saturate(160%);
-              overflow: hidden;
-              --primary-text-color: #f8fafc;
-              --secondary-text-color: #94a3b8;
-            }
-            ha-card::before {
-              content: var(--wine-chart-title);
-              position: absolute;
-              top: 16px;
-              left: 18px;
-              right: 18px;
-              color: #f8fafc;
-              font-size: 20px;
-              line-height: 1.15;
-              font-weight: 500;
-              letter-spacing: 0;
-              pointer-events: none;
-              z-index: 1;
-            }
-            ha-card::after {
-              content: var(--wine-chart-subtitle);
-              position: absolute;
-              top: 42px;
-              left: 18px;
-              right: 18px;
-              color: rgba(226, 232, 240, 0.64);
-              font-size: 12px;
-              line-height: 1.25;
-              font-weight: 400;
-              letter-spacing: 0;
-              pointer-events: none;
-              z-index: 1;
-            }
-            #graph-wrapper {
-              padding: 58px 10px 0 !important;
-              background: linear-gradient(180deg, rgba(15, 23, 42, 0.78), rgba(30, 41, 59, 0.72)) !important;
-            }
-            .apexcharts-canvas,
-            .apexcharts-svg,
-            .apexcharts-inner,
-            svg {
-              background: transparent !important;
-            }
+      - type: custom:button-card
+        entity: input_boolean.wine_chart_7d_expanded
+        show_icon: false
+        show_name: false
+        show_state: false
+        custom_fields:
+          summary: >-
+            [[[
+              const value = (id, digits, suffix) => {
+                const raw = Number(hass.states[id]?.state);
+                return Number.isFinite(raw) ? `${raw.toFixed(digits)}${suffix}` : '--';
+              };
+              const temp = value('sensor.wine_temperature_7d_stats', 1, '°F');
+              const humidity = value('sensor.wine_humidity_7d_stats', 0, '%');
+              return `
+                <div class="wine-trend-summary">
+                  <div class="wine-trend-kicker">7 days</div>
+                  <div class="wine-trend-main">
+                    <div class="wine-trend-copy">
+                      <div class="wine-trend-title">7-day trends</div>
+                      <div class="wine-trend-subtitle">Weekly stability view · avg temp ${temp} · avg humidity ${humidity}</div>
+                    </div>
+                    <div class="wine-trend-metrics">
+                      <div class="wine-trend-pill" style="--wine-trend-pill-color:#ef5350"><ha-icon icon="mdi:thermometer"></ha-icon><span>${temp}</span></div>
+                      <div class="wine-trend-pill" style="--wine-trend-pill-color:#42a5f5"><ha-icon icon="mdi:water-percent"></ha-icon><span>${humidity}</span></div>
+                    </div>
+                  </div>
+                </div>
+              `;
+            ]]]
+          chevron: >-
+            [[[
+              const expanded = entity?.state === 'on';
+              return `<div class="wine-trend-chevron"><ha-icon icon="${expanded ? 'mdi:chevron-up' : 'mdi:chevron-down'}"></ha-icon></div>`;
+            ]]]
+        tap_action:
+          action: call-service
+          service: input_boolean.toggle
+          service_data:
+            entity_id: input_boolean.wine_chart_7d_expanded
+        hold_action:
+          action: more-info
+        styles: *wine_trend_summary_card_styles
+        extra_styles: *wine_trend_summary_card_extra
 
-      - type: custom:apexcharts-card
-        graph_span: 30d
-        header:
-          show: false
-        apex_config:
-          chart:
-            height: 240
-            background: transparent
-          stroke:
-            curve: straight
-          xaxis:
-            tickAmount: 6
-            labels:
-              format: d MMM
-          grid:
-            borderColor: rgba(120, 120, 120, 0.16)
-          legend:
+      - type: conditional
+        conditions:
+          - entity: input_boolean.wine_chart_7d_expanded
+            state: "on"
+        card:
+          type: custom:apexcharts-card
+          graph_span: 7d
+          header:
             show: false
-          tooltip:
-            theme: dark
-        yaxis:
-          - id: temp
-            min: "~50"
-            max: "~62"
-            align_to: 1
-            decimals: 1
-          - id: humidity
-            min: "~45"
-            max: "~72"
-            align_to: 1
-            opposite: true
-            decimals: 0
-        series:
-          - entity: sensor.wine_temperature
-            name: Temperature
-            yaxis_id: temp
-            type: line
-            color: '#ef5350'
-            stroke_width: 1.5
-            group_by:
-              func: avg
-              duration: 12h
-              fill: last
-          - entity: sensor.wine_humidity
-            name: Humidity
-            yaxis_id: humidity
-            type: line
-            color: '#42a5f5'
-            stroke_width: 1.5
-            group_by:
-              func: avg
-              duration: 12h
-              fill: last
-        card_mod:
-          style: |
-            ha-card {
-              --wine-chart-title: "30-day trends";
-              --wine-chart-subtitle: "{% set temp = states('sensor.wine_temperature_30d_stats') %}{% set humidity = states('sensor.wine_humidity_30d_stats') %}{% if is_number(temp) and is_number(humidity) %}Mean temp {{ temp | float | round(1) }}°F · Mean humidity {{ humidity | float | round(0) }}%{% else %}Month mean settling in{% endif %}";
-              border: 1px solid rgba(148, 163, 184, 0.18);
-              box-shadow: 0 10px 20px rgba(2, 8, 23, 0.18);
-              border-radius: 24px;
-              padding: 0;
-              position: relative;
-              background: linear-gradient(180deg, rgba(15, 23, 42, 0.78), rgba(30, 41, 59, 0.72)) !important;
-              backdrop-filter: blur(16px) saturate(160%);
-              -webkit-backdrop-filter: blur(16px) saturate(160%);
-              overflow: hidden;
-              --primary-text-color: #f8fafc;
-              --secondary-text-color: #94a3b8;
-            }
-            ha-card::before {
-              content: var(--wine-chart-title);
-              position: absolute;
-              top: 16px;
-              left: 18px;
-              right: 18px;
-              color: #f8fafc;
-              font-size: 20px;
-              line-height: 1.15;
-              font-weight: 500;
-              letter-spacing: 0;
-              pointer-events: none;
-              z-index: 1;
-            }
-            ha-card::after {
-              content: var(--wine-chart-subtitle);
-              position: absolute;
-              top: 42px;
-              left: 18px;
-              right: 18px;
-              color: rgba(226, 232, 240, 0.64);
-              font-size: 12px;
-              line-height: 1.25;
-              font-weight: 400;
-              letter-spacing: 0;
-              pointer-events: none;
-              z-index: 1;
-            }
-            #graph-wrapper {
-              padding: 58px 10px 0 !important;
-              background: linear-gradient(180deg, rgba(15, 23, 42, 0.78), rgba(30, 41, 59, 0.72)) !important;
-            }
-            .apexcharts-canvas,
-            .apexcharts-svg,
-            .apexcharts-inner,
-            svg {
-              background: transparent !important;
-            }
+          apex_config:
+            chart:
+              height: 240
+              background: transparent
+            stroke:
+              curve: straight
+            grid:
+              borderColor: rgba(120, 120, 120, 0.16)
+            legend:
+              show: false
+            tooltip:
+              theme: dark
+          yaxis:
+            - id: temp
+              min: "~50"
+              max: "~62"
+              align_to: 1
+              decimals: 1
+            - id: humidity
+              min: "~45"
+              max: "~72"
+              align_to: 1
+              opposite: true
+              decimals: 0
+          series:
+            - entity: sensor.wine_temperature
+              name: Temperature
+              yaxis_id: temp
+              type: line
+              color: '#ef5350'
+              stroke_width: 1.5
+              group_by:
+                func: avg
+                duration: 2h
+                fill: last
+            - entity: sensor.wine_humidity
+              name: Humidity
+              yaxis_id: humidity
+              type: line
+              color: '#42a5f5'
+              stroke_width: 1.5
+              group_by:
+                func: avg
+                duration: 2h
+                fill: last
+          card_mod: *wine_trend_chart_card_mod
 
+      - type: custom:button-card
+        entity: input_boolean.wine_chart_30d_expanded
+        show_icon: false
+        show_name: false
+        show_state: false
+        custom_fields:
+          summary: >-
+            [[[
+              const value = (id, digits, suffix) => {
+                const raw = Number(hass.states[id]?.state);
+                return Number.isFinite(raw) ? `${raw.toFixed(digits)}${suffix}` : '--';
+              };
+              const temp = value('sensor.wine_temperature_30d_stats', 1, '°F');
+              const humidity = value('sensor.wine_humidity_30d_stats', 0, '%');
+              return `
+                <div class="wine-trend-summary">
+                  <div class="wine-trend-kicker">30 days</div>
+                  <div class="wine-trend-main">
+                    <div class="wine-trend-copy">
+                      <div class="wine-trend-title">30-day trends</div>
+                      <div class="wine-trend-subtitle">Slow drift and cellar seasonality · avg temp ${temp} · avg humidity ${humidity}</div>
+                    </div>
+                    <div class="wine-trend-metrics">
+                      <div class="wine-trend-pill" style="--wine-trend-pill-color:#ef5350"><ha-icon icon="mdi:thermometer"></ha-icon><span>${temp}</span></div>
+                      <div class="wine-trend-pill" style="--wine-trend-pill-color:#42a5f5"><ha-icon icon="mdi:water-percent"></ha-icon><span>${humidity}</span></div>
+                    </div>
+                  </div>
+                </div>
+              `;
+            ]]]
+          chevron: >-
+            [[[
+              const expanded = entity?.state === 'on';
+              return `<div class="wine-trend-chevron"><ha-icon icon="${expanded ? 'mdi:chevron-up' : 'mdi:chevron-down'}"></ha-icon></div>`;
+            ]]]
+        tap_action:
+          action: call-service
+          service: input_boolean.toggle
+          service_data:
+            entity_id: input_boolean.wine_chart_30d_expanded
+        hold_action:
+          action: more-info
+        styles: *wine_trend_summary_card_styles
+        extra_styles: *wine_trend_summary_card_extra
+
+      - type: conditional
+        conditions:
+          - entity: input_boolean.wine_chart_30d_expanded
+            state: "on"
+        card:
+          type: custom:apexcharts-card
+          graph_span: 30d
+          header:
+            show: false
+          apex_config:
+            chart:
+              height: 240
+              background: transparent
+            stroke:
+              curve: straight
+            xaxis:
+              tickAmount: 6
+              labels:
+                format: d MMM
+            grid:
+              borderColor: rgba(120, 120, 120, 0.16)
+            legend:
+              show: false
+            tooltip:
+              theme: dark
+          yaxis:
+            - id: temp
+              min: "~50"
+              max: "~62"
+              align_to: 1
+              decimals: 1
+            - id: humidity
+              min: "~45"
+              max: "~72"
+              align_to: 1
+              opposite: true
+              decimals: 0
+          series:
+            - entity: sensor.wine_temperature
+              name: Temperature
+              yaxis_id: temp
+              type: line
+              color: '#ef5350'
+              stroke_width: 1.5
+              group_by:
+                func: avg
+                duration: 12h
+                fill: last
+            - entity: sensor.wine_humidity
+              name: Humidity
+              yaxis_id: humidity
+              type: line
+              color: '#42a5f5'
+              stroke_width: 1.5
+              group_by:
+                func: avg
+                duration: 12h
+                fill: last
+          card_mod: *wine_trend_chart_card_mod
       - type: custom:mushroom-template-card
         entity: sensor.wine_cave_appliance_context
         primary: Wine cave
@@ -12368,7 +12492,7 @@ views:
       - type: custom:popup-card
         target:
           entity_id: sensor.wine_cave_status
-        title: Wine Cave
+        title: Wine cave
         dismiss_icon: mdi:close
         initial_style: wide
         popup_styles: &wine_popup_styles

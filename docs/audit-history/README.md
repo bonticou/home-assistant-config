@@ -35,6 +35,7 @@ unless the exact value is necessary and safe to store.
 
 | Date | Entry | Scope |
 | --- | --- | --- |
+| 2026-07-13 | [Wine chart lazy disclosure](2026-07-13-wine-chart-lazy-disclosure.md) | Converts Wine tab 24-hour, 7-day, and 30-day charts into collapsed summary disclosures so ApexCharts load only when opened |
 | 2026-07-13 | [Recorder health gate after cleanup](2026-07-13-recorder-health-gate.md) | Read-only post-cleanup health gate confirming Recorder backlog is zero, Remote UI is online, disk space is ample, and DB-backed writer measurement is the next step |
 | 2026-07-13 | [Irrigation ledger zone count](2026-07-13-irrigation-ledger-zone-count.md) | Corrects misleading "full cycle" zone counts by merging Hydrawise daily runtime with custom irrigation history and expanding irrigation templates to zones 1-30 |
 | 2026-07-13 | [Recorder config-control slice](2026-07-13-recorder-config-control-slice.md) | Excludes current-only `number`, `select`, Sonos config, and UniFi Protect config-control history from Recorder while preserving durable helpers and safety/physical history |

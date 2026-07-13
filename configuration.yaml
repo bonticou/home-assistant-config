@@ -1004,6 +1004,18 @@ input_boolean:
     name: Wine Cave Rating Plate Reminder Sent
     icon: mdi:bell-check-outline
     initial: false
+  wine_chart_24h_expanded:
+    name: Wine Chart 24h Expanded
+    icon: mdi:chart-line
+    initial: false
+  wine_chart_7d_expanded:
+    name: Wine Chart 7d Expanded
+    icon: mdi:chart-line
+    initial: false
+  wine_chart_30d_expanded:
+    name: Wine Chart 30d Expanded
+    icon: mdi:chart-line
+    initial: false
 
 input_select:
   lighting_active_scene:
