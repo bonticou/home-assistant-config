@@ -1181,15 +1181,52 @@ recorder:
     domains:
       - button
       - camera
+      - number
+      - select
       - update
     entity_globs:
       - sensor.*_signal_strength
       - sensor.*_rssi
       - sensor.*_lqi
       - sensor.*_linkquality
+      - switch.*_analytics_enabled
+      - switch.*_animal_detection
+      - switch.*_baby_cry_detection
+      - switch.*_car_alarm_detection
+      - switch.*_car_horn_detection
+      - switch.*_co_alarm_detection
+      - switch.*_crossfade
+      - switch.*_glass_break_detection
+      - switch.*_humidity_sensor
+      - switch.*_insights_enabled
+      - switch.*_license_plate_detection
+      - switch.*_light_sensor
+      - switch.*_loudness
+      - switch.*_night_sound
+      - switch.*_none
+      - switch.*_overlay_show_*
+      - switch.*_person_detection
+      - switch.*_privacy_mode
+      - switch.*_siren_detection
+      - switch.*_smoke_detection
+      - switch.*_speaking_detection
+      - switch.*_speech_enhancement
+      - switch.*_status_light*
+      - switch.*_subwoofer_enabled
+      - switch.*_surround_enabled
+      - switch.*_surround_music_full_volume
+      - switch.*_system_sounds
+      - switch.*_temperature_sensor
+      - switch.*_vehicle_detection
     entities:
       - sun.sun
       - weather.forecast_home
+      - switch.g6_instant_motion
+      - switch.g6_instant_motion_2
+      - switch.g6_instant_motion_3
+      - switch.mechanical_room_motion
+      - switch.mud_room_motion
+      - switch.wynn_s_room_motion
       - sensor.device_inventory_pending_digest
       - sensor.device_inventory_status
       - sensor.garbage_recycling_schedule

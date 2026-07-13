@@ -8,10 +8,10 @@ A recording-focused inventory for Home Assistant Recorder. This sits next to the
 | --- | --- |
 | Configured retention | 30 days |
 | Entities reviewed | 2356 |
-| Recorder candidates | 1871 |
-| Excluded by Recorder config | 120 |
-| Disabled in registry | 365 |
-| Low stateful-need candidates | 554 |
+| Recorder candidates | 1583 |
+| Excluded by Recorder config | 424 |
+| Disabled in registry | 349 |
+| Low stateful-need candidates | 266 |
 | Medium stateful-need candidates | 483 |
 | High stateful-need candidates | 488 |
 
@@ -26,16 +26,16 @@ A recording-focused inventory for Home Assistant Recorder. This sits next to the
 | Setting | Value |
 | --- | --- |
 | purge_keep_days | 30 |
-| excluded domains | button, camera, update |
-| excluded entity globs | sensor.*_signal_strength, sensor.*_rssi, sensor.*_lqi, sensor.*_linkquality |
-| excluded entities | sun.sun, weather.forecast_home, sensor.device_inventory_pending_digest, sensor.device_inventory_status, sensor.garbage_recycling_schedule, sensor.house_notice_timeline, sensor.irrigation_7_day_ledger, sensor.irrigation_flow_baseline_status, sensor.irrigation_history_status, sensor.irrigation_schedule_summary, sensor.metro_north_nwp_to_grand_central, sensor.wine_collection_snapshot |
+| excluded domains | button, camera, number, select, update |
+| excluded entity globs | sensor.*_signal_strength, sensor.*_rssi, sensor.*_lqi, sensor.*_linkquality, switch.*_analytics_enabled, switch.*_animal_detection, switch.*_baby_cry_detection, switch.*_car_alarm_detection, switch.*_car_horn_detection, switch.*_co_alarm_detection, switch.*_crossfade, switch.*_glass_break_detection, switch.*_humidity_sensor, switch.*_insights_enabled, switch.*_license_plate_detection, switch.*_light_sensor, switch.*_loudness, switch.*_night_sound, switch.*_none, switch.*_overlay_show_*, switch.*_person_detection, switch.*_privacy_mode, switch.*_siren_detection, switch.*_smoke_detection, switch.*_speaking_detection, switch.*_speech_enhancement, switch.*_status_light*, switch.*_subwoofer_enabled, switch.*_surround_enabled, switch.*_surround_music_full_volume, switch.*_system_sounds, switch.*_temperature_sensor, switch.*_vehicle_detection |
+| excluded entities | sun.sun, weather.forecast_home, switch.g6_instant_motion, switch.g6_instant_motion_2, switch.g6_instant_motion_3, switch.mechanical_room_motion, switch.mud_room_motion, switch.wynn_s_room_motion, sensor.device_inventory_pending_digest, sensor.device_inventory_status, sensor.garbage_recycling_schedule, sensor.house_notice_timeline, sensor.irrigation_7_day_ledger, sensor.irrigation_flow_baseline_status, sensor.irrigation_history_status, sensor.irrigation_schedule_summary, sensor.metro_north_nwp_to_grand_central, sensor.wine_collection_snapshot |
 
 ## Largest Low-Stateful-Need Review Sets
 
 | Category | Entities | Low | Medium | High | DB rows | Live attr bytes |
 | --- | --- | --- | --- | --- | --- | --- |
-| integration_config_or_update_state | 327 | 327 | 0 | 0 |  |  |
-| derived_summary_or_dashboard_state | 174 | 174 | 0 | 0 |  |  |
+| derived_summary_or_dashboard_state | 167 | 167 | 0 | 0 |  |  |
+| integration_config_or_update_state | 46 | 46 | 0 | 0 |  |  |
 | infrastructure_health_diagnostic | 35 | 35 | 0 | 0 |  |  |
 | camera_or_event_state | 15 | 15 | 0 | 0 |  |  |
 | signal_quality_diagnostic | 3 | 3 | 0 | 0 |  |  |
@@ -51,15 +51,13 @@ A recording-focused inventory for Home Assistant Recorder. This sits next to the
 | --- | --- | --- | --- | --- | --- | --- |
 | sensor | 472 | 165 | 19 | 206 | 82 |  |
 | binary_sensor | 282 | 5 | 49 | 144 | 84 |  |
-| switch | 271 | 203 | 0 | 63 | 5 |  |
 | automation | 183 | 13 | 170 | 0 | 0 |  |
 | script | 144 | 10 | 134 | 0 | 0 |  |
-| number | 100 | 100 | 0 | 0 | 0 |  |
+| switch | 115 | 47 | 0 | 63 | 5 |  |
 | device_tracker | 84 | 0 | 84 | 0 | 0 |  |
 | input_datetime | 82 | 5 | 0 | 13 | 64 |  |
 | input_boolean | 42 | 2 | 0 | 8 | 32 |  |
 | light | 36 | 0 | 3 | 2 | 31 |  |
-| select | 32 | 32 | 0 | 0 | 0 |  |
 | valve | 30 | 0 | 0 | 30 | 0 |  |
 | media_player | 24 | 0 | 24 | 0 | 0 |  |
 | input_text | 23 | 4 | 0 | 5 | 14 |  |
@@ -73,6 +71,8 @@ A recording-focused inventory for Home Assistant Recorder. This sits next to the
 | ai_task | 2 | 0 | 0 | 0 | 2 |  |
 | conversation | 2 | 0 | 0 | 0 | 2 |  |
 | cover | 2 | 0 | 0 | 2 | 0 |  |
+| person | 2 | 0 | 0 | 2 | 0 |  |
+| siren | 2 | 0 | 0 | 0 | 2 |  |
 
 ## High-Impact Entities To Review First
 
