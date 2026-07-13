@@ -35,6 +35,7 @@ unless the exact value is necessary and safe to store.
 
 | Date | Entry | Scope |
 | --- | --- | --- |
+| 2026-07-13 | [Recorder pressure follow-up](2026-07-13-recorder-pressure-follow-up.md) | Reviews persistent Recorder/storage pressure after updates, captures live Recorder health and large generated state payloads, and defines the next DB-backed cleanup slice |
 | 2026-07-06 | [Matter Server 9.0.4 post-update validation](2026-07-06-matter-server-9-validation.md) | Confirms Matter Server migration-class update completed cleanly with active locks reporting fresh states and no integration changes required |
 | 2026-07-06 | [File Editor ingress 401 after update](2026-07-06-file-editor-ingress-401-after-update.md) | Diagnoses File Editor `6.0.0` panel load failure after update as stale duplicate ingress-session cookies, not add-on or YAML failure |
 | 2026-07-04 | [Irrigation no-flow false alerts](2026-07-04-irrigation-no-flow-false-alerts.md) | Diagnoses Hunter cumulative-total lag causing critical no-flow false positives and downgrades the alert to pressure-corroborated flow-not-confirmed warning |
