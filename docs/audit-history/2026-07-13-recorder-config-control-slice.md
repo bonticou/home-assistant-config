@@ -92,8 +92,52 @@ rows are purged and, if safe, the database is repacked.
 
 ## Deployment Status
 
-Repo changes prepared locally. Live deployment, targeted purge, and post-purge
-storage measurement are the next steps.
+Deployed live on 2026-07-13 through File Editor ingress.
+
+Live validation:
+
+- Local YAML parse passed before deploy.
+- `homeassistant.check_config` service accepted the pre-restart check request.
+- `/homeassistant/configuration.yaml` write/read-back matched the repo payload.
+- HA restarted and returned through Remote UI.
+- Remote UI root and `/calm-mobile/home` returned HTTP `200`.
+- Fresh Safari frontend reconnected after reload with Core `RUNNING` and Remote
+  UI `online`.
+- Recorder block read-back confirmed:
+  - `number` and `select` are excluded domains;
+  - Sonos and UniFi Protect config-control switch globs are present;
+  - the full `switch` domain is not excluded;
+  - `sensor.house_notice_history` is not excluded.
+
+Recorder cleanup:
+
+- Ran `recorder.purge_entities` against the explicit 288-entity manifest from
+  this slice with `keep_days: 0`.
+- Ran HA-supported `recorder.purge` with `repack: true`.
+- Ran HA-supported `recorder.purge` with `apply_filter: true` and `repack: true`.
+- No raw SQLite `VACUUM` or direct database surgery was attempted.
+
+Storage result:
+
+| Measurement | Before | After | Change |
+| --- | ---: | ---: | ---: |
+| DB file bytes | `20,462,624,768` | `20,462,624,768` | `0` |
+| WAL bytes | `21,494,072` | `51,298,152` | `+29,804,080` |
+| SQLite freelist bytes | `7,258,091,520` | `7,586,054,144` | `+327,962,624` |
+| Estimated used DB bytes | `13,204,533,248` | `12,876,570,624` | `-327,962,624` |
+
+Plain-English result: this slice freed about `328 MB` inside SQLite and reduced
+future Recorder writes by excluding 288 current-only controls. It did not return
+filesystem disk space immediately: the DB file remained the same size. Total
+SQLite freelist/reclaimable space after the cleanup is about `7.59 GB`.
+
+Residual live status:
+
+- Recorder remained recording and its thread was running.
+- Recorder migration was inactive.
+- Recorder backlog rose during cleanup and was still non-zero in the final
+  checks, last observed at `782`. No additional DB operations should be stacked
+  until it drains.
 
 ## Residual Risks
 
@@ -101,5 +145,7 @@ storage measurement are the next steps.
   through File Editor were too expensive.
 - Excluding current-only controls should be low risk, but it removes their HA
   history from future Recorder queries.
-- Purge/repack should be handled separately with explicit entity/domain scope
-  and before/after storage measurement.
+- HA-supported repack did not shrink the DB file during the observed window.
+  Direct SQLite vacuum may reclaim the `7.59 GB` freelist, but should only be
+  considered as a separately planned maintenance action after backup and a quiet
+  HA window.
