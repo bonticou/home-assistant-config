@@ -49,9 +49,26 @@ Live check from an authenticated Home Assistant frontend on 2026-07-13:
 Current YAML Recorder config:
 
 - `purge_keep_days: 30`
-- no excluded domains;
-- only signal-strength/RSSI/LQI/link-quality globs plus `sun.sun` and
-  `weather.forecast_home` are excluded.
+- before this pass, no domains were excluded;
+- before this pass, only signal-strength/RSSI/LQI/link-quality globs plus
+  `sun.sun` and `weather.forecast_home` were excluded.
+
+File Editor read-only shell checks:
+
+- Live `home-assistant_v2.db` size: `20,462,624,768` bytes, about `19.1 GiB`.
+- Live WAL size at the time of the check: about `21.8 MB`.
+- Full DB-backed entity/attribute scan was attempted through File Editor with a
+  read-only SQLite connection and `nice -n 19`, but it did not complete in a
+  useful window and the browser request dropped.
+- A lighter rows-only grouping scan was also attempted and still did not return
+  quickly enough through File Editor.
+- Both scratch scan processes were stopped by exact PID after they proved too
+  expensive for this path.
+
+Interpretation: the database is large enough that precise live row-count
+collection through File Editor is itself a risky diagnostic. Future DB-backed
+audits should either use a copied DB, a purpose-built short HA-side task, or a
+more selective query plan rather than a broad live scan.
 
 Current live state surface:
 
@@ -125,31 +142,72 @@ Static Recorder inventory:
 
 ## Recommended Next Slice
 
+Implemented first conservative slice on 2026-07-13:
+
+- Excluded current-only domains:
+  - `button`
+  - `camera`
+  - `update`
+- Excluded explicit generated/current-only sensors:
+  - `sensor.device_inventory_pending_digest`
+  - `sensor.device_inventory_status`
+  - `sensor.garbage_recycling_schedule`
+  - `sensor.house_notice_timeline`
+  - `sensor.irrigation_7_day_ledger`
+  - `sensor.irrigation_flow_baseline_status`
+  - `sensor.irrigation_history_status`
+  - `sensor.irrigation_schedule_summary`
+  - `sensor.metro_north_nwp_to_grand_central`
+  - `sensor.wine_collection_snapshot`
+
+This deliberately did not exclude motion, doors, locks, leaks, water, security,
+presence, meaningful physical trend sensors, `sensor.house_notice_history`, or
+broad `switch`/`number`/`select` domains.
+
+Inventory effect after regenerating `docs/recorder-inventory.*`:
+
+- Recorder candidates: `1942` -> `1871`
+- Excluded by Recorder config: `20` -> `120`
+- Low stateful-need candidates: `625` -> `554`
+- Integration/config/update low-value candidates: `377` -> `327`
+- Derived summary/dashboard low-value candidates: `185` -> `174`
+
+Recommended next DB-backed step:
+
 1. Obtain an off-device copy of `home-assistant_v2.db` from a current backup or
-   safe HA shell path.
-2. Run:
+   safe HA shell path, or collect a small DB stats JSON with a bounded HA-side
+   task that avoids broad live scans through File Editor.
+2. Run one of:
 
    ```bash
    python3 tools/generate_recorder_inventory.py --db /path/to/home-assistant_v2.db
    ```
 
+   ```bash
+   python3 tools/generate_recorder_inventory.py --db-stats-json .tmp/recorder-db-row-stats.json
+   ```
+
 3. Use DB row counts to rank the biggest actual writers by rows/day and
    repeated attribute bytes.
-4. Implement the first conservative Recorder exclusion slice:
-   - exclude `button`, `update`, and likely `camera` domains;
-   - exclude specific generated current-only sensors that are backed by sidecar
-     files or scripts;
-   - do not exclude motion, doors, locks, leaks, water, security, presence,
-     meaningful physical trend sensors, or stateful alert helpers;
-   - do not exclude `sensor.house_notice_history` until it has sidecar storage.
-5. Regenerate `docs/recorder-inventory.*`.
-6. Deploy with config check and restart.
-7. Only then consider targeted purge/repack, with backup and free-space checks.
+4. Review `event`, `number`, `select`, UniFi Protect config switches, Sonos
+   tuning controls, and additional generated dashboard sensors as a second
+   conservative slice.
+5. Do not exclude `sensor.house_notice_history` until it has sidecar storage.
+6. Only then consider targeted purge/repack, with backup and free-space checks.
 
 ## Deployment Status
 
-No configuration was changed in this follow-up. This entry records the current
-evidence and the recommended next implementation path.
+Configuration was changed in the repo but not yet deployed to the live HA
+instance in this pass. A deploy/restart is required for Recorder config changes
+to affect future recording scope.
+
+Checks run:
+
+- `python3 -m py_compile tools/generate_recorder_inventory.py`
+- local Ruby YAML parse for `configuration.yaml`, `automations.yaml`, and
+  `scripts.yaml`
+- `python3 tools/generate_recorder_inventory.py`
+- `python3 tools/generate_recorder_inventory.py --db-stats-json /tmp/does-not-exist --output-json /tmp/recorder-test.json --output-md /tmp/recorder-test.md`
 
 ## Residual Risks
 
@@ -159,3 +217,6 @@ evidence and the recommended next implementation path.
   Remote UI or mobile session failures.
 - Some generated sensors double as state stores. Those need a durable sidecar
   migration before Recorder exclusion.
+- The current change only reduces future recording. It does not shrink the
+  existing 19 GiB database until Recorder purge and possible repack/vacuum are
+  handled separately with a backup and free-space check.

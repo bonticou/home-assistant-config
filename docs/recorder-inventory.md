@@ -8,10 +8,10 @@ A recording-focused inventory for Home Assistant Recorder. This sits next to the
 | --- | --- |
 | Configured retention | 30 days |
 | Entities reviewed | 2356 |
-| Recorder candidates | 1942 |
-| Excluded by Recorder config | 20 |
-| Disabled in registry | 394 |
-| Low stateful-need candidates | 625 |
+| Recorder candidates | 1871 |
+| Excluded by Recorder config | 120 |
+| Disabled in registry | 365 |
+| Low stateful-need candidates | 554 |
 | Medium stateful-need candidates | 483 |
 | High stateful-need candidates | 488 |
 
@@ -26,18 +26,18 @@ A recording-focused inventory for Home Assistant Recorder. This sits next to the
 | Setting | Value |
 | --- | --- |
 | purge_keep_days | 30 |
-| excluded domains | (none) |
+| excluded domains | button, camera, update |
 | excluded entity globs | sensor.*_signal_strength, sensor.*_rssi, sensor.*_lqi, sensor.*_linkquality |
-| excluded entities | sun.sun, weather.forecast_home |
+| excluded entities | sun.sun, weather.forecast_home, sensor.device_inventory_pending_digest, sensor.device_inventory_status, sensor.garbage_recycling_schedule, sensor.house_notice_timeline, sensor.irrigation_7_day_ledger, sensor.irrigation_flow_baseline_status, sensor.irrigation_history_status, sensor.irrigation_schedule_summary, sensor.metro_north_nwp_to_grand_central, sensor.wine_collection_snapshot |
 
 ## Largest Low-Stateful-Need Review Sets
 
 | Category | Entities | Low | Medium | High | DB rows | Live attr bytes |
 | --- | --- | --- | --- | --- | --- | --- |
-| integration_config_or_update_state | 377 | 377 | 0 | 0 |  |  |
-| derived_summary_or_dashboard_state | 185 | 185 | 0 | 0 |  |  |
+| integration_config_or_update_state | 327 | 327 | 0 | 0 |  |  |
+| derived_summary_or_dashboard_state | 174 | 174 | 0 | 0 |  |  |
 | infrastructure_health_diagnostic | 35 | 35 | 0 | 0 |  |  |
-| camera_or_event_state | 25 | 25 | 0 | 0 |  |  |
+| camera_or_event_state | 15 | 15 | 0 | 0 |  |  |
 | signal_quality_diagnostic | 3 | 3 | 0 | 0 |  |  |
 | event_or_safety_history | 416 | 0 | 0 | 416 |  |  |
 | operational_state_history | 412 | 0 | 412 | 0 |  |  |
@@ -49,7 +49,7 @@ A recording-focused inventory for Home Assistant Recorder. This sits next to the
 
 | Domain | Recorder candidates | Low | Medium | High | Unknown | DB rows |
 | --- | --- | --- | --- | --- | --- | --- |
-| sensor | 481 | 174 | 19 | 206 | 82 |  |
+| sensor | 472 | 165 | 19 | 206 | 82 |  |
 | binary_sensor | 282 | 5 | 49 | 144 | 84 |  |
 | switch | 271 | 203 | 0 | 63 | 5 |  |
 | automation | 183 | 13 | 170 | 0 | 0 |  |
@@ -60,19 +60,19 @@ A recording-focused inventory for Home Assistant Recorder. This sits next to the
 | input_boolean | 42 | 2 | 0 | 8 | 32 |  |
 | light | 36 | 0 | 3 | 2 | 31 |  |
 | select | 32 | 32 | 0 | 0 | 0 |  |
-| button | 30 | 30 | 0 | 0 | 0 |  |
 | valve | 30 | 0 | 0 | 30 | 0 |  |
 | media_player | 24 | 0 | 24 | 0 | 0 |  |
 | input_text | 23 | 4 | 0 | 5 | 14 |  |
 | input_number | 22 | 0 | 0 | 4 | 18 |  |
-| update | 22 | 22 | 0 | 0 | 0 |  |
 | event | 15 | 15 | 0 | 0 | 0 |  |
-| camera | 10 | 10 | 0 | 0 | 0 |  |
 | lock | 4 | 0 | 0 | 4 | 0 |  |
 | climate | 3 | 0 | 0 | 3 | 0 |  |
 | input_select | 3 | 0 | 0 | 0 | 3 |  |
 | remote | 3 | 0 | 0 | 0 | 3 |  |
 | tts | 3 | 0 | 0 | 1 | 2 |  |
+| ai_task | 2 | 0 | 0 | 0 | 2 |  |
+| conversation | 2 | 0 | 0 | 0 | 2 |  |
+| cover | 2 | 0 | 0 | 2 | 0 |  |
 
 ## High-Impact Entities To Review First
 
@@ -96,18 +96,18 @@ A recording-focused inventory for Home Assistant Recorder. This sits next to the
 | `binary_sensor.foyer_chandelier_schedule_active` | derived_summary_or_dashboard_state | template | Derived summary/status data is usually regenerated or shown as current state. |  |  |  |
 | `binary_sensor.front_stairs_schedule_active` | derived_summary_or_dashboard_state | template | Derived summary/status data is usually regenerated or shown as current state. |  |  |  |
 | `binary_sensor.metro_north_commute_card_active` | derived_summary_or_dashboard_state | template | Derived summary/status data is usually regenerated or shown as current state. |  |  |  |
-| `button.aqara_hub_m100_identify` | integration_config_or_update_state | matter | Config/update controls rarely need 30-day Recorder history. |  |  |  |
-| `button.bonticou_gateway_port_4_power_cycle` | integration_config_or_update_state | unifi | Config/update controls rarely need 30-day Recorder history. |  |  |  |
-| `button.bonticou_gateway_restart` | integration_config_or_update_state | unifi | Config/update controls rarely need 30-day Recorder history. |  |  |  |
-| `button.casey_s_closet_clear_tamper` | integration_config_or_update_state | unifiprotect | Config/update controls rarely need 30-day Recorder history. |  |  |  |
-| `button.dining_room_clear_hold` | integration_config_or_update_state | homekit_controller | Config/update controls rarely need 30-day Recorder history. |  |  |  |
-| `button.dining_room_identify` | integration_config_or_update_state | homekit_controller | Config/update controls rarely need 30-day Recorder history. |  |  |  |
-| `button.garage_entry_lock_identify` | integration_config_or_update_state | matter | Config/update controls rarely need 30-day Recorder history. |  |  |  |
-| `button.master_clear_hold_2` | integration_config_or_update_state | homekit_controller | Config/update controls rarely need 30-day Recorder history. |  |  |  |
-| `button.master_identify_2` | integration_config_or_update_state | homekit_controller | Config/update controls rarely need 30-day Recorder history. |  |  |  |
-| `button.mudroom_door_lock_identify` | integration_config_or_update_state | matter | Config/update controls rarely need 30-day Recorder history. |  |  |  |
-| `button.office_clear_hold` | integration_config_or_update_state | homekit_controller | Config/update controls rarely need 30-day Recorder history. |  |  |  |
-| `button.office_identify` | integration_config_or_update_state | homekit_controller | Config/update controls rarely need 30-day Recorder history. |  |  |  |
+| `event.back_patio_motion` | camera_or_event_state | ring | Camera/event entity state is often high churn; keep only if specific automations need history. |  |  |  |
+| `event.back_stairs_motion` | camera_or_event_state | ring | Camera/event entity state is often high churn; keep only if specific automations need history. |  |  |  |
+| `event.back_yard_vehicle` | camera_or_event_state | unifiprotect | Camera/event entity state is often high churn; keep only if specific automations need history. |  |  |  |
+| `event.backup_automatic_backup` | camera_or_event_state | backup | Camera/event entity state is often high churn; keep only if specific automations need history. |  |  |  |
+| `event.front_door_ding` | camera_or_event_state | ring | Camera/event entity state is often high churn; keep only if specific automations need history. |  |  |  |
+| `event.front_door_motion` | camera_or_event_state | ring | Camera/event entity state is often high churn; keep only if specific automations need history. |  |  |  |
+| `event.garage_vehicle` | camera_or_event_state | unifiprotect | Camera/event entity state is often high churn; keep only if specific automations need history. |  |  |  |
+| `event.mechanical_room_vehicle` | camera_or_event_state | unifiprotect | Camera/event entity state is often high churn; keep only if specific automations need history. |  |  |  |
+| `event.mud_room_vehicle` | camera_or_event_state | unifiprotect | Camera/event entity state is often high churn; keep only if specific automations need history. |  |  |  |
+| `event.mudroom_door_ding` | camera_or_event_state | ring | Camera/event entity state is often high churn; keep only if specific automations need history. |  |  |  |
+| `event.mudroom_door_motion` | camera_or_event_state | ring | Camera/event entity state is often high churn; keep only if specific automations need history. |  |  |  |
+| `event.play_room_vehicle` | camera_or_event_state | unifiprotect | Camera/event entity state is often high churn; keep only if specific automations need history. |  |  |  |
 
 ## Largest Live Attribute Payloads
 
@@ -126,6 +126,12 @@ For exact frequency and largest historical writers, run against a copied Recorde
 
 ```bash
 python3 tools/generate_recorder_inventory.py --db /path/to/home-assistant_v2.db
+```
+
+For remote systems where copying the full DB is impractical, first collect a small DB stats JSON on the HA host, then run:
+
+```bash
+python3 tools/generate_recorder_inventory.py --db-stats-json .tmp/recorder-db-row-stats.json
 ```
 
 Do not use this inventory as an automatic exclusion list. Treat it as the audit map for deciding what should be kept, shortened, or made current-only.

@@ -357,6 +357,30 @@ def load_db_stats(db_path: Path | None) -> tuple[dict[str, dict[str, Any]], dict
         conn.close()
 
 
+def load_db_stats_json(stats_path: Path | None) -> tuple[dict[str, dict[str, Any]], dict[str, Any]]:
+    if not stats_path:
+        return {}, {"available": False}
+    if not stats_path.exists():
+        return {}, {"available": False, "error": f"DB stats path not found: {stats_path}"}
+
+    data = read_json(stats_path)
+    stats = data.get("entity_stats") or data.get("stats") or {}
+    summary = data.get("database") or data.get("summary") or {}
+    if not isinstance(stats, dict):
+        return {}, {"available": False, "error": f"DB stats payload has no entity stats: {stats_path}"}
+    if not isinstance(summary, dict):
+        summary = {}
+
+    summary = {
+        "available": True,
+        "path_name": summary.get("path_name") or stats_path.name,
+        "entity_count": summary.get("entity_count") or len(stats),
+        **summary,
+        "stats_source": stats_path.name,
+    }
+    return stats, summary
+
+
 def build_inventory(
     device_entities: dict[str, dict[str, Any]],
     live_entities: dict[str, dict[str, Any]],
@@ -630,6 +654,12 @@ def render_markdown(inventory: dict[str, Any]) -> str:
         "python3 tools/generate_recorder_inventory.py --db /path/to/home-assistant_v2.db",
         "```",
         "",
+        "For remote systems where copying the full DB is impractical, first collect a small DB stats JSON on the HA host, then run:",
+        "",
+        "```bash",
+        "python3 tools/generate_recorder_inventory.py --db-stats-json .tmp/recorder-db-row-stats.json",
+        "```",
+        "",
         "Do not use this inventory as an automatic exclusion list. Treat it as the audit map for deciding what should be kept, shortened, or made current-only.",
         "",
     ])
@@ -642,6 +672,7 @@ def main() -> int:
     parser.add_argument("--device-inventory", type=Path, default=Path("docs/device-inventory.json"))
     parser.add_argument("--live-states", type=Path, default=None)
     parser.add_argument("--db", type=Path, default=None)
+    parser.add_argument("--db-stats-json", type=Path, default=None)
     parser.add_argument("--output-json", type=Path, default=Path("docs/recorder-inventory.json"))
     parser.add_argument("--output-md", type=Path, default=Path("docs/recorder-inventory.md"))
     args = parser.parse_args()
@@ -649,7 +680,10 @@ def main() -> int:
     recorder_config = parse_recorder_config(args.config)
     device_entities = load_device_entities(args.device_inventory)
     live_entities = load_live_entities(args.live_states)
-    db_stats, db_summary = load_db_stats(args.db)
+    if args.db_stats_json:
+        db_stats, db_summary = load_db_stats_json(args.db_stats_json)
+    else:
+        db_stats, db_summary = load_db_stats(args.db)
     inventory = build_inventory(device_entities, live_entities, recorder_config, db_stats, db_summary)
     json_changed = write_json(args.output_json, inventory)
     markdown_changed = write_text(args.output_md, render_markdown(inventory))

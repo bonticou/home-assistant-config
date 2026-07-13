@@ -1178,6 +1178,10 @@ input_number:
 recorder:
   purge_keep_days: 30
   exclude:
+    domains:
+      - button
+      - camera
+      - update
     entity_globs:
       - sensor.*_signal_strength
       - sensor.*_rssi
@@ -1186,6 +1190,16 @@ recorder:
     entities:
       - sun.sun
       - weather.forecast_home
+      - sensor.device_inventory_pending_digest
+      - sensor.device_inventory_status
+      - sensor.garbage_recycling_schedule
+      - sensor.house_notice_timeline
+      - sensor.irrigation_7_day_ledger
+      - sensor.irrigation_flow_baseline_status
+      - sensor.irrigation_history_status
+      - sensor.irrigation_schedule_summary
+      - sensor.metro_north_nwp_to_grand_central
+      - sensor.wine_collection_snapshot
 
 # ─────────────────────────────────────────────────────────────
 # All template sensors in a single block.
