@@ -35,6 +35,7 @@ unless the exact value is necessary and safe to store.
 
 | Date | Entry | Scope |
 | --- | --- | --- |
+| 2026-07-13 | [Recorder health gate after cleanup](2026-07-13-recorder-health-gate.md) | Read-only post-cleanup health gate confirming Recorder backlog is zero, Remote UI is online, disk space is ample, and DB-backed writer measurement is the next step |
 | 2026-07-13 | [Irrigation ledger zone count](2026-07-13-irrigation-ledger-zone-count.md) | Corrects misleading "full cycle" zone counts by merging Hydrawise daily runtime with custom irrigation history and expanding irrigation templates to zones 1-30 |
 | 2026-07-13 | [Recorder config-control slice](2026-07-13-recorder-config-control-slice.md) | Excludes current-only `number`, `select`, Sonos config, and UniFi Protect config-control history from Recorder while preserving durable helpers and safety/physical history |
 | 2026-07-13 | [Recorder pressure follow-up](2026-07-13-recorder-pressure-follow-up.md) | Reviews persistent Recorder/storage pressure after updates, captures live Recorder health and large generated state payloads, and defines the next DB-backed cleanup slice |
