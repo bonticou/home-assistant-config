@@ -257,7 +257,7 @@
                   sticky: true
                   ttl: 0
                   priority: high
-                  url: /calm-mobile/climate
+                  url: /calm-mobile/home
       default:
         - action: script.notify_trevor_phone
           data:
@@ -644,7 +644,7 @@
         data:
           group: house-maintenance
           tag: house-low-battery
-          url: /calm-mobile/climate
+          url: /calm-mobile/home
   mode: single
 
 - id: house_low_battery_clear_notification

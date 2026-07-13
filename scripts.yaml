@@ -5376,13 +5376,13 @@ environment_send_alert:
                       sticky: "{{ sticky_alert }}"
                       ttl: 0
                       priority: high
-                      url: /calm-mobile/climate
+                      url: /calm-mobile/home
                       actions:
                         - action: BASEMENT_HUMIDITY_SNOOZE_24H
                           title: Snooze 24h
                         - action: URI
-                          title: Open Climate
-                          uri: /calm-mobile/climate
+                          title: Open Home
+                          uri: /calm-mobile/home
           default:
             - action: script.notify_trevor_phone
               data:
@@ -5394,7 +5394,7 @@ environment_send_alert:
                   sticky: "{{ sticky_alert }}"
                   ttl: 0
                   priority: high
-                  url: /calm-mobile/climate
+                  url: /calm-mobile/home
 
 open_window_notice_send:
   alias: Open Window Notice Send
@@ -5417,11 +5417,11 @@ open_window_notice_send:
           group: environment
           tag: open-window-night
           sticky: false
-          url: /calm-mobile/climate
+          url: /calm-mobile/home
           actions:
             - action: URI
-              title: Open climate
-              uri: /calm-mobile/climate
+              title: Open Home
+              uri: /calm-mobile/home
             - action: OPEN_WINDOW_NOTICE_DISMISS_TONIGHT
               title: Dismiss today
     - action: input_datetime.set_datetime
@@ -5479,7 +5479,7 @@ basement_humidity_send_alert:
           sticky: "{{ kind == 'urgent' }}"
           ttl: 0
           priority: high
-          url: /calm-mobile/climate
+          url: /calm-mobile/home
 
 basement_humidity_clear_alert:
   alias: Basement Humidity Clear Alert

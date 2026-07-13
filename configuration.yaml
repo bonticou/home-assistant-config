@@ -4608,7 +4608,7 @@ template:
                 'date': now_stamp,
                 'due_prefix': 'Active',
                 'narrative': env.labels | join(', '),
-                'url': '/calm-mobile/climate',
+                'url': '/calm-mobile/home',
                 'entity_id': 'input_boolean.environment_alerts_enabled',
                 'details': {
                   'summary': env.labels | join(', '),
@@ -4631,7 +4631,7 @@ template:
                 'date': now_stamp,
                 'due_prefix': 'Active',
                 'narrative': state_attr('sensor.house_low_battery_summary', 'replace_soon_batteries') | default(states('sensor.house_low_battery_summary') ~ ' batteries need attention', true),
-                'url': '/calm-mobile/climate',
+                'url': '/calm-mobile/home',
                 'entity_id': 'sensor.house_low_battery_summary'
               }] %}
             {% endif %}
