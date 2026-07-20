@@ -11548,7 +11548,7 @@ views:
                   <div class="wine-trend-main">
                     <div class="wine-trend-copy">
                       <div class="wine-trend-title">24-hour trends</div>
-                      <div class="wine-trend-subtitle">Short-term cellar rhythm · avg temp ${temp} · avg humidity ${humidity}</div>
+                      <div class="wine-trend-subtitle">Short-term cellar rhythm</div>
                     </div>
                     <div class="wine-trend-metrics">
                       <div class="wine-trend-pill" style="--wine-trend-pill-color:#ef5350"><ha-icon icon="mdi:thermometer"></ha-icon><span>${temp}</span></div>
@@ -11617,17 +11617,19 @@ views:
             font-weight: 700;
             letter-spacing: 0.08em;
             line-height: 1.1;
+            text-align: left;
             text-transform: uppercase;
           }
           .wine-trend-main {
             display: flex;
-            align-items: flex-end;
-            justify-content: space-between;
-            gap: 14px;
+            align-items: flex-start;
+            flex-direction: column;
+            gap: 12px;
             min-width: 0;
           }
           .wine-trend-copy {
             min-width: 0;
+            width: 100%;
           }
           .wine-trend-title {
             color: #f8fafc;
@@ -11648,11 +11650,11 @@ views:
           }
           .wine-trend-metrics {
             display: flex;
-            flex: none;
             flex-wrap: wrap;
-            justify-content: flex-end;
-            gap: 7px;
-            max-width: 45%;
+            justify-content: flex-start;
+            gap: 8px;
+            max-width: none;
+            width: 100%;
           }
           .wine-trend-pill {
             display: inline-flex;
@@ -11675,16 +11677,6 @@ views:
           }
           .wine-trend-chevron ha-icon {
             --mdc-icon-size: 22px;
-          }
-          @media (max-width: 390px) {
-            .wine-trend-main {
-              align-items: flex-start;
-              flex-direction: column;
-            }
-            .wine-trend-metrics {
-              justify-content: flex-start;
-              max-width: none;
-            }
           }
 
       - type: conditional
@@ -11822,7 +11814,7 @@ views:
                   <div class="wine-trend-main">
                     <div class="wine-trend-copy">
                       <div class="wine-trend-title">7-day trends</div>
-                      <div class="wine-trend-subtitle">Weekly stability view · avg temp ${temp} · avg humidity ${humidity}</div>
+                      <div class="wine-trend-subtitle">Weekly stability view</div>
                     </div>
                     <div class="wine-trend-metrics">
                       <div class="wine-trend-pill" style="--wine-trend-pill-color:#ef5350"><ha-icon icon="mdi:thermometer"></ha-icon><span>${temp}</span></div>
@@ -11923,7 +11915,7 @@ views:
                   <div class="wine-trend-main">
                     <div class="wine-trend-copy">
                       <div class="wine-trend-title">30-day trends</div>
-                      <div class="wine-trend-subtitle">Slow drift and cellar seasonality · avg temp ${temp} · avg humidity ${humidity}</div>
+                      <div class="wine-trend-subtitle">Slow drift and cellar seasonality</div>
                     </div>
                     <div class="wine-trend-metrics">
                       <div class="wine-trend-pill" style="--wine-trend-pill-color:#ef5350"><ha-icon icon="mdi:thermometer"></ha-icon><span>${temp}</span></div>
