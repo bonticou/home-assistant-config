@@ -35,6 +35,7 @@ unless the exact value is necessary and safe to store.
 
 | Date | Entry | Scope |
 | --- | --- | --- |
+| 2026-07-20 | [Wine trend disclosure state](2026-07-20-wine-trend-disclosure-state.md) | Replaces restored helper-backed Wine chart expansion with local ephemeral disclosure state so every page load starts collapsed and charts mount only on demand |
 | 2026-07-20 | [EuroCave identity reconciliation](2026-07-20-eurocave-identity-reconciliation.md) | Reconciles confirmed House Manager model/serial evidence into HA appliance context, closes the stale serial-capture task, and validates the live Nabu Casa deployment |
 | 2026-07-13 | [Wine chart lazy disclosure](2026-07-13-wine-chart-lazy-disclosure.md) | Converts Wine tab 24-hour, 7-day, and 30-day charts into collapsed summary disclosures so ApexCharts load only when opened |
 | 2026-07-13 | [Recorder health gate after cleanup](2026-07-13-recorder-health-gate.md) | Read-only post-cleanup health gate confirming Recorder backlog is zero, Remote UI is online, disk space is ample, and DB-backed writer measurement is the next step |
