@@ -51,19 +51,24 @@ though the appliance identity is complete.
 - Ruby YAML parsing passed for `configuration.yaml`.
 - `python3 tools/check_device_inventory_coverage.py` passed.
 - `git diff --check` passed.
+- File Editor write/read-back matched for `/homeassistant/configuration.yaml`.
+- Home Assistant's live config check returned `valid`.
+- Template reload and
+  `script.wine_cave_mark_rating_plate_captured` completed successfully.
+- Live state verification confirmed:
+  - `input_boolean.wine_cave_rating_plate_captured` = `on`;
+  - model `V-LAPREMIERE-L`;
+  - serial `1001571294`;
+  - manufacture date `2025-11`;
+  - identity confidence `confirmed`;
+  - no Wine cave serial-number item remained in the notice timeline.
 
 ## Deployment Status
 
-Pending. The Nabu Casa Remote UI was reachable, but the fresh in-app browser
-session required authentication. A terminal deployment path that reads auth
-material from a signed-in Safari session was not used without explicit approval.
+Deployed live on 2026-07-20 through the authenticated Nabu Casa Remote UI File
+Editor ingress after explicit approval to use the signed-in Safari session.
 
 ## Residual Risks And Next Follow-Ups
 
-- Deploy `configuration.yaml` through an authenticated File Editor ingress
-  session with byte-for-byte read-back and a valid HA config check.
-- Reload templates and call
-  `script.wine_cave_mark_rating_plate_captured` so the restored live helper
-  immediately becomes `on` and the stale notice clears.
-- Verify the live appliance-context sensor exposes the confirmed model, serial,
-  manufacture date, and identity confidence.
+- The separate House Manager question about the warranty start basis remains
+  unresolved; this change does not infer it from the quality-control card.
