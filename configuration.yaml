@@ -999,7 +999,9 @@ input_boolean:
   wine_cave_rating_plate_captured:
     name: Wine Cave Rating Plate Captured
     icon: mdi:tag-check-outline
-    initial: false
+    # Confirmed in house-manager from the 2026-05-09 rating-plate photo and
+    # independently corroborated by the 2026-07-19 factory QC card.
+    initial: true
   wine_cave_rating_plate_reminder_sent:
     name: Wine Cave Rating Plate Reminder Sent
     icon: mdi:bell-check-outline
@@ -1570,6 +1572,13 @@ template:
           appliance_slug: "eurocave-la-premiere-l-wine-cellar"
           durable_record_path: "../house-manager/appliances/eurocave-la-premiere-l-wine-cellar.md"
           source_manual_path: "../house-manager/appliances/sources/eurocave-la-premiere-l-wine-cellar/2026-04-26_eurocave_manual_la-premiere-user-manual.pdf"
+          source_rating_plate_path: "../house-manager/appliances/sources/eurocave-la-premiere-l-wine-cellar/2026-05-09_eurocave_rating-plate_photo.jpg"
+          source_quality_control_card_path: "../house-manager/appliances/sources/eurocave-la-premiere-l-wine-cellar/2026-07-19_eurocave_quality-control-card_photo.png"
+          manufacturer: "EuroCave"
+          model: "V-LAPREMIERE-L"
+          serial_number: "1001571294"
+          manufacture_date: "2025-11"
+          identity_confidence: "confirmed"
           purchase_date: "{{ states('input_datetime.wine_cave_purchase_date') }}"
           delivery_date: "{{ states('input_datetime.wine_cave_delivery_date') }}"
           placed_in_service_date: "{{ states('input_datetime.wine_cave_placed_in_service_date') }}"
