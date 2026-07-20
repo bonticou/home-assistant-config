@@ -11544,7 +11544,6 @@ views:
               const humidity = value('sensor.wine_humidity_24h_stats', 0, '%');
               return `
                 <div class="wine-trend-summary">
-                  <div class="wine-trend-kicker">24 hours</div>
                   <div class="wine-trend-main">
                     <div class="wine-trend-copy">
                       <div class="wine-trend-title">24-hour trends</div>
@@ -11610,15 +11609,6 @@ views:
             gap: 12px;
             min-width: 0;
             width: 100%;
-          }
-          .wine-trend-kicker {
-            color: rgba(226, 232, 240, 0.56);
-            font-size: 11px;
-            font-weight: 700;
-            letter-spacing: 0.08em;
-            line-height: 1.1;
-            text-align: left;
-            text-transform: uppercase;
           }
           .wine-trend-main {
             display: flex;
@@ -11810,7 +11800,6 @@ views:
               const humidity = value('sensor.wine_humidity_7d_stats', 0, '%');
               return `
                 <div class="wine-trend-summary">
-                  <div class="wine-trend-kicker">7 days</div>
                   <div class="wine-trend-main">
                     <div class="wine-trend-copy">
                       <div class="wine-trend-title">7-day trends</div>
@@ -11911,7 +11900,6 @@ views:
               const humidity = value('sensor.wine_humidity_30d_stats', 0, '%');
               return `
                 <div class="wine-trend-summary">
-                  <div class="wine-trend-kicker">30 days</div>
                   <div class="wine-trend-main">
                     <div class="wine-trend-copy">
                       <div class="wine-trend-title">30-day trends</div>
