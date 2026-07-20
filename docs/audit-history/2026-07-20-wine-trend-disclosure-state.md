@@ -48,17 +48,32 @@ row.
 - `node --check www/wine-trend-disclosure-card.js` passed.
 - `python3 tools/check_device_inventory_coverage.py` passed.
 - `git diff --check` passed.
+- File Editor write/read-back hashes matched for:
+  - `/homeassistant/configuration.yaml`;
+  - `/homeassistant/dashboards/calm_mobile.yaml`;
+  - `/homeassistant/www/wine-trend-disclosure-card.js`.
+- Home Assistant's live config check returned `valid`.
+- The deployed JavaScript module was served successfully from `/local/`.
+- The module was added to Home Assistant's live Lovelace resource registry.
+- A full Safari/Nabu Wine-page refresh confirmed:
+  - the custom element was registered;
+  - all three disclosures rendered collapsed;
+  - zero ApexCharts were mounted while collapsed;
+  - zero configuration-error cards remained.
+- A live interaction check confirmed opening one disclosure mounted exactly one
+  ApexChart and closing it removed the chart again.
 
 ## Deployment Status
 
-Pending authenticated Nabu Casa File Editor deployment and live visual
-validation.
+Deployed live on 2026-07-20 through the authenticated Nabu Casa File Editor
+ingress. Home Assistant Core was restarted with user approval so the updated
+configuration was loaded. Because this instance exposes no Lovelace reload
+service and uses the live Lovelace resource registry, the custom module was
+also added to that registry before the final browser validation.
 
 ## Residual Risks And Next Follow-Ups
 
-- Confirm on the live Wine page that all three disclosures start collapsed
-  after refresh.
-- Open one disclosure and confirm the chart mounts inside the same surface;
-  close it and confirm the chart element is removed.
 - The former expansion helpers remain defined but unused for compatibility and
   can be removed in a later cleanup after live validation.
+- Nabu Casa briefly returned TLS connection errors during the Core restart
+  window, then the authenticated API and dashboard recovered.
