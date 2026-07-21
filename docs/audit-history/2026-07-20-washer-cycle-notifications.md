@@ -70,14 +70,32 @@ critical leak automation and remains the water-leak source of truth.
 
 ## Deployment Status
 
-Not deployed. The available Home Assistant browser route required login, so no
-live files were written and no push notifications were sent.
+Partially written but not activated on 2026-07-21. After the File Editor login
+was restored, `configuration.yaml` was copied into the live editor, compared
+exactly with the local 420,843-character source before saving, and the editor
+reported a successful save. The file's size then caused the browser-mediated
+read-back route to stall, matching the repository's known large-file
+fragility.
+
+Before `scripts.yaml` or
+`automations/30-maintenance-environment.yaml` could be written, Home Assistant
+Core stopped accepting connections on port 8123. The host remained reachable
+and the Observer continued to report Supervisor connected, supported, and
+healthy. No reload or restart was requested by this deployment, no live Core
+config check completed, and no push notifications were sent. The running
+behavior therefore must not be treated as deployed. Do not reload or restart
+from this partial file set; first restore Core access, deploy and read back the
+two remaining files, and obtain a valid Core config check.
 
 ## Residual Risks And Next Follow-Ups
 
-- Deploy through an authenticated File Editor ingress route, require read-back
-  and a valid Home Assistant config check, then reload helpers, scripts, and
-  automations.
+- Restore Home Assistant Core access, then deploy and read back `scripts.yaml`
+  and `automations/30-maintenance-environment.yaml` through authenticated File
+  Editor ingress.
+- Reconcile the live `configuration.yaml` with the committed source and obtain
+  a valid Home Assistant Core config check before any reload or restart.
+- Only after a valid check, reload helpers, scripts, and automations and verify
+  the resulting live entities.
 - Observe one real washer cycle in Activity to confirm the exact cycle-name and
   current-status values for this model.
 - Confirm the first completion push, both mobile actions, the 45-minute
