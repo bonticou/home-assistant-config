@@ -600,6 +600,26 @@ input_datetime:
     name: Dehumidifier Air Filter Snooze Until
     has_date: true
     has_time: true
+  washer_last_completed_at:
+    name: Washer Last Completed At
+    has_date: true
+    has_time: true
+  washer_last_handled_at:
+    name: Washer Last Handled At
+    has_date: true
+    has_time: true
+  washer_reminder_snooze_until:
+    name: Washer Reminder Snooze Until
+    has_date: true
+    has_time: true
+  washer_last_follow_up_at:
+    name: Washer Last Follow-Up At
+    has_date: true
+    has_time: true
+  washer_last_error_notified_at:
+    name: Washer Last Error Notified At
+    has_date: true
+    has_time: true
   latest_camera_motion_at:
     name: Latest Camera Motion At
     has_date: true
@@ -858,6 +878,15 @@ input_text:
   dehumidifier_air_filter_last_notified_cycle:
     name: Dehumidifier Air Filter Last Notified Cycle
     max: 10
+  washer_last_completion_event_key:
+    name: Washer Last Completion Event Key
+    max: 120
+  washer_last_error_event_key:
+    name: Washer Last Error Event Key
+    max: 160
+  washer_last_cycle_name:
+    name: Washer Last Cycle Name
+    max: 120
   garbage_recycling_last_taken_out_pickup:
     name: Garbage Recycling Last Taken Out Pickup
     max: 10
@@ -961,6 +990,10 @@ input_boolean:
   dehumidifier_air_filter_notifications_enabled:
     name: Dehumidifier Air Filter Notifications Enabled
     icon: mdi:air-filter
+    initial: true
+  washer_notifications_enabled:
+    name: Washer Notifications Enabled
+    icon: mdi:washing-machine
     initial: true
   piano_care_enabled:
     name: Piano Care Enabled

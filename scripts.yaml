@@ -2057,6 +2057,218 @@ dehumidifier_air_filter_clear_notification:
         data:
           tag: dehumidifier-air-filter
 
+washer_send_completion_notification:
+  alias: Washer Send Completion Notification
+  description: Sends one durable completion notification for a ThinQ washer event.
+  icon: mdi:washing-machine
+  mode: queued
+  max: 5
+  fields:
+    completion_key:
+      description: Unique ThinQ completion event key.
+      example: "2026-07-20T15:42:00-04:00"
+    completed_at:
+      description: ThinQ completion event timestamp.
+      example: "2026-07-20T15:42:00-04:00"
+  sequence:
+    - variables:
+        event_key: "{{ completion_key | default(now().isoformat(), true) | string | truncate(120, true, '') }}"
+        completion_ts: "{{ as_timestamp(completed_at | default('', true), as_timestamp(now())) }}"
+        completed_value: "{{ completion_ts | float(0) | timestamp_custom('%Y-%m-%d %H:%M:%S', true) }}"
+        completed_label: "{{ completion_ts | float(0) | timestamp_custom('%-I:%M %p', true) }}"
+        cycle_raw: "{{ states('sensor.washer_cycles') | trim }}"
+        cycle_label: >-
+          {% if cycle_raw not in ['unknown', 'unavailable', 'none', ''] %}
+            {{ cycle_raw | replace('_', ' ') | title }}
+          {% else %}
+            Wash
+          {% endif %}
+    - action: script.notify_trevor_phone
+      data:
+        title: "🧺 Washer finished"
+        message: "The {{ cycle_label }} cycle finished at {{ completed_label }}."
+        data:
+          group: home-care
+          tag: washer-cycle
+          sticky: true
+          action: washer_cycle_completed
+          recent: true
+          history: recent
+          actions:
+            - action: WASHER_LAUNDRY_HANDLED
+              title: Laundry handled
+            - action: WASHER_REMIND_20
+              title: Remind me in 20 min
+    - action: input_datetime.set_datetime
+      target:
+        entity_id:
+          - input_datetime.washer_last_completed_at
+          - input_datetime.washer_reminder_snooze_until
+      data:
+        datetime: "{{ completed_value }}"
+    - action: input_text.set_value
+      target:
+        entity_id: input_text.washer_last_completion_event_key
+      data:
+        value: "{{ event_key }}"
+    - action: input_text.set_value
+      target:
+        entity_id: input_text.washer_last_cycle_name
+      data:
+        value: "{{ cycle_label }}"
+
+washer_send_follow_up_notification:
+  alias: Washer Send Follow-Up Notification
+  description: Replaces the completion notification when finished laundry is still waiting.
+  icon: mdi:washing-machine-alert
+  mode: restart
+  sequence:
+    - variables:
+        completed_ts: "{{ as_timestamp(states('input_datetime.washer_last_completed_at'), 0) }}"
+        age_minutes: "{{ ((as_timestamp(now()) - completed_ts) / 60) | round(0) | int }}"
+        cycle_name: "{{ states('input_text.washer_last_cycle_name') | default('Wash', true) }}"
+        notified_now: "{{ now().strftime('%Y-%m-%d %H:%M:%S') }}"
+    - action: script.notify_trevor_phone
+      data:
+        title: "🧺 Laundry is still waiting"
+        message: "The {{ cycle_name }} cycle finished {{ age_minutes }} minutes ago."
+        data:
+          group: home-care
+          tag: washer-cycle
+          sticky: true
+          action: washer_cycle_follow_up
+          recent: true
+          history: recent
+          actions:
+            - action: WASHER_LAUNDRY_HANDLED
+              title: Laundry handled
+            - action: WASHER_REMIND_20
+              title: Remind me in 20 min
+    - action: input_datetime.set_datetime
+      target:
+        entity_id: input_datetime.washer_last_follow_up_at
+      data:
+        datetime: "{{ notified_now }}"
+
+washer_mark_laundry_handled:
+  alias: Washer Mark Laundry Handled
+  description: Marks only the current washer cycle handled and clears its notification.
+  icon: mdi:laundry
+  mode: restart
+  fields:
+    source:
+      description: Source that confirmed the laundry was handled.
+      example: home_assistant_notification_action
+  sequence:
+    - variables:
+        handled_now: "{{ now().strftime('%Y-%m-%d %H:%M:%S') }}"
+        cycle_id: >-
+          {{ states('input_text.washer_last_completion_event_key')
+             | default(handled_now, true) | truncate(120, true, '') }}
+        action_source: "{{ source | default('home_assistant_notification_action', true) | regex_replace('[^A-Za-z0-9_.:-]', '') }}"
+    - action: input_datetime.set_datetime
+      target:
+        entity_id:
+          - input_datetime.washer_last_handled_at
+          - input_datetime.washer_reminder_snooze_until
+      data:
+        datetime: "{{ handled_now }}"
+    - continue_on_error: true
+      action: shell_command.log_house_action_stamp
+      data:
+        notice_id: washer-cycle
+        cycle_id: "{{ cycle_id }}"
+        action: washer_laundry_handled
+        completed_at: "{{ handled_now }}"
+        source: "{{ action_source }}"
+        note: "{{ states('input_text.washer_last_cycle_name') }} cycle handled"
+    - action: script.washer_clear_cycle_notification
+
+washer_snooze_reminder:
+  alias: Washer Snooze Reminder
+  description: Snoozes the current washer-cycle reminder for 20 minutes.
+  icon: mdi:alarm-snooze
+  mode: restart
+  sequence:
+    - variables:
+        snooze_until: "{{ (now() + timedelta(minutes=20)).strftime('%Y-%m-%d %H:%M:%S') }}"
+    - action: input_datetime.set_datetime
+      target:
+        entity_id: input_datetime.washer_reminder_snooze_until
+      data:
+        datetime: "{{ snooze_until }}"
+    - action: script.washer_clear_cycle_notification
+
+washer_clear_cycle_notification:
+  alias: Washer Clear Cycle Notification
+  description: Clears the active washer completion or follow-up notification.
+  icon: mdi:washing-machine-check
+  mode: restart
+  sequence:
+    - action: script.notify_trevor_phone
+      data:
+        message: clear_notification
+        data:
+          tag: washer-cycle
+
+washer_send_error_notification:
+  alias: Washer Send Error Notification
+  description: Sends a sticky high-priority notification for a ThinQ washer error event.
+  icon: mdi:washing-machine-alert
+  mode: queued
+  max: 5
+  fields:
+    error_key:
+      description: Unique ThinQ error event key.
+      example: "event.washer_error|2026-07-20T15:42:00-04:00|unknown_error"
+    error_type:
+      description: ThinQ event type or error code.
+      example: error_during_washing
+  sequence:
+    - variables:
+        event_key: "{{ error_key | default(now().isoformat(), true) | string | truncate(160, true, '') }}"
+        error_raw: "{{ error_type | default('washer error', true) | string | trim }}"
+        error_label: "{{ error_raw | replace('_', ' ') | title }}"
+        notified_now: "{{ now().strftime('%Y-%m-%d %H:%M:%S') }}"
+    - action: script.notify_trevor_phone
+      data:
+        title: "⚠️ Washer needs attention"
+        message: "LG ThinQ reported: {{ error_label }}. Check the washer before continuing the cycle."
+        data:
+          group: home-care
+          tag: washer-error
+          sticky: true
+          ttl: 0
+          priority: high
+          action: washer_error_reported
+          recent: true
+          history: recent
+          actions:
+            - action: WASHER_ERROR_ACKNOWLEDGED
+              title: Acknowledge
+    - action: input_datetime.set_datetime
+      target:
+        entity_id: input_datetime.washer_last_error_notified_at
+      data:
+        datetime: "{{ notified_now }}"
+    - action: input_text.set_value
+      target:
+        entity_id: input_text.washer_last_error_event_key
+      data:
+        value: "{{ event_key }}"
+
+washer_clear_error_notification:
+  alias: Washer Clear Error Notification
+  description: Clears the active washer error notification tag.
+  icon: mdi:washing-machine-check
+  mode: restart
+  sequence:
+    - action: script.notify_trevor_phone
+      data:
+        message: clear_notification
+        data:
+          tag: washer-error
+
 robison_oil_send_tune_up_reminder:
   alias: Robison Oil Send Tune-Up Reminder
   description: Sends the annual Robison Oil tune-up scheduling reminder.

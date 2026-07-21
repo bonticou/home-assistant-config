@@ -234,6 +234,139 @@
     - action: script.dehumidifier_air_filter_send_notification
   mode: single
 
+- id: washer_notification_actions
+  alias: "Laundry — Washer Notification Actions"
+  description: Handles completion, snooze, and error acknowledgement actions from washer pushes.
+  triggers:
+    - trigger: event
+      event_type: mobile_app_notification_action
+  conditions:
+    - condition: template
+      value_template: >-
+        {{ trigger.event.data.action in [
+          'WASHER_LAUNDRY_HANDLED',
+          'WASHER_REMIND_20',
+          'WASHER_ERROR_ACKNOWLEDGED'
+        ] }}
+  actions:
+    - choose:
+        - conditions:
+            - condition: template
+              value_template: "{{ trigger.event.data.action == 'WASHER_LAUNDRY_HANDLED' }}"
+            - condition: template
+              value_template: >-
+                {{ as_timestamp(states('input_datetime.washer_last_handled_at'), 0)
+                   < as_timestamp(states('input_datetime.washer_last_completed_at'), 0) }}
+          sequence:
+            - action: script.washer_mark_laundry_handled
+              data:
+                source: home_assistant_notification_action
+        - conditions:
+            - condition: template
+              value_template: "{{ trigger.event.data.action == 'WASHER_REMIND_20' }}"
+            - condition: template
+              value_template: >-
+                {{ as_timestamp(states('input_datetime.washer_last_handled_at'), 0)
+                   < as_timestamp(states('input_datetime.washer_last_completed_at'), 0) }}
+          sequence:
+            - action: script.washer_snooze_reminder
+        - conditions:
+            - condition: template
+              value_template: "{{ trigger.event.data.action == 'WASHER_ERROR_ACKNOWLEDGED' }}"
+          sequence:
+            - action: script.washer_clear_error_notification
+  mode: parallel
+  max: 5
+
+- id: washer_cycle_complete_notification
+  alias: "Laundry — Washer Cycle Complete Notification"
+  description: Sends one completion push for each official ThinQ washing-is-complete event.
+  triggers:
+    - trigger: state
+      entity_id: event.washer_notification
+  conditions:
+    - condition: state
+      entity_id: input_boolean.washer_notifications_enabled
+      state: "on"
+    - condition: template
+      value_template: >-
+        {{ trigger.to_state is not none
+           and trigger.to_state.attributes.event_type | default('', true) == 'washing_is_complete' }}
+    - condition: template
+      value_template: >-
+        {{ trigger.to_state.state not in ['unknown', 'unavailable', 'none', '']
+           and states('input_text.washer_last_completion_event_key') != trigger.to_state.state }}
+  actions:
+    - action: script.washer_send_completion_notification
+      data:
+        completion_key: "{{ trigger.to_state.state }}"
+        completed_at: "{{ trigger.to_state.state }}"
+  mode: queued
+  max: 5
+
+- id: washer_cycle_unhandled_follow_up
+  alias: "Laundry — Washer Cycle Unhandled Follow-Up"
+  description: Reminds once after 45 minutes, or again when a requested 20-minute snooze expires.
+  triggers:
+    - trigger: time_pattern
+      minutes: "/1"
+  conditions:
+    - condition: state
+      entity_id: input_boolean.washer_notifications_enabled
+      state: "on"
+  actions:
+    - variables:
+        completed_ts: "{{ as_timestamp(states('input_datetime.washer_last_completed_at'), 0) }}"
+        handled_ts: "{{ as_timestamp(states('input_datetime.washer_last_handled_at'), 0) }}"
+        snooze_ts: "{{ as_timestamp(states('input_datetime.washer_reminder_snooze_until'), 0) }}"
+        follow_up_ts: "{{ as_timestamp(states('input_datetime.washer_last_follow_up_at'), 0) }}"
+        next_due_ts: >-
+          {{ snooze_ts if snooze_ts > completed_ts and snooze_ts > follow_up_ts
+             else completed_ts + 2700 }}
+        should_notify: >-
+          {{ completed_ts > 0
+             and handled_ts < completed_ts
+             and as_timestamp(now()) >= next_due_ts | float(0)
+             and follow_up_ts < next_due_ts | float(0) }}
+    - condition: template
+      value_template: "{{ should_notify | bool }}"
+    - action: script.washer_send_follow_up_notification
+  mode: single
+
+- id: washer_error_notification
+  alias: "Laundry — Washer Error Notification"
+  description: Sends one sticky high-priority push for each new ThinQ washer error event.
+  triggers:
+    - trigger: state
+      entity_id: event.washer_error
+      id: error_event
+    - trigger: state
+      entity_id: event.washer_notification
+      id: notification_event
+  conditions:
+    - condition: template
+      value_template: >-
+        {% set event_type = trigger.to_state.attributes.event_type | default('', true) if trigger.to_state is not none else '' %}
+        {{ event_type not in ['unknown', 'unavailable', 'none', '']
+           and (trigger.id == 'error_event' or event_type == 'error_during_washing') }}
+    - condition: template
+      value_template: >-
+        {% set event_type = trigger.to_state.attributes.event_type | default('washer_error', true) %}
+        {% set event_key = trigger.entity_id ~ '|' ~ trigger.to_state.state ~ '|' ~ event_type %}
+        {{ trigger.to_state.state not in ['unknown', 'unavailable', 'none', '']
+           and states('input_text.washer_last_error_event_key') != event_key
+           and (as_timestamp(now())
+                - as_timestamp(states('input_datetime.washer_last_error_notified_at'), 0)) >= 60 }}
+  actions:
+    - variables:
+        error_type: "{{ trigger.to_state.attributes.event_type | default('washer_error', true) }}"
+        error_key: "{{ trigger.entity_id ~ '|' ~ trigger.to_state.state ~ '|' ~ error_type }}"
+    - action: script.washer_send_error_notification
+      data:
+        error_key: "{{ error_key }}"
+        error_type: "{{ error_type }}"
+  mode: single
+
 - id: robison_oil_annual_tune_up_reminder
   alias: "Robison Oil — Annual Tune-Up Reminder"
   description: Sends the late-March reminder to schedule or confirm the annual Robison Oil tune-up.
