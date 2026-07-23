@@ -816,6 +816,10 @@ input_datetime:
     name: Metro-North Commute Card Dismissed At
     has_date: true
     has_time: true
+  wynn_room_camera_last_activity_at:
+    name: Wynn Room Camera Last Activity At
+    has_date: true
+    has_time: true
 
 input_text:
   nwp_parking_pass_replaced_expiration_date:

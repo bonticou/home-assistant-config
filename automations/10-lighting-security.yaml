@@ -575,6 +575,113 @@
                 transition: 2
   mode: single
 
+- id: wynn_room_daylight_camera_quiet_auto_off
+  alias: "Lights — Wynn's Room Daylight Camera Quiet Auto-Off"
+  description: Turn Wynn's room lights off during daylight after the room camera has been quiet for thirty minutes.
+  initial_state: true
+  triggers:
+    - trigger: homeassistant
+      event: start
+      id: watchdog
+    - trigger: event
+      event_type: automation_reloaded
+      id: watchdog
+    - trigger: time_pattern
+      minutes: "/5"
+      id: watchdog
+    - trigger: state
+      entity_id:
+        - binary_sensor.wynn_s_room_motion
+        - binary_sensor.wynn_s_room_person_detected
+      to: "on"
+      id: camera_activity
+    - trigger: state
+      entity_id:
+        - binary_sensor.wynn_s_room_motion
+        - binary_sensor.wynn_s_room_person_detected
+      to: "off"
+      for:
+        minutes: 30
+      id: camera_quiet
+    - trigger: state
+      entity_id:
+        - light.wynn_s_room
+        - light.wynn_s_room_chandelier
+        - light.wynn_s_room_ceiling_lights
+      to: "on"
+      for:
+        minutes: 30
+      id: light_quiet
+  actions:
+    - choose:
+        - conditions:
+            - condition: trigger
+              id: camera_activity
+          sequence:
+            - action: input_datetime.set_datetime
+              target:
+                entity_id: input_datetime.wynn_room_camera_last_activity_at
+              data:
+                datetime: "{{ now().strftime('%Y-%m-%d %H:%M:%S') }}"
+      default:
+        - condition: state
+          entity_id: sun.sun
+          state: "above_horizon"
+        - condition: state
+          entity_id: input_boolean.vacation_mode
+          state: "off"
+        - condition: template
+          value_template: >-
+            {{ is_state('light.wynn_s_room', 'on')
+               or is_state('light.wynn_s_room_chandelier', 'on')
+               or is_state('light.wynn_s_room_ceiling_lights', 'on') }}
+        - condition: template
+          value_template: >-
+            {% set camera_entities = [
+              'binary_sensor.wynn_s_room_motion',
+              'binary_sensor.wynn_s_room_person_detected'
+            ] %}
+            {% set ns = namespace(active=false, known=false) %}
+            {% for entity_id in camera_entities %}
+              {% set sensor = states[entity_id] %}
+              {% if sensor is not none and sensor.state == 'on' %}
+                {% set ns.active = true %}
+              {% elif sensor is not none and sensor.state == 'off' %}
+                {% set ns.known = true %}
+              {% endif %}
+            {% endfor %}
+            {{ ns.known and not ns.active }}
+        - condition: template
+          value_template: >-
+            {% set camera_entities = [
+              'binary_sensor.wynn_s_room_motion',
+              'binary_sensor.wynn_s_room_person_detected'
+            ] %}
+            {% set last_activity_raw = states('input_datetime.wynn_room_camera_last_activity_at') %}
+            {% set helper_last = as_timestamp(last_activity_raw, 0) %}
+            {% set ns = namespace(last=helper_last, known=false) %}
+            {% for entity_id in camera_entities %}
+              {% set sensor = states[entity_id] %}
+              {% if sensor is not none and sensor.state == 'off' %}
+                {% set ns.known = true %}
+                {% set changed = as_timestamp(sensor.last_changed, 0) %}
+                {% if changed > ns.last %}
+                  {% set ns.last = changed %}
+                {% endif %}
+              {% endif %}
+            {% endfor %}
+            {{ ns.known and ns.last > 0 and (as_timestamp(now()) - ns.last) >= 30 * 60 }}
+        - action: light.turn_off
+          continue_on_error: true
+          target:
+            entity_id:
+              - light.wynn_s_room
+              - light.wynn_s_room_chandelier
+              - light.wynn_s_room_ceiling_lights
+          data:
+            transition: 3
+  mode: single
+
 - id: garage_light_auto_off
   alias: "Lights — Garage Light Auto-Off"
   description: Turn the garage lights off after five quiet minutes, unless garage camera or motion sensors have seen recent activity.
