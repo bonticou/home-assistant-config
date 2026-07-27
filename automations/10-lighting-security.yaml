@@ -1184,20 +1184,44 @@
       entity_id: input_boolean.vacation_mode
       state: "on"
   actions:
+    - variables:
+        returning_phrase: >-
+          {% if trigger.entity_id == 'person.bonticou' %}
+            you came home
+          {% elif trigger.entity_id == 'person.casey' %}
+            Casey came home
+          {% else %}
+            someone came home
+          {% endif %}
+        evening_should_resume: >-
+          {{ is_state('binary_sensor.front_stairs_schedule_active', 'on')
+             and not is_state_attr('sun.sun', 'rising', true)
+             and is_state('input_boolean.interior_lights_guest_override', 'off') }}
     - action: script.vacation_mode_end
     - delay:
         seconds: 2
     - if:
-        - condition: state
-          entity_id: binary_sensor.front_stairs_schedule_active
-          state: "on"
         - condition: template
-          value_template: "{{ not is_state_attr('sun.sun', 'rising', true) }}"
-        - condition: state
-          entity_id: input_boolean.interior_lights_guest_override
-          state: "off"
+          value_template: "{{ evening_should_resume | bool }}"
       then:
         - action: script.lights_evening_scene
+    - action: script.notify_trevor_phone
+      data:
+        title: "🏡 Vacation mode ended"
+        message: >-
+          Vacation lighting turned off because {{ returning_phrase | trim }}.
+          {% if evening_should_resume | bool %}
+            Evening glow is taking over now.
+          {% else %}
+            The house is back to normal lighting rules.
+          {% endif %}
+        data:
+          tag: vacation-mode-ended-on-return
+          group: lighting
+          url: /calm-mobile/home
+          action: vacation_mode_ended_on_return
+          recent: true
+          history: recent
   mode: single
 
 - id: vacation_activity_window_notifications
