@@ -2085,8 +2085,8 @@ washer_send_completion_notification:
           {% endif %}
     - action: script.notify_trevor_phone
       data:
-        title: "🧺 Washer finished"
-        message: "The {{ cycle_label }} cycle finished at {{ completed_label }}."
+        title: "🧺 Washer is done"
+        message: "Finished at {{ completed_label }}. Move it over when you get a minute."
         data:
           group: home-care
           tag: washer-cycle
@@ -2096,9 +2096,9 @@ washer_send_completion_notification:
           history: recent
           actions:
             - action: WASHER_LAUNDRY_HANDLED
-              title: Laundry handled
+              title: Done
             - action: WASHER_REMIND_20
-              title: Remind me in 20 min
+              title: Remind me in 20
     - action: input_datetime.set_datetime
       target:
         entity_id:
@@ -2126,12 +2126,11 @@ washer_send_follow_up_notification:
     - variables:
         completed_ts: "{{ as_timestamp(states('input_datetime.washer_last_completed_at'), 0) }}"
         age_minutes: "{{ ((as_timestamp(now()) - completed_ts) / 60) | round(0) | int }}"
-        cycle_name: "{{ states('input_text.washer_last_cycle_name') | default('Wash', true) }}"
         notified_now: "{{ now().strftime('%Y-%m-%d %H:%M:%S') }}"
     - action: script.notify_trevor_phone
       data:
-        title: "🧺 Laundry is still waiting"
-        message: "The {{ cycle_name }} cycle finished {{ age_minutes }} minutes ago."
+        title: "🧺 Washer is still full"
+        message: "Laundry has been sitting for {{ age_minutes }} min. Move it over when you can."
         data:
           group: home-care
           tag: washer-cycle
@@ -2141,9 +2140,9 @@ washer_send_follow_up_notification:
           history: recent
           actions:
             - action: WASHER_LAUNDRY_HANDLED
-              title: Laundry handled
+              title: Done
             - action: WASHER_REMIND_20
-              title: Remind me in 20 min
+              title: Remind me in 20
     - action: input_datetime.set_datetime
       target:
         entity_id: input_datetime.washer_last_follow_up_at
@@ -2232,8 +2231,8 @@ washer_send_error_notification:
         notified_now: "{{ now().strftime('%Y-%m-%d %H:%M:%S') }}"
     - action: script.notify_trevor_phone
       data:
-        title: "⚠️ Washer needs attention"
-        message: "LG ThinQ reported: {{ error_label }}. Check the washer before continuing the cycle."
+        title: "⚠️ Washer needs a check"
+        message: "The washer says {{ error_label }}. Take a look before starting it again."
         data:
           group: home-care
           tag: washer-error
@@ -2245,7 +2244,7 @@ washer_send_error_notification:
           history: recent
           actions:
             - action: WASHER_ERROR_ACKNOWLEDGED
-              title: Acknowledge
+              title: Got it
     - action: input_datetime.set_datetime
       target:
         entity_id: input_datetime.washer_last_error_notified_at
