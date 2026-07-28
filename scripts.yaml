@@ -2057,9 +2057,9 @@ dehumidifier_air_filter_clear_notification:
         data:
           tag: dehumidifier-air-filter
 
-washer_send_completion_notification:
-  alias: Washer Send Completion Notification
-  description: Sends one durable completion notification for a ThinQ washer event.
+washer_record_completion:
+  alias: Washer Record Completion
+  description: Records a ThinQ completion event even when Trevor is away.
   icon: mdi:washing-machine
   mode: queued
   max: 5
@@ -2075,7 +2075,6 @@ washer_send_completion_notification:
         event_key: "{{ completion_key | default(now().isoformat(), true) | string | truncate(120, true, '') }}"
         completion_ts: "{{ as_timestamp(completed_at | default('', true), as_timestamp(now())) }}"
         completed_value: "{{ completion_ts | float(0) | timestamp_custom('%Y-%m-%d %H:%M:%S', true) }}"
-        completed_label: "{{ completion_ts | float(0) | timestamp_custom('%-I:%M %p', true) }}"
         cycle_raw: "{{ states('sensor.washer_cycles') | trim }}"
         cycle_label: >-
           {% if cycle_raw not in ['unknown', 'unavailable', 'none', ''] %}
@@ -2083,10 +2082,56 @@ washer_send_completion_notification:
           {% else %}
             Wash
           {% endif %}
+    - action: input_datetime.set_datetime
+      target:
+        entity_id: input_datetime.washer_last_completed_at
+      data:
+        datetime: "{{ completed_value }}"
+    - action: input_datetime.set_datetime
+      target:
+        entity_id:
+          - input_datetime.washer_last_completion_notified_at
+          - input_datetime.washer_reminder_snooze_until
+          - input_datetime.washer_last_follow_up_at
+      data:
+        datetime: "1970-01-01 00:00:00"
+    - action: input_text.set_value
+      target:
+        entity_id: input_text.washer_last_completion_event_key
+      data:
+        value: "{{ event_key }}"
+    - action: input_text.set_value
+      target:
+        entity_id: input_text.washer_last_cycle_name
+      data:
+        value: "{{ cycle_label }}"
+
+washer_send_completion_notification:
+  alias: Washer Send Completion Notification
+  description: Sends the current cycle notice and starts its follow-up clock.
+  icon: mdi:washing-machine
+  mode: queued
+  max: 5
+  fields:
+    deferred_until_home:
+      description: Whether this completion was held until Trevor returned home.
+      example: true
+  sequence:
+    - variables:
+        completed_ts: "{{ as_timestamp(states('input_datetime.washer_last_completed_at'), 0) }}"
+        completed_label: "{{ completed_ts | float(0) | timestamp_custom('%-I:%M %p', true) }}"
+        cycle_name: "{{ states('input_text.washer_last_cycle_name') | default('Wash', true) }}"
+        deferred: "{{ deferred_until_home | default(false) | bool }}"
+        notified_now: "{{ now().strftime('%Y-%m-%d %H:%M:%S') }}"
     - action: script.notify_trevor_phone
       data:
-        title: "🧺 Washer is done"
-        message: "Finished at {{ completed_label }}. Move it over when you get a minute."
+        title: "{{ '🧺 Laundry is waiting' if deferred else '🧺 Washer is done' }}"
+        message: >-
+          {% if deferred %}
+            The {{ cycle_name }} cycle finished while you were out. Move it over when you get a minute.
+          {% else %}
+            Finished at {{ completed_label }}. Move it over when you get a minute.
+          {% endif %}
         data:
           group: home-care
           tag: washer-cycle
@@ -2101,21 +2146,9 @@ washer_send_completion_notification:
               title: Remind me in 20
     - action: input_datetime.set_datetime
       target:
-        entity_id:
-          - input_datetime.washer_last_completed_at
-          - input_datetime.washer_reminder_snooze_until
+        entity_id: input_datetime.washer_last_completion_notified_at
       data:
-        datetime: "{{ completed_value }}"
-    - action: input_text.set_value
-      target:
-        entity_id: input_text.washer_last_completion_event_key
-      data:
-        value: "{{ event_key }}"
-    - action: input_text.set_value
-      target:
-        entity_id: input_text.washer_last_cycle_name
-      data:
-        value: "{{ cycle_label }}"
+        datetime: "{{ notified_now }}"
 
 washer_send_follow_up_notification:
   alias: Washer Send Follow-Up Notification
@@ -2210,9 +2243,9 @@ washer_clear_cycle_notification:
         data:
           tag: washer-cycle
 
-washer_send_error_notification:
-  alias: Washer Send Error Notification
-  description: Sends a sticky high-priority notification for a ThinQ washer error event.
+washer_record_error_event:
+  alias: Washer Record Error Event
+  description: Records a ThinQ washer error even when Trevor is away.
   icon: mdi:washing-machine-alert
   mode: queued
   max: 5
@@ -2226,13 +2259,55 @@ washer_send_error_notification:
   sequence:
     - variables:
         event_key: "{{ error_key | default(now().isoformat(), true) | string | truncate(160, true, '') }}"
-        error_raw: "{{ error_type | default('washer error', true) | string | trim }}"
+        error_raw: "{{ error_type | default('washer_error', true) | string | trim | truncate(120, true, '') }}"
+        detected_now: "{{ now().strftime('%Y-%m-%d %H:%M:%S') }}"
+    - action: input_datetime.set_datetime
+      target:
+        entity_id: input_datetime.washer_last_error_detected_at
+      data:
+        datetime: "{{ detected_now }}"
+    - action: input_text.set_value
+      target:
+        entity_id: input_text.washer_last_error_event_key
+      data:
+        value: "{{ event_key }}"
+    - action: input_text.set_value
+      target:
+        entity_id: input_text.washer_last_error_type
+      data:
+        value: "{{ error_raw }}"
+
+washer_send_error_notification:
+  alias: Washer Send Error Notification
+  description: Sends the current ThinQ washer error after presence gating.
+  icon: mdi:washing-machine-alert
+  mode: queued
+  max: 5
+  fields:
+    error_type:
+      description: ThinQ event type or error code.
+      example: error_during_washing
+    deferred_until_home:
+      description: Whether this error was held until Trevor returned home.
+      example: true
+  sequence:
+    - variables:
+        error_raw: >-
+          {{ error_type
+             | default(states('input_text.washer_last_error_type'), true)
+             | default('washer error', true) | string | trim }}
         error_label: "{{ error_raw | replace('_', ' ') | title }}"
+        deferred: "{{ deferred_until_home | default(false) | bool }}"
         notified_now: "{{ now().strftime('%Y-%m-%d %H:%M:%S') }}"
     - action: script.notify_trevor_phone
       data:
         title: "⚠️ Washer needs a check"
-        message: "The washer says {{ error_label }}. Take a look before starting it again."
+        message: >-
+          {% if deferred %}
+            While you were out, the washer reported {{ error_label }}. Check it before starting it again.
+          {% else %}
+            The washer says {{ error_label }}. Take a look before starting it again.
+          {% endif %}
         data:
           group: home-care
           tag: washer-error
@@ -2250,11 +2325,6 @@ washer_send_error_notification:
         entity_id: input_datetime.washer_last_error_notified_at
       data:
         datetime: "{{ notified_now }}"
-    - action: input_text.set_value
-      target:
-        entity_id: input_text.washer_last_error_event_key
-      data:
-        value: "{{ event_key }}"
 
 washer_clear_error_notification:
   alias: Washer Clear Error Notification

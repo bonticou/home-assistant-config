@@ -280,14 +280,11 @@
 
 - id: washer_cycle_complete_notification
   alias: "Laundry — Washer Cycle Complete Notification"
-  description: Sends one completion push for each official ThinQ washing-is-complete event.
+  description: Records every ThinQ completion and pushes only while Trevor is home.
   triggers:
     - trigger: state
       entity_id: event.washer_notification
   conditions:
-    - condition: state
-      entity_id: input_boolean.washer_notifications_enabled
-      state: "on"
     - condition: template
       value_template: >-
         {{ trigger.to_state is not none
@@ -297,16 +294,79 @@
         {{ trigger.to_state.state not in ['unknown', 'unavailable', 'none', '']
            and states('input_text.washer_last_completion_event_key') != trigger.to_state.state }}
   actions:
-    - action: script.washer_send_completion_notification
+    - action: script.washer_record_completion
       data:
         completion_key: "{{ trigger.to_state.state }}"
         completed_at: "{{ trigger.to_state.state }}"
+    - if:
+        - condition: state
+          entity_id: input_boolean.washer_notifications_enabled
+          state: "on"
+        - condition: state
+          entity_id: device_tracker.tk_iphone_16_pro
+          state: "home"
+      then:
+        - action: script.washer_send_completion_notification
+          data:
+            deferred_until_home: false
   mode: queued
   max: 5
 
+- id: washer_pending_notice_on_trevor_home
+  alias: "Laundry — Washer Pending Notice When Trevor Is Home"
+  description: Sends completion or machine-error notices after Trevor has been home for five minutes.
+  triggers:
+    - trigger: state
+      entity_id: device_tracker.tk_iphone_16_pro
+      to: "home"
+      for: "00:05:00"
+    - trigger: time_pattern
+      minutes: "/5"
+  conditions:
+    - condition: state
+      entity_id: device_tracker.tk_iphone_16_pro
+      state: "home"
+    - condition: template
+      value_template: >-
+        {{ (as_timestamp(now())
+            - as_timestamp(states.device_tracker.tk_iphone_16_pro.last_changed, 0)) >= 300 }}
+  actions:
+    - variables:
+        completed_ts: "{{ as_timestamp(states('input_datetime.washer_last_completed_at'), 0) }}"
+        completion_notified_ts: "{{ as_timestamp(states('input_datetime.washer_last_completion_notified_at'), 0) }}"
+        completion_notified_known: >-
+          {{ states('input_datetime.washer_last_completion_notified_at')
+             not in ['unknown', 'unavailable', 'none', ''] }}
+        handled_ts: "{{ as_timestamp(states('input_datetime.washer_last_handled_at'), 0) }}"
+        error_detected_ts: "{{ as_timestamp(states('input_datetime.washer_last_error_detected_at'), 0) }}"
+        error_notified_ts: "{{ as_timestamp(states('input_datetime.washer_last_error_notified_at'), 0) }}"
+        pending_completion: >-
+          {{ is_state('input_boolean.washer_notifications_enabled', 'on')
+             and completion_notified_known | bool
+             and completed_ts > 0
+             and handled_ts < completed_ts
+             and completion_notified_ts < completed_ts }}
+        pending_error: "{{ error_detected_ts > error_notified_ts }}"
+    - if:
+        - condition: template
+          value_template: "{{ pending_completion | bool }}"
+      then:
+        - action: script.washer_send_completion_notification
+          data:
+            deferred_until_home: true
+    - if:
+        - condition: template
+          value_template: "{{ pending_error | bool }}"
+      then:
+        - action: script.washer_send_error_notification
+          data:
+            error_type: "{{ states('input_text.washer_last_error_type') }}"
+            deferred_until_home: true
+  mode: single
+
 - id: washer_cycle_unhandled_follow_up
   alias: "Laundry — Washer Cycle Unhandled Follow-Up"
-  description: Reminds once after 45 minutes, or again when a requested 20-minute snooze expires.
+  description: Reminds only at home, timed from the first push or a requested snooze.
   triggers:
     - trigger: time_pattern
       minutes: "/1"
@@ -314,17 +374,26 @@
     - condition: state
       entity_id: input_boolean.washer_notifications_enabled
       state: "on"
+    - condition: state
+      entity_id: device_tracker.tk_iphone_16_pro
+      state: "home"
+    - condition: template
+      value_template: >-
+        {{ (as_timestamp(now())
+            - as_timestamp(states.device_tracker.tk_iphone_16_pro.last_changed, 0)) >= 300 }}
   actions:
     - variables:
         completed_ts: "{{ as_timestamp(states('input_datetime.washer_last_completed_at'), 0) }}"
+        notified_ts: "{{ as_timestamp(states('input_datetime.washer_last_completion_notified_at'), 0) }}"
         handled_ts: "{{ as_timestamp(states('input_datetime.washer_last_handled_at'), 0) }}"
         snooze_ts: "{{ as_timestamp(states('input_datetime.washer_reminder_snooze_until'), 0) }}"
         follow_up_ts: "{{ as_timestamp(states('input_datetime.washer_last_follow_up_at'), 0) }}"
         next_due_ts: >-
-          {{ snooze_ts if snooze_ts > completed_ts and snooze_ts > follow_up_ts
-             else completed_ts + 2700 }}
+          {{ snooze_ts if snooze_ts > notified_ts and snooze_ts > follow_up_ts
+             else notified_ts + 2700 }}
         should_notify: >-
           {{ completed_ts > 0
+             and notified_ts >= completed_ts
              and handled_ts < completed_ts
              and as_timestamp(now()) >= next_due_ts | float(0)
              and follow_up_ts < next_due_ts | float(0) }}
@@ -356,15 +425,24 @@
         {{ trigger.to_state.state not in ['unknown', 'unavailable', 'none', '']
            and states('input_text.washer_last_error_event_key') != event_key
            and (as_timestamp(now())
-                - as_timestamp(states('input_datetime.washer_last_error_notified_at'), 0)) >= 60 }}
+                - as_timestamp(states('input_datetime.washer_last_error_detected_at'), 0)) >= 60 }}
   actions:
     - variables:
         error_type: "{{ trigger.to_state.attributes.event_type | default('washer_error', true) }}"
         error_key: "{{ trigger.entity_id ~ '|' ~ trigger.to_state.state ~ '|' ~ error_type }}"
-    - action: script.washer_send_error_notification
+    - action: script.washer_record_error_event
       data:
         error_key: "{{ error_key }}"
         error_type: "{{ error_type }}"
+    - if:
+        - condition: state
+          entity_id: device_tracker.tk_iphone_16_pro
+          state: "home"
+      then:
+        - action: script.washer_send_error_notification
+          data:
+            error_type: "{{ error_type }}"
+            deferred_until_home: false
   mode: single
 
 - id: robison_oil_annual_tune_up_reminder
