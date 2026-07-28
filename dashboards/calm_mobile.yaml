@@ -2272,7 +2272,7 @@ views:
                   const meta = guestStay
                     ? 'Motion paused for house guests'
                     : housekeeperWindow
-                      ? 'Housekeeper window until 3:00 PM'
+                      ? 'Housekeeper until 3:00 PM'
                       : motionPaused
                     ? `Motion paused until ${motionTime}`
                     : count === 0
