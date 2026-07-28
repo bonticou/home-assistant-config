@@ -294,10 +294,40 @@
         {{ trigger.to_state.state not in ['unknown', 'unavailable', 'none', '']
            and states('input_text.washer_last_completion_event_key') != trigger.to_state.state }}
   actions:
-    - action: script.washer_record_completion
+    - variables:
+        event_key: "{{ trigger.to_state.state | string | truncate(120, true, '') }}"
+        completion_ts: "{{ as_timestamp(trigger.to_state.state, as_timestamp(now())) }}"
+        completed_value: "{{ completion_ts | float(0) | timestamp_custom('%Y-%m-%d %H:%M:%S', true) }}"
+        cycle_raw: "{{ states('sensor.washer_cycles') | trim }}"
+        cycle_label: >-
+          {% if cycle_raw not in ['unknown', 'unavailable', 'none', ''] %}
+            {{ cycle_raw | replace('_', ' ') | title }}
+          {% else %}
+            Wash
+          {% endif %}
+    - action: input_datetime.set_datetime
+      target:
+        entity_id: input_datetime.washer_last_completed_at
       data:
-        completion_key: "{{ trigger.to_state.state }}"
-        completed_at: "{{ trigger.to_state.state }}"
+        datetime: "{{ completed_value }}"
+    - action: input_datetime.set_datetime
+      target:
+        entity_id:
+          - input_datetime.washer_last_completion_notified_at
+          - input_datetime.washer_reminder_snooze_until
+          - input_datetime.washer_last_follow_up_at
+      data:
+        datetime: "1970-01-01 00:00:00"
+    - action: input_text.set_value
+      target:
+        entity_id: input_text.washer_last_completion_event_key
+      data:
+        value: "{{ event_key }}"
+    - action: input_text.set_value
+      target:
+        entity_id: input_text.washer_last_cycle_name
+      data:
+        value: "{{ cycle_label }}"
     - if:
         - condition: state
           entity_id: input_boolean.washer_notifications_enabled
@@ -430,10 +460,23 @@
     - variables:
         error_type: "{{ trigger.to_state.attributes.event_type | default('washer_error', true) }}"
         error_key: "{{ trigger.entity_id ~ '|' ~ trigger.to_state.state ~ '|' ~ error_type }}"
-    - action: script.washer_record_error_event
+        error_value: "{{ error_type | string | trim | truncate(120, true, '') }}"
+        detected_now: "{{ now().strftime('%Y-%m-%d %H:%M:%S') }}"
+    - action: input_datetime.set_datetime
+      target:
+        entity_id: input_datetime.washer_last_error_detected_at
       data:
-        error_key: "{{ error_key }}"
-        error_type: "{{ error_type }}"
+        datetime: "{{ detected_now }}"
+    - action: input_text.set_value
+      target:
+        entity_id: input_text.washer_last_error_event_key
+      data:
+        value: "{{ error_key | string | truncate(160, true, '') }}"
+    - action: input_text.set_value
+      target:
+        entity_id: input_text.washer_last_error_type
+      data:
+        value: "{{ error_value }}"
     - if:
         - condition: state
           entity_id: device_tracker.tk_iphone_16_pro

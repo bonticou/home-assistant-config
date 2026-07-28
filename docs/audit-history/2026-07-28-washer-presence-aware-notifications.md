@@ -31,6 +31,10 @@ leak alerts remain safety notifications and must not be presence-gated.
 - ThinQ machine errors are recorded while Trevor is away and delivered after
   he has been home for five minutes. A detected timestamp preserves mirrored
   event throttling before a notification is sent.
+- Live verification showed that two new record-only script entities did not
+  materialize even though the script file wrote and parsed cleanly. The small
+  durable completion and error writes were moved directly into their source
+  automations, removing that runtime dependency without changing behavior.
 - Added durable state for the last ThinQ error detection and error type.
 - Preserved all existing Flo leak behavior without a presence condition.
 - Unknown or unavailable tracker state fails closed for routine and machine
@@ -51,12 +55,22 @@ leak alerts remain safety notifications and must not be presence-gated.
 - `git diff --check` passed.
 - A local Home Assistant installation was not available for an offline Core
   config check.
+- Live File Editor read-back matched repository bytes and SHA-256 hashes for
+  `configuration.yaml`, `automations.yaml`,
+  `automations/30-maintenance-environment.yaml`, and `scripts.yaml`.
+- Home Assistant's Check configuration control completed without reporting an
+  invalid configuration.
+- Reloaded input datetimes, input texts, scripts, and automations.
+- Verified the three new durable helpers, the existing notification scripts,
+  and the new pending-arrival automation in live Home Assistant state.
 
 ## Deployment Status
 
-Not deployed. The repository change must pass local checks and then follow
-`docs/home-assistant-deploy-runbook.md` for live write, read-back, Core config
-validation, reload or guarded restart, and entity verification.
+Deployed through the authenticated Nabu Casa File Editor ingress route. All
+written files passed byte-for-byte read-back, Home Assistant configuration
+validation completed without an invalid result, the relevant YAML domains were
+reloaded, and the presence-aware helper and automation entities were visible
+live.
 
 ## Residual Risks And Next Follow-Ups
 

@@ -2057,55 +2057,6 @@ dehumidifier_air_filter_clear_notification:
         data:
           tag: dehumidifier-air-filter
 
-washer_record_completion:
-  alias: Washer Record Completion
-  description: Records a ThinQ completion event even when Trevor is away.
-  icon: mdi:washing-machine
-  mode: queued
-  max: 5
-  fields:
-    completion_key:
-      description: Unique ThinQ completion event key.
-      example: "2026-07-20T15:42:00-04:00"
-    completed_at:
-      description: ThinQ completion event timestamp.
-      example: "2026-07-20T15:42:00-04:00"
-  sequence:
-    - variables:
-        event_key: "{{ completion_key | default(now().isoformat(), true) | string | truncate(120, true, '') }}"
-        completion_ts: "{{ as_timestamp(completed_at | default('', true), as_timestamp(now())) }}"
-        completed_value: "{{ completion_ts | float(0) | timestamp_custom('%Y-%m-%d %H:%M:%S', true) }}"
-        cycle_raw: "{{ states('sensor.washer_cycles') | trim }}"
-        cycle_label: >-
-          {% if cycle_raw not in ['unknown', 'unavailable', 'none', ''] %}
-            {{ cycle_raw | replace('_', ' ') | title }}
-          {% else %}
-            Wash
-          {% endif %}
-    - action: input_datetime.set_datetime
-      target:
-        entity_id: input_datetime.washer_last_completed_at
-      data:
-        datetime: "{{ completed_value }}"
-    - action: input_datetime.set_datetime
-      target:
-        entity_id:
-          - input_datetime.washer_last_completion_notified_at
-          - input_datetime.washer_reminder_snooze_until
-          - input_datetime.washer_last_follow_up_at
-      data:
-        datetime: "1970-01-01 00:00:00"
-    - action: input_text.set_value
-      target:
-        entity_id: input_text.washer_last_completion_event_key
-      data:
-        value: "{{ event_key }}"
-    - action: input_text.set_value
-      target:
-        entity_id: input_text.washer_last_cycle_name
-      data:
-        value: "{{ cycle_label }}"
-
 washer_send_completion_notification:
   alias: Washer Send Completion Notification
   description: Sends the current cycle notice and starts its follow-up clock.
@@ -2242,40 +2193,6 @@ washer_clear_cycle_notification:
         message: clear_notification
         data:
           tag: washer-cycle
-
-washer_record_error_event:
-  alias: Washer Record Error Event
-  description: Records a ThinQ washer error even when Trevor is away.
-  icon: mdi:washing-machine-alert
-  mode: queued
-  max: 5
-  fields:
-    error_key:
-      description: Unique ThinQ error event key.
-      example: "event.washer_error|2026-07-20T15:42:00-04:00|unknown_error"
-    error_type:
-      description: ThinQ event type or error code.
-      example: error_during_washing
-  sequence:
-    - variables:
-        event_key: "{{ error_key | default(now().isoformat(), true) | string | truncate(160, true, '') }}"
-        error_raw: "{{ error_type | default('washer_error', true) | string | trim | truncate(120, true, '') }}"
-        detected_now: "{{ now().strftime('%Y-%m-%d %H:%M:%S') }}"
-    - action: input_datetime.set_datetime
-      target:
-        entity_id: input_datetime.washer_last_error_detected_at
-      data:
-        datetime: "{{ detected_now }}"
-    - action: input_text.set_value
-      target:
-        entity_id: input_text.washer_last_error_event_key
-      data:
-        value: "{{ event_key }}"
-    - action: input_text.set_value
-      target:
-        entity_id: input_text.washer_last_error_type
-      data:
-        value: "{{ error_raw }}"
 
 washer_send_error_notification:
   alias: Washer Send Error Notification
