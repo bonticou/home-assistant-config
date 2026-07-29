@@ -11492,34 +11492,6 @@ views:
         alignment: left
         chips:
           - type: template
-            entity: sensor.wine_temperature
-            icon: mdi:thermometer
-            icon_color: >-
-              {% set raw = states('sensor.wine_temperature_24h_stats') %}
-              {% if not is_number(raw) %}grey
-              {% elif raw | float < 53 %}light-blue
-              {% elif raw | float > 57 %}red
-              {% else %}teal{% endif %}
-            content: >-
-              {% set raw = states('sensor.wine_temperature_24h_stats') %}
-              {{ (raw | float | round(1) ~ '°F 24h avg') if is_number(raw) else '24h temp pending' }}
-            tap_action:
-              action: more-info
-          - type: template
-            entity: sensor.wine_humidity
-            icon: mdi:water-percent
-            icon_color: >-
-              {% set raw = states('sensor.wine_humidity_24h_stats') %}
-              {% if not is_number(raw) %}grey
-              {% elif raw | float < 50 %}orange
-              {% elif raw | float > 65 %}light-blue
-              {% else %}teal{% endif %}
-            content: >-
-              {% set raw = states('sensor.wine_humidity_24h_stats') %}
-              {{ (raw | float | round(0) ~ '% 24h avg') if is_number(raw) else '24h humidity pending' }}
-            tap_action:
-              action: more-info
-          - type: template
             entity: sensor.wine_cave_dew_point
             icon: mdi:water-thermometer
             icon_color: amber
