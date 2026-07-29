@@ -334,9 +334,7 @@
               entity_id: binary_sensor.away_motion_security_housekeeper_window
               state: "on"
           sequence:
-            - action: script.washer_mark_laundry_handled
-              data:
-                source: housekeeper_window
+            - action: script.washer_clear_cycle_notification
       default:
         - if:
             - condition: state
@@ -360,6 +358,9 @@
       entity_id: device_tracker.tk_iphone_16_pro
       to: "home"
       for: "00:05:00"
+    - trigger: state
+      entity_id: binary_sensor.away_motion_security_housekeeper_window
+      to: "off"
     - trigger: time_pattern
       minutes: "/5"
   conditions:
@@ -837,7 +838,10 @@
           value_template: >-
             {{ washer_completed_ts > 0
                and washer_handled_ts < washer_completed_ts
-               and now_ts - washer_completed_ts <= 14400 }}
+               and (
+                 now_ts - washer_completed_ts <= 14400
+                 or is_state('binary_sensor.away_motion_security_housekeeper_window', 'on')
+               ) }}
       then:
         - action: script.washer_mark_laundry_handled
           data:
@@ -846,7 +850,7 @@
 
 - id: laundry_housekeeper_window_started
   alias: "Laundry — Housekeeper Window Started"
-  description: Treats pending washer and dryer completions as handled when the expected laundry-handling window begins.
+  description: Keeps washer turnover pending, treats dryer unloading as handled, and clears routine pushes when the expected laundry-handling window begins.
   triggers:
     - trigger: state
       entity_id: binary_sensor.away_motion_security_housekeeper_window
@@ -855,21 +859,11 @@
   actions:
     - variables:
         handled_now: "{{ now().strftime('%Y-%m-%d %H:%M:%S') }}"
-        washer_completed_ts: "{{ as_timestamp(states('input_datetime.washer_last_completed_at'), 0) }}"
-        washer_handled_ts: "{{ as_timestamp(states('input_datetime.washer_last_handled_at'), 0) }}"
         dryer_completed_ts: "{{ as_timestamp(states('input_datetime.dryer_last_completed_at'), 0) }}"
         dryer_handled_ts: "{{ as_timestamp(states('input_datetime.dryer_last_handled_at'), 0) }}"
         dryer_error_detected_ts: "{{ as_timestamp(states('input_datetime.dryer_last_error_detected_at'), 0) }}"
         dryer_error_handled_ts: "{{ as_timestamp(states('input_datetime.dryer_last_error_handled_at'), 0) }}"
-    - if:
-        - condition: template
-          value_template: "{{ washer_completed_ts > 0 and washer_handled_ts < washer_completed_ts }}"
-      then:
-        - action: script.washer_mark_laundry_handled
-          data:
-            source: housekeeper_window_started
-      else:
-        - action: script.washer_clear_cycle_notification
+    - action: script.washer_clear_cycle_notification
     - if:
         - condition: template
           value_template: "{{ dryer_completed_ts > 0 and dryer_handled_ts < dryer_completed_ts }}"

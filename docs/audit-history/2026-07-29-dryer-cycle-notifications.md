@@ -16,8 +16,9 @@ the housekeeper is handling laundry.
   routine notices until Trevor has been home for five minutes, and time
   follow-ups from the first delivered push.
 - The expected housekeeper window is Tuesdays from 7:45 AM through 3:00 PM.
-- The housekeeper handles laundry during that window, so washer and dryer
-  completions should be treated as handled rather than deferred.
+- The housekeeper handles laundry during that window. Routine pushes should be
+  quiet while she is there, but the washer should remain unresolved until a
+  dryer start proves turnover or the window ends.
 - Annual dryer-vent maintenance remains a separate reminder cycle.
 
 ## Evidence Collected
@@ -52,9 +53,17 @@ for anomaly alerts.
 
 ### Housekeeper handling
 
-- Treats washer and dryer completions during the housekeeper window as handled.
-- When the housekeeper window begins, marks any pending washer or dryer
-  completion handled and clears the related routine notification.
+- Keeps washer completions pending but silent during the housekeeper window.
+- Uses a dryer `running` transition as positive evidence that the pending washer
+  load was turned over.
+- When the housekeeper window ends at 3:00 PM, immediately reevaluates a washer
+  completion that still has no turnover evidence. It notifies only while Trevor
+  is home; otherwise the existing arrival gate waits until he has been home for
+  five minutes.
+- When the housekeeper window begins, clears any pending washer push without
+  stamping the washer load handled.
+- Continues to treat dryer completions as handled during the window because
+  there is no dryer-door telemetry to distinguish unloaded from still full.
 - Suppresses and records generic `drying_failed` events during that window.
 - Keeps the three hardware/power/temperature dryer errors eligible for
   notification.
@@ -64,6 +73,8 @@ for anomaly alerts.
 - When the dryer enters `running`, clears any older dryer completion reminder.
 - If the washer completed within the prior four hours and remains unhandled,
   the dryer start marks that washer load handled.
+- During the housekeeper window, any dryer start can resolve the current pending
+  washer completion even when it is older than four hours.
 
 ### Errors
 
@@ -120,6 +131,20 @@ for anomaly alerts.
 - The new durable helpers loaded successfully. Their initial timestamp baseline
   was the current date at midnight, with event-key helpers still `unknown`, so
   no pending completion or error existed.
+- Follow-up targeted checks confirmed that:
+  - a washer completion during the housekeeper window is cleared but not marked
+    handled;
+  - the 3:00 PM window-end transition triggers pending-washer reevaluation;
+  - a dryer start remains the positive washer-turnover signal;
+  - housekeeper-window start no longer stamps a pending washer handled.
+- The follow-up automation-only deployment read back
+  `automations/30-maintenance-environment.yaml` with SHA-256
+  `23be9646cd4e3f4f7507d386cf332063adc07361be55cb5d726f0cefe09b2884`.
+- Home Assistant again returned a valid configuration with no errors or
+  warnings, and the direct `automation.reload` request completed with HTTP 200.
+- The live automation config API confirmed the corrected rules, and the
+  corresponding washer, dryer-handoff, and housekeeper-window automations were
+  all enabled.
 
 ## Deployment Status
 
@@ -132,7 +157,8 @@ targeted reloads, and live entity/config verification.
 - There is no enabled dryer-door entity, so unload detection relies on the
   notification action, a new dryer cycle, or the housekeeper window.
 - The four-hour washer-to-dryer handoff assumes the new dryer run is the recent
-  washer load. The bounded window limits false associations.
+  washer load outside the housekeeper window. During the window, the known
+  laundry-handling context allows any dryer start to resolve the pending washer.
 - A real ThinQ completion and error payload should be observed after deployment
   before adding cycle-name copy or remote-power actions.
 - Energy alerts should wait until non-zero history confirms those sensors are
