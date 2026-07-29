@@ -51,9 +51,12 @@
       "device_id": "device_a735aed44232",
       "disabled_by": "",
       "entities": [
-        "button.aqara_hub_m100_identify"
+        "button.aqara_hub_m100_identify",
+        "sensor.aqara_hub_m100_reboot_count",
+        "sensor.aqara_hub_m100_uptime",
+        "sensor.aqara_hub_m100_wi_fi_rssi"
       ],
-      "entity_count": 1,
+      "entity_count": 4,
       "entry_type": "",
       "integrations": [
         "matter"
@@ -63,7 +66,7 @@
       "name": "Aqara Hub M100",
       "network_count": 0,
       "other_count": 0,
-      "telemetry_count": 0
+      "telemetry_count": 3
     },
     {
       "area": "",
@@ -150,6 +153,33 @@
       "network_count": 0,
       "other_count": 0,
       "telemetry_count": 0
+    },
+    {
+      "area": "",
+      "control_count": 3,
+      "device_id": "device_1ddfd13c29d4",
+      "disabled_by": "",
+      "entities": [
+        "binary_sensor.zone_24_watering",
+        "sensor.zone_24_daily_active_water_use",
+        "sensor.zone_24_daily_active_watering_time",
+        "sensor.zone_24_next_cycle",
+        "sensor.zone_24_remaining_watering_time",
+        "switch.zone_24_automatic_watering",
+        "switch.zone_24_manual_watering",
+        "valve.zone_24"
+      ],
+      "entity_count": 8,
+      "entry_type": "",
+      "integrations": [
+        "hydrawise"
+      ],
+      "manufacturer": "Hydrawise",
+      "model": "Zone",
+      "name": "Basil and forsythias",
+      "network_count": 0,
+      "other_count": 0,
+      "telemetry_count": 5
     },
     {
       "area": "",
@@ -257,7 +287,7 @@
         "anthropic"
       ],
       "manufacturer": "Anthropic",
-      "model": "claude-haiku-4-5",
+      "model": "Claude Haiku 4.5",
       "name": "Claude AI Task",
       "network_count": 0,
       "other_count": 1,
@@ -277,7 +307,7 @@
         "anthropic"
       ],
       "manufacturer": "Anthropic",
-      "model": "claude-haiku-4-5",
+      "model": "Claude Haiku 4.5",
       "name": "Claude conversation",
       "network_count": 0,
       "other_count": 1,
@@ -306,7 +336,7 @@
     },
     {
       "area": "",
-      "control_count": 8,
+      "control_count": 10,
       "device_id": "device_958d2caf578a",
       "disabled_by": "",
       "entities": [
@@ -317,12 +347,14 @@
         "number.unnamed_room_bass_8",
         "number.unnamed_room_treble_8",
         "sensor.link_speed_12",
+        "switch.dining_room_tv_autoplay",
+        "switch.dining_room_ungroup_on_autoplay",
         "switch.unnamed_room_crossfade_8",
         "switch.unnamed_room_loudness_8",
         "switch.unnamed_room_status_light_8",
         "switch.unnamed_room_touch_controls_8"
       ],
-      "entity_count": 11,
+      "entity_count": 13,
       "entry_type": "",
       "integrations": [
         "sonos",
@@ -334,6 +366,37 @@
       "network_count": 1,
       "other_count": 0,
       "telemetry_count": 2
+    },
+    {
+      "area": "",
+      "control_count": 2,
+      "device_id": "device_8ad0ff69cb92",
+      "disabled_by": "",
+      "entities": [
+        "binary_sensor.dryer_remote_start",
+        "event.dryer_error",
+        "event.dryer_notification",
+        "select.dryer_operation",
+        "sensor.dryer_current_status",
+        "sensor.dryer_energy_last_month",
+        "sensor.dryer_energy_this_month",
+        "sensor.dryer_energy_today",
+        "sensor.dryer_energy_yesterday",
+        "sensor.dryer_remaining_time",
+        "sensor.dryer_total_time",
+        "switch.dryer_power"
+      ],
+      "entity_count": 12,
+      "entry_type": "",
+      "integrations": [
+        "lg_thinq"
+      ],
+      "manufacturer": "LGE",
+      "model": "BDVG_FX0003_US (DEVICE_DRYER)",
+      "name": "Dryer",
+      "network_count": 0,
+      "other_count": 0,
+      "telemetry_count": 10
     },
     {
       "area": "",
@@ -521,7 +584,6 @@
         "binary_sensor.g6_instant_motion_2",
         "button.g6_instant_restart_2",
         "button.g6_instant_unadopt_device_2",
-        "camera.front_yard_high_resolution_channel_insecure",
         "camera.g6_instant_high_resolution_channel_2",
         "device_tracker.uvc_g6_instant_2",
         "event.back_yard_vehicle",
@@ -566,7 +628,7 @@
         "switch.g6_instant_overlay_show_nerd_mode_2",
         "switch.g6_instant_ssh_enabled_2"
       ],
-      "entity_count": 62,
+      "entity_count": 61,
       "entry_type": "",
       "integrations": [
         "unifi",
@@ -577,7 +639,7 @@
       "name": "Front Yard",
       "network_count": 1,
       "other_count": 0,
-      "telemetry_count": 28
+      "telemetry_count": 27
     },
     {
       "area": "",
@@ -594,6 +656,33 @@
       "network_count": 0,
       "other_count": 0,
       "telemetry_count": 0
+    },
+    {
+      "area": "",
+      "control_count": 3,
+      "device_id": "device_e1d90524caea",
+      "disabled_by": "",
+      "entities": [
+        "binary_sensor.zone_1_watering",
+        "sensor.zone_1_daily_active_water_use",
+        "sensor.zone_1_daily_active_watering_time",
+        "sensor.zone_1_next_cycle",
+        "sensor.zone_1_remaining_watering_time",
+        "switch.zone_1_automatic_watering",
+        "switch.zone_1_manual_watering",
+        "valve.zone_1"
+      ],
+      "entity_count": 8,
+      "entry_type": "",
+      "integrations": [
+        "hydrawise"
+      ],
+      "manufacturer": "Hydrawise",
+      "model": "Zone",
+      "name": "Front door (incl. planters) ",
+      "network_count": 0,
+      "other_count": 0,
+      "telemetry_count": 5
     },
     {
       "area": "",
@@ -641,7 +730,6 @@
         "button.g6_instant_restart_3",
         "button.g6_instant_unadopt_device_3",
         "camera.g6_instant_high_resolution_channel_3",
-        "camera.garage_high_resolution_channel_insecure",
         "device_tracker.uvc_g6_instant_3",
         "event.garage_vehicle",
         "media_player.garage_speaker",
@@ -684,7 +772,7 @@
         "switch.garage_system_sounds",
         "switch.garage_vehicle_detection"
       ],
-      "entity_count": 61,
+      "entity_count": 60,
       "entry_type": "",
       "integrations": [
         "unifi",
@@ -695,7 +783,7 @@
       "name": "Garage",
       "network_count": 1,
       "other_count": 0,
-      "telemetry_count": 27
+      "telemetry_count": 26
     },
     {
       "area": "",
@@ -932,7 +1020,7 @@
       "integrations": [],
       "manufacturer": "Home Assistant",
       "model": "Camera",
-      "name": "Live view:21075",
+      "name": "Live view:21075 (Back Stairs Live view)",
       "network_count": 0,
       "other_count": 0,
       "telemetry_count": 0
@@ -957,6 +1045,33 @@
       "network_count": 1,
       "other_count": 0,
       "telemetry_count": 1
+    },
+    {
+      "area": "",
+      "control_count": 3,
+      "device_id": "device_6d0dbc34e5b5",
+      "disabled_by": "",
+      "entities": [
+        "binary_sensor.zone_25_watering",
+        "sensor.zone_25_daily_active_water_use",
+        "sensor.zone_25_daily_active_watering_time",
+        "sensor.zone_25_next_cycle",
+        "sensor.zone_25_remaining_watering_time",
+        "switch.zone_25_automatic_watering",
+        "switch.zone_25_manual_watering",
+        "valve.zone_25"
+      ],
+      "entity_count": 8,
+      "entry_type": "",
+      "integrations": [
+        "hydrawise"
+      ],
+      "manufacturer": "Hydrawise",
+      "model": "Zone",
+      "name": "Lower driveway",
+      "network_count": 0,
+      "other_count": 0,
+      "telemetry_count": 5
     },
     {
       "area": "",
@@ -1065,7 +1180,7 @@
     },
     {
       "area": "",
-      "control_count": 8,
+      "control_count": 10,
       "device_id": "device_6c8f6c6004b2",
       "disabled_by": "",
       "entities": [
@@ -1078,12 +1193,14 @@
         "number.unnamed_room_treble_10",
         "sensor.unnamed_room_battery",
         "sensor.unnamed_room_power_source",
+        "switch.move_2_a_tv_autoplay",
+        "switch.move_2_a_ungroup_on_autoplay",
         "switch.unnamed_room_crossfade_10",
         "switch.unnamed_room_loudness_10",
         "switch.unnamed_room_status_light_10",
         "switch.unnamed_room_touch_controls_10"
       ],
-      "entity_count": 13,
+      "entity_count": 15,
       "entry_type": "",
       "integrations": [
         "sonos",
@@ -1098,7 +1215,7 @@
     },
     {
       "area": "",
-      "control_count": 8,
+      "control_count": 10,
       "device_id": "device_df59d635d00f",
       "disabled_by": "",
       "entities": [
@@ -1111,12 +1228,14 @@
         "number.unnamed_room_treble_11",
         "sensor.unnamed_room_battery_2",
         "sensor.unnamed_room_power_source_2",
+        "switch.move_2_b_tv_autoplay",
+        "switch.move_2_b_ungroup_on_autoplay",
         "switch.unnamed_room_crossfade_11",
         "switch.unnamed_room_loudness_11",
         "switch.unnamed_room_status_light_11",
         "switch.unnamed_room_touch_controls_11"
       ],
-      "entity_count": 13,
+      "entity_count": 15,
       "entry_type": "",
       "integrations": [
         "sonos",
@@ -1184,7 +1303,61 @@
     },
     {
       "area": "",
-      "control_count": 18,
+      "control_count": 3,
+      "device_id": "device_13f58e5b13b0",
+      "disabled_by": "",
+      "entities": [
+        "binary_sensor.zone_20_watering",
+        "sensor.zone_20_daily_active_water_use",
+        "sensor.zone_20_daily_active_watering_time",
+        "sensor.zone_20_next_cycle",
+        "sensor.zone_20_remaining_watering_time",
+        "switch.zone_20_automatic_watering",
+        "switch.zone_20_manual_watering",
+        "valve.zone_20"
+      ],
+      "entity_count": 8,
+      "entry_type": "",
+      "integrations": [
+        "hydrawise"
+      ],
+      "manufacturer": "Hydrawise",
+      "model": "Zone",
+      "name": "North back lawn",
+      "network_count": 0,
+      "other_count": 0,
+      "telemetry_count": 5
+    },
+    {
+      "area": "",
+      "control_count": 3,
+      "device_id": "device_ce5c58ea2265",
+      "disabled_by": "",
+      "entities": [
+        "binary_sensor.zone_21_watering",
+        "sensor.zone_21_daily_active_water_use",
+        "sensor.zone_21_daily_active_watering_time",
+        "sensor.zone_21_next_cycle",
+        "sensor.zone_21_remaining_watering_time",
+        "switch.zone_21_automatic_watering",
+        "switch.zone_21_manual_watering",
+        "valve.zone_21"
+      ],
+      "entity_count": 8,
+      "entry_type": "",
+      "integrations": [
+        "hydrawise"
+      ],
+      "manufacturer": "Hydrawise",
+      "model": "Zone",
+      "name": "North back lawn lower",
+      "network_count": 0,
+      "other_count": 0,
+      "telemetry_count": 5
+    },
+    {
+      "area": "",
+      "control_count": 20,
       "device_id": "device_cc546a11400c",
       "disabled_by": "",
       "entities": [
@@ -1202,6 +1375,8 @@
         "sensor.link_speed_4",
         "sensor.unnamed_room_audio_input_format_2",
         "switch.office_subwoofer_enabled_2",
+        "switch.office_tv_autoplay",
+        "switch.office_ungroup_on_autoplay",
         "switch.unnamed_room_crossfade_7",
         "switch.unnamed_room_loudness_7",
         "switch.unnamed_room_night_sound_2",
@@ -1211,7 +1386,7 @@
         "switch.unnamed_room_surround_music_full_volume_2",
         "switch.unnamed_room_touch_controls_7"
       ],
-      "entity_count": 22,
+      "entity_count": 24,
       "entry_type": "",
       "integrations": [
         "sonos",
@@ -1306,6 +1481,33 @@
     },
     {
       "area": "",
+      "control_count": 3,
+      "device_id": "device_82355cba4b2a",
+      "disabled_by": "",
+      "entities": [
+        "binary_sensor.zone_26_watering",
+        "sensor.zone_26_daily_active_water_use",
+        "sensor.zone_26_daily_active_watering_time",
+        "sensor.zone_26_next_cycle",
+        "sensor.zone_26_remaining_watering_time",
+        "switch.zone_26_automatic_watering",
+        "switch.zone_26_manual_watering",
+        "valve.zone_26"
+      ],
+      "entity_count": 8,
+      "entry_type": "",
+      "integrations": [
+        "hydrawise"
+      ],
+      "manufacturer": "Hydrawise",
+      "model": "Zone",
+      "name": "Peonies garden",
+      "network_count": 0,
+      "other_count": 0,
+      "telemetry_count": 5
+    },
+    {
+      "area": "",
       "control_count": 33,
       "device_id": "device_5a7bbc9548a4",
       "disabled_by": "",
@@ -1329,7 +1531,6 @@
         "button.g6_instant_restart",
         "button.g6_instant_unadopt_device",
         "camera.g6_instant_high_resolution_channel",
-        "camera.play_room_high_resolution_channel_insecure",
         "device_tracker.uvc_g6_instant",
         "event.play_room_vehicle",
         "media_player.play_room_speaker",
@@ -1372,7 +1573,7 @@
         "switch.play_room_system_sounds",
         "switch.play_room_vehicle_detection"
       ],
-      "entity_count": 61,
+      "entity_count": 60,
       "entry_type": "",
       "integrations": [
         "unifi",
@@ -1383,7 +1584,7 @@
       "name": "Play Room",
       "network_count": 1,
       "other_count": 0,
-      "telemetry_count": 27
+      "telemetry_count": 26
     },
     {
       "area": "",
@@ -1479,10 +1680,9 @@
         "sensor.sun_next_rising",
         "sensor.sun_next_setting",
         "sensor.sun_solar_azimuth",
-        "sensor.sun_solar_elevation",
-        "sensor.sun_solar_rising"
+        "sensor.sun_solar_elevation"
       ],
-      "entity_count": 10,
+      "entity_count": 9,
       "entry_type": "service",
       "integrations": [
         "sun"
@@ -1492,7 +1692,7 @@
       "name": "Sun",
       "network_count": 0,
       "other_count": 0,
-      "telemetry_count": 10
+      "telemetry_count": 9
     },
     {
       "area": "",
@@ -1500,7 +1700,9 @@
       "device_id": "device_784e00b00a1e",
       "disabled_by": "",
       "entities": [
+        "binary_sensor.tk_iphone_16_pro_kiosk_mode",
         "device_tracker.tk_iphone_16_pro",
+        "notify.tk_iphone_16_pro",
         "sensor.tk_iphone_16_pro_app_version",
         "sensor.tk_iphone_16_pro_audio_output",
         "sensor.tk_iphone_16_pro_battery_level",
@@ -1508,6 +1710,8 @@
         "sensor.tk_iphone_16_pro_bssid",
         "sensor.tk_iphone_16_pro_connection_type",
         "sensor.tk_iphone_16_pro_geocoded_location",
+        "sensor.tk_iphone_16_pro_kiosk_brightness",
+        "sensor.tk_iphone_16_pro_kiosk_volume",
         "sensor.tk_iphone_16_pro_last_update_trigger",
         "sensor.tk_iphone_16_pro_location_permission",
         "sensor.tk_iphone_16_pro_sim_1",
@@ -1515,7 +1719,7 @@
         "sensor.tk_iphone_16_pro_ssid",
         "sensor.tk_iphone_16_pro_storage"
       ],
-      "entity_count": 14,
+      "entity_count": 18,
       "entry_type": "",
       "integrations": [
         "mobile_app"
@@ -1524,8 +1728,8 @@
       "model": "iPhone17,1",
       "name": "TK iPhone 16 Pro",
       "network_count": 0,
-      "other_count": 0,
-      "telemetry_count": 14
+      "other_count": 1,
+      "telemetry_count": 17
     },
     {
       "area": "",
@@ -1745,6 +1949,31 @@
     },
     {
       "area": "",
+      "control_count": 1,
+      "device_id": "device_30fd0bafd7fa",
+      "disabled_by": "",
+      "entities": [
+        "button.usw_lite_8_poe_restart",
+        "device_tracker.usw_lite_8_poe",
+        "sensor.usw_lite_8_poe_clients",
+        "sensor.usw_lite_8_poe_state",
+        "sensor.usw_lite_8_poe_uptime",
+        "update.usw_lite_8_poe_firmware"
+      ],
+      "entity_count": 6,
+      "entry_type": "",
+      "integrations": [
+        "unifi"
+      ],
+      "manufacturer": "Ubiquiti Networks",
+      "model": "USL8LPB",
+      "name": "USW-Lite-8-PoE",
+      "network_count": 1,
+      "other_count": 0,
+      "telemetry_count": 4
+    },
+    {
+      "area": "",
       "control_count": 0,
       "device_id": "device_bfecdd68ffca",
       "disabled_by": "",
@@ -1793,6 +2022,33 @@
     {
       "area": "",
       "control_count": 3,
+      "device_id": "device_03c18f9acef1",
+      "disabled_by": "",
+      "entities": [
+        "binary_sensor.zone_19_watering",
+        "sensor.zone_19_daily_active_water_use",
+        "sensor.zone_19_daily_active_watering_time",
+        "sensor.zone_19_next_cycle",
+        "sensor.zone_19_remaining_watering_time",
+        "switch.zone_19_automatic_watering",
+        "switch.zone_19_manual_watering",
+        "valve.zone_19"
+      ],
+      "entity_count": 8,
+      "entry_type": "",
+      "integrations": [
+        "hydrawise"
+      ],
+      "manufacturer": "Hydrawise",
+      "model": "Zone",
+      "name": "Upper back lawn",
+      "network_count": 0,
+      "other_count": 0,
+      "telemetry_count": 5
+    },
+    {
+      "area": "",
+      "control_count": 3,
       "device_id": "device_706e4c03d904",
       "disabled_by": "",
       "entities": [
@@ -1812,7 +2068,7 @@
       ],
       "manufacturer": "Hydrawise",
       "model": "Zone",
-      "name": "Vegetable Garden",
+      "name": "Vegetable garden",
       "network_count": 0,
       "other_count": 0,
       "telemetry_count": 5
@@ -1853,33 +2109,6 @@
       "network_count": 0,
       "other_count": 0,
       "telemetry_count": 0
-    },
-    {
-      "area": "",
-      "control_count": 3,
-      "device_id": "device_e1d90524caea",
-      "disabled_by": "",
-      "entities": [
-        "binary_sensor.zone_1_watering",
-        "sensor.zone_1_daily_active_water_use",
-        "sensor.zone_1_daily_active_watering_time",
-        "sensor.zone_1_next_cycle",
-        "sensor.zone_1_remaining_watering_time",
-        "switch.zone_1_automatic_watering",
-        "switch.zone_1_manual_watering",
-        "valve.zone_1"
-      ],
-      "entity_count": 8,
-      "entry_type": "",
-      "integrations": [
-        "hydrawise"
-      ],
-      "manufacturer": "Hydrawise",
-      "model": "Zone",
-      "name": "Zone 1",
-      "network_count": 0,
-      "other_count": 0,
-      "telemetry_count": 5
     },
     {
       "area": "",
@@ -2127,33 +2356,6 @@
     {
       "area": "",
       "control_count": 3,
-      "device_id": "device_03c18f9acef1",
-      "disabled_by": "",
-      "entities": [
-        "binary_sensor.zone_19_watering",
-        "sensor.zone_19_daily_active_water_use",
-        "sensor.zone_19_daily_active_watering_time",
-        "sensor.zone_19_next_cycle",
-        "sensor.zone_19_remaining_watering_time",
-        "switch.zone_19_automatic_watering",
-        "switch.zone_19_manual_watering",
-        "valve.zone_19"
-      ],
-      "entity_count": 8,
-      "entry_type": "",
-      "integrations": [
-        "hydrawise"
-      ],
-      "manufacturer": "Hydrawise",
-      "model": "Zone",
-      "name": "Zone 19",
-      "network_count": 0,
-      "other_count": 0,
-      "telemetry_count": 5
-    },
-    {
-      "area": "",
-      "control_count": 3,
       "device_id": "device_c59f911b797b",
       "disabled_by": "",
       "entities": [
@@ -2181,60 +2383,6 @@
     {
       "area": "",
       "control_count": 3,
-      "device_id": "device_13f58e5b13b0",
-      "disabled_by": "",
-      "entities": [
-        "binary_sensor.zone_20_watering",
-        "sensor.zone_20_daily_active_water_use",
-        "sensor.zone_20_daily_active_watering_time",
-        "sensor.zone_20_next_cycle",
-        "sensor.zone_20_remaining_watering_time",
-        "switch.zone_20_automatic_watering",
-        "switch.zone_20_manual_watering",
-        "valve.zone_20"
-      ],
-      "entity_count": 8,
-      "entry_type": "",
-      "integrations": [
-        "hydrawise"
-      ],
-      "manufacturer": "Hydrawise",
-      "model": "Zone",
-      "name": "Zone 20",
-      "network_count": 0,
-      "other_count": 0,
-      "telemetry_count": 5
-    },
-    {
-      "area": "",
-      "control_count": 3,
-      "device_id": "device_ce5c58ea2265",
-      "disabled_by": "",
-      "entities": [
-        "binary_sensor.zone_21_watering",
-        "sensor.zone_21_daily_active_water_use",
-        "sensor.zone_21_daily_active_watering_time",
-        "sensor.zone_21_next_cycle",
-        "sensor.zone_21_remaining_watering_time",
-        "switch.zone_21_automatic_watering",
-        "switch.zone_21_manual_watering",
-        "valve.zone_21"
-      ],
-      "entity_count": 8,
-      "entry_type": "",
-      "integrations": [
-        "hydrawise"
-      ],
-      "manufacturer": "Hydrawise",
-      "model": "Zone",
-      "name": "Zone 21",
-      "network_count": 0,
-      "other_count": 0,
-      "telemetry_count": 5
-    },
-    {
-      "area": "",
-      "control_count": 3,
       "device_id": "device_a028e08b08a4",
       "disabled_by": "",
       "entities": [
@@ -2255,87 +2403,6 @@
       "manufacturer": "Hydrawise",
       "model": "Zone",
       "name": "Zone 22",
-      "network_count": 0,
-      "other_count": 0,
-      "telemetry_count": 5
-    },
-    {
-      "area": "",
-      "control_count": 3,
-      "device_id": "device_1ddfd13c29d4",
-      "disabled_by": "",
-      "entities": [
-        "binary_sensor.zone_24_watering",
-        "sensor.zone_24_daily_active_water_use",
-        "sensor.zone_24_daily_active_watering_time",
-        "sensor.zone_24_next_cycle",
-        "sensor.zone_24_remaining_watering_time",
-        "switch.zone_24_automatic_watering",
-        "switch.zone_24_manual_watering",
-        "valve.zone_24"
-      ],
-      "entity_count": 8,
-      "entry_type": "",
-      "integrations": [
-        "hydrawise"
-      ],
-      "manufacturer": "Hydrawise",
-      "model": "Zone",
-      "name": "Zone 24",
-      "network_count": 0,
-      "other_count": 0,
-      "telemetry_count": 5
-    },
-    {
-      "area": "",
-      "control_count": 3,
-      "device_id": "device_6d0dbc34e5b5",
-      "disabled_by": "",
-      "entities": [
-        "binary_sensor.zone_25_watering",
-        "sensor.zone_25_daily_active_water_use",
-        "sensor.zone_25_daily_active_watering_time",
-        "sensor.zone_25_next_cycle",
-        "sensor.zone_25_remaining_watering_time",
-        "switch.zone_25_automatic_watering",
-        "switch.zone_25_manual_watering",
-        "valve.zone_25"
-      ],
-      "entity_count": 8,
-      "entry_type": "",
-      "integrations": [
-        "hydrawise"
-      ],
-      "manufacturer": "Hydrawise",
-      "model": "Zone",
-      "name": "Zone 25",
-      "network_count": 0,
-      "other_count": 0,
-      "telemetry_count": 5
-    },
-    {
-      "area": "",
-      "control_count": 3,
-      "device_id": "device_82355cba4b2a",
-      "disabled_by": "",
-      "entities": [
-        "binary_sensor.zone_26_watering",
-        "sensor.zone_26_daily_active_water_use",
-        "sensor.zone_26_daily_active_watering_time",
-        "sensor.zone_26_next_cycle",
-        "sensor.zone_26_remaining_watering_time",
-        "switch.zone_26_automatic_watering",
-        "switch.zone_26_manual_watering",
-        "valve.zone_26"
-      ],
-      "entity_count": 8,
-      "entry_type": "",
-      "integrations": [
-        "hydrawise"
-      ],
-      "manufacturer": "Hydrawise",
-      "model": "Zone",
-      "name": "Zone 26",
       "network_count": 0,
       "other_count": 0,
       "telemetry_count": 5
@@ -3018,6 +3085,27 @@
     {
       "area": "",
       "control_count": 0,
+      "device_id": "device_918a3c2d3306",
+      "disabled_by": "",
+      "entities": [
+        "device_tracker.unifi_default_mac_5d06587a36b2",
+        "sensor.link_speed_30"
+      ],
+      "entity_count": 2,
+      "entry_type": "",
+      "integrations": [
+        "unifi"
+      ],
+      "manufacturer": "",
+      "model": "",
+      "name": "device_918a3c2d3306",
+      "network_count": 1,
+      "other_count": 0,
+      "telemetry_count": 1
+    },
+    {
+      "area": "",
+      "control_count": 0,
       "device_id": "device_a077a8676de8",
       "disabled_by": "",
       "entities": [
@@ -3253,6 +3341,7 @@
       "disabled_by": "",
       "entities": [
         "device_tracker.ipad_2",
+        "notify.ipad",
         "sensor.ipad_app_version",
         "sensor.ipad_audio_output",
         "sensor.ipad_battery_level",
@@ -3265,7 +3354,7 @@
         "sensor.ipad_ssid",
         "sensor.ipad_storage"
       ],
-      "entity_count": 12,
+      "entity_count": 13,
       "entry_type": "",
       "integrations": [
         "mobile_app"
@@ -3274,7 +3363,7 @@
       "model": "iPad13,1",
       "name": "iPad",
       "network_count": 0,
-      "other_count": 0,
+      "other_count": 1,
       "telemetry_count": 12
     },
     {
@@ -3676,7 +3765,7 @@
     },
     {
       "area": "Dining Room",
-      "control_count": 6,
+      "control_count": 7,
       "device_id": "device_fe017352418f",
       "disabled_by": "",
       "entities": [
@@ -3689,9 +3778,10 @@
         "select.dining_room_temperature_display_units",
         "sensor.dining_room_current_humidity",
         "sensor.dining_room_current_temperature",
+        "switch.dining_room_dining_room_thermostat_dining_room_airplay_enable",
         "switch.dining_room_mute"
       ],
-      "entity_count": 10,
+      "entity_count": 11,
       "entry_type": "",
       "friendly_name": "Dining Room Thermostat",
       "integrations": [
@@ -3734,10 +3824,11 @@
     },
     {
       "area": "Electrical Room",
-      "control_count": 12,
+      "control_count": 13,
       "device_id": "device_582d95951335",
       "disabled_by": "",
       "entities": [
+        "alarm_control_panel.electrical_room_bonticou_gateway_alarm_manager",
         "binary_sensor.bonticou_gateway_ssd_1",
         "button.bonticou_gateway_port_4_power_cycle",
         "button.bonticou_gateway_restart",
@@ -3787,14 +3878,14 @@
         "switch.bonticou_gateway_sfp_2",
         "update.bonticou_gateway"
       ],
-      "entity_count": 48,
+      "entity_count": 49,
       "entry_type": "",
       "integrations": [
         "unifi",
         "unifiprotect"
       ],
-      "manufacturer": "Ubiquiti",
-      "model": "UCG Fiber",
+      "manufacturer": "Ubiquiti Networks",
+      "model": "UDMA6A8",
       "name": "Bonticou Gateway",
       "network_count": 1,
       "other_count": 0,
@@ -4010,7 +4101,7 @@
     },
     {
       "area": "Family Room",
-      "control_count": 18,
+      "control_count": 20,
       "device_id": "device_dc0447a8354b",
       "disabled_by": "",
       "entities": [
@@ -4027,6 +4118,8 @@
         "select.family_room_speech_enhancement",
         "sensor.family_room_audio_input_format",
         "switch.family_room_crossfade",
+        "switch.family_room_family_room_tv_autoplay",
+        "switch.family_room_family_room_ungroup_on_autoplay",
         "switch.family_room_loudness",
         "switch.family_room_night_sound",
         "switch.family_room_speech_enhancement",
@@ -4036,7 +4129,7 @@
         "switch.family_room_surround_music_full_volume",
         "switch.family_room_touch_controls"
       ],
-      "entity_count": 21,
+      "entity_count": 23,
       "entry_type": "",
       "integrations": [
         "sonos",
@@ -4219,7 +4312,7 @@
       ],
       "manufacturer": "TP-Link",
       "model": "EP25",
-      "name": "Uplight",
+      "name": "Uplight 1",
       "network_count": 1,
       "other_count": 0,
       "telemetry_count": 15
@@ -4230,10 +4323,11 @@
       "device_id": "device_f5a5522ed109",
       "disabled_by": "",
       "entities": [
+        "binary_sensor.family_room_tv_family_room_tv_keyboard_focus",
         "media_player.family_room_tv_2",
         "remote.family_room_tv"
       ],
-      "entity_count": 2,
+      "entity_count": 3,
       "entry_type": "",
       "integrations": [
         "apple_tv"
@@ -4243,7 +4337,7 @@
       "name": "Family Room TV",
       "network_count": 0,
       "other_count": 0,
-      "telemetry_count": 0
+      "telemetry_count": 1
     },
     {
       "area": "Front Door",
@@ -4359,7 +4453,6 @@
         "button.wynn_s_room_restart",
         "button.wynn_s_room_unadopt_device",
         "camera.wynn_s_room_high_resolution_channel",
-        "camera.wynn_s_room_high_resolution_channel_insecure",
         "device_tracker.wynns_room",
         "event.wynn_s_room_vehicle",
         "media_player.wynn_s_room_speaker",
@@ -4401,7 +4494,7 @@
         "switch.wynn_s_room_system_sounds",
         "switch.wynn_s_room_vehicle_detection"
       ],
-      "entity_count": 60,
+      "entity_count": 59,
       "entry_type": "",
       "integrations": [
         "unifi",
@@ -4412,7 +4505,7 @@
       "name": "Wynn's Room",
       "network_count": 1,
       "other_count": 0,
-      "telemetry_count": 27
+      "telemetry_count": 26
     },
     {
       "area": "Garage",
@@ -4491,7 +4584,7 @@
     },
     {
       "area": "Great Room Speakers",
-      "control_count": 8,
+      "control_count": 10,
       "device_id": "device_96c096ed4a91",
       "disabled_by": "",
       "entities": [
@@ -4502,11 +4595,13 @@
         "number.great_room_speakers_bass",
         "number.great_room_speakers_treble",
         "switch.great_room_speakers_crossfade",
+        "switch.great_room_speakers_great_room_sonos_tv_autoplay",
+        "switch.great_room_speakers_great_room_sonos_ungroup_on_autoplay",
         "switch.great_room_speakers_loudness",
         "switch.great_room_speakers_status_light",
         "switch.great_room_speakers_touch_controls"
       ],
-      "entity_count": 10,
+      "entity_count": 12,
       "entry_type": "",
       "integrations": [
         "sonos",
@@ -4732,7 +4827,7 @@
     },
     {
       "area": "Kitchen Speakers",
-      "control_count": 8,
+      "control_count": 10,
       "device_id": "device_df07ddeb668b",
       "disabled_by": "",
       "entities": [
@@ -4743,11 +4838,13 @@
         "number.kitchen_speakers_bass",
         "number.kitchen_speakers_treble",
         "switch.kitchen_speakers_crossfade",
+        "switch.kitchen_speakers_kitchen_sonos_tv_autoplay",
+        "switch.kitchen_speakers_kitchen_sonos_ungroup_on_autoplay",
         "switch.kitchen_speakers_loudness",
         "switch.kitchen_speakers_status_light",
         "switch.kitchen_speakers_touch_controls"
       ],
-      "entity_count": 10,
+      "entity_count": 12,
       "entry_type": "",
       "integrations": [
         "sonos",
@@ -4831,7 +4928,7 @@
     },
     {
       "area": "Master",
-      "control_count": 6,
+      "control_count": 7,
       "device_id": "device_22d9acd7ac2f",
       "disabled_by": "",
       "entities": [
@@ -4844,9 +4941,10 @@
         "select.master_temperature_display_units_2",
         "sensor.master_current_humidity_2",
         "sensor.master_current_temperature_2",
+        "switch.master_master_thermostat_master_airplay_enable",
         "switch.master_mute_2"
       ],
-      "entity_count": 10,
+      "entity_count": 11,
       "entry_type": "",
       "friendly_name": "Master Thermostat",
       "integrations": [
@@ -5054,7 +5152,6 @@
         "button.mechanical_room_restart",
         "button.mechanical_room_unadopt_device",
         "camera.mechanical_room_high_resolution_channel",
-        "camera.mechanical_room_high_resolution_channel_insecure",
         "device_tracker.mechanical_room",
         "event.mechanical_room_vehicle",
         "media_player.mechanical_room_speaker",
@@ -5096,7 +5193,7 @@
         "switch.mechanical_room_system_sounds",
         "switch.mechanical_room_vehicle_detection"
       ],
-      "entity_count": 60,
+      "entity_count": 59,
       "entry_type": "",
       "integrations": [
         "unifi",
@@ -5107,7 +5204,7 @@
       "name": "Mechanical room",
       "network_count": 1,
       "other_count": 0,
-      "telemetry_count": 27
+      "telemetry_count": 26
     },
     {
       "area": "Mudroom",
@@ -5190,7 +5287,6 @@
         "button.mud_room_restart",
         "button.mud_room_unadopt_device",
         "camera.mud_room_high_resolution_channel",
-        "camera.mud_room_high_resolution_channel_insecure",
         "device_tracker.mud_room",
         "event.mud_room_vehicle",
         "media_player.mud_room_speaker",
@@ -5232,7 +5328,7 @@
         "switch.mud_room_system_sounds",
         "switch.mud_room_vehicle_detection"
       ],
-      "entity_count": 60,
+      "entity_count": 59,
       "entry_type": "",
       "integrations": [
         "unifi",
@@ -5243,7 +5339,7 @@
       "name": "Mud room",
       "network_count": 1,
       "other_count": 0,
-      "telemetry_count": 27
+      "telemetry_count": 26
     },
     {
       "area": "Mudroom",
@@ -5353,6 +5449,7 @@
         "event.washer_notification",
         "number.washer_delayed_start",
         "select.washer_operation",
+        "sensor.mudroom_washer_energy_today",
         "sensor.washer_current_status",
         "sensor.washer_cycles",
         "sensor.washer_delayed_start",
@@ -5363,7 +5460,7 @@
         "sensor.washer_total_time",
         "switch.washer_power"
       ],
-      "entity_count": 14,
+      "entity_count": 15,
       "entry_type": "",
       "integrations": [
         "lg_thinq"
@@ -5373,7 +5470,7 @@
       "name": "Washer",
       "network_count": 0,
       "other_count": 0,
-      "telemetry_count": 11
+      "telemetry_count": 12
     },
     {
       "area": "Mudroom",
@@ -5439,10 +5536,11 @@
       "device_id": "device_a76f54877bef",
       "disabled_by": "",
       "entities": [
+        "binary_sensor.office_office_tv_keyboard_focus",
         "media_player.office_tv",
         "remote.office_tv"
       ],
-      "entity_count": 2,
+      "entity_count": 3,
       "entry_type": "",
       "integrations": [
         "apple_tv"
@@ -5452,7 +5550,7 @@
       "name": "Office TV",
       "network_count": 0,
       "other_count": 0,
-      "telemetry_count": 0
+      "telemetry_count": 1
     },
     {
       "area": "Office",
@@ -5506,7 +5604,40 @@
     },
     {
       "area": "Unnamed Room",
-      "control_count": 17,
+      "control_count": 12,
+      "device_id": "device_73cd04bd08c1",
+      "disabled_by": "",
+      "entities": [
+        "device_tracker.sonoszp_14",
+        "media_player.unnamed_room_master",
+        "number.unnamed_room_balance_2",
+        "number.unnamed_room_bass_2",
+        "number.unnamed_room_master_sub_gain",
+        "number.unnamed_room_treble_2",
+        "switch.unnamed_room_crossfade_2",
+        "switch.unnamed_room_loudness_2",
+        "switch.unnamed_room_master_subwoofer_enabled",
+        "switch.unnamed_room_master_tv_autoplay",
+        "switch.unnamed_room_master_ungroup_on_autoplay",
+        "switch.unnamed_room_status_light_2",
+        "switch.unnamed_room_touch_controls_2"
+      ],
+      "entity_count": 13,
+      "entry_type": "",
+      "integrations": [
+        "sonos",
+        "unifi"
+      ],
+      "manufacturer": "Sonos",
+      "model": "One SL",
+      "name": "Master",
+      "network_count": 1,
+      "other_count": 0,
+      "telemetry_count": 0
+    },
+    {
+      "area": "Unnamed Room",
+      "control_count": 19,
       "device_id": "device_f1a2af0f711a",
       "disabled_by": "",
       "entities": [
@@ -5524,6 +5655,8 @@
         "switch.master_sonos_subwoofer_enabled",
         "switch.unnamed_room_crossfade",
         "switch.unnamed_room_loudness",
+        "switch.unnamed_room_master_sonos_tv_autoplay",
+        "switch.unnamed_room_master_sonos_ungroup_on_autoplay",
         "switch.unnamed_room_night_sound",
         "switch.unnamed_room_speech_enhancement",
         "switch.unnamed_room_status_light",
@@ -5531,7 +5664,7 @@
         "switch.unnamed_room_surround_music_full_volume",
         "switch.unnamed_room_touch_controls"
       ],
-      "entity_count": 20,
+      "entity_count": 22,
       "entry_type": "",
       "integrations": [
         "sonos",
@@ -5584,6 +5717,70 @@
       "network_count": 1,
       "other_count": 0,
       "telemetry_count": 2
+    },
+    {
+      "area": "Unnamed Room",
+      "control_count": 10,
+      "device_id": "device_ae01660c3a5f",
+      "disabled_by": "",
+      "entities": [
+        "binary_sensor.unnamed_room_unnamed_room_microphone",
+        "device_tracker.sonoszp_18",
+        "media_player.unnamed_room_unnamed_room",
+        "number.unnamed_room_unnamed_room_balance",
+        "number.unnamed_room_unnamed_room_bass",
+        "number.unnamed_room_unnamed_room_treble",
+        "switch.unnamed_room_unnamed_room_crossfade",
+        "switch.unnamed_room_unnamed_room_loudness",
+        "switch.unnamed_room_unnamed_room_status_light",
+        "switch.unnamed_room_unnamed_room_touch_controls",
+        "switch.unnamed_room_unnamed_room_tv_autoplay",
+        "switch.unnamed_room_unnamed_room_ungroup_on_autoplay"
+      ],
+      "entity_count": 12,
+      "entry_type": "",
+      "integrations": [
+        "sonos",
+        "unifi"
+      ],
+      "manufacturer": "Sonos",
+      "model": "Era 100",
+      "name": "Office 2",
+      "network_count": 1,
+      "other_count": 0,
+      "telemetry_count": 1
+    },
+    {
+      "area": "Unnamed Room",
+      "control_count": 10,
+      "device_id": "device_22d7adde2eb7",
+      "disabled_by": "",
+      "entities": [
+        "binary_sensor.unnamed_room_unnamed_room_microphone_2",
+        "device_tracker.sonoszp_19",
+        "media_player.unnamed_room_unnamed_room_2",
+        "number.unnamed_room_unnamed_room_balance_2",
+        "number.unnamed_room_unnamed_room_bass_2",
+        "number.unnamed_room_unnamed_room_treble_2",
+        "switch.unnamed_room_unnamed_room_crossfade_2",
+        "switch.unnamed_room_unnamed_room_loudness_2",
+        "switch.unnamed_room_unnamed_room_status_light_2",
+        "switch.unnamed_room_unnamed_room_touch_controls_2",
+        "switch.unnamed_room_unnamed_room_tv_autoplay_2",
+        "switch.unnamed_room_unnamed_room_ungroup_on_autoplay_2"
+      ],
+      "entity_count": 12,
+      "entry_type": "",
+      "integrations": [
+        "sonos",
+        "unifi"
+      ],
+      "manufacturer": "Sonos",
+      "model": "Era 100",
+      "name": "Office 3",
+      "network_count": 1,
+      "other_count": 0,
+      "telemetry_count": 1
     },
     {
       "area": "Unnamed Room",
@@ -5672,34 +5869,6 @@
       "telemetry_count": 1
     },
     {
-      "area": "Unnamed Room",
-      "control_count": 7,
-      "device_id": "device_73cd04bd08c1",
-      "disabled_by": "",
-      "entities": [
-        "device_tracker.sonoszp_14",
-        "number.unnamed_room_balance_2",
-        "number.unnamed_room_bass_2",
-        "number.unnamed_room_treble_2",
-        "switch.unnamed_room_crossfade_2",
-        "switch.unnamed_room_loudness_2",
-        "switch.unnamed_room_status_light_2",
-        "switch.unnamed_room_touch_controls_2"
-      ],
-      "entity_count": 8,
-      "entry_type": "",
-      "integrations": [
-        "sonos",
-        "unifi"
-      ],
-      "manufacturer": "Sonos",
-      "model": "One SL",
-      "name": "Unnamed Room",
-      "network_count": 1,
-      "other_count": 0,
-      "telemetry_count": 0
-    },
-    {
       "area": "Upstairs Hallway",
       "control_count": 1,
       "device_id": "device_50d071801b14",
@@ -5767,7 +5936,7 @@
     },
     {
       "area": "Wynn's Room",
-      "control_count": 8,
+      "control_count": 10,
       "device_id": "device_d2716c1c55b9",
       "disabled_by": "",
       "entities": [
@@ -5780,9 +5949,11 @@
         "switch.wynn_s_room_crossfade",
         "switch.wynn_s_room_loudness",
         "switch.wynn_s_room_status_light",
-        "switch.wynn_s_room_touch_controls"
+        "switch.wynn_s_room_touch_controls",
+        "switch.wynn_s_room_wynn_sonos_tv_autoplay",
+        "switch.wynn_s_room_wynn_sonos_ungroup_on_autoplay"
       ],
-      "entity_count": 10,
+      "entity_count": 12,
       "entry_type": "",
       "integrations": [
         "sonos",
@@ -5867,6 +6038,22 @@
       "name": "ai_task.openai_ai_task",
       "platform": "openai_conversation",
       "role": "other",
+      "unit": ""
+    },
+    {
+      "area": "Electrical Room",
+      "availability": "not_enriched",
+      "capability_keys": [],
+      "device_class": "",
+      "device_id": "device_582d95951335",
+      "disabled_by": "",
+      "domain": "alarm_control_panel",
+      "entity_category": "",
+      "entity_id": "alarm_control_panel.electrical_room_bonticou_gateway_alarm_manager",
+      "hidden_by": "",
+      "name": "Alarm Manager",
+      "platform": "unifiprotect",
+      "role": "control",
       "unit": ""
     },
     {
@@ -6936,7 +7123,7 @@
       "entity_category": "",
       "entity_id": "automation.irrigation_hunter_no_flow",
       "hidden_by": "",
-      "name": "Irrigation \u2014 Hunter No Flow",
+      "name": "Irrigation \u2014 Hunter Flow Not Confirmed",
       "platform": "automation",
       "role": "other",
       "unit": ""
@@ -7238,6 +7425,86 @@
       "disabled_by": "",
       "domain": "automation",
       "entity_category": "",
+      "entity_id": "automation.laundry_washer_cycle_complete_notification",
+      "hidden_by": "",
+      "name": "Laundry \u2014 Washer Cycle Complete Notification",
+      "platform": "automation",
+      "role": "other",
+      "unit": ""
+    },
+    {
+      "area": "",
+      "availability": "not_enriched",
+      "capability_keys": [],
+      "device_class": "",
+      "device_id": "",
+      "disabled_by": "",
+      "domain": "automation",
+      "entity_category": "",
+      "entity_id": "automation.laundry_washer_cycle_unhandled_follow_up",
+      "hidden_by": "",
+      "name": "Laundry \u2014 Washer Cycle Unhandled Follow-Up",
+      "platform": "automation",
+      "role": "other",
+      "unit": ""
+    },
+    {
+      "area": "",
+      "availability": "not_enriched",
+      "capability_keys": [],
+      "device_class": "",
+      "device_id": "",
+      "disabled_by": "",
+      "domain": "automation",
+      "entity_category": "",
+      "entity_id": "automation.laundry_washer_error_notification",
+      "hidden_by": "",
+      "name": "Laundry \u2014 Washer Error Notification",
+      "platform": "automation",
+      "role": "other",
+      "unit": ""
+    },
+    {
+      "area": "",
+      "availability": "not_enriched",
+      "capability_keys": [],
+      "device_class": "",
+      "device_id": "",
+      "disabled_by": "",
+      "domain": "automation",
+      "entity_category": "",
+      "entity_id": "automation.laundry_washer_notification_actions",
+      "hidden_by": "",
+      "name": "Laundry \u2014 Washer Notification Actions",
+      "platform": "automation",
+      "role": "other",
+      "unit": ""
+    },
+    {
+      "area": "",
+      "availability": "not_enriched",
+      "capability_keys": [],
+      "device_class": "",
+      "device_id": "",
+      "disabled_by": "",
+      "domain": "automation",
+      "entity_category": "",
+      "entity_id": "automation.laundry_washer_pending_notice_when_trevor_is_home",
+      "hidden_by": "",
+      "name": "Laundry \u2014 Washer Pending Notice When Trevor Is Home",
+      "platform": "automation",
+      "role": "other",
+      "unit": ""
+    },
+    {
+      "area": "",
+      "availability": "not_enriched",
+      "capability_keys": [],
+      "device_class": "",
+      "device_id": "",
+      "disabled_by": "",
+      "domain": "automation",
+      "entity_category": "",
       "entity_id": "automation.lights_casey_s_closet_auto_off",
       "hidden_by": "",
       "name": "Lights \u2014 Casey's Closet Auto-Off",
@@ -7465,6 +7732,22 @@
       "entity_id": "automation.lights_sync_master_bedroom_sconces",
       "hidden_by": "",
       "name": "Lights \u2014 Sync Master Bedroom Sconces",
+      "platform": "automation",
+      "role": "other",
+      "unit": ""
+    },
+    {
+      "area": "",
+      "availability": "not_enriched",
+      "capability_keys": [],
+      "device_class": "",
+      "device_id": "",
+      "disabled_by": "",
+      "domain": "automation",
+      "entity_category": "",
+      "entity_id": "automation.lights_wynn_s_room_daylight_camera_quiet_auto_off",
+      "hidden_by": "",
+      "name": "Lights \u2014 Wynn's Room Daylight Camera Quiet Auto-Off",
       "platform": "automation",
       "role": "other",
       "unit": ""
@@ -9426,6 +9709,22 @@
       "availability": "not_enriched",
       "capability_keys": [],
       "device_class": "",
+      "device_id": "device_8ad0ff69cb92",
+      "disabled_by": "",
+      "domain": "binary_sensor",
+      "entity_category": "",
+      "entity_id": "binary_sensor.dryer_remote_start",
+      "hidden_by": "",
+      "name": "Remote start",
+      "platform": "lg_thinq",
+      "role": "telemetry",
+      "unit": ""
+    },
+    {
+      "area": "",
+      "availability": "not_enriched",
+      "capability_keys": [],
+      "device_class": "",
       "device_id": "",
       "disabled_by": "",
       "domain": "binary_sensor",
@@ -9994,6 +10293,22 @@
       "hidden_by": "",
       "name": "Microphone",
       "platform": "sonos",
+      "role": "telemetry",
+      "unit": ""
+    },
+    {
+      "area": "Family Room TV",
+      "availability": "not_enriched",
+      "capability_keys": [],
+      "device_class": "",
+      "device_id": "device_f5a5522ed109",
+      "disabled_by": "",
+      "domain": "binary_sensor",
+      "entity_category": "",
+      "entity_id": "binary_sensor.family_room_tv_family_room_tv_keyboard_focus",
+      "hidden_by": "",
+      "name": "Keyboard focus",
+      "platform": "apple_tv",
       "role": "telemetry",
       "unit": ""
     },
@@ -11486,6 +11801,22 @@
       "unit": ""
     },
     {
+      "area": "Office",
+      "availability": "not_enriched",
+      "capability_keys": [],
+      "device_class": "",
+      "device_id": "device_a76f54877bef",
+      "disabled_by": "",
+      "domain": "binary_sensor",
+      "entity_category": "",
+      "entity_id": "binary_sensor.office_office_tv_keyboard_focus",
+      "hidden_by": "",
+      "name": "Keyboard focus",
+      "platform": "apple_tv",
+      "role": "telemetry",
+      "unit": ""
+    },
+    {
       "area": "",
       "availability": "not_enriched",
       "capability_keys": [],
@@ -12104,7 +12435,7 @@
       "entity_category": "",
       "entity_id": "binary_sensor.rqn8_motion",
       "hidden_by": "",
-      "name": "Kitchen Motion",
+      "name": "Motion",
       "platform": "homekit_controller",
       "role": "telemetry",
       "unit": ""
@@ -12120,7 +12451,7 @@
       "entity_category": "",
       "entity_id": "binary_sensor.rqn8_occupancy",
       "hidden_by": "",
-      "name": "Kitchen Occupancy",
+      "name": "Occupancy",
       "platform": "homekit_controller",
       "role": "telemetry",
       "unit": ""
@@ -12402,6 +12733,22 @@
       "availability": "not_enriched",
       "capability_keys": [],
       "device_class": "",
+      "device_id": "device_784e00b00a1e",
+      "disabled_by": "",
+      "domain": "binary_sensor",
+      "entity_category": "",
+      "entity_id": "binary_sensor.tk_iphone_16_pro_kiosk_mode",
+      "hidden_by": "",
+      "name": "Kiosk Mode",
+      "platform": "mobile_app",
+      "role": "telemetry",
+      "unit": ""
+    },
+    {
+      "area": "",
+      "availability": "not_enriched",
+      "capability_keys": [],
+      "device_class": "",
       "device_id": "device_6c8f6c6004b2",
       "disabled_by": "",
       "domain": "binary_sensor",
@@ -12567,6 +12914,38 @@
       "domain": "binary_sensor",
       "entity_category": "diagnostic",
       "entity_id": "binary_sensor.unnamed_room_microphone_9",
+      "hidden_by": "",
+      "name": "Microphone",
+      "platform": "sonos",
+      "role": "telemetry",
+      "unit": ""
+    },
+    {
+      "area": "Unnamed Room",
+      "availability": "not_enriched",
+      "capability_keys": [],
+      "device_class": "",
+      "device_id": "device_ae01660c3a5f",
+      "disabled_by": "",
+      "domain": "binary_sensor",
+      "entity_category": "diagnostic",
+      "entity_id": "binary_sensor.unnamed_room_unnamed_room_microphone",
+      "hidden_by": "",
+      "name": "Microphone",
+      "platform": "sonos",
+      "role": "telemetry",
+      "unit": ""
+    },
+    {
+      "area": "Unnamed Room",
+      "availability": "not_enriched",
+      "capability_keys": [],
+      "device_class": "",
+      "device_id": "device_22d7adde2eb7",
+      "disabled_by": "",
+      "domain": "binary_sensor",
+      "entity_category": "diagnostic",
+      "entity_id": "binary_sensor.unnamed_room_unnamed_room_microphone_2",
       "hidden_by": "",
       "name": "Microphone",
       "platform": "sonos",
@@ -13688,7 +14067,7 @@
       "entity_category": "config",
       "entity_id": "button.bonticou_gateway_port_4_power_cycle",
       "hidden_by": "",
-      "name": "Port 4 Power Cycle",
+      "name": "Port 4 power cycle",
       "platform": "unifi",
       "role": "control",
       "unit": ""
@@ -13720,7 +14099,7 @@
       "entity_category": "config",
       "entity_id": "button.bonticou_guest_regenerate_password",
       "hidden_by": "",
-      "name": "Regenerate Password",
+      "name": "Regenerate password",
       "platform": "unifi",
       "role": "control",
       "unit": ""
@@ -13736,7 +14115,7 @@
       "entity_category": "config",
       "entity_id": "button.bonticou_regenerate_password",
       "hidden_by": "",
-      "name": "Regenerate Password",
+      "name": "Regenerate password",
       "platform": "unifi",
       "role": "control",
       "unit": ""
@@ -13832,7 +14211,7 @@
       "entity_category": "config",
       "entity_id": "button.fios_vhtx3_regenerate_password",
       "hidden_by": "",
-      "name": "Regenerate Password",
+      "name": "Regenerate password",
       "platform": "unifi",
       "role": "control",
       "unit": ""
@@ -14280,7 +14659,7 @@
       "entity_category": "diagnostic",
       "entity_id": "button.rqn8_identify",
       "hidden_by": "",
-      "name": "Kitchen Identify",
+      "name": "Identify",
       "platform": "homekit_controller",
       "role": "control",
       "unit": ""
@@ -14446,6 +14825,22 @@
       "unit": ""
     },
     {
+      "area": "",
+      "availability": "not_enriched",
+      "capability_keys": [],
+      "device_class": "",
+      "device_id": "device_30fd0bafd7fa",
+      "disabled_by": "",
+      "domain": "button",
+      "entity_category": "config",
+      "entity_id": "button.usw_lite_8_poe_restart",
+      "hidden_by": "",
+      "name": "Restart",
+      "platform": "unifi",
+      "role": "control",
+      "unit": ""
+    },
+    {
       "area": "Wynn's Room",
       "availability": "not_enriched",
       "capability_keys": [],
@@ -14543,22 +14938,6 @@
     },
     {
       "area": "",
-      "availability": "disabled",
-      "capability_keys": [],
-      "device_class": "",
-      "device_id": "device_1557543cefbd",
-      "disabled_by": "integration",
-      "domain": "camera",
-      "entity_category": "",
-      "entity_id": "camera.front_yard_high_resolution_channel_insecure",
-      "hidden_by": "",
-      "name": "High resolution channel (insecure)",
-      "platform": "unifiprotect",
-      "role": "telemetry",
-      "unit": ""
-    },
-    {
-      "area": "",
       "availability": "not_enriched",
       "capability_keys": [],
       "device_class": "",
@@ -14606,22 +14985,6 @@
       "unit": ""
     },
     {
-      "area": "",
-      "availability": "disabled",
-      "capability_keys": [],
-      "device_class": "",
-      "device_id": "device_c305c1f8549c",
-      "disabled_by": "integration",
-      "domain": "camera",
-      "entity_category": "",
-      "entity_id": "camera.garage_high_resolution_channel_insecure",
-      "hidden_by": "",
-      "name": "High resolution channel (insecure)",
-      "platform": "unifiprotect",
-      "role": "telemetry",
-      "unit": ""
-    },
-    {
       "area": "Mechanical Room",
       "availability": "not_enriched",
       "capability_keys": [],
@@ -14633,22 +14996,6 @@
       "entity_id": "camera.mechanical_room_high_resolution_channel",
       "hidden_by": "",
       "name": "High resolution channel",
-      "platform": "unifiprotect",
-      "role": "telemetry",
-      "unit": ""
-    },
-    {
-      "area": "Mechanical Room",
-      "availability": "disabled",
-      "capability_keys": [],
-      "device_class": "",
-      "device_id": "device_a21ac907c776",
-      "disabled_by": "integration",
-      "domain": "camera",
-      "entity_category": "",
-      "entity_id": "camera.mechanical_room_high_resolution_channel_insecure",
-      "hidden_by": "",
-      "name": "High resolution channel (insecure)",
       "platform": "unifiprotect",
       "role": "telemetry",
       "unit": ""
@@ -14671,22 +15018,6 @@
     },
     {
       "area": "Mudroom",
-      "availability": "disabled",
-      "capability_keys": [],
-      "device_class": "",
-      "device_id": "device_e5236ec8767c",
-      "disabled_by": "integration",
-      "domain": "camera",
-      "entity_category": "",
-      "entity_id": "camera.mud_room_high_resolution_channel_insecure",
-      "hidden_by": "",
-      "name": "High resolution channel (insecure)",
-      "platform": "unifiprotect",
-      "role": "telemetry",
-      "unit": ""
-    },
-    {
-      "area": "Mudroom",
       "availability": "not_enriched",
       "capability_keys": [],
       "device_class": "",
@@ -14702,22 +15033,6 @@
       "unit": ""
     },
     {
-      "area": "",
-      "availability": "disabled",
-      "capability_keys": [],
-      "device_class": "",
-      "device_id": "device_5a7bbc9548a4",
-      "disabled_by": "integration",
-      "domain": "camera",
-      "entity_category": "",
-      "entity_id": "camera.play_room_high_resolution_channel_insecure",
-      "hidden_by": "",
-      "name": "High resolution channel (insecure)",
-      "platform": "unifiprotect",
-      "role": "telemetry",
-      "unit": ""
-    },
-    {
       "area": "Front Yard",
       "availability": "not_enriched",
       "capability_keys": [],
@@ -14729,22 +15044,6 @@
       "entity_id": "camera.wynn_s_room_high_resolution_channel",
       "hidden_by": "",
       "name": "High resolution channel",
-      "platform": "unifiprotect",
-      "role": "telemetry",
-      "unit": ""
-    },
-    {
-      "area": "Front Yard",
-      "availability": "disabled",
-      "capability_keys": [],
-      "device_class": "",
-      "device_id": "device_ca0387716233",
-      "disabled_by": "integration",
-      "domain": "camera",
-      "entity_category": "",
-      "entity_id": "camera.wynn_s_room_high_resolution_channel_insecure",
-      "hidden_by": "",
-      "name": "High resolution channel (insecure)",
       "platform": "unifiprotect",
       "role": "telemetry",
       "unit": ""
@@ -14985,7 +15284,7 @@
       "entity_category": "diagnostic",
       "entity_id": "device_tracker.brw849e567c91bc",
       "hidden_by": "",
-      "name": "Office Printer",
+      "name": "Printer",
       "platform": "unifi",
       "role": "network",
       "unit": ""
@@ -15048,6 +15347,22 @@
       "domain": "device_tracker",
       "entity_category": "diagnostic",
       "entity_id": "device_tracker.db15_3",
+      "hidden_by": "",
+      "name": "DB15",
+      "platform": "unifi",
+      "role": "network",
+      "unit": ""
+    },
+    {
+      "area": "",
+      "availability": "disabled",
+      "capability_keys": [],
+      "device_class": "",
+      "device_id": "",
+      "disabled_by": "integration",
+      "domain": "device_tracker",
+      "entity_category": "diagnostic",
+      "entity_id": "device_tracker.db15_4",
       "hidden_by": "",
       "name": "DB15",
       "platform": "unifi",
@@ -15353,7 +15668,7 @@
       "entity_category": "diagnostic",
       "entity_id": "device_tracker.ipad_2",
       "hidden_by": "",
-      "name": "iPad",
+      "name": "device_tracker.ipad_2",
       "platform": "mobile_app",
       "role": "telemetry",
       "unit": ""
@@ -15384,6 +15699,38 @@
       "domain": "device_tracker",
       "entity_category": "diagnostic",
       "entity_id": "device_tracker.iphone_10",
+      "hidden_by": "",
+      "name": "iPhone",
+      "platform": "unifi",
+      "role": "network",
+      "unit": ""
+    },
+    {
+      "area": "",
+      "availability": "disabled",
+      "capability_keys": [],
+      "device_class": "",
+      "device_id": "",
+      "disabled_by": "integration",
+      "domain": "device_tracker",
+      "entity_category": "diagnostic",
+      "entity_id": "device_tracker.iphone_11",
+      "hidden_by": "",
+      "name": "iPhone",
+      "platform": "unifi",
+      "role": "network",
+      "unit": ""
+    },
+    {
+      "area": "",
+      "availability": "disabled",
+      "capability_keys": [],
+      "device_class": "",
+      "device_id": "",
+      "disabled_by": "integration",
+      "domain": "device_tracker",
+      "entity_category": "diagnostic",
+      "entity_id": "device_tracker.iphone_12",
       "hidden_by": "",
       "name": "iPhone",
       "platform": "unifi",
@@ -15607,9 +15954,25 @@
       "disabled_by": "integration",
       "domain": "device_tracker",
       "entity_category": "diagnostic",
+      "entity_id": "device_tracker.lg_smart_dryer2_open",
+      "hidden_by": "",
+      "name": "LG_Smart_Dryer2_open",
+      "platform": "unifi",
+      "role": "network",
+      "unit": ""
+    },
+    {
+      "area": "",
+      "availability": "disabled",
+      "capability_keys": [],
+      "device_class": "",
+      "device_id": "",
+      "disabled_by": "integration",
+      "domain": "device_tracker",
+      "entity_category": "diagnostic",
       "entity_id": "device_tracker.lg_smart_laundry2_open",
       "hidden_by": "",
-      "name": "LG_Smart_Laundry2_open",
+      "name": "Washing Machine",
       "platform": "unifi",
       "role": "network",
       "unit": ""
@@ -15641,7 +16004,7 @@
       "entity_category": "diagnostic",
       "entity_id": "device_tracker.living_332",
       "hidden_by": "",
-      "name": "Kitchen",
+      "name": "Apple TV (Kitchen)",
       "platform": "unifi",
       "role": "network",
       "unit": ""
@@ -15673,7 +16036,7 @@
       "entity_category": "diagnostic",
       "entity_id": "device_tracker.mac",
       "hidden_by": "",
-      "name": "Mac",
+      "name": "Trevors-Air",
       "platform": "unifi",
       "role": "network",
       "unit": ""
@@ -15833,7 +16196,7 @@
       "entity_category": "diagnostic",
       "entity_id": "device_tracker.ratgdo32_4536e8",
       "hidden_by": "",
-      "name": "ratgdo32-4536e8",
+      "name": "Garage Door (Lexus)",
       "platform": "unifi",
       "role": "network",
       "unit": ""
@@ -15848,6 +16211,22 @@
       "domain": "device_tracker",
       "entity_category": "diagnostic",
       "entity_id": "device_tracker.samsung",
+      "hidden_by": "",
+      "name": "Samsung",
+      "platform": "unifi",
+      "role": "network",
+      "unit": ""
+    },
+    {
+      "area": "",
+      "availability": "disabled",
+      "capability_keys": [],
+      "device_class": "",
+      "device_id": "",
+      "disabled_by": "integration",
+      "domain": "device_tracker",
+      "entity_category": "diagnostic",
+      "entity_id": "device_tracker.samsung_2",
       "hidden_by": "",
       "name": "Samsung",
       "platform": "unifi",
@@ -16063,6 +16442,38 @@
       "unit": ""
     },
     {
+      "area": "Unnamed Room",
+      "availability": "not_enriched",
+      "capability_keys": [],
+      "device_class": "",
+      "device_id": "device_ae01660c3a5f",
+      "disabled_by": "",
+      "domain": "device_tracker",
+      "entity_category": "diagnostic",
+      "entity_id": "device_tracker.sonoszp_18",
+      "hidden_by": "",
+      "name": "SonosZP",
+      "platform": "unifi",
+      "role": "network",
+      "unit": ""
+    },
+    {
+      "area": "Unnamed Room",
+      "availability": "not_enriched",
+      "capability_keys": [],
+      "device_class": "",
+      "device_id": "device_22d7adde2eb7",
+      "disabled_by": "",
+      "domain": "device_tracker",
+      "entity_category": "diagnostic",
+      "entity_id": "device_tracker.sonoszp_19",
+      "hidden_by": "",
+      "name": "SonosZP",
+      "platform": "unifi",
+      "role": "network",
+      "unit": ""
+    },
+    {
       "area": "",
       "availability": "disabled",
       "capability_keys": [],
@@ -16249,7 +16660,7 @@
       "entity_category": "diagnostic",
       "entity_id": "device_tracker.tk_iphone_16_pro",
       "hidden_by": "",
-      "name": "TK iPhone 16 Pro",
+      "name": "device_tracker.tk_iphone_16_pro",
       "platform": "mobile_app",
       "role": "telemetry",
       "unit": ""
@@ -16346,6 +16757,22 @@
       "entity_id": "device_tracker.unifi_default_mac_0bbc683a0fb6",
       "hidden_by": "",
       "name": "SonosZP",
+      "platform": "unifi",
+      "role": "network",
+      "unit": ""
+    },
+    {
+      "area": "",
+      "availability": "disabled",
+      "capability_keys": [],
+      "device_class": "",
+      "device_id": "",
+      "disabled_by": "integration",
+      "domain": "device_tracker",
+      "entity_category": "diagnostic",
+      "entity_id": "device_tracker.unifi_default_mac_22e3a0baed45",
+      "hidden_by": "",
+      "name": "Mac",
       "platform": "unifi",
       "role": "network",
       "unit": ""
@@ -16467,6 +16894,22 @@
       "availability": "not_enriched",
       "capability_keys": [],
       "device_class": "",
+      "device_id": "device_918a3c2d3306",
+      "disabled_by": "",
+      "domain": "device_tracker",
+      "entity_category": "diagnostic",
+      "entity_id": "device_tracker.unifi_default_mac_5d06587a36b2",
+      "hidden_by": "",
+      "name": "device_tracker.unifi_default_mac_5d06587a36b2",
+      "platform": "unifi",
+      "role": "network",
+      "unit": ""
+    },
+    {
+      "area": "",
+      "availability": "not_enriched",
+      "capability_keys": [],
+      "device_class": "",
       "device_id": "device_3ccbd9acaad8",
       "disabled_by": "",
       "domain": "device_tracker",
@@ -16538,6 +16981,22 @@
       "entity_id": "device_tracker.unifi_default_mac_a38f4e4b84a0",
       "hidden_by": "",
       "name": "iPhone",
+      "platform": "unifi",
+      "role": "network",
+      "unit": ""
+    },
+    {
+      "area": "",
+      "availability": "disabled",
+      "capability_keys": [],
+      "device_class": "",
+      "device_id": "",
+      "disabled_by": "integration",
+      "domain": "device_tracker",
+      "entity_category": "diagnostic",
+      "entity_id": "device_tracker.unifi_default_mac_a9a6ceae63df",
+      "hidden_by": "",
+      "name": "device_tracker.unifi_default_mac_a9a6ceae63df",
       "platform": "unifi",
       "role": "network",
       "unit": ""
@@ -16867,6 +17326,22 @@
       "availability": "not_enriched",
       "capability_keys": [],
       "device_class": "",
+      "device_id": "device_30fd0bafd7fa",
+      "disabled_by": "",
+      "domain": "device_tracker",
+      "entity_category": "diagnostic",
+      "entity_id": "device_tracker.usw_lite_8_poe",
+      "hidden_by": "",
+      "name": "USW-Lite-8-PoE",
+      "platform": "unifi",
+      "role": "network",
+      "unit": ""
+    },
+    {
+      "area": "",
+      "availability": "not_enriched",
+      "capability_keys": [],
+      "device_class": "",
       "device_id": "device_5a7bbc9548a4",
       "disabled_by": "",
       "domain": "device_tracker",
@@ -16952,6 +17427,38 @@
       "domain": "device_tracker",
       "entity_category": "diagnostic",
       "entity_id": "device_tracker.watch",
+      "hidden_by": "",
+      "name": "Watch",
+      "platform": "unifi",
+      "role": "network",
+      "unit": ""
+    },
+    {
+      "area": "",
+      "availability": "disabled",
+      "capability_keys": [],
+      "device_class": "",
+      "device_id": "",
+      "disabled_by": "integration",
+      "domain": "device_tracker",
+      "entity_category": "diagnostic",
+      "entity_id": "device_tracker.watch_10",
+      "hidden_by": "",
+      "name": "Watch",
+      "platform": "unifi",
+      "role": "network",
+      "unit": ""
+    },
+    {
+      "area": "",
+      "availability": "disabled",
+      "capability_keys": [],
+      "device_class": "",
+      "device_id": "",
+      "disabled_by": "integration",
+      "domain": "device_tracker",
+      "entity_category": "diagnostic",
+      "entity_id": "device_tracker.watch_11",
       "hidden_by": "",
       "name": "Watch",
       "platform": "unifi",
@@ -17167,6 +17674,38 @@
       "unit": ""
     },
     {
+      "area": "",
+      "availability": "not_enriched",
+      "capability_keys": [],
+      "device_class": "",
+      "device_id": "device_8ad0ff69cb92",
+      "disabled_by": "",
+      "domain": "event",
+      "entity_category": "",
+      "entity_id": "event.dryer_error",
+      "hidden_by": "",
+      "name": "Error",
+      "platform": "lg_thinq",
+      "role": "telemetry",
+      "unit": ""
+    },
+    {
+      "area": "",
+      "availability": "not_enriched",
+      "capability_keys": [],
+      "device_class": "",
+      "device_id": "device_8ad0ff69cb92",
+      "disabled_by": "",
+      "domain": "event",
+      "entity_category": "",
+      "entity_id": "event.dryer_notification",
+      "hidden_by": "",
+      "name": "Notification",
+      "platform": "lg_thinq",
+      "role": "telemetry",
+      "unit": ""
+    },
+    {
       "area": "Front Door",
       "availability": "not_enriched",
       "capability_keys": [],
@@ -17353,7 +17892,7 @@
       "entity_category": "diagnostic",
       "entity_id": "image.bonticou_guest_qr_code",
       "hidden_by": "",
-      "name": "QR Code",
+      "name": "QR code",
       "platform": "unifi",
       "role": "telemetry",
       "unit": ""
@@ -17369,7 +17908,7 @@
       "entity_category": "diagnostic",
       "entity_id": "image.bonticou_qr_code",
       "hidden_by": "",
-      "name": "QR Code",
+      "name": "QR code",
       "platform": "unifi",
       "role": "telemetry",
       "unit": ""
@@ -17385,7 +17924,7 @@
       "entity_category": "diagnostic",
       "entity_id": "image.fios_vhtx3_qr_code",
       "hidden_by": "",
-      "name": "QR Code",
+      "name": "QR code",
       "platform": "unifi",
       "role": "telemetry",
       "unit": ""
@@ -17927,6 +18466,22 @@
       "disabled_by": "",
       "domain": "input_boolean",
       "entity_category": "",
+      "entity_id": "input_boolean.washer_notifications_enabled",
+      "hidden_by": "",
+      "name": "Washer Notifications Enabled",
+      "platform": "input_boolean",
+      "role": "control",
+      "unit": ""
+    },
+    {
+      "area": "",
+      "availability": "not_enriched",
+      "capability_keys": [],
+      "device_class": "",
+      "device_id": "",
+      "disabled_by": "",
+      "domain": "input_boolean",
+      "entity_category": "",
       "entity_id": "input_boolean.water_flow_alert_active",
       "hidden_by": "",
       "name": "Water Flow Alert Active",
@@ -18058,6 +18613,54 @@
       "entity_id": "input_boolean.wine_cave_rating_plate_reminder_sent",
       "hidden_by": "",
       "name": "Wine Cave Rating Plate Reminder Sent",
+      "platform": "input_boolean",
+      "role": "control",
+      "unit": ""
+    },
+    {
+      "area": "",
+      "availability": "not_enriched",
+      "capability_keys": [],
+      "device_class": "",
+      "device_id": "",
+      "disabled_by": "",
+      "domain": "input_boolean",
+      "entity_category": "",
+      "entity_id": "input_boolean.wine_chart_24h_expanded",
+      "hidden_by": "",
+      "name": "Wine Chart 24h Expanded",
+      "platform": "input_boolean",
+      "role": "control",
+      "unit": ""
+    },
+    {
+      "area": "",
+      "availability": "not_enriched",
+      "capability_keys": [],
+      "device_class": "",
+      "device_id": "",
+      "disabled_by": "",
+      "domain": "input_boolean",
+      "entity_category": "",
+      "entity_id": "input_boolean.wine_chart_30d_expanded",
+      "hidden_by": "",
+      "name": "Wine Chart 30d Expanded",
+      "platform": "input_boolean",
+      "role": "control",
+      "unit": ""
+    },
+    {
+      "area": "",
+      "availability": "not_enriched",
+      "capability_keys": [],
+      "device_class": "",
+      "device_id": "",
+      "disabled_by": "",
+      "domain": "input_boolean",
+      "entity_category": "",
+      "entity_id": "input_boolean.wine_chart_7d_expanded",
+      "hidden_by": "",
+      "name": "Wine Chart 7d Expanded",
       "platform": "input_boolean",
       "role": "control",
       "unit": ""
@@ -19207,6 +19810,118 @@
       "disabled_by": "",
       "domain": "input_datetime",
       "entity_category": "",
+      "entity_id": "input_datetime.washer_last_completed_at",
+      "hidden_by": "",
+      "name": "Washer Last Completed At",
+      "platform": "input_datetime",
+      "role": "control",
+      "unit": ""
+    },
+    {
+      "area": "",
+      "availability": "not_enriched",
+      "capability_keys": [],
+      "device_class": "",
+      "device_id": "",
+      "disabled_by": "",
+      "domain": "input_datetime",
+      "entity_category": "",
+      "entity_id": "input_datetime.washer_last_completion_notified_at",
+      "hidden_by": "",
+      "name": "Washer Last Completion Notified At",
+      "platform": "input_datetime",
+      "role": "control",
+      "unit": ""
+    },
+    {
+      "area": "",
+      "availability": "not_enriched",
+      "capability_keys": [],
+      "device_class": "",
+      "device_id": "",
+      "disabled_by": "",
+      "domain": "input_datetime",
+      "entity_category": "",
+      "entity_id": "input_datetime.washer_last_error_detected_at",
+      "hidden_by": "",
+      "name": "Washer Last Error Detected At",
+      "platform": "input_datetime",
+      "role": "control",
+      "unit": ""
+    },
+    {
+      "area": "",
+      "availability": "not_enriched",
+      "capability_keys": [],
+      "device_class": "",
+      "device_id": "",
+      "disabled_by": "",
+      "domain": "input_datetime",
+      "entity_category": "",
+      "entity_id": "input_datetime.washer_last_error_notified_at",
+      "hidden_by": "",
+      "name": "Washer Last Error Notified At",
+      "platform": "input_datetime",
+      "role": "control",
+      "unit": ""
+    },
+    {
+      "area": "",
+      "availability": "not_enriched",
+      "capability_keys": [],
+      "device_class": "",
+      "device_id": "",
+      "disabled_by": "",
+      "domain": "input_datetime",
+      "entity_category": "",
+      "entity_id": "input_datetime.washer_last_follow_up_at",
+      "hidden_by": "",
+      "name": "Washer Last Follow-Up At",
+      "platform": "input_datetime",
+      "role": "control",
+      "unit": ""
+    },
+    {
+      "area": "",
+      "availability": "not_enriched",
+      "capability_keys": [],
+      "device_class": "",
+      "device_id": "",
+      "disabled_by": "",
+      "domain": "input_datetime",
+      "entity_category": "",
+      "entity_id": "input_datetime.washer_last_handled_at",
+      "hidden_by": "",
+      "name": "Washer Last Handled At",
+      "platform": "input_datetime",
+      "role": "control",
+      "unit": ""
+    },
+    {
+      "area": "",
+      "availability": "not_enriched",
+      "capability_keys": [],
+      "device_class": "",
+      "device_id": "",
+      "disabled_by": "",
+      "domain": "input_datetime",
+      "entity_category": "",
+      "entity_id": "input_datetime.washer_reminder_snooze_until",
+      "hidden_by": "",
+      "name": "Washer Reminder Snooze Until",
+      "platform": "input_datetime",
+      "role": "control",
+      "unit": ""
+    },
+    {
+      "area": "",
+      "availability": "not_enriched",
+      "capability_keys": [],
+      "device_class": "",
+      "device_id": "",
+      "disabled_by": "",
+      "domain": "input_datetime",
+      "entity_category": "",
       "entity_id": "input_datetime.water_latest_alert_at",
       "hidden_by": "",
       "name": "Water Latest Alert At",
@@ -19370,6 +20085,22 @@
       "entity_id": "input_datetime.wine_cave_purchase_date",
       "hidden_by": "",
       "name": "Wine Cave Purchase Date",
+      "platform": "input_datetime",
+      "role": "control",
+      "unit": ""
+    },
+    {
+      "area": "",
+      "availability": "not_enriched",
+      "capability_keys": [],
+      "device_class": "",
+      "device_id": "",
+      "disabled_by": "",
+      "domain": "input_datetime",
+      "entity_category": "",
+      "entity_id": "input_datetime.wynn_room_camera_last_activity_at",
+      "hidden_by": "",
+      "name": "Wynn Room Camera Last Activity At",
       "platform": "input_datetime",
       "role": "control",
       "unit": ""
@@ -20119,6 +20850,86 @@
       "disabled_by": "",
       "domain": "input_text",
       "entity_category": "",
+      "entity_id": "input_text.nwp_parking_pass_replaced_expiration_date",
+      "hidden_by": "",
+      "name": "NWP Parking Pass Replaced Expiration Date",
+      "platform": "input_text",
+      "role": "control",
+      "unit": ""
+    },
+    {
+      "area": "",
+      "availability": "not_enriched",
+      "capability_keys": [],
+      "device_class": "",
+      "device_id": "",
+      "disabled_by": "",
+      "domain": "input_text",
+      "entity_category": "",
+      "entity_id": "input_text.washer_last_completion_event_key",
+      "hidden_by": "",
+      "name": "Washer Last Completion Event Key",
+      "platform": "input_text",
+      "role": "control",
+      "unit": ""
+    },
+    {
+      "area": "",
+      "availability": "not_enriched",
+      "capability_keys": [],
+      "device_class": "",
+      "device_id": "",
+      "disabled_by": "",
+      "domain": "input_text",
+      "entity_category": "",
+      "entity_id": "input_text.washer_last_cycle_name",
+      "hidden_by": "",
+      "name": "Washer Last Cycle Name",
+      "platform": "input_text",
+      "role": "control",
+      "unit": ""
+    },
+    {
+      "area": "",
+      "availability": "not_enriched",
+      "capability_keys": [],
+      "device_class": "",
+      "device_id": "",
+      "disabled_by": "",
+      "domain": "input_text",
+      "entity_category": "",
+      "entity_id": "input_text.washer_last_error_event_key",
+      "hidden_by": "",
+      "name": "Washer Last Error Event Key",
+      "platform": "input_text",
+      "role": "control",
+      "unit": ""
+    },
+    {
+      "area": "",
+      "availability": "not_enriched",
+      "capability_keys": [],
+      "device_class": "",
+      "device_id": "",
+      "disabled_by": "",
+      "domain": "input_text",
+      "entity_category": "",
+      "entity_id": "input_text.washer_last_error_type",
+      "hidden_by": "",
+      "name": "Washer Last Error Type",
+      "platform": "input_text",
+      "role": "control",
+      "unit": ""
+    },
+    {
+      "area": "",
+      "availability": "not_enriched",
+      "capability_keys": [],
+      "device_class": "",
+      "device_id": "",
+      "disabled_by": "",
+      "domain": "input_text",
+      "entity_category": "",
       "entity_id": "input_text.water_latest_alert_kind",
       "hidden_by": "",
       "name": "Water Latest Alert Kind",
@@ -20169,7 +20980,7 @@
       "entity_category": "",
       "entity_id": "light.back_stairs_back_stairs",
       "hidden_by": "",
-      "name": "Back Stairs Back Stairs",
+      "name": "light.back_stairs_back_stairs",
       "platform": "lutron_caseta",
       "role": "control",
       "unit": ""
@@ -20185,7 +20996,7 @@
       "entity_category": "",
       "entity_id": "light.deck_deck_lights",
       "hidden_by": "",
-      "name": "Deck Deck Lights",
+      "name": "light.deck_deck_lights",
       "platform": "lutron_caseta",
       "role": "control",
       "unit": ""
@@ -20201,7 +21012,7 @@
       "entity_category": "",
       "entity_id": "light.exterior_deck_lights",
       "hidden_by": "",
-      "name": "Exterior Deck Lights",
+      "name": "light.exterior_deck_lights",
       "platform": "lutron_caseta",
       "role": "control",
       "unit": ""
@@ -20217,7 +21028,7 @@
       "entity_category": "",
       "entity_id": "light.exterior_yard_lights",
       "hidden_by": "",
-      "name": "Exterior Yard Lights",
+      "name": "light.exterior_yard_lights",
       "platform": "lutron_caseta",
       "role": "control",
       "unit": ""
@@ -20249,7 +21060,7 @@
       "entity_category": "",
       "entity_id": "light.family_room_main_lights_1",
       "hidden_by": "",
-      "name": "Family Room Main Lights 1",
+      "name": "light.family_room_main_lights_1",
       "platform": "lutron_caseta",
       "role": "control",
       "unit": ""
@@ -20265,7 +21076,7 @@
       "entity_category": "",
       "entity_id": "light.family_room_main_lights_2",
       "hidden_by": "",
-      "name": "Family Room Main Lights 2",
+      "name": "light.family_room_main_lights_2",
       "platform": "lutron_caseta",
       "role": "control",
       "unit": ""
@@ -20281,7 +21092,7 @@
       "entity_category": "",
       "entity_id": "light.family_room_main_lights_3",
       "hidden_by": "",
-      "name": "Family Room Main Lights 3",
+      "name": "light.family_room_main_lights_3",
       "platform": "lutron_caseta",
       "role": "control",
       "unit": ""
@@ -20297,7 +21108,7 @@
       "entity_category": "",
       "entity_id": "light.front_foyer_ceiling_lights",
       "hidden_by": "",
-      "name": "Front Foyer Ceiling Lights",
+      "name": "light.front_foyer_ceiling_lights",
       "platform": "lutron_caseta",
       "role": "control",
       "unit": ""
@@ -20313,7 +21124,7 @@
       "entity_category": "",
       "entity_id": "light.front_foyer_chandelier",
       "hidden_by": "",
-      "name": "Front Foyer Chandelier",
+      "name": "light.front_foyer_chandelier",
       "platform": "lutron_caseta",
       "role": "control",
       "unit": ""
@@ -20361,7 +21172,7 @@
       "entity_category": "",
       "entity_id": "light.kitchen_coffee_bar",
       "hidden_by": "",
-      "name": "Kitchen Coffee Bar",
+      "name": "light.kitchen_coffee_bar",
       "platform": "lutron_caseta",
       "role": "control",
       "unit": ""
@@ -20377,7 +21188,7 @@
       "entity_category": "",
       "entity_id": "light.kitchen_island",
       "hidden_by": "",
-      "name": "Kitchen Island",
+      "name": "light.kitchen_island",
       "platform": "lutron_caseta",
       "role": "control",
       "unit": ""
@@ -20393,7 +21204,7 @@
       "entity_category": "",
       "entity_id": "light.kitchen_main",
       "hidden_by": "",
-      "name": "Kitchen Main",
+      "name": "light.kitchen_main",
       "platform": "lutron_caseta",
       "role": "control",
       "unit": ""
@@ -20409,7 +21220,7 @@
       "entity_category": "",
       "entity_id": "light.kitchen_sink_light",
       "hidden_by": "",
-      "name": "Kitchen Sink Light",
+      "name": "light.kitchen_sink_light",
       "platform": "lutron_caseta",
       "role": "control",
       "unit": ""
@@ -20425,7 +21236,7 @@
       "entity_category": "",
       "entity_id": "light.kitchen_table_lights",
       "hidden_by": "",
-      "name": "Kitchen Table Lights",
+      "name": "light.kitchen_table_lights",
       "platform": "lutron_caseta",
       "role": "control",
       "unit": ""
@@ -20441,7 +21252,7 @@
       "entity_category": "",
       "entity_id": "light.master_bedroom_sconce_l",
       "hidden_by": "",
-      "name": "Master Sconce L",
+      "name": "light.master_bedroom_sconce_l",
       "platform": "lutron_caseta",
       "role": "control",
       "unit": ""
@@ -20457,7 +21268,7 @@
       "entity_category": "",
       "entity_id": "light.master_bedroom_sconce_r",
       "hidden_by": "",
-      "name": "Master Sconce R",
+      "name": "light.master_bedroom_sconce_r",
       "platform": "lutron_caseta",
       "role": "control",
       "unit": ""
@@ -20522,7 +21333,7 @@
       "entity_category": "",
       "entity_id": "light.mudroom_main_lights",
       "hidden_by": "",
-      "name": "Mudroom Main Lights",
+      "name": "light.mudroom_main_lights",
       "platform": "lutron_caseta",
       "role": "control",
       "unit": ""
@@ -20538,7 +21349,7 @@
       "entity_category": "",
       "entity_id": "light.mudroom_nook_lights",
       "hidden_by": "",
-      "name": "Mudroom Nook Lights",
+      "name": "light.mudroom_nook_lights",
       "platform": "lutron_caseta",
       "role": "control",
       "unit": ""
@@ -20586,7 +21397,7 @@
       "entity_category": "",
       "entity_id": "light.stairs_front_stairs",
       "hidden_by": "",
-      "name": "Stairs Front Stairs",
+      "name": "light.stairs_front_stairs",
       "platform": "lutron_caseta",
       "role": "control",
       "unit": ""
@@ -20650,7 +21461,7 @@
       "entity_category": "",
       "entity_id": "light.upstairs_hallway_main_lights",
       "hidden_by": "",
-      "name": "Upstairs Hallway Main Lights",
+      "name": "light.upstairs_hallway_main_lights",
       "platform": "lutron_caseta",
       "role": "control",
       "unit": ""
@@ -20666,7 +21477,7 @@
       "entity_category": "",
       "entity_id": "light.vestibule_main_lights",
       "hidden_by": "",
-      "name": "Vestibule Main Lights",
+      "name": "light.vestibule_main_lights",
       "platform": "lutron_caseta",
       "role": "control",
       "unit": ""
@@ -20698,7 +21509,7 @@
       "entity_category": "",
       "entity_id": "light.wynn_s_room_ceiling_lights",
       "hidden_by": "",
-      "name": "Wynn's Room Ceiling Lights",
+      "name": "light.wynn_s_room_ceiling_lights",
       "platform": "lutron_caseta",
       "role": "control",
       "unit": ""
@@ -20714,7 +21525,7 @@
       "entity_category": "",
       "entity_id": "light.wynn_s_room_chandelier",
       "hidden_by": "",
-      "name": "Wynn's Room Chandelier",
+      "name": "light.wynn_s_room_chandelier",
       "platform": "lutron_caseta",
       "role": "control",
       "unit": ""
@@ -21152,6 +21963,54 @@
       "unit": ""
     },
     {
+      "area": "Unnamed Room",
+      "availability": "not_enriched",
+      "capability_keys": [],
+      "device_class": "",
+      "device_id": "device_73cd04bd08c1",
+      "disabled_by": "",
+      "domain": "media_player",
+      "entity_category": "",
+      "entity_id": "media_player.unnamed_room_master",
+      "hidden_by": "",
+      "name": "media_player.unnamed_room_master",
+      "platform": "sonos",
+      "role": "control",
+      "unit": ""
+    },
+    {
+      "area": "Unnamed Room",
+      "availability": "not_enriched",
+      "capability_keys": [],
+      "device_class": "",
+      "device_id": "device_ae01660c3a5f",
+      "disabled_by": "",
+      "domain": "media_player",
+      "entity_category": "",
+      "entity_id": "media_player.unnamed_room_unnamed_room",
+      "hidden_by": "",
+      "name": "media_player.unnamed_room_unnamed_room",
+      "platform": "sonos",
+      "role": "control",
+      "unit": ""
+    },
+    {
+      "area": "Unnamed Room",
+      "availability": "not_enriched",
+      "capability_keys": [],
+      "device_class": "",
+      "device_id": "device_22d7adde2eb7",
+      "disabled_by": "",
+      "domain": "media_player",
+      "entity_category": "",
+      "entity_id": "media_player.unnamed_room_unnamed_room_2",
+      "hidden_by": "",
+      "name": "media_player.unnamed_room_unnamed_room_2",
+      "platform": "sonos",
+      "role": "control",
+      "unit": ""
+    },
+    {
       "area": "Wynn's Room",
       "availability": "not_enriched",
       "capability_keys": [],
@@ -21181,6 +22040,38 @@
       "name": "Speaker",
       "platform": "unifiprotect",
       "role": "control",
+      "unit": ""
+    },
+    {
+      "area": "",
+      "availability": "not_enriched",
+      "capability_keys": [],
+      "device_class": "",
+      "device_id": "device_29a3a3367e9a",
+      "disabled_by": "",
+      "domain": "notify",
+      "entity_category": "",
+      "entity_id": "notify.ipad",
+      "hidden_by": "",
+      "name": "notify.ipad",
+      "platform": "mobile_app",
+      "role": "other",
+      "unit": ""
+    },
+    {
+      "area": "",
+      "availability": "not_enriched",
+      "capability_keys": [],
+      "device_class": "",
+      "device_id": "device_784e00b00a1e",
+      "disabled_by": "",
+      "domain": "notify",
+      "entity_category": "",
+      "entity_id": "notify.tk_iphone_16_pro",
+      "hidden_by": "",
+      "name": "notify.tk_iphone_16_pro",
+      "platform": "mobile_app",
+      "role": "other",
       "unit": ""
     },
     {
@@ -22404,6 +23295,22 @@
       "availability": "not_enriched",
       "capability_keys": [],
       "device_class": "",
+      "device_id": "device_73cd04bd08c1",
+      "disabled_by": "",
+      "domain": "number",
+      "entity_category": "config",
+      "entity_id": "number.unnamed_room_master_sub_gain",
+      "hidden_by": "",
+      "name": "Sub gain",
+      "platform": "sonos",
+      "role": "control",
+      "unit": ""
+    },
+    {
+      "area": "Unnamed Room",
+      "availability": "not_enriched",
+      "capability_keys": [],
+      "device_class": "",
       "device_id": "device_f1a2af0f711a",
       "disabled_by": "",
       "domain": "number",
@@ -22633,6 +23540,102 @@
       "domain": "number",
       "entity_category": "config",
       "entity_id": "number.unnamed_room_treble_9",
+      "hidden_by": "",
+      "name": "Treble",
+      "platform": "sonos",
+      "role": "control",
+      "unit": ""
+    },
+    {
+      "area": "Unnamed Room",
+      "availability": "not_enriched",
+      "capability_keys": [],
+      "device_class": "",
+      "device_id": "device_ae01660c3a5f",
+      "disabled_by": "",
+      "domain": "number",
+      "entity_category": "config",
+      "entity_id": "number.unnamed_room_unnamed_room_balance",
+      "hidden_by": "",
+      "name": "Balance",
+      "platform": "sonos",
+      "role": "control",
+      "unit": ""
+    },
+    {
+      "area": "Unnamed Room",
+      "availability": "not_enriched",
+      "capability_keys": [],
+      "device_class": "",
+      "device_id": "device_22d7adde2eb7",
+      "disabled_by": "",
+      "domain": "number",
+      "entity_category": "config",
+      "entity_id": "number.unnamed_room_unnamed_room_balance_2",
+      "hidden_by": "",
+      "name": "Balance",
+      "platform": "sonos",
+      "role": "control",
+      "unit": ""
+    },
+    {
+      "area": "Unnamed Room",
+      "availability": "not_enriched",
+      "capability_keys": [],
+      "device_class": "",
+      "device_id": "device_ae01660c3a5f",
+      "disabled_by": "",
+      "domain": "number",
+      "entity_category": "config",
+      "entity_id": "number.unnamed_room_unnamed_room_bass",
+      "hidden_by": "",
+      "name": "Bass",
+      "platform": "sonos",
+      "role": "control",
+      "unit": ""
+    },
+    {
+      "area": "Unnamed Room",
+      "availability": "not_enriched",
+      "capability_keys": [],
+      "device_class": "",
+      "device_id": "device_22d7adde2eb7",
+      "disabled_by": "",
+      "domain": "number",
+      "entity_category": "config",
+      "entity_id": "number.unnamed_room_unnamed_room_bass_2",
+      "hidden_by": "",
+      "name": "Bass",
+      "platform": "sonos",
+      "role": "control",
+      "unit": ""
+    },
+    {
+      "area": "Unnamed Room",
+      "availability": "not_enriched",
+      "capability_keys": [],
+      "device_class": "",
+      "device_id": "device_ae01660c3a5f",
+      "disabled_by": "",
+      "domain": "number",
+      "entity_category": "config",
+      "entity_id": "number.unnamed_room_unnamed_room_treble",
+      "hidden_by": "",
+      "name": "Treble",
+      "platform": "sonos",
+      "role": "control",
+      "unit": ""
+    },
+    {
+      "area": "Unnamed Room",
+      "availability": "not_enriched",
+      "capability_keys": [],
+      "device_class": "",
+      "device_id": "device_22d7adde2eb7",
+      "disabled_by": "",
+      "domain": "number",
+      "entity_category": "config",
+      "entity_id": "number.unnamed_room_unnamed_room_treble_2",
       "hidden_by": "",
       "name": "Treble",
       "platform": "sonos",
@@ -24984,6 +25987,118 @@
       "disabled_by": "",
       "domain": "script",
       "entity_category": "",
+      "entity_id": "script.washer_clear_cycle_notification",
+      "hidden_by": "",
+      "name": "Washer Clear Cycle Notification",
+      "platform": "script",
+      "role": "other",
+      "unit": ""
+    },
+    {
+      "area": "",
+      "availability": "not_enriched",
+      "capability_keys": [],
+      "device_class": "",
+      "device_id": "",
+      "disabled_by": "",
+      "domain": "script",
+      "entity_category": "",
+      "entity_id": "script.washer_clear_error_notification",
+      "hidden_by": "",
+      "name": "Washer Clear Error Notification",
+      "platform": "script",
+      "role": "other",
+      "unit": ""
+    },
+    {
+      "area": "",
+      "availability": "not_enriched",
+      "capability_keys": [],
+      "device_class": "",
+      "device_id": "",
+      "disabled_by": "",
+      "domain": "script",
+      "entity_category": "",
+      "entity_id": "script.washer_mark_laundry_handled",
+      "hidden_by": "",
+      "name": "Washer Mark Laundry Handled",
+      "platform": "script",
+      "role": "other",
+      "unit": ""
+    },
+    {
+      "area": "",
+      "availability": "not_enriched",
+      "capability_keys": [],
+      "device_class": "",
+      "device_id": "",
+      "disabled_by": "",
+      "domain": "script",
+      "entity_category": "",
+      "entity_id": "script.washer_send_completion_notification",
+      "hidden_by": "",
+      "name": "Washer Send Completion Notification",
+      "platform": "script",
+      "role": "other",
+      "unit": ""
+    },
+    {
+      "area": "",
+      "availability": "not_enriched",
+      "capability_keys": [],
+      "device_class": "",
+      "device_id": "",
+      "disabled_by": "",
+      "domain": "script",
+      "entity_category": "",
+      "entity_id": "script.washer_send_error_notification",
+      "hidden_by": "",
+      "name": "Washer Send Error Notification",
+      "platform": "script",
+      "role": "other",
+      "unit": ""
+    },
+    {
+      "area": "",
+      "availability": "not_enriched",
+      "capability_keys": [],
+      "device_class": "",
+      "device_id": "",
+      "disabled_by": "",
+      "domain": "script",
+      "entity_category": "",
+      "entity_id": "script.washer_send_follow_up_notification",
+      "hidden_by": "",
+      "name": "Washer Send Follow-Up Notification",
+      "platform": "script",
+      "role": "other",
+      "unit": ""
+    },
+    {
+      "area": "",
+      "availability": "not_enriched",
+      "capability_keys": [],
+      "device_class": "",
+      "device_id": "",
+      "disabled_by": "",
+      "domain": "script",
+      "entity_category": "",
+      "entity_id": "script.washer_snooze_reminder",
+      "hidden_by": "",
+      "name": "Washer Snooze Reminder",
+      "platform": "script",
+      "role": "other",
+      "unit": ""
+    },
+    {
+      "area": "",
+      "availability": "not_enriched",
+      "capability_keys": [],
+      "device_class": "",
+      "device_id": "",
+      "disabled_by": "",
+      "domain": "script",
+      "entity_category": "",
       "entity_id": "script.water_send_alert",
       "hidden_by": "",
       "name": "Water Send Alert",
@@ -25276,6 +26391,22 @@
       "hidden_by": "",
       "name": "Dining Room Temperature Display Units",
       "platform": "homekit_controller",
+      "role": "control",
+      "unit": ""
+    },
+    {
+      "area": "",
+      "availability": "not_enriched",
+      "capability_keys": [],
+      "device_class": "",
+      "device_id": "device_8ad0ff69cb92",
+      "disabled_by": "",
+      "domain": "select",
+      "entity_category": "",
+      "entity_id": "select.dryer_operation",
+      "hidden_by": "",
+      "name": "Operation",
+      "platform": "lg_thinq",
       "role": "control",
       "unit": ""
     },
@@ -25772,6 +26903,54 @@
       "hidden_by": "",
       "name": "Link speed",
       "platform": "unifi",
+      "role": "telemetry",
+      "unit": ""
+    },
+    {
+      "area": "",
+      "availability": "disabled",
+      "capability_keys": [],
+      "device_class": "",
+      "device_id": "device_a735aed44232",
+      "disabled_by": "integration",
+      "domain": "sensor",
+      "entity_category": "diagnostic",
+      "entity_id": "sensor.aqara_hub_m100_reboot_count",
+      "hidden_by": "",
+      "name": "Reboot count",
+      "platform": "matter",
+      "role": "telemetry",
+      "unit": ""
+    },
+    {
+      "area": "",
+      "availability": "disabled",
+      "capability_keys": [],
+      "device_class": "",
+      "device_id": "device_a735aed44232",
+      "disabled_by": "integration",
+      "domain": "sensor",
+      "entity_category": "diagnostic",
+      "entity_id": "sensor.aqara_hub_m100_uptime",
+      "hidden_by": "",
+      "name": "Uptime",
+      "platform": "matter",
+      "role": "telemetry",
+      "unit": ""
+    },
+    {
+      "area": "",
+      "availability": "disabled",
+      "capability_keys": [],
+      "device_class": "",
+      "device_id": "device_a735aed44232",
+      "disabled_by": "integration",
+      "domain": "sensor",
+      "entity_category": "diagnostic",
+      "entity_id": "sensor.aqara_hub_m100_wi_fi_rssi",
+      "hidden_by": "",
+      "name": "Wi-Fi RSSI",
+      "platform": "matter",
       "role": "telemetry",
       "unit": ""
     },
@@ -26458,7 +27637,7 @@
       "entity_category": "diagnostic",
       "entity_id": "sensor.bonticou",
       "hidden_by": "",
-      "name": "sensor.bonticou",
+      "name": "Clients",
       "platform": "unifi",
       "role": "telemetry",
       "unit": ""
@@ -26474,7 +27653,7 @@
       "entity_category": "diagnostic",
       "entity_id": "sensor.bonticou_gateway_bonticou_gateway_cpu_temperature",
       "hidden_by": "",
-      "name": "Bonticou Gateway CPU Temperature",
+      "name": "CPU temperature",
       "platform": "unifi",
       "role": "telemetry",
       "unit": ""
@@ -26490,7 +27669,7 @@
       "entity_category": "diagnostic",
       "entity_id": "sensor.bonticou_gateway_bonticou_gateway_local_temperature",
       "hidden_by": "",
-      "name": "Bonticou Gateway Local Temperature",
+      "name": "Local temperature",
       "platform": "unifi",
       "role": "telemetry",
       "unit": ""
@@ -26762,7 +27941,7 @@
       "entity_category": "diagnostic",
       "entity_id": "sensor.bonticou_gateway_port_4_poe_power",
       "hidden_by": "",
-      "name": "Port 4 PoE Power",
+      "name": "Port 4 PoE power",
       "platform": "unifi",
       "role": "telemetry",
       "unit": ""
@@ -27002,7 +28181,7 @@
       "entity_category": "diagnostic",
       "entity_id": "sensor.bonticou_guest",
       "hidden_by": "",
-      "name": "sensor.bonticou_guest",
+      "name": "Clients",
       "platform": "unifi",
       "role": "telemetry",
       "unit": ""
@@ -27402,7 +28581,7 @@
       "entity_category": "diagnostic",
       "entity_id": "sensor.dcp_l2640dw_last_restart",
       "hidden_by": "",
-      "name": "Last restart",
+      "name": "Uptime",
       "platform": "brother",
       "role": "telemetry",
       "unit": ""
@@ -27964,6 +29143,118 @@
       "hidden_by": "",
       "name": "Driver License Renewal Status",
       "platform": "template",
+      "role": "telemetry",
+      "unit": ""
+    },
+    {
+      "area": "",
+      "availability": "not_enriched",
+      "capability_keys": [],
+      "device_class": "",
+      "device_id": "device_8ad0ff69cb92",
+      "disabled_by": "",
+      "domain": "sensor",
+      "entity_category": "",
+      "entity_id": "sensor.dryer_current_status",
+      "hidden_by": "",
+      "name": "Current status",
+      "platform": "lg_thinq",
+      "role": "telemetry",
+      "unit": ""
+    },
+    {
+      "area": "",
+      "availability": "not_enriched",
+      "capability_keys": [],
+      "device_class": "",
+      "device_id": "device_8ad0ff69cb92",
+      "disabled_by": "",
+      "domain": "sensor",
+      "entity_category": "",
+      "entity_id": "sensor.dryer_energy_last_month",
+      "hidden_by": "",
+      "name": "Energy last month",
+      "platform": "lg_thinq",
+      "role": "telemetry",
+      "unit": ""
+    },
+    {
+      "area": "",
+      "availability": "not_enriched",
+      "capability_keys": [],
+      "device_class": "",
+      "device_id": "device_8ad0ff69cb92",
+      "disabled_by": "",
+      "domain": "sensor",
+      "entity_category": "",
+      "entity_id": "sensor.dryer_energy_this_month",
+      "hidden_by": "",
+      "name": "Energy this month",
+      "platform": "lg_thinq",
+      "role": "telemetry",
+      "unit": ""
+    },
+    {
+      "area": "",
+      "availability": "not_enriched",
+      "capability_keys": [],
+      "device_class": "",
+      "device_id": "device_8ad0ff69cb92",
+      "disabled_by": "",
+      "domain": "sensor",
+      "entity_category": "",
+      "entity_id": "sensor.dryer_energy_today",
+      "hidden_by": "",
+      "name": "Energy today",
+      "platform": "lg_thinq",
+      "role": "telemetry",
+      "unit": ""
+    },
+    {
+      "area": "",
+      "availability": "not_enriched",
+      "capability_keys": [],
+      "device_class": "",
+      "device_id": "device_8ad0ff69cb92",
+      "disabled_by": "",
+      "domain": "sensor",
+      "entity_category": "",
+      "entity_id": "sensor.dryer_energy_yesterday",
+      "hidden_by": "",
+      "name": "Energy yesterday",
+      "platform": "lg_thinq",
+      "role": "telemetry",
+      "unit": ""
+    },
+    {
+      "area": "",
+      "availability": "not_enriched",
+      "capability_keys": [],
+      "device_class": "",
+      "device_id": "device_8ad0ff69cb92",
+      "disabled_by": "",
+      "domain": "sensor",
+      "entity_category": "",
+      "entity_id": "sensor.dryer_remaining_time",
+      "hidden_by": "",
+      "name": "Remaining time",
+      "platform": "lg_thinq",
+      "role": "telemetry",
+      "unit": ""
+    },
+    {
+      "area": "",
+      "availability": "not_enriched",
+      "capability_keys": [],
+      "device_class": "",
+      "device_id": "device_8ad0ff69cb92",
+      "disabled_by": "",
+      "domain": "sensor",
+      "entity_category": "",
+      "entity_id": "sensor.dryer_total_time",
+      "hidden_by": "",
+      "name": "Total time",
+      "platform": "lg_thinq",
       "role": "telemetry",
       "unit": ""
     },
@@ -28618,7 +29909,7 @@
       "entity_category": "diagnostic",
       "entity_id": "sensor.fios_vhtx3",
       "hidden_by": "",
-      "name": "sensor.fios_vhtx3",
+      "name": "Clients",
       "platform": "unifi",
       "role": "telemetry",
       "unit": ""
@@ -29754,7 +31045,7 @@
       "entity_category": "diagnostic",
       "entity_id": "sensor.ipad_app_version",
       "hidden_by": "",
-      "name": "iPad App Version",
+      "name": "App Version",
       "platform": "mobile_app",
       "role": "telemetry",
       "unit": ""
@@ -29770,7 +31061,7 @@
       "entity_category": "",
       "entity_id": "sensor.ipad_audio_output",
       "hidden_by": "",
-      "name": "iPad Audio Output",
+      "name": "Audio Output",
       "platform": "mobile_app",
       "role": "telemetry",
       "unit": ""
@@ -29786,7 +31077,7 @@
       "entity_category": "",
       "entity_id": "sensor.ipad_battery_level",
       "hidden_by": "",
-      "name": "iPad Battery Level",
+      "name": "Battery Level",
       "platform": "mobile_app",
       "role": "telemetry",
       "unit": ""
@@ -29802,7 +31093,7 @@
       "entity_category": "",
       "entity_id": "sensor.ipad_battery_state",
       "hidden_by": "",
-      "name": "iPad Battery State",
+      "name": "Battery State",
       "platform": "mobile_app",
       "role": "telemetry",
       "unit": ""
@@ -29818,7 +31109,7 @@
       "entity_category": "",
       "entity_id": "sensor.ipad_bssid",
       "hidden_by": "",
-      "name": "iPad BSSID",
+      "name": "BSSID",
       "platform": "mobile_app",
       "role": "telemetry",
       "unit": ""
@@ -29834,7 +31125,7 @@
       "entity_category": "",
       "entity_id": "sensor.ipad_connection_type",
       "hidden_by": "",
-      "name": "iPad Connection Type",
+      "name": "Connection Type",
       "platform": "mobile_app",
       "role": "telemetry",
       "unit": ""
@@ -29850,7 +31141,7 @@
       "entity_category": "",
       "entity_id": "sensor.ipad_geocoded_location",
       "hidden_by": "",
-      "name": "iPad Geocoded Location",
+      "name": "Geocoded Location",
       "platform": "mobile_app",
       "role": "telemetry",
       "unit": ""
@@ -29866,7 +31157,7 @@
       "entity_category": "",
       "entity_id": "sensor.ipad_last_update_trigger",
       "hidden_by": "",
-      "name": "iPad Last Update Trigger",
+      "name": "Last Update Trigger",
       "platform": "mobile_app",
       "role": "telemetry",
       "unit": ""
@@ -29882,7 +31173,7 @@
       "entity_category": "",
       "entity_id": "sensor.ipad_location_permission",
       "hidden_by": "",
-      "name": "iPad Location permission",
+      "name": "Location permission",
       "platform": "mobile_app",
       "role": "telemetry",
       "unit": ""
@@ -29898,7 +31189,7 @@
       "entity_category": "",
       "entity_id": "sensor.ipad_ssid",
       "hidden_by": "",
-      "name": "iPad SSID",
+      "name": "SSID",
       "platform": "mobile_app",
       "role": "telemetry",
       "unit": ""
@@ -29914,7 +31205,7 @@
       "entity_category": "",
       "entity_id": "sensor.ipad_storage",
       "hidden_by": "",
-      "name": "iPad Storage",
+      "name": "Storage",
       "platform": "mobile_app",
       "role": "telemetry",
       "unit": ""
@@ -29964,6 +31255,22 @@
       "hidden_by": "",
       "name": "Link speed",
       "platform": "unifi",
+      "role": "telemetry",
+      "unit": ""
+    },
+    {
+      "area": "",
+      "availability": "not_enriched",
+      "capability_keys": [],
+      "device_class": "",
+      "device_id": "",
+      "disabled_by": "",
+      "domain": "sensor",
+      "entity_category": "",
+      "entity_id": "sensor.irrigation_7_day_ledger",
+      "hidden_by": "",
+      "name": "Irrigation 7 Day Ledger",
+      "platform": "command_line",
       "role": "telemetry",
       "unit": ""
     },
@@ -30841,6 +32148,22 @@
       "domain": "sensor",
       "entity_category": "diagnostic",
       "entity_id": "sensor.link_speed_3",
+      "hidden_by": "",
+      "name": "Link speed",
+      "platform": "unifi",
+      "role": "telemetry",
+      "unit": ""
+    },
+    {
+      "area": "",
+      "availability": "disabled",
+      "capability_keys": [],
+      "device_class": "",
+      "device_id": "device_918a3c2d3306",
+      "disabled_by": "integration",
+      "domain": "sensor",
+      "entity_category": "diagnostic",
+      "entity_id": "sensor.link_speed_30",
       "hidden_by": "",
       "name": "Link speed",
       "platform": "unifi",
@@ -31840,6 +33163,22 @@
       "unit": ""
     },
     {
+      "area": "Mudroom",
+      "availability": "not_enriched",
+      "capability_keys": [],
+      "device_class": "",
+      "device_id": "device_7ef3067de9fe",
+      "disabled_by": "",
+      "domain": "sensor",
+      "entity_category": "",
+      "entity_id": "sensor.mudroom_washer_energy_today",
+      "hidden_by": "",
+      "name": "Energy today",
+      "platform": "lg_thinq",
+      "role": "telemetry",
+      "unit": ""
+    },
+    {
       "area": "",
       "availability": "not_enriched",
       "capability_keys": [],
@@ -32378,7 +33717,7 @@
       "entity_category": "diagnostic",
       "entity_id": "sensor.rqn8_battery",
       "hidden_by": "",
-      "name": "Kitchen Battery",
+      "name": "Battery",
       "platform": "homekit_controller",
       "role": "telemetry",
       "unit": ""
@@ -32394,7 +33733,7 @@
       "entity_category": "",
       "entity_id": "sensor.rqn8_temperature",
       "hidden_by": "",
-      "name": "Kitchen Temperature",
+      "name": "Temperature",
       "platform": "homekit_controller",
       "role": "telemetry",
       "unit": ""
@@ -32699,22 +34038,6 @@
       "entity_id": "sensor.sun_solar_elevation",
       "hidden_by": "",
       "name": "Solar elevation",
-      "platform": "sun",
-      "role": "telemetry",
-      "unit": ""
-    },
-    {
-      "area": "",
-      "availability": "disabled",
-      "capability_keys": [],
-      "device_class": "",
-      "device_id": "device_a33df9341ba8",
-      "disabled_by": "integration",
-      "domain": "sensor",
-      "entity_category": "diagnostic",
-      "entity_id": "sensor.sun_solar_rising",
-      "hidden_by": "",
-      "name": "Solar rising",
       "platform": "sun",
       "role": "telemetry",
       "unit": ""
@@ -33178,7 +34501,7 @@
       "entity_category": "diagnostic",
       "entity_id": "sensor.tk_iphone_16_pro_app_version",
       "hidden_by": "",
-      "name": "TK iPhone 16 Pro App Version",
+      "name": "App Version",
       "platform": "mobile_app",
       "role": "telemetry",
       "unit": ""
@@ -33194,7 +34517,7 @@
       "entity_category": "",
       "entity_id": "sensor.tk_iphone_16_pro_audio_output",
       "hidden_by": "",
-      "name": "TK iPhone 16 Pro Audio Output",
+      "name": "Audio Output",
       "platform": "mobile_app",
       "role": "telemetry",
       "unit": ""
@@ -33210,7 +34533,7 @@
       "entity_category": "",
       "entity_id": "sensor.tk_iphone_16_pro_battery_level",
       "hidden_by": "",
-      "name": "TK iPhone 16 Pro Battery Level",
+      "name": "Battery Level",
       "platform": "mobile_app",
       "role": "telemetry",
       "unit": ""
@@ -33226,7 +34549,7 @@
       "entity_category": "",
       "entity_id": "sensor.tk_iphone_16_pro_battery_state",
       "hidden_by": "",
-      "name": "TK iPhone 16 Pro Battery State",
+      "name": "Battery State",
       "platform": "mobile_app",
       "role": "telemetry",
       "unit": ""
@@ -33242,7 +34565,7 @@
       "entity_category": "",
       "entity_id": "sensor.tk_iphone_16_pro_bssid",
       "hidden_by": "",
-      "name": "TK iPhone 16 Pro BSSID",
+      "name": "BSSID",
       "platform": "mobile_app",
       "role": "telemetry",
       "unit": ""
@@ -33258,7 +34581,7 @@
       "entity_category": "",
       "entity_id": "sensor.tk_iphone_16_pro_connection_type",
       "hidden_by": "",
-      "name": "TK iPhone 16 Pro Connection Type",
+      "name": "Connection Type",
       "platform": "mobile_app",
       "role": "telemetry",
       "unit": ""
@@ -33274,7 +34597,39 @@
       "entity_category": "",
       "entity_id": "sensor.tk_iphone_16_pro_geocoded_location",
       "hidden_by": "",
-      "name": "TK iPhone 16 Pro Geocoded Location",
+      "name": "Geocoded Location",
+      "platform": "mobile_app",
+      "role": "telemetry",
+      "unit": ""
+    },
+    {
+      "area": "",
+      "availability": "not_enriched",
+      "capability_keys": [],
+      "device_class": "",
+      "device_id": "device_784e00b00a1e",
+      "disabled_by": "",
+      "domain": "sensor",
+      "entity_category": "",
+      "entity_id": "sensor.tk_iphone_16_pro_kiosk_brightness",
+      "hidden_by": "",
+      "name": "Kiosk Brightness",
+      "platform": "mobile_app",
+      "role": "telemetry",
+      "unit": ""
+    },
+    {
+      "area": "",
+      "availability": "not_enriched",
+      "capability_keys": [],
+      "device_class": "",
+      "device_id": "device_784e00b00a1e",
+      "disabled_by": "",
+      "domain": "sensor",
+      "entity_category": "",
+      "entity_id": "sensor.tk_iphone_16_pro_kiosk_volume",
+      "hidden_by": "",
+      "name": "Kiosk Volume",
       "platform": "mobile_app",
       "role": "telemetry",
       "unit": ""
@@ -33290,7 +34645,7 @@
       "entity_category": "",
       "entity_id": "sensor.tk_iphone_16_pro_last_update_trigger",
       "hidden_by": "",
-      "name": "TK iPhone 16 Pro Last Update Trigger",
+      "name": "Last Update Trigger",
       "platform": "mobile_app",
       "role": "telemetry",
       "unit": ""
@@ -33306,7 +34661,7 @@
       "entity_category": "",
       "entity_id": "sensor.tk_iphone_16_pro_location_permission",
       "hidden_by": "",
-      "name": "TK iPhone 16 Pro Location permission",
+      "name": "Location permission",
       "platform": "mobile_app",
       "role": "telemetry",
       "unit": ""
@@ -33322,7 +34677,7 @@
       "entity_category": "",
       "entity_id": "sensor.tk_iphone_16_pro_sim_1",
       "hidden_by": "",
-      "name": "TK iPhone 16 Pro SIM 1",
+      "name": "SIM 1",
       "platform": "mobile_app",
       "role": "telemetry",
       "unit": ""
@@ -33338,7 +34693,7 @@
       "entity_category": "",
       "entity_id": "sensor.tk_iphone_16_pro_sim_2",
       "hidden_by": "",
-      "name": "TK iPhone 16 Pro SIM 2",
+      "name": "SIM 2",
       "platform": "mobile_app",
       "role": "telemetry",
       "unit": ""
@@ -33354,7 +34709,7 @@
       "entity_category": "",
       "entity_id": "sensor.tk_iphone_16_pro_ssid",
       "hidden_by": "",
-      "name": "TK iPhone 16 Pro SSID",
+      "name": "SSID",
       "platform": "mobile_app",
       "role": "telemetry",
       "unit": ""
@@ -33370,7 +34725,7 @@
       "entity_category": "",
       "entity_id": "sensor.tk_iphone_16_pro_storage",
       "hidden_by": "",
-      "name": "TK iPhone 16 Pro Storage",
+      "name": "Storage",
       "platform": "mobile_app",
       "role": "telemetry",
       "unit": ""
@@ -34233,6 +35588,54 @@
       "domain": "sensor",
       "entity_category": "diagnostic",
       "entity_id": "sensor.usw_flex_2_5g_5_uptime",
+      "hidden_by": "",
+      "name": "Uptime",
+      "platform": "unifi",
+      "role": "telemetry",
+      "unit": ""
+    },
+    {
+      "area": "",
+      "availability": "disabled",
+      "capability_keys": [],
+      "device_class": "",
+      "device_id": "device_30fd0bafd7fa",
+      "disabled_by": "integration",
+      "domain": "sensor",
+      "entity_category": "diagnostic",
+      "entity_id": "sensor.usw_lite_8_poe_clients",
+      "hidden_by": "",
+      "name": "Clients",
+      "platform": "unifi",
+      "role": "telemetry",
+      "unit": ""
+    },
+    {
+      "area": "",
+      "availability": "not_enriched",
+      "capability_keys": [],
+      "device_class": "",
+      "device_id": "device_30fd0bafd7fa",
+      "disabled_by": "",
+      "domain": "sensor",
+      "entity_category": "diagnostic",
+      "entity_id": "sensor.usw_lite_8_poe_state",
+      "hidden_by": "",
+      "name": "State",
+      "platform": "unifi",
+      "role": "telemetry",
+      "unit": ""
+    },
+    {
+      "area": "",
+      "availability": "not_enriched",
+      "capability_keys": [],
+      "device_class": "",
+      "device_id": "device_30fd0bafd7fa",
+      "disabled_by": "",
+      "domain": "sensor",
+      "entity_category": "diagnostic",
+      "entity_id": "sensor.usw_lite_8_poe_uptime",
       "hidden_by": "",
       "name": "Uptime",
       "platform": "unifi",
@@ -37386,7 +38789,7 @@
       "entity_category": "config",
       "entity_id": "switch.back_yard_none",
       "hidden_by": "",
-      "name": "switch.back_yard_none",
+      "name": "Barking detection",
       "platform": "unifiprotect",
       "role": "control",
       "unit": ""
@@ -37530,7 +38933,7 @@
       "entity_category": "config",
       "entity_id": "switch.bonticou",
       "hidden_by": "",
-      "name": "switch.bonticou",
+      "name": "Enabled",
       "platform": "unifi",
       "role": "control",
       "unit": ""
@@ -37706,7 +39109,7 @@
       "entity_category": "config",
       "entity_id": "switch.bonticou_guest",
       "hidden_by": "",
-      "name": "switch.bonticou_guest",
+      "name": "Enabled",
       "platform": "unifi",
       "role": "control",
       "unit": ""
@@ -37864,10 +39267,74 @@
       "disabled_by": "",
       "domain": "switch",
       "entity_category": "config",
+      "entity_id": "switch.dining_room_dining_room_thermostat_dining_room_airplay_enable",
+      "hidden_by": "",
+      "name": "Dining Room AirPlay Enable",
+      "platform": "homekit_controller",
+      "role": "control",
+      "unit": ""
+    },
+    {
+      "area": "Dining Room",
+      "availability": "not_enriched",
+      "capability_keys": [],
+      "device_class": "",
+      "device_id": "device_fe017352418f",
+      "disabled_by": "",
+      "domain": "switch",
+      "entity_category": "config",
       "entity_id": "switch.dining_room_mute",
       "hidden_by": "",
       "name": "Dining Room Mute",
       "platform": "homekit_controller",
+      "role": "control",
+      "unit": ""
+    },
+    {
+      "area": "",
+      "availability": "not_enriched",
+      "capability_keys": [],
+      "device_class": "",
+      "device_id": "device_958d2caf578a",
+      "disabled_by": "",
+      "domain": "switch",
+      "entity_category": "config",
+      "entity_id": "switch.dining_room_tv_autoplay",
+      "hidden_by": "",
+      "name": "TV autoplay",
+      "platform": "sonos",
+      "role": "control",
+      "unit": ""
+    },
+    {
+      "area": "",
+      "availability": "not_enriched",
+      "capability_keys": [],
+      "device_class": "",
+      "device_id": "device_958d2caf578a",
+      "disabled_by": "",
+      "domain": "switch",
+      "entity_category": "config",
+      "entity_id": "switch.dining_room_ungroup_on_autoplay",
+      "hidden_by": "",
+      "name": "Ungroup on autoplay",
+      "platform": "sonos",
+      "role": "control",
+      "unit": ""
+    },
+    {
+      "area": "",
+      "availability": "not_enriched",
+      "capability_keys": [],
+      "device_class": "",
+      "device_id": "device_8ad0ff69cb92",
+      "disabled_by": "",
+      "domain": "switch",
+      "entity_category": "",
+      "entity_id": "switch.dryer_power",
+      "hidden_by": "",
+      "name": "Power",
+      "platform": "lg_thinq",
       "role": "control",
       "unit": ""
     },
@@ -37882,7 +39349,7 @@
       "entity_category": "",
       "entity_id": "switch.exterior_mud_room_stairs",
       "hidden_by": "",
-      "name": "Exterior Mud Room Stairs",
+      "name": "switch.exterior_mud_room_stairs",
       "platform": "lutron_caseta",
       "role": "control",
       "unit": ""
@@ -37899,6 +39366,38 @@
       "entity_id": "switch.family_room_crossfade",
       "hidden_by": "",
       "name": "Crossfade",
+      "platform": "sonos",
+      "role": "control",
+      "unit": ""
+    },
+    {
+      "area": "Family Room",
+      "availability": "not_enriched",
+      "capability_keys": [],
+      "device_class": "",
+      "device_id": "device_dc0447a8354b",
+      "disabled_by": "",
+      "domain": "switch",
+      "entity_category": "config",
+      "entity_id": "switch.family_room_family_room_tv_autoplay",
+      "hidden_by": "",
+      "name": "TV autoplay",
+      "platform": "sonos",
+      "role": "control",
+      "unit": ""
+    },
+    {
+      "area": "Family Room",
+      "availability": "not_enriched",
+      "capability_keys": [],
+      "device_class": "",
+      "device_id": "device_dc0447a8354b",
+      "disabled_by": "",
+      "domain": "switch",
+      "entity_category": "config",
+      "entity_id": "switch.family_room_family_room_ungroup_on_autoplay",
+      "hidden_by": "",
+      "name": "Ungroup on autoplay",
       "platform": "sonos",
       "role": "control",
       "unit": ""
@@ -38058,7 +39557,7 @@
       "entity_category": "config",
       "entity_id": "switch.fios_vhtx3",
       "hidden_by": "",
-      "name": "switch.fios_vhtx3",
+      "name": "Enabled",
       "platform": "unifi",
       "role": "control",
       "unit": ""
@@ -38122,7 +39621,7 @@
       "entity_category": "",
       "entity_id": "switch.front_foyer_sconces",
       "hidden_by": "",
-      "name": "Front Foyer Sconces",
+      "name": "switch.front_foyer_sconces",
       "platform": "lutron_caseta",
       "role": "control",
       "unit": ""
@@ -38426,7 +39925,7 @@
       "entity_category": "config",
       "entity_id": "switch.garage",
       "hidden_by": "",
-      "name": "switch.garage",
+      "name": "Barking detection",
       "platform": "unifiprotect",
       "role": "control",
       "unit": ""
@@ -38522,7 +40021,7 @@
       "entity_category": "",
       "entity_id": "switch.garage_garage_lights",
       "hidden_by": "",
-      "name": "Garage Garage Lights",
+      "name": "switch.garage_garage_lights",
       "platform": "lutron_caseta",
       "role": "control",
       "unit": ""
@@ -38728,6 +40227,38 @@
       "disabled_by": "",
       "domain": "switch",
       "entity_category": "config",
+      "entity_id": "switch.great_room_speakers_great_room_sonos_tv_autoplay",
+      "hidden_by": "",
+      "name": "TV autoplay",
+      "platform": "sonos",
+      "role": "control",
+      "unit": ""
+    },
+    {
+      "area": "Great Room Speakers",
+      "availability": "not_enriched",
+      "capability_keys": [],
+      "device_class": "",
+      "device_id": "device_96c096ed4a91",
+      "disabled_by": "",
+      "domain": "switch",
+      "entity_category": "config",
+      "entity_id": "switch.great_room_speakers_great_room_sonos_ungroup_on_autoplay",
+      "hidden_by": "",
+      "name": "Ungroup on autoplay",
+      "platform": "sonos",
+      "role": "control",
+      "unit": ""
+    },
+    {
+      "area": "Great Room Speakers",
+      "availability": "not_enriched",
+      "capability_keys": [],
+      "device_class": "",
+      "device_id": "device_96c096ed4a91",
+      "disabled_by": "",
+      "domain": "switch",
+      "entity_category": "config",
       "entity_id": "switch.great_room_speakers_loudness",
       "hidden_by": "",
       "name": "Loudness",
@@ -38778,7 +40309,7 @@
       "entity_category": "",
       "entity_id": "switch.great_room_uplights",
       "hidden_by": "",
-      "name": "Great Room Uplights",
+      "name": "Great Room uplights",
       "platform": "template",
       "role": "control",
       "unit": ""
@@ -38811,6 +40342,38 @@
       "entity_id": "switch.kitchen_speakers_crossfade",
       "hidden_by": "",
       "name": "Crossfade",
+      "platform": "sonos",
+      "role": "control",
+      "unit": ""
+    },
+    {
+      "area": "Kitchen Speakers",
+      "availability": "not_enriched",
+      "capability_keys": [],
+      "device_class": "",
+      "device_id": "device_df07ddeb668b",
+      "disabled_by": "",
+      "domain": "switch",
+      "entity_category": "config",
+      "entity_id": "switch.kitchen_speakers_kitchen_sonos_tv_autoplay",
+      "hidden_by": "",
+      "name": "TV autoplay",
+      "platform": "sonos",
+      "role": "control",
+      "unit": ""
+    },
+    {
+      "area": "Kitchen Speakers",
+      "availability": "not_enriched",
+      "capability_keys": [],
+      "device_class": "",
+      "device_id": "device_df07ddeb668b",
+      "disabled_by": "",
+      "domain": "switch",
+      "entity_category": "config",
+      "entity_id": "switch.kitchen_speakers_kitchen_sonos_ungroup_on_autoplay",
+      "hidden_by": "",
+      "name": "Ungroup on autoplay",
       "platform": "sonos",
       "role": "control",
       "unit": ""
@@ -38874,8 +40437,24 @@
       "entity_category": "",
       "entity_id": "switch.master_lantern",
       "hidden_by": "",
-      "name": "Master Lantern",
+      "name": "switch.master_lantern",
       "platform": "lutron_caseta",
+      "role": "control",
+      "unit": ""
+    },
+    {
+      "area": "Master",
+      "availability": "not_enriched",
+      "capability_keys": [],
+      "device_class": "",
+      "device_id": "device_22d9acd7ac2f",
+      "disabled_by": "",
+      "domain": "switch",
+      "entity_category": "config",
+      "entity_id": "switch.master_master_thermostat_master_airplay_enable",
+      "hidden_by": "",
+      "name": "Master AirPlay Enable",
+      "platform": "homekit_controller",
       "role": "control",
       "unit": ""
     },
@@ -39082,7 +40661,7 @@
       "entity_category": "config",
       "entity_id": "switch.mechanical_room_none",
       "hidden_by": "",
-      "name": "switch.mechanical_room_none",
+      "name": "Barking detection",
       "platform": "unifiprotect",
       "role": "control",
       "unit": ""
@@ -39328,6 +40907,70 @@
       "unit": ""
     },
     {
+      "area": "",
+      "availability": "not_enriched",
+      "capability_keys": [],
+      "device_class": "",
+      "device_id": "device_6c8f6c6004b2",
+      "disabled_by": "",
+      "domain": "switch",
+      "entity_category": "config",
+      "entity_id": "switch.move_2_a_tv_autoplay",
+      "hidden_by": "",
+      "name": "TV autoplay",
+      "platform": "sonos",
+      "role": "control",
+      "unit": ""
+    },
+    {
+      "area": "",
+      "availability": "not_enriched",
+      "capability_keys": [],
+      "device_class": "",
+      "device_id": "device_6c8f6c6004b2",
+      "disabled_by": "",
+      "domain": "switch",
+      "entity_category": "config",
+      "entity_id": "switch.move_2_a_ungroup_on_autoplay",
+      "hidden_by": "",
+      "name": "Ungroup on autoplay",
+      "platform": "sonos",
+      "role": "control",
+      "unit": ""
+    },
+    {
+      "area": "",
+      "availability": "not_enriched",
+      "capability_keys": [],
+      "device_class": "",
+      "device_id": "device_df59d635d00f",
+      "disabled_by": "",
+      "domain": "switch",
+      "entity_category": "config",
+      "entity_id": "switch.move_2_b_tv_autoplay",
+      "hidden_by": "",
+      "name": "TV autoplay",
+      "platform": "sonos",
+      "role": "control",
+      "unit": ""
+    },
+    {
+      "area": "",
+      "availability": "not_enriched",
+      "capability_keys": [],
+      "device_class": "",
+      "device_id": "device_df59d635d00f",
+      "disabled_by": "",
+      "domain": "switch",
+      "entity_category": "config",
+      "entity_id": "switch.move_2_b_ungroup_on_autoplay",
+      "hidden_by": "",
+      "name": "Ungroup on autoplay",
+      "platform": "sonos",
+      "role": "control",
+      "unit": ""
+    },
+    {
       "area": "Mudroom",
       "availability": "not_enriched",
       "capability_keys": [],
@@ -39482,7 +41125,7 @@
       "entity_category": "config",
       "entity_id": "switch.mud_room_none",
       "hidden_by": "",
-      "name": "switch.mud_room_none",
+      "name": "Barking detection",
       "platform": "unifiprotect",
       "role": "control",
       "unit": ""
@@ -39844,6 +41487,38 @@
       "availability": "not_enriched",
       "capability_keys": [],
       "device_class": "",
+      "device_id": "device_cc546a11400c",
+      "disabled_by": "",
+      "domain": "switch",
+      "entity_category": "config",
+      "entity_id": "switch.office_tv_autoplay",
+      "hidden_by": "",
+      "name": "TV autoplay",
+      "platform": "sonos",
+      "role": "control",
+      "unit": ""
+    },
+    {
+      "area": "",
+      "availability": "not_enriched",
+      "capability_keys": [],
+      "device_class": "",
+      "device_id": "device_cc546a11400c",
+      "disabled_by": "",
+      "domain": "switch",
+      "entity_category": "config",
+      "entity_id": "switch.office_ungroup_on_autoplay",
+      "hidden_by": "",
+      "name": "Ungroup on autoplay",
+      "platform": "sonos",
+      "role": "control",
+      "unit": ""
+    },
+    {
+      "area": "",
+      "availability": "not_enriched",
+      "capability_keys": [],
+      "device_class": "",
       "device_id": "device_5a7bbc9548a4",
       "disabled_by": "",
       "domain": "switch",
@@ -39978,7 +41653,7 @@
       "entity_category": "config",
       "entity_id": "switch.play_room_none",
       "hidden_by": "",
-      "name": "switch.play_room_none",
+      "name": "Barking detection",
       "platform": "unifiprotect",
       "role": "control",
       "unit": ""
@@ -40584,6 +42259,86 @@
       "disabled_by": "",
       "domain": "switch",
       "entity_category": "config",
+      "entity_id": "switch.unnamed_room_master_sonos_tv_autoplay",
+      "hidden_by": "",
+      "name": "TV autoplay",
+      "platform": "sonos",
+      "role": "control",
+      "unit": ""
+    },
+    {
+      "area": "Unnamed Room",
+      "availability": "not_enriched",
+      "capability_keys": [],
+      "device_class": "",
+      "device_id": "device_f1a2af0f711a",
+      "disabled_by": "",
+      "domain": "switch",
+      "entity_category": "config",
+      "entity_id": "switch.unnamed_room_master_sonos_ungroup_on_autoplay",
+      "hidden_by": "",
+      "name": "Ungroup on autoplay",
+      "platform": "sonos",
+      "role": "control",
+      "unit": ""
+    },
+    {
+      "area": "Unnamed Room",
+      "availability": "not_enriched",
+      "capability_keys": [],
+      "device_class": "",
+      "device_id": "device_73cd04bd08c1",
+      "disabled_by": "",
+      "domain": "switch",
+      "entity_category": "config",
+      "entity_id": "switch.unnamed_room_master_subwoofer_enabled",
+      "hidden_by": "",
+      "name": "Subwoofer enabled",
+      "platform": "sonos",
+      "role": "control",
+      "unit": ""
+    },
+    {
+      "area": "Unnamed Room",
+      "availability": "not_enriched",
+      "capability_keys": [],
+      "device_class": "",
+      "device_id": "device_73cd04bd08c1",
+      "disabled_by": "",
+      "domain": "switch",
+      "entity_category": "config",
+      "entity_id": "switch.unnamed_room_master_tv_autoplay",
+      "hidden_by": "",
+      "name": "TV autoplay",
+      "platform": "sonos",
+      "role": "control",
+      "unit": ""
+    },
+    {
+      "area": "Unnamed Room",
+      "availability": "not_enriched",
+      "capability_keys": [],
+      "device_class": "",
+      "device_id": "device_73cd04bd08c1",
+      "disabled_by": "",
+      "domain": "switch",
+      "entity_category": "config",
+      "entity_id": "switch.unnamed_room_master_ungroup_on_autoplay",
+      "hidden_by": "",
+      "name": "Ungroup on autoplay",
+      "platform": "sonos",
+      "role": "control",
+      "unit": ""
+    },
+    {
+      "area": "Unnamed Room",
+      "availability": "not_enriched",
+      "capability_keys": [],
+      "device_class": "",
+      "device_id": "device_f1a2af0f711a",
+      "disabled_by": "",
+      "domain": "switch",
+      "entity_category": "config",
       "entity_id": "switch.unnamed_room_night_sound",
       "hidden_by": "",
       "name": "Night sound",
@@ -41056,6 +42811,198 @@
       "unit": ""
     },
     {
+      "area": "Unnamed Room",
+      "availability": "not_enriched",
+      "capability_keys": [],
+      "device_class": "",
+      "device_id": "device_ae01660c3a5f",
+      "disabled_by": "",
+      "domain": "switch",
+      "entity_category": "config",
+      "entity_id": "switch.unnamed_room_unnamed_room_crossfade",
+      "hidden_by": "",
+      "name": "Crossfade",
+      "platform": "sonos",
+      "role": "control",
+      "unit": ""
+    },
+    {
+      "area": "Unnamed Room",
+      "availability": "not_enriched",
+      "capability_keys": [],
+      "device_class": "",
+      "device_id": "device_22d7adde2eb7",
+      "disabled_by": "",
+      "domain": "switch",
+      "entity_category": "config",
+      "entity_id": "switch.unnamed_room_unnamed_room_crossfade_2",
+      "hidden_by": "",
+      "name": "Crossfade",
+      "platform": "sonos",
+      "role": "control",
+      "unit": ""
+    },
+    {
+      "area": "Unnamed Room",
+      "availability": "not_enriched",
+      "capability_keys": [],
+      "device_class": "",
+      "device_id": "device_ae01660c3a5f",
+      "disabled_by": "",
+      "domain": "switch",
+      "entity_category": "config",
+      "entity_id": "switch.unnamed_room_unnamed_room_loudness",
+      "hidden_by": "",
+      "name": "Loudness",
+      "platform": "sonos",
+      "role": "control",
+      "unit": ""
+    },
+    {
+      "area": "Unnamed Room",
+      "availability": "not_enriched",
+      "capability_keys": [],
+      "device_class": "",
+      "device_id": "device_22d7adde2eb7",
+      "disabled_by": "",
+      "domain": "switch",
+      "entity_category": "config",
+      "entity_id": "switch.unnamed_room_unnamed_room_loudness_2",
+      "hidden_by": "",
+      "name": "Loudness",
+      "platform": "sonos",
+      "role": "control",
+      "unit": ""
+    },
+    {
+      "area": "Unnamed Room",
+      "availability": "disabled",
+      "capability_keys": [],
+      "device_class": "",
+      "device_id": "device_ae01660c3a5f",
+      "disabled_by": "integration",
+      "domain": "switch",
+      "entity_category": "config",
+      "entity_id": "switch.unnamed_room_unnamed_room_status_light",
+      "hidden_by": "",
+      "name": "Status light",
+      "platform": "sonos",
+      "role": "control",
+      "unit": ""
+    },
+    {
+      "area": "Unnamed Room",
+      "availability": "disabled",
+      "capability_keys": [],
+      "device_class": "",
+      "device_id": "device_22d7adde2eb7",
+      "disabled_by": "integration",
+      "domain": "switch",
+      "entity_category": "config",
+      "entity_id": "switch.unnamed_room_unnamed_room_status_light_2",
+      "hidden_by": "",
+      "name": "Status light",
+      "platform": "sonos",
+      "role": "control",
+      "unit": ""
+    },
+    {
+      "area": "Unnamed Room",
+      "availability": "disabled",
+      "capability_keys": [],
+      "device_class": "",
+      "device_id": "device_ae01660c3a5f",
+      "disabled_by": "integration",
+      "domain": "switch",
+      "entity_category": "config",
+      "entity_id": "switch.unnamed_room_unnamed_room_touch_controls",
+      "hidden_by": "",
+      "name": "Touch controls",
+      "platform": "sonos",
+      "role": "control",
+      "unit": ""
+    },
+    {
+      "area": "Unnamed Room",
+      "availability": "disabled",
+      "capability_keys": [],
+      "device_class": "",
+      "device_id": "device_22d7adde2eb7",
+      "disabled_by": "integration",
+      "domain": "switch",
+      "entity_category": "config",
+      "entity_id": "switch.unnamed_room_unnamed_room_touch_controls_2",
+      "hidden_by": "",
+      "name": "Touch controls",
+      "platform": "sonos",
+      "role": "control",
+      "unit": ""
+    },
+    {
+      "area": "Unnamed Room",
+      "availability": "not_enriched",
+      "capability_keys": [],
+      "device_class": "",
+      "device_id": "device_ae01660c3a5f",
+      "disabled_by": "",
+      "domain": "switch",
+      "entity_category": "config",
+      "entity_id": "switch.unnamed_room_unnamed_room_tv_autoplay",
+      "hidden_by": "",
+      "name": "TV autoplay",
+      "platform": "sonos",
+      "role": "control",
+      "unit": ""
+    },
+    {
+      "area": "Unnamed Room",
+      "availability": "not_enriched",
+      "capability_keys": [],
+      "device_class": "",
+      "device_id": "device_22d7adde2eb7",
+      "disabled_by": "",
+      "domain": "switch",
+      "entity_category": "config",
+      "entity_id": "switch.unnamed_room_unnamed_room_tv_autoplay_2",
+      "hidden_by": "",
+      "name": "TV autoplay",
+      "platform": "sonos",
+      "role": "control",
+      "unit": ""
+    },
+    {
+      "area": "Unnamed Room",
+      "availability": "not_enriched",
+      "capability_keys": [],
+      "device_class": "",
+      "device_id": "device_ae01660c3a5f",
+      "disabled_by": "",
+      "domain": "switch",
+      "entity_category": "config",
+      "entity_id": "switch.unnamed_room_unnamed_room_ungroup_on_autoplay",
+      "hidden_by": "",
+      "name": "Ungroup on autoplay",
+      "platform": "sonos",
+      "role": "control",
+      "unit": ""
+    },
+    {
+      "area": "Unnamed Room",
+      "availability": "not_enriched",
+      "capability_keys": [],
+      "device_class": "",
+      "device_id": "device_22d7adde2eb7",
+      "disabled_by": "",
+      "domain": "switch",
+      "entity_category": "config",
+      "entity_id": "switch.unnamed_room_unnamed_room_ungroup_on_autoplay_2",
+      "hidden_by": "",
+      "name": "Ungroup on autoplay",
+      "platform": "sonos",
+      "role": "control",
+      "unit": ""
+    },
+    {
       "area": "Family Room",
       "availability": "not_enriched",
       "capability_keys": [],
@@ -41418,7 +43365,7 @@
       "entity_category": "config",
       "entity_id": "switch.wynn_s_room_none",
       "hidden_by": "",
-      "name": "switch.wynn_s_room_none",
+      "name": "Barking detection",
       "platform": "unifiprotect",
       "role": "control",
       "unit": ""
@@ -41660,6 +43607,38 @@
       "hidden_by": "",
       "name": "Vehicle detection",
       "platform": "unifiprotect",
+      "role": "control",
+      "unit": ""
+    },
+    {
+      "area": "Wynn's Room",
+      "availability": "not_enriched",
+      "capability_keys": [],
+      "device_class": "",
+      "device_id": "device_d2716c1c55b9",
+      "disabled_by": "",
+      "domain": "switch",
+      "entity_category": "config",
+      "entity_id": "switch.wynn_s_room_wynn_sonos_tv_autoplay",
+      "hidden_by": "",
+      "name": "TV autoplay",
+      "platform": "sonos",
+      "role": "control",
+      "unit": ""
+    },
+    {
+      "area": "Wynn's Room",
+      "availability": "not_enriched",
+      "capability_keys": [],
+      "device_class": "",
+      "device_id": "device_d2716c1c55b9",
+      "disabled_by": "",
+      "domain": "switch",
+      "entity_category": "config",
+      "entity_id": "switch.wynn_s_room_wynn_sonos_ungroup_on_autoplay",
+      "hidden_by": "",
+      "name": "Ungroup on autoplay",
+      "platform": "sonos",
       "role": "control",
       "unit": ""
     },
@@ -42650,7 +44629,7 @@
       "entity_category": "",
       "entity_id": "tts.google_translate_en_com",
       "hidden_by": "",
-      "name": "Google Translate en com",
+      "name": "tts.google_translate_en_com",
       "platform": "google_translate",
       "role": "other",
       "unit": ""
@@ -42682,7 +44661,7 @@
       "entity_category": "",
       "entity_id": "tts.openai_tts",
       "hidden_by": "",
-      "name": "OpenAI TTS",
+      "name": "tts.openai_tts",
       "platform": "openai_conversation",
       "role": "other",
       "unit": ""
@@ -42698,7 +44677,7 @@
       "entity_category": "config",
       "entity_id": "update.apexcharts_card_update",
       "hidden_by": "",
-      "name": "apexcharts-card update",
+      "name": "Update",
       "platform": "hacs",
       "role": "telemetry",
       "unit": ""
@@ -42714,7 +44693,7 @@
       "entity_category": "config",
       "entity_id": "update.bonticou_gateway",
       "hidden_by": "",
-      "name": "update.bonticou_gateway",
+      "name": "Firmware",
       "platform": "unifi",
       "role": "telemetry",
       "unit": ""
@@ -42730,7 +44709,7 @@
       "entity_category": "config",
       "entity_id": "update.browser_mod_update",
       "hidden_by": "",
-      "name": "browser_mod update",
+      "name": "Update",
       "platform": "hacs",
       "role": "telemetry",
       "unit": ""
@@ -42746,7 +44725,7 @@
       "entity_category": "config",
       "entity_id": "update.button_card_update",
       "hidden_by": "",
-      "name": "button-card update",
+      "name": "Update",
       "platform": "hacs",
       "role": "telemetry",
       "unit": ""
@@ -42762,7 +44741,7 @@
       "entity_category": "config",
       "entity_id": "update.card_mod_update",
       "hidden_by": "",
-      "name": "card-mod update",
+      "name": "Update",
       "platform": "hacs",
       "role": "telemetry",
       "unit": ""
@@ -42794,7 +44773,7 @@
       "entity_category": "config",
       "entity_id": "update.hacs_update",
       "hidden_by": "",
-      "name": "HACS update",
+      "name": "Update",
       "platform": "hacs",
       "role": "telemetry",
       "unit": ""
@@ -42874,7 +44853,7 @@
       "entity_category": "config",
       "entity_id": "update.mini_graph_card_update",
       "hidden_by": "",
-      "name": "mini-graph-card update",
+      "name": "Update",
       "platform": "hacs",
       "role": "telemetry",
       "unit": ""
@@ -42890,7 +44869,7 @@
       "entity_category": "config",
       "entity_id": "update.mini_media_player_update",
       "hidden_by": "",
-      "name": "Mini Media Player update",
+      "name": "Update",
       "platform": "hacs",
       "role": "telemetry",
       "unit": ""
@@ -42906,7 +44885,7 @@
       "entity_category": "config",
       "entity_id": "update.mushroom_update",
       "hidden_by": "",
-      "name": "Mushroom update",
+      "name": "Update",
       "platform": "hacs",
       "role": "telemetry",
       "unit": ""
@@ -42922,7 +44901,7 @@
       "entity_category": "config",
       "entity_id": "update.sonos_card_update",
       "hidden_by": "",
-      "name": "Sonos Card update",
+      "name": "Update",
       "platform": "hacs",
       "role": "telemetry",
       "unit": ""
@@ -42954,7 +44933,7 @@
       "entity_category": "config",
       "entity_id": "update.u7_pro_family_room",
       "hidden_by": "",
-      "name": "update.u7_pro_family_room",
+      "name": "Firmware",
       "platform": "unifi",
       "role": "telemetry",
       "unit": ""
@@ -42970,7 +44949,7 @@
       "entity_category": "config",
       "entity_id": "update.u7_pro_mesh",
       "hidden_by": "",
-      "name": "update.u7_pro_mesh",
+      "name": "Firmware",
       "platform": "unifi",
       "role": "telemetry",
       "unit": ""
@@ -42986,7 +44965,7 @@
       "entity_category": "config",
       "entity_id": "update.u7_pro_mud_room",
       "hidden_by": "",
-      "name": "update.u7_pro_mud_room",
+      "name": "Firmware",
       "platform": "unifi",
       "role": "telemetry",
       "unit": ""
@@ -43002,7 +44981,7 @@
       "entity_category": "config",
       "entity_id": "update.u7_pro_outdoor",
       "hidden_by": "",
-      "name": "update.u7_pro_outdoor",
+      "name": "Firmware",
       "platform": "unifi",
       "role": "telemetry",
       "unit": ""
@@ -43018,7 +44997,23 @@
       "entity_category": "config",
       "entity_id": "update.usw_flex_2_5g_5",
       "hidden_by": "",
-      "name": "update.usw_flex_2_5g_5",
+      "name": "Firmware",
+      "platform": "unifi",
+      "role": "telemetry",
+      "unit": ""
+    },
+    {
+      "area": "",
+      "availability": "not_enriched",
+      "capability_keys": [],
+      "device_class": "",
+      "device_id": "device_30fd0bafd7fa",
+      "disabled_by": "",
+      "domain": "update",
+      "entity_category": "config",
+      "entity_id": "update.usw_lite_8_poe_firmware",
+      "hidden_by": "",
+      "name": "Firmware",
       "platform": "unifi",
       "role": "telemetry",
       "unit": ""
@@ -43034,7 +45029,7 @@
       "entity_category": "config",
       "entity_id": "update.visionos_ios_26_liquid_glass_theme_update",
       "hidden_by": "",
-      "name": "visionOS & iOS 26 Liquid Glass Theme update",
+      "name": "Update",
       "platform": "hacs",
       "role": "telemetry",
       "unit": ""
@@ -43536,7 +45531,7 @@
       "unit": ""
     }
   ],
-  "generated_at": "2026-06-30T15:32:28.018303+00:00",
+  "generated_at": "2026-07-29T14:29:24.057042+00:00",
   "network_clients": [
     {
       "client_id": "network_01a7ffa721b6",
@@ -43600,6 +45595,23 @@
       ],
       "tracked_entity_ids": [
         "device_tracker.sonoszp_13"
+      ]
+    },
+    {
+      "client_id": "network_063e284f5c15",
+      "connection_types": [],
+      "device_ids": [
+        "device_ae01660c3a5f"
+      ],
+      "names": [
+        "SonosZP"
+      ],
+      "network_scopes": [],
+      "sources": [
+        "entity_registry"
+      ],
+      "tracked_entity_ids": [
+        "device_tracker.sonoszp_18"
       ]
     },
     {
@@ -43735,6 +45747,21 @@
       ]
     },
     {
+      "client_id": "network_155c9ce18746",
+      "connection_types": [],
+      "device_ids": [],
+      "names": [
+        "LG_Smart_Dryer2_open"
+      ],
+      "network_scopes": [],
+      "sources": [
+        "entity_registry"
+      ],
+      "tracked_entity_ids": [
+        "device_tracker.lg_smart_dryer2_open"
+      ]
+    },
+    {
       "client_id": "network_162861e9f8a0",
       "connection_types": [],
       "device_ids": [],
@@ -43780,6 +45807,21 @@
       ]
     },
     {
+      "client_id": "network_1df443041b25",
+      "connection_types": [],
+      "device_ids": [
+        "device_918a3c2d3306"
+      ],
+      "names": [],
+      "network_scopes": [],
+      "sources": [
+        "entity_registry"
+      ],
+      "tracked_entity_ids": [
+        "device_tracker.unifi_default_mac_5d06587a36b2"
+      ]
+    },
+    {
       "client_id": "network_20a878e32d3a",
       "connection_types": [],
       "device_ids": [],
@@ -43807,6 +45849,21 @@
       ],
       "tracked_entity_ids": [
         "device_tracker.unifi_default_mac_5395b13a8a3d"
+      ]
+    },
+    {
+      "client_id": "network_2a662b64fb66",
+      "connection_types": [],
+      "device_ids": [],
+      "names": [
+        "iPhone"
+      ],
+      "network_scopes": [],
+      "sources": [
+        "entity_registry"
+      ],
+      "tracked_entity_ids": [
+        "device_tracker.iphone_12"
       ]
     },
     {
@@ -44006,7 +46063,7 @@
         "device_f05c9dfa67fc"
       ],
       "names": [
-        "Kitchen"
+        "Apple TV (Kitchen)"
       ],
       "network_scopes": [],
       "sources": [
@@ -44158,6 +46215,21 @@
       ]
     },
     {
+      "client_id": "network_4ed3652485dc",
+      "connection_types": [],
+      "device_ids": [],
+      "names": [
+        "Watch"
+      ],
+      "network_scopes": [],
+      "sources": [
+        "entity_registry"
+      ],
+      "tracked_entity_ids": [
+        "device_tracker.watch_10"
+      ]
+    },
+    {
       "client_id": "network_50358c472a72",
       "connection_types": [],
       "device_ids": [
@@ -44187,6 +46259,21 @@
       ],
       "tracked_entity_ids": [
         "device_tracker.hs103"
+      ]
+    },
+    {
+      "client_id": "network_510ba44acccf",
+      "connection_types": [],
+      "device_ids": [],
+      "names": [
+        "Mac"
+      ],
+      "network_scopes": [],
+      "sources": [
+        "entity_registry"
+      ],
+      "tracked_entity_ids": [
+        "device_tracker.unifi_default_mac_22e3a0baed45"
       ]
     },
     {
@@ -44339,6 +46426,21 @@
       ]
     },
     {
+      "client_id": "network_5fcddfc1315a",
+      "connection_types": [],
+      "device_ids": [],
+      "names": [
+        "DB15"
+      ],
+      "network_scopes": [],
+      "sources": [
+        "entity_registry"
+      ],
+      "tracked_entity_ids": [
+        "device_tracker.db15_4"
+      ]
+    },
+    {
       "client_id": "network_60e35b633815",
       "connection_types": [],
       "device_ids": [],
@@ -44349,6 +46451,19 @@
       ],
       "tracked_entity_ids": [
         "device_tracker.google_tablet"
+      ]
+    },
+    {
+      "client_id": "network_616d45c77f37",
+      "connection_types": [],
+      "device_ids": [],
+      "names": [],
+      "network_scopes": [],
+      "sources": [
+        "entity_registry"
+      ],
+      "tracked_entity_ids": [
+        "device_tracker.unifi_default_mac_a9a6ceae63df"
       ]
     },
     {
@@ -44791,7 +46906,7 @@
         "device_faba3c044d32"
       ],
       "names": [
-        "Office Printer"
+        "Printer"
       ],
       "network_scopes": [],
       "sources": [
@@ -44816,6 +46931,21 @@
       ],
       "tracked_entity_ids": [
         "device_tracker.lutron_06926f09"
+      ]
+    },
+    {
+      "client_id": "network_8b27e08e959a",
+      "connection_types": [],
+      "device_ids": [],
+      "names": [
+        "iPhone"
+      ],
+      "network_scopes": [],
+      "sources": [
+        "entity_registry"
+      ],
+      "tracked_entity_ids": [
+        "device_tracker.iphone_11"
       ]
     },
     {
@@ -45077,6 +47207,23 @@
       ]
     },
     {
+      "client_id": "network_b17739d86da1",
+      "connection_types": [],
+      "device_ids": [
+        "device_30fd0bafd7fa"
+      ],
+      "names": [
+        "USW-Lite-8-PoE"
+      ],
+      "network_scopes": [],
+      "sources": [
+        "entity_registry"
+      ],
+      "tracked_entity_ids": [
+        "device_tracker.usw_lite_8_poe"
+      ]
+    },
+    {
       "client_id": "network_b39ec9ba6c3e",
       "connection_types": [],
       "device_ids": [
@@ -45098,7 +47245,7 @@
         "device_ff913ed01a16"
       ],
       "names": [
-        "ratgdo32-4536e8"
+        "Garage Door (Lexus)"
       ],
       "network_scopes": [],
       "sources": [
@@ -45256,7 +47403,7 @@
       "connection_types": [],
       "device_ids": [],
       "names": [
-        "Mac"
+        "Trevors-Air"
       ],
       "network_scopes": [],
       "sources": [
@@ -45465,7 +47612,7 @@
       "connection_types": [],
       "device_ids": [],
       "names": [
-        "LG_Smart_Laundry2_open"
+        "Washing Machine"
       ],
       "network_scopes": [],
       "sources": [
@@ -45557,6 +47704,23 @@
       ]
     },
     {
+      "client_id": "network_e2adfc2f1c0f",
+      "connection_types": [],
+      "device_ids": [
+        "device_22d7adde2eb7"
+      ],
+      "names": [
+        "SonosZP"
+      ],
+      "network_scopes": [],
+      "sources": [
+        "entity_registry"
+      ],
+      "tracked_entity_ids": [
+        "device_tracker.sonoszp_19"
+      ]
+    },
+    {
       "client_id": "network_ea0e56c4cac6",
       "connection_types": [],
       "device_ids": [
@@ -45588,6 +47752,36 @@
       ],
       "tracked_entity_ids": [
         "device_tracker.u7_pro_mud_room"
+      ]
+    },
+    {
+      "client_id": "network_ef6f219353c7",
+      "connection_types": [],
+      "device_ids": [],
+      "names": [
+        "Samsung"
+      ],
+      "network_scopes": [],
+      "sources": [
+        "entity_registry"
+      ],
+      "tracked_entity_ids": [
+        "device_tracker.samsung_2"
+      ]
+    },
+    {
+      "client_id": "network_f03751fd92c9",
+      "connection_types": [],
+      "device_ids": [],
+      "names": [
+        "Watch"
+      ],
+      "network_scopes": [],
+      "sources": [
+        "entity_registry"
+      ],
+      "tracked_entity_ids": [
+        "device_tracker.watch_11"
       ]
     },
     {
@@ -46821,7 +49015,7 @@
       "entity_category": "",
       "entity_id": "automation.irrigation_hunter_no_flow",
       "hidden_by": "",
-      "name": "Irrigation \u2014 Hunter No Flow",
+      "name": "Irrigation \u2014 Hunter Flow Not Confirmed",
       "platform": "automation",
       "role": "other",
       "unit": ""
@@ -47123,6 +49317,86 @@
       "disabled_by": "",
       "domain": "automation",
       "entity_category": "",
+      "entity_id": "automation.laundry_washer_cycle_complete_notification",
+      "hidden_by": "",
+      "name": "Laundry \u2014 Washer Cycle Complete Notification",
+      "platform": "automation",
+      "role": "other",
+      "unit": ""
+    },
+    {
+      "area": "",
+      "availability": "not_enriched",
+      "capability_keys": [],
+      "device_class": "",
+      "device_id": "",
+      "disabled_by": "",
+      "domain": "automation",
+      "entity_category": "",
+      "entity_id": "automation.laundry_washer_cycle_unhandled_follow_up",
+      "hidden_by": "",
+      "name": "Laundry \u2014 Washer Cycle Unhandled Follow-Up",
+      "platform": "automation",
+      "role": "other",
+      "unit": ""
+    },
+    {
+      "area": "",
+      "availability": "not_enriched",
+      "capability_keys": [],
+      "device_class": "",
+      "device_id": "",
+      "disabled_by": "",
+      "domain": "automation",
+      "entity_category": "",
+      "entity_id": "automation.laundry_washer_error_notification",
+      "hidden_by": "",
+      "name": "Laundry \u2014 Washer Error Notification",
+      "platform": "automation",
+      "role": "other",
+      "unit": ""
+    },
+    {
+      "area": "",
+      "availability": "not_enriched",
+      "capability_keys": [],
+      "device_class": "",
+      "device_id": "",
+      "disabled_by": "",
+      "domain": "automation",
+      "entity_category": "",
+      "entity_id": "automation.laundry_washer_notification_actions",
+      "hidden_by": "",
+      "name": "Laundry \u2014 Washer Notification Actions",
+      "platform": "automation",
+      "role": "other",
+      "unit": ""
+    },
+    {
+      "area": "",
+      "availability": "not_enriched",
+      "capability_keys": [],
+      "device_class": "",
+      "device_id": "",
+      "disabled_by": "",
+      "domain": "automation",
+      "entity_category": "",
+      "entity_id": "automation.laundry_washer_pending_notice_when_trevor_is_home",
+      "hidden_by": "",
+      "name": "Laundry \u2014 Washer Pending Notice When Trevor Is Home",
+      "platform": "automation",
+      "role": "other",
+      "unit": ""
+    },
+    {
+      "area": "",
+      "availability": "not_enriched",
+      "capability_keys": [],
+      "device_class": "",
+      "device_id": "",
+      "disabled_by": "",
+      "domain": "automation",
+      "entity_category": "",
       "entity_id": "automation.lights_casey_s_closet_auto_off",
       "hidden_by": "",
       "name": "Lights \u2014 Casey's Closet Auto-Off",
@@ -47350,6 +49624,22 @@
       "entity_id": "automation.lights_sync_master_bedroom_sconces",
       "hidden_by": "",
       "name": "Lights \u2014 Sync Master Bedroom Sconces",
+      "platform": "automation",
+      "role": "other",
+      "unit": ""
+    },
+    {
+      "area": "",
+      "availability": "not_enriched",
+      "capability_keys": [],
+      "device_class": "",
+      "device_id": "",
+      "disabled_by": "",
+      "domain": "automation",
+      "entity_category": "",
+      "entity_id": "automation.lights_wynn_s_room_daylight_camera_quiet_auto_off",
+      "hidden_by": "",
+      "name": "Lights \u2014 Wynn's Room Daylight Camera Quiet Auto-Off",
       "platform": "automation",
       "role": "other",
       "unit": ""
@@ -50291,6 +52581,22 @@
       "disabled_by": "integration",
       "domain": "device_tracker",
       "entity_category": "diagnostic",
+      "entity_id": "device_tracker.db15_4",
+      "hidden_by": "",
+      "name": "DB15",
+      "platform": "unifi",
+      "role": "network",
+      "unit": ""
+    },
+    {
+      "area": "",
+      "availability": "disabled",
+      "capability_keys": [],
+      "device_class": "",
+      "device_id": "",
+      "disabled_by": "integration",
+      "domain": "device_tracker",
+      "entity_category": "diagnostic",
       "entity_id": "device_tracker.dining_room",
       "hidden_by": "",
       "name": "Ecobee (Dining)",
@@ -50467,6 +52773,38 @@
       "disabled_by": "integration",
       "domain": "device_tracker",
       "entity_category": "diagnostic",
+      "entity_id": "device_tracker.iphone_11",
+      "hidden_by": "",
+      "name": "iPhone",
+      "platform": "unifi",
+      "role": "network",
+      "unit": ""
+    },
+    {
+      "area": "",
+      "availability": "disabled",
+      "capability_keys": [],
+      "device_class": "",
+      "device_id": "",
+      "disabled_by": "integration",
+      "domain": "device_tracker",
+      "entity_category": "diagnostic",
+      "entity_id": "device_tracker.iphone_12",
+      "hidden_by": "",
+      "name": "iPhone",
+      "platform": "unifi",
+      "role": "network",
+      "unit": ""
+    },
+    {
+      "area": "",
+      "availability": "disabled",
+      "capability_keys": [],
+      "device_class": "",
+      "device_id": "",
+      "disabled_by": "integration",
+      "domain": "device_tracker",
+      "entity_category": "diagnostic",
       "entity_id": "device_tracker.iphone_2",
       "hidden_by": "",
       "name": "iPhone",
@@ -50595,9 +52933,25 @@
       "disabled_by": "integration",
       "domain": "device_tracker",
       "entity_category": "diagnostic",
+      "entity_id": "device_tracker.lg_smart_dryer2_open",
+      "hidden_by": "",
+      "name": "LG_Smart_Dryer2_open",
+      "platform": "unifi",
+      "role": "network",
+      "unit": ""
+    },
+    {
+      "area": "",
+      "availability": "disabled",
+      "capability_keys": [],
+      "device_class": "",
+      "device_id": "",
+      "disabled_by": "integration",
+      "domain": "device_tracker",
+      "entity_category": "diagnostic",
       "entity_id": "device_tracker.lg_smart_laundry2_open",
       "hidden_by": "",
-      "name": "LG_Smart_Laundry2_open",
+      "name": "Washing Machine",
       "platform": "unifi",
       "role": "network",
       "unit": ""
@@ -50629,7 +52983,7 @@
       "entity_category": "diagnostic",
       "entity_id": "device_tracker.mac",
       "hidden_by": "",
-      "name": "Mac",
+      "name": "Trevors-Air",
       "platform": "unifi",
       "role": "network",
       "unit": ""
@@ -50694,6 +53048,22 @@
       "entity_id": "device_tracker.office_tv",
       "hidden_by": "",
       "name": "Apple TV (Office)",
+      "platform": "unifi",
+      "role": "network",
+      "unit": ""
+    },
+    {
+      "area": "",
+      "availability": "disabled",
+      "capability_keys": [],
+      "device_class": "",
+      "device_id": "",
+      "disabled_by": "integration",
+      "domain": "device_tracker",
+      "entity_category": "diagnostic",
+      "entity_id": "device_tracker.samsung_2",
+      "hidden_by": "",
+      "name": "Samsung",
       "platform": "unifi",
       "role": "network",
       "unit": ""
@@ -50883,9 +53253,41 @@
       "disabled_by": "integration",
       "domain": "device_tracker",
       "entity_category": "diagnostic",
+      "entity_id": "device_tracker.unifi_default_mac_22e3a0baed45",
+      "hidden_by": "",
+      "name": "Mac",
+      "platform": "unifi",
+      "role": "network",
+      "unit": ""
+    },
+    {
+      "area": "",
+      "availability": "disabled",
+      "capability_keys": [],
+      "device_class": "",
+      "device_id": "",
+      "disabled_by": "integration",
+      "domain": "device_tracker",
+      "entity_category": "diagnostic",
       "entity_id": "device_tracker.unifi_default_mac_5395b13a8a3d",
       "hidden_by": "",
       "name": "iPhone",
+      "platform": "unifi",
+      "role": "network",
+      "unit": ""
+    },
+    {
+      "area": "",
+      "availability": "disabled",
+      "capability_keys": [],
+      "device_class": "",
+      "device_id": "",
+      "disabled_by": "integration",
+      "domain": "device_tracker",
+      "entity_category": "diagnostic",
+      "entity_id": "device_tracker.unifi_default_mac_a9a6ceae63df",
+      "hidden_by": "",
+      "name": "device_tracker.unifi_default_mac_a9a6ceae63df",
       "platform": "unifi",
       "role": "network",
       "unit": ""
@@ -50948,6 +53350,38 @@
       "domain": "device_tracker",
       "entity_category": "diagnostic",
       "entity_id": "device_tracker.watch",
+      "hidden_by": "",
+      "name": "Watch",
+      "platform": "unifi",
+      "role": "network",
+      "unit": ""
+    },
+    {
+      "area": "",
+      "availability": "disabled",
+      "capability_keys": [],
+      "device_class": "",
+      "device_id": "",
+      "disabled_by": "integration",
+      "domain": "device_tracker",
+      "entity_category": "diagnostic",
+      "entity_id": "device_tracker.watch_10",
+      "hidden_by": "",
+      "name": "Watch",
+      "platform": "unifi",
+      "role": "network",
+      "unit": ""
+    },
+    {
+      "area": "",
+      "availability": "disabled",
+      "capability_keys": [],
+      "device_class": "",
+      "device_id": "",
+      "disabled_by": "integration",
+      "domain": "device_tracker",
+      "entity_category": "diagnostic",
+      "entity_id": "device_tracker.watch_11",
       "hidden_by": "",
       "name": "Watch",
       "platform": "unifi",
@@ -51603,6 +54037,22 @@
       "disabled_by": "",
       "domain": "input_boolean",
       "entity_category": "",
+      "entity_id": "input_boolean.washer_notifications_enabled",
+      "hidden_by": "",
+      "name": "Washer Notifications Enabled",
+      "platform": "input_boolean",
+      "role": "control",
+      "unit": ""
+    },
+    {
+      "area": "",
+      "availability": "not_enriched",
+      "capability_keys": [],
+      "device_class": "",
+      "device_id": "",
+      "disabled_by": "",
+      "domain": "input_boolean",
+      "entity_category": "",
       "entity_id": "input_boolean.water_flow_alert_active",
       "hidden_by": "",
       "name": "Water Flow Alert Active",
@@ -51734,6 +54184,54 @@
       "entity_id": "input_boolean.wine_cave_rating_plate_reminder_sent",
       "hidden_by": "",
       "name": "Wine Cave Rating Plate Reminder Sent",
+      "platform": "input_boolean",
+      "role": "control",
+      "unit": ""
+    },
+    {
+      "area": "",
+      "availability": "not_enriched",
+      "capability_keys": [],
+      "device_class": "",
+      "device_id": "",
+      "disabled_by": "",
+      "domain": "input_boolean",
+      "entity_category": "",
+      "entity_id": "input_boolean.wine_chart_24h_expanded",
+      "hidden_by": "",
+      "name": "Wine Chart 24h Expanded",
+      "platform": "input_boolean",
+      "role": "control",
+      "unit": ""
+    },
+    {
+      "area": "",
+      "availability": "not_enriched",
+      "capability_keys": [],
+      "device_class": "",
+      "device_id": "",
+      "disabled_by": "",
+      "domain": "input_boolean",
+      "entity_category": "",
+      "entity_id": "input_boolean.wine_chart_30d_expanded",
+      "hidden_by": "",
+      "name": "Wine Chart 30d Expanded",
+      "platform": "input_boolean",
+      "role": "control",
+      "unit": ""
+    },
+    {
+      "area": "",
+      "availability": "not_enriched",
+      "capability_keys": [],
+      "device_class": "",
+      "device_id": "",
+      "disabled_by": "",
+      "domain": "input_boolean",
+      "entity_category": "",
+      "entity_id": "input_boolean.wine_chart_7d_expanded",
+      "hidden_by": "",
+      "name": "Wine Chart 7d Expanded",
       "platform": "input_boolean",
       "role": "control",
       "unit": ""
@@ -52883,6 +55381,118 @@
       "disabled_by": "",
       "domain": "input_datetime",
       "entity_category": "",
+      "entity_id": "input_datetime.washer_last_completed_at",
+      "hidden_by": "",
+      "name": "Washer Last Completed At",
+      "platform": "input_datetime",
+      "role": "control",
+      "unit": ""
+    },
+    {
+      "area": "",
+      "availability": "not_enriched",
+      "capability_keys": [],
+      "device_class": "",
+      "device_id": "",
+      "disabled_by": "",
+      "domain": "input_datetime",
+      "entity_category": "",
+      "entity_id": "input_datetime.washer_last_completion_notified_at",
+      "hidden_by": "",
+      "name": "Washer Last Completion Notified At",
+      "platform": "input_datetime",
+      "role": "control",
+      "unit": ""
+    },
+    {
+      "area": "",
+      "availability": "not_enriched",
+      "capability_keys": [],
+      "device_class": "",
+      "device_id": "",
+      "disabled_by": "",
+      "domain": "input_datetime",
+      "entity_category": "",
+      "entity_id": "input_datetime.washer_last_error_detected_at",
+      "hidden_by": "",
+      "name": "Washer Last Error Detected At",
+      "platform": "input_datetime",
+      "role": "control",
+      "unit": ""
+    },
+    {
+      "area": "",
+      "availability": "not_enriched",
+      "capability_keys": [],
+      "device_class": "",
+      "device_id": "",
+      "disabled_by": "",
+      "domain": "input_datetime",
+      "entity_category": "",
+      "entity_id": "input_datetime.washer_last_error_notified_at",
+      "hidden_by": "",
+      "name": "Washer Last Error Notified At",
+      "platform": "input_datetime",
+      "role": "control",
+      "unit": ""
+    },
+    {
+      "area": "",
+      "availability": "not_enriched",
+      "capability_keys": [],
+      "device_class": "",
+      "device_id": "",
+      "disabled_by": "",
+      "domain": "input_datetime",
+      "entity_category": "",
+      "entity_id": "input_datetime.washer_last_follow_up_at",
+      "hidden_by": "",
+      "name": "Washer Last Follow-Up At",
+      "platform": "input_datetime",
+      "role": "control",
+      "unit": ""
+    },
+    {
+      "area": "",
+      "availability": "not_enriched",
+      "capability_keys": [],
+      "device_class": "",
+      "device_id": "",
+      "disabled_by": "",
+      "domain": "input_datetime",
+      "entity_category": "",
+      "entity_id": "input_datetime.washer_last_handled_at",
+      "hidden_by": "",
+      "name": "Washer Last Handled At",
+      "platform": "input_datetime",
+      "role": "control",
+      "unit": ""
+    },
+    {
+      "area": "",
+      "availability": "not_enriched",
+      "capability_keys": [],
+      "device_class": "",
+      "device_id": "",
+      "disabled_by": "",
+      "domain": "input_datetime",
+      "entity_category": "",
+      "entity_id": "input_datetime.washer_reminder_snooze_until",
+      "hidden_by": "",
+      "name": "Washer Reminder Snooze Until",
+      "platform": "input_datetime",
+      "role": "control",
+      "unit": ""
+    },
+    {
+      "area": "",
+      "availability": "not_enriched",
+      "capability_keys": [],
+      "device_class": "",
+      "device_id": "",
+      "disabled_by": "",
+      "domain": "input_datetime",
+      "entity_category": "",
       "entity_id": "input_datetime.water_latest_alert_at",
       "hidden_by": "",
       "name": "Water Latest Alert At",
@@ -53046,6 +55656,22 @@
       "entity_id": "input_datetime.wine_cave_purchase_date",
       "hidden_by": "",
       "name": "Wine Cave Purchase Date",
+      "platform": "input_datetime",
+      "role": "control",
+      "unit": ""
+    },
+    {
+      "area": "",
+      "availability": "not_enriched",
+      "capability_keys": [],
+      "device_class": "",
+      "device_id": "",
+      "disabled_by": "",
+      "domain": "input_datetime",
+      "entity_category": "",
+      "entity_id": "input_datetime.wynn_room_camera_last_activity_at",
+      "hidden_by": "",
+      "name": "Wynn Room Camera Last Activity At",
       "platform": "input_datetime",
       "role": "control",
       "unit": ""
@@ -53782,6 +56408,86 @@
       "entity_id": "input_text.metro_north_commute_card_message",
       "hidden_by": "",
       "name": "Metro-North Commute Card Message",
+      "platform": "input_text",
+      "role": "control",
+      "unit": ""
+    },
+    {
+      "area": "",
+      "availability": "not_enriched",
+      "capability_keys": [],
+      "device_class": "",
+      "device_id": "",
+      "disabled_by": "",
+      "domain": "input_text",
+      "entity_category": "",
+      "entity_id": "input_text.nwp_parking_pass_replaced_expiration_date",
+      "hidden_by": "",
+      "name": "NWP Parking Pass Replaced Expiration Date",
+      "platform": "input_text",
+      "role": "control",
+      "unit": ""
+    },
+    {
+      "area": "",
+      "availability": "not_enriched",
+      "capability_keys": [],
+      "device_class": "",
+      "device_id": "",
+      "disabled_by": "",
+      "domain": "input_text",
+      "entity_category": "",
+      "entity_id": "input_text.washer_last_completion_event_key",
+      "hidden_by": "",
+      "name": "Washer Last Completion Event Key",
+      "platform": "input_text",
+      "role": "control",
+      "unit": ""
+    },
+    {
+      "area": "",
+      "availability": "not_enriched",
+      "capability_keys": [],
+      "device_class": "",
+      "device_id": "",
+      "disabled_by": "",
+      "domain": "input_text",
+      "entity_category": "",
+      "entity_id": "input_text.washer_last_cycle_name",
+      "hidden_by": "",
+      "name": "Washer Last Cycle Name",
+      "platform": "input_text",
+      "role": "control",
+      "unit": ""
+    },
+    {
+      "area": "",
+      "availability": "not_enriched",
+      "capability_keys": [],
+      "device_class": "",
+      "device_id": "",
+      "disabled_by": "",
+      "domain": "input_text",
+      "entity_category": "",
+      "entity_id": "input_text.washer_last_error_event_key",
+      "hidden_by": "",
+      "name": "Washer Last Error Event Key",
+      "platform": "input_text",
+      "role": "control",
+      "unit": ""
+    },
+    {
+      "area": "",
+      "availability": "not_enriched",
+      "capability_keys": [],
+      "device_class": "",
+      "device_id": "",
+      "disabled_by": "",
+      "domain": "input_text",
+      "entity_category": "",
+      "entity_id": "input_text.washer_last_error_type",
+      "hidden_by": "",
+      "name": "Washer Last Error Type",
       "platform": "input_text",
       "role": "control",
       "unit": ""
@@ -56067,6 +58773,118 @@
       "disabled_by": "",
       "domain": "script",
       "entity_category": "",
+      "entity_id": "script.washer_clear_cycle_notification",
+      "hidden_by": "",
+      "name": "Washer Clear Cycle Notification",
+      "platform": "script",
+      "role": "other",
+      "unit": ""
+    },
+    {
+      "area": "",
+      "availability": "not_enriched",
+      "capability_keys": [],
+      "device_class": "",
+      "device_id": "",
+      "disabled_by": "",
+      "domain": "script",
+      "entity_category": "",
+      "entity_id": "script.washer_clear_error_notification",
+      "hidden_by": "",
+      "name": "Washer Clear Error Notification",
+      "platform": "script",
+      "role": "other",
+      "unit": ""
+    },
+    {
+      "area": "",
+      "availability": "not_enriched",
+      "capability_keys": [],
+      "device_class": "",
+      "device_id": "",
+      "disabled_by": "",
+      "domain": "script",
+      "entity_category": "",
+      "entity_id": "script.washer_mark_laundry_handled",
+      "hidden_by": "",
+      "name": "Washer Mark Laundry Handled",
+      "platform": "script",
+      "role": "other",
+      "unit": ""
+    },
+    {
+      "area": "",
+      "availability": "not_enriched",
+      "capability_keys": [],
+      "device_class": "",
+      "device_id": "",
+      "disabled_by": "",
+      "domain": "script",
+      "entity_category": "",
+      "entity_id": "script.washer_send_completion_notification",
+      "hidden_by": "",
+      "name": "Washer Send Completion Notification",
+      "platform": "script",
+      "role": "other",
+      "unit": ""
+    },
+    {
+      "area": "",
+      "availability": "not_enriched",
+      "capability_keys": [],
+      "device_class": "",
+      "device_id": "",
+      "disabled_by": "",
+      "domain": "script",
+      "entity_category": "",
+      "entity_id": "script.washer_send_error_notification",
+      "hidden_by": "",
+      "name": "Washer Send Error Notification",
+      "platform": "script",
+      "role": "other",
+      "unit": ""
+    },
+    {
+      "area": "",
+      "availability": "not_enriched",
+      "capability_keys": [],
+      "device_class": "",
+      "device_id": "",
+      "disabled_by": "",
+      "domain": "script",
+      "entity_category": "",
+      "entity_id": "script.washer_send_follow_up_notification",
+      "hidden_by": "",
+      "name": "Washer Send Follow-Up Notification",
+      "platform": "script",
+      "role": "other",
+      "unit": ""
+    },
+    {
+      "area": "",
+      "availability": "not_enriched",
+      "capability_keys": [],
+      "device_class": "",
+      "device_id": "",
+      "disabled_by": "",
+      "domain": "script",
+      "entity_category": "",
+      "entity_id": "script.washer_snooze_reminder",
+      "hidden_by": "",
+      "name": "Washer Snooze Reminder",
+      "platform": "script",
+      "role": "other",
+      "unit": ""
+    },
+    {
+      "area": "",
+      "availability": "not_enriched",
+      "capability_keys": [],
+      "device_class": "",
+      "device_id": "",
+      "disabled_by": "",
+      "domain": "script",
+      "entity_category": "",
       "entity_id": "script.water_send_alert",
       "hidden_by": "",
       "name": "Water Send Alert",
@@ -57331,6 +60149,22 @@
       "disabled_by": "",
       "domain": "sensor",
       "entity_category": "",
+      "entity_id": "sensor.irrigation_7_day_ledger",
+      "hidden_by": "",
+      "name": "Irrigation 7 Day Ledger",
+      "platform": "command_line",
+      "role": "telemetry",
+      "unit": ""
+    },
+    {
+      "area": "",
+      "availability": "not_enriched",
+      "capability_keys": [],
+      "device_class": "",
+      "device_id": "",
+      "disabled_by": "",
+      "domain": "sensor",
+      "entity_category": "",
       "entity_id": "sensor.irrigation_active_zone",
       "hidden_by": "",
       "name": "Irrigation Active Zone",
@@ -58389,7 +61223,7 @@
       "entity_category": "",
       "entity_id": "switch.great_room_uplights",
       "hidden_by": "",
-      "name": "Great Room Uplights",
+      "name": "Great Room uplights",
       "platform": "template",
       "role": "control",
       "unit": ""
@@ -58430,97 +61264,99 @@
   "schema_version": 3,
   "summary": {
     "area_count": 32,
-    "device_count": 223,
+    "device_count": 228,
     "domain_counts": {
       "ai_task": 2,
-      "automation": 183,
-      "binary_sensor": 303,
-      "button": 53,
-      "camera": 16,
+      "alarm_control_panel": 1,
+      "automation": 189,
+      "binary_sensor": 309,
+      "button": 54,
+      "camera": 10,
       "climate": 3,
       "conversation": 2,
       "cover": 2,
-      "device_tracker": 140,
-      "event": 15,
+      "device_tracker": 153,
+      "event": 17,
       "image": 3,
-      "input_boolean": 42,
-      "input_datetime": 82,
+      "input_boolean": 46,
+      "input_datetime": 90,
       "input_number": 22,
       "input_select": 3,
-      "input_text": 23,
+      "input_text": 28,
       "light": 36,
       "lock": 5,
-      "media_player": 24,
-      "number": 100,
+      "media_player": 27,
+      "notify": 2,
+      "number": 107,
       "person": 2,
       "remote": 3,
-      "script": 144,
-      "select": 33,
-      "sensor": 715,
+      "script": 151,
+      "select": 34,
+      "sensor": 732,
       "siren": 2,
       "stt": 2,
-      "switch": 339,
+      "switch": 375,
       "todo": 1,
       "tts": 3,
-      "update": 22,
+      "update": 23,
       "valve": 30,
       "weather": 1
     },
-    "entity_count": 2356,
+    "entity_count": 2470,
     "integration_count": 44,
     "integration_counts": {
       "airthings": 4,
       "anthropic": 2,
-      "apple_tv": 4,
-      "automation": 183,
+      "apple_tv": 6,
+      "automation": 189,
       "backup": 5,
       "brother": 8,
       "cast": 3,
       "cloud": 3,
-      "command_line": 9,
+      "command_line": 10,
       "esphome": 55,
       "flo": 43,
       "google_translate": 1,
       "group": 6,
       "hacs": 20,
       "hassio": 35,
-      "homekit_controller": 39,
+      "homekit_controller": 41,
       "hydrawise": 245,
-      "input_boolean": 42,
-      "input_datetime": 82,
+      "input_boolean": 46,
+      "input_datetime": 90,
       "input_number": 22,
       "input_select": 3,
-      "input_text": 23,
-      "lg_thinq": 14,
+      "input_text": 28,
+      "lg_thinq": 27,
       "lutron_caseta": 33,
-      "matter": 22,
+      "matter": 25,
       "met": 1,
-      "mobile_app": 26,
+      "mobile_app": 31,
       "openai_conversation": 4,
       "person": 2,
       "ring": 39,
       "samsungtv": 2,
-      "script": 144,
+      "script": 151,
       "sensorpush_cloud": 56,
       "shopping_list": 1,
-      "sonos": 179,
+      "sonos": 224,
       "spotify": 1,
       "statistics": 9,
-      "sun": 10,
+      "sun": 9,
       "template": 206,
       "tplink": 21,
-      "unifi": 290,
-      "unifiprotect": 399,
+      "unifi": 309,
+      "unifiprotect": 394,
       "upnp": 12,
       "whisker_ting": 48
     },
-    "network_client_count": 138,
-    "orphan_entity_count": 792,
+    "network_client_count": 151,
+    "orphan_entity_count": 832,
     "role_counts": {
-      "control": 802,
-      "network": 138,
-      "other": 339,
-      "telemetry": 1077
+      "control": 868,
+      "network": 151,
+      "other": 354,
+      "telemetry": 1097
     },
     "service_domain_count": 0
   }

@@ -4,17 +4,17 @@ A human-readable map of the Home Assistant device model. The full audit dump is 
 
 ## At A Glance
 
-- Snapshot: `2026-06-30T15:32:28.018303+00:00`
-- Scale: 223 devices, 2356 entities, 138 network clients
+- Snapshot: `2026-07-29T14:29:24.057042+00:00`
+- Scale: 228 devices, 2470 entities, 151 network clients
 - Lighting: 36 light entities, 33 Lutron Caséta entities
 
 | Thing | Count |
 | --- | --- |
-| Devices | 223 |
-| Entities | 2356 |
-| Control entities | 802 |
-| Telemetry entities | 1077 |
-| Network clients | 138 |
+| Devices | 228 |
+| Entities | 2470 |
+| Control entities | 868 |
+| Telemetry entities | 1097 |
+| Network clients | 151 |
 | Areas | 32 |
 
 ## Area Index
@@ -26,30 +26,30 @@ A human-readable map of the Home Assistant device model. The full audit dump is 
 | Back Yard | 1 | 4 | 1 | 6 | 0 |
 | Basement | 3 | 0 | 0 | 16 | 1 |
 | Deck | 1 | 1 | 1 | 0 | 0 |
-| Dining Room | 2 | 6 | 0 | 12 | 0 |
-| Electrical Room | 5 | 12 | 0 | 99 | 2 |
+| Dining Room | 2 | 7 | 0 | 12 | 0 |
+| Electrical Room | 5 | 13 | 0 | 99 | 2 |
 | Exterior | 3 | 3 | 2 | 0 | 0 |
-| Family Room | 8 | 31 | 3 | 26 | 3 |
-| Family Room TV | 1 | 2 | 0 | 0 | 0 |
+| Family Room | 8 | 33 | 3 | 26 | 3 |
+| Family Room TV | 1 | 2 | 0 | 1 | 0 |
 | Front Door | 1 | 3 | 0 | 7 | 0 |
 | Front Foyer | 3 | 3 | 2 | 0 | 0 |
-| Front Yard | 1 | 32 | 0 | 27 | 1 |
+| Front Yard | 1 | 32 | 0 | 26 | 1 |
 | Garage | 3 | 4 | 0 | 12 | 0 |
-| Great Room Speakers | 1 | 8 | 0 | 1 | 1 |
+| Great Room Speakers | 1 | 10 | 0 | 1 | 1 |
 | Kitchen | 9 | 5 | 5 | 19 | 4 |
-| Kitchen Speakers | 1 | 8 | 0 | 1 | 1 |
-| Master | 5 | 12 | 1 | 12 | 0 |
+| Kitchen Speakers | 1 | 10 | 0 | 1 | 1 |
+| Master | 5 | 13 | 1 | 12 | 0 |
 | Master Bathroom | 1 | 0 | 0 | 0 | 0 |
 | Master Bedroom | 2 | 2 | 2 | 0 | 0 |
-| Mechanical Room | 4 | 33 | 0 | 47 | 3 |
+| Mechanical Room | 4 | 33 | 0 | 46 | 3 |
 | Mudroom | 9 | 46 | 2 | 65 | 3 |
-| Office | 3 | 7 | 0 | 13 | 1 |
+| Office | 3 | 7 | 0 | 14 | 1 |
 | Stairs | 1 | 1 | 1 | 0 | 0 |
-| Unassigned | 141 | 323 | 11 | 470 | 55 |
-| Unnamed Room | 6 | 63 | 0 | 6 | 6 |
+| Unassigned | 144 | 334 | 11 | 487 | 57 |
+| Unnamed Room | 8 | 90 | 0 | 8 | 8 |
 | Upstairs Hallway | 1 | 1 | 1 | 0 | 0 |
 | Vestibule | 1 | 1 | 1 | 0 | 0 |
-| Wynn's Room | 4 | 11 | 2 | 5 | 1 |
+| Wynn's Room | 4 | 13 | 2 | 5 | 1 |
 
 ## Lighting Controls
 
@@ -66,31 +66,31 @@ A human-readable map of the Home Assistant device model. The full audit dump is 
 | Unassigned | Master Bedroom Sconces | `light.master_bedroom_sconces` | group |  |
 | Unassigned | Mudroom | `light.mudroom` | group |  |
 | Unassigned | Wynn's Room | `light.wynn_s_room` | group |  |
-| Back Stairs | Back Stairs Back Stairs | `light.back_stairs_back_stairs` | lutron_caseta |  |
+| Back Stairs | light.back_stairs_back_stairs | `light.back_stairs_back_stairs` | lutron_caseta |  |
 | Back Yard | Light | `light.back_patio_light` | ring |  |
-| Deck | Deck Deck Lights | `light.deck_deck_lights` | lutron_caseta |  |
-| Exterior | Exterior Deck Lights | `light.exterior_deck_lights` | lutron_caseta |  |
-| Exterior | Exterior Yard Lights | `light.exterior_yard_lights` | lutron_caseta |  |
-| Family Room | Family Room Main Lights 1 | `light.family_room_main_lights_1` | lutron_caseta |  |
-| Family Room | Family Room Main Lights 2 | `light.family_room_main_lights_2` | lutron_caseta |  |
-| Family Room | Family Room Main Lights 3 | `light.family_room_main_lights_3` | lutron_caseta |  |
-| Front Foyer | Front Foyer Ceiling Lights | `light.front_foyer_ceiling_lights` | lutron_caseta |  |
-| Front Foyer | Front Foyer Chandelier | `light.front_foyer_chandelier` | lutron_caseta |  |
-| Kitchen | Kitchen Coffee Bar | `light.kitchen_coffee_bar` | lutron_caseta |  |
-| Kitchen | Kitchen Island | `light.kitchen_island` | lutron_caseta |  |
-| Kitchen | Kitchen Main | `light.kitchen_main` | lutron_caseta |  |
-| Kitchen | Kitchen Sink Light | `light.kitchen_sink_light` | lutron_caseta |  |
-| Kitchen | Kitchen Table Lights | `light.kitchen_table_lights` | lutron_caseta |  |
+| Deck | light.deck_deck_lights | `light.deck_deck_lights` | lutron_caseta |  |
+| Exterior | light.exterior_deck_lights | `light.exterior_deck_lights` | lutron_caseta |  |
+| Exterior | light.exterior_yard_lights | `light.exterior_yard_lights` | lutron_caseta |  |
+| Family Room | light.family_room_main_lights_1 | `light.family_room_main_lights_1` | lutron_caseta |  |
+| Family Room | light.family_room_main_lights_2 | `light.family_room_main_lights_2` | lutron_caseta |  |
+| Family Room | light.family_room_main_lights_3 | `light.family_room_main_lights_3` | lutron_caseta |  |
+| Front Foyer | light.front_foyer_ceiling_lights | `light.front_foyer_ceiling_lights` | lutron_caseta |  |
+| Front Foyer | light.front_foyer_chandelier | `light.front_foyer_chandelier` | lutron_caseta |  |
+| Kitchen | light.kitchen_coffee_bar | `light.kitchen_coffee_bar` | lutron_caseta |  |
+| Kitchen | light.kitchen_island | `light.kitchen_island` | lutron_caseta |  |
+| Kitchen | light.kitchen_main | `light.kitchen_main` | lutron_caseta |  |
+| Kitchen | light.kitchen_sink_light | `light.kitchen_sink_light` | lutron_caseta |  |
+| Kitchen | light.kitchen_table_lights | `light.kitchen_table_lights` | lutron_caseta |  |
 | Master | Casey's closet | `light.master_casey_s_closet` | lutron_caseta | Master Casey's Closet |
-| Master Bedroom | Master Sconce L | `light.master_bedroom_sconce_l` | lutron_caseta |  |
-| Master Bedroom | Master Sconce R | `light.master_bedroom_sconce_r` | lutron_caseta |  |
-| Mudroom | Mudroom Main Lights | `light.mudroom_main_lights` | lutron_caseta |  |
-| Mudroom | Mudroom Nook Lights | `light.mudroom_nook_lights` | lutron_caseta |  |
-| Stairs | Stairs Front Stairs | `light.stairs_front_stairs` | lutron_caseta |  |
-| Upstairs Hallway | Upstairs Hallway Main Lights | `light.upstairs_hallway_main_lights` | lutron_caseta |  |
-| Vestibule | Vestibule Main Lights | `light.vestibule_main_lights` | lutron_caseta |  |
-| Wynn's Room | Wynn's Room Ceiling Lights | `light.wynn_s_room_ceiling_lights` | lutron_caseta |  |
-| Wynn's Room | Wynn's Room Chandelier | `light.wynn_s_room_chandelier` | lutron_caseta |  |
+| Master Bedroom | light.master_bedroom_sconce_l | `light.master_bedroom_sconce_l` | lutron_caseta |  |
+| Master Bedroom | light.master_bedroom_sconce_r | `light.master_bedroom_sconce_r` | lutron_caseta |  |
+| Mudroom | light.mudroom_main_lights | `light.mudroom_main_lights` | lutron_caseta |  |
+| Mudroom | light.mudroom_nook_lights | `light.mudroom_nook_lights` | lutron_caseta |  |
+| Stairs | light.stairs_front_stairs | `light.stairs_front_stairs` | lutron_caseta |  |
+| Upstairs Hallway | light.upstairs_hallway_main_lights | `light.upstairs_hallway_main_lights` | lutron_caseta |  |
+| Vestibule | light.vestibule_main_lights | `light.vestibule_main_lights` | lutron_caseta |  |
+| Wynn's Room | light.wynn_s_room_ceiling_lights | `light.wynn_s_room_ceiling_lights` | lutron_caseta |  |
+| Wynn's Room | light.wynn_s_room_chandelier | `light.wynn_s_room_chandelier` | lutron_caseta |  |
 
 ## Control Devices By Area
 
@@ -98,7 +98,7 @@ A human-readable map of the Home Assistant device model. The full audit dump is 
 
 | Device | Integration | Main controls | Original name |
 | --- | --- | --- | --- |
-| Back Stairs Back Stairs | lutron_caseta | Back Stairs Back Stairs (`light.back_stairs_back_stairs`) |  |
+| Back Stairs Back Stairs | lutron_caseta | `light.back_stairs_back_stairs` |  |
 
 ### Back Yard
 
@@ -110,39 +110,39 @@ A human-readable map of the Home Assistant device model. The full audit dump is 
 
 | Device | Integration | Main controls | Original name |
 | --- | --- | --- | --- |
-| Deck Deck Lights | lutron_caseta | Deck Deck Lights (`light.deck_deck_lights`) |  |
+| Deck Deck Lights | lutron_caseta | `light.deck_deck_lights` |  |
 
 ### Dining Room
 
 | Device | Integration | Main controls | Original name |
 | --- | --- | --- | --- |
-| Dining Room Thermostat | homekit_controller | Dining Room Clear Hold (`button.dining_room_clear_hold`); Dining Room Identify (`button.dining_room_identify`); Dining Room (`climate.dining_room`); Dining Room Current Mode (`select.dining_room_current_mode`); Dining Room Temperature Display Units (`select.dining_room_temperature_display_units`); +1 more | Dining Room |
+| Dining Room Thermostat | homekit_controller | Dining Room Clear Hold (`button.dining_room_clear_hold`); Dining Room Identify (`button.dining_room_identify`); Dining Room (`climate.dining_room`); Dining Room Current Mode (`select.dining_room_current_mode`); Dining Room Temperature Display Units (`select.dining_room_temperature_display_units`); +2 more | Dining Room |
 
 ### Electrical Room
 
 | Device | Integration | Main controls | Original name |
 | --- | --- | --- | --- |
-| Bonticou Gateway | unifi, unifiprotect | Port 4 Power Cycle (`button.bonticou_gateway_port_4_power_cycle`); Restart (`button.bonticou_gateway_restart`); Analytics enabled (`switch.bonticou_gateway_analytics_enabled`); Insights enabled (`switch.bonticou_gateway_insights_enabled`); Port 1 (`switch.bonticou_gateway_port_1`); +7 more |  |
+| Bonticou Gateway | unifi, unifiprotect | Alarm Manager (`alarm_control_panel.electrical_room_bonticou_gateway_alarm_manager`); Port 4 power cycle (`button.bonticou_gateway_port_4_power_cycle`); Restart (`button.bonticou_gateway_restart`); Analytics enabled (`switch.bonticou_gateway_analytics_enabled`); Insights enabled (`switch.bonticou_gateway_insights_enabled`); +8 more |  |
 
 ### Exterior
 
 | Device | Integration | Main controls | Original name |
 | --- | --- | --- | --- |
-| Exterior Deck Lights | lutron_caseta | Exterior Deck Lights (`light.exterior_deck_lights`) |  |
-| Exterior Mud Room Stairs | lutron_caseta | Exterior Mud Room Stairs (`switch.exterior_mud_room_stairs`) |  |
-| Exterior Yard Lights | lutron_caseta | Exterior Yard Lights (`light.exterior_yard_lights`) |  |
+| Exterior Deck Lights | lutron_caseta | `light.exterior_deck_lights` |  |
+| Exterior Mud Room Stairs | lutron_caseta | `switch.exterior_mud_room_stairs` |  |
+| Exterior Yard Lights | lutron_caseta | `light.exterior_yard_lights` |  |
 
 ### Family Room
 
 | Device | Integration | Main controls | Original name |
 | --- | --- | --- | --- |
-| Family Room | sonos, unifi | `media_player.family_room`; Audio delay (`number.family_room_audio_delay`); Balance (`number.family_room_balance`); Bass (`number.family_room_bass`); Music surround level (`number.family_room_music_surround_level`); +13 more |  |
+| Family Room | sonos, unifi | `media_player.family_room`; Audio delay (`number.family_room_audio_delay`); Balance (`number.family_room_balance`); Bass (`number.family_room_bass`); Music surround level (`number.family_room_music_surround_level`); +15 more |  |
 | Family Room Frame TV | samsungtv, unifi | `media_player.family_room_frame_tv`; `remote.family_room_frame_tv` |  |
-| Family Room Main Lights 1 | lutron_caseta | Family Room Main Lights 1 (`light.family_room_main_lights_1`) |  |
-| Family Room Main Lights 2 | lutron_caseta | Family Room Main Lights 2 (`light.family_room_main_lights_2`) |  |
-| Family Room Main Lights 3 | lutron_caseta | Family Room Main Lights 3 (`light.family_room_main_lights_3`) |  |
+| Family Room Main Lights 1 | lutron_caseta | `light.family_room_main_lights_1` |  |
+| Family Room Main Lights 2 | lutron_caseta | `light.family_room_main_lights_2` |  |
+| Family Room Main Lights 3 | lutron_caseta | `light.family_room_main_lights_3` |  |
 | Smart Bridge 2 | lutron_caseta | Unassigned Smart Away (`switch.unassigned_smart_away`) |  |
-| Uplight | tplink, unifi | Restart (`button.uplight_restart`); Power protection (`number.uplight_power_protection`); Turn off in (`number.uplight_turn_off_in`); `switch.uplight`; Auto-off enabled (`switch.uplight_auto_off_enabled`); +2 more |  |
+| Uplight 1 | tplink, unifi | Restart (`button.uplight_restart`); Power protection (`number.uplight_power_protection`); Turn off in (`number.uplight_turn_off_in`); `switch.uplight`; Auto-off enabled (`switch.uplight_auto_off_enabled`); +2 more |  |
 
 ### Family Room TV
 
@@ -160,9 +160,9 @@ A human-readable map of the Home Assistant device model. The full audit dump is 
 
 | Device | Integration | Main controls | Original name |
 | --- | --- | --- | --- |
-| Front Foyer Ceiling Lights | lutron_caseta | Front Foyer Ceiling Lights (`light.front_foyer_ceiling_lights`) |  |
-| Front Foyer Chandelier | lutron_caseta | Front Foyer Chandelier (`light.front_foyer_chandelier`) |  |
-| Front Foyer Sconces | lutron_caseta | Front Foyer Sconces (`switch.front_foyer_sconces`) |  |
+| Front Foyer Ceiling Lights | lutron_caseta | `light.front_foyer_ceiling_lights` |  |
+| Front Foyer Chandelier | lutron_caseta | `light.front_foyer_chandelier` |  |
+| Front Foyer Sconces | lutron_caseta | `switch.front_foyer_sconces` |  |
 
 ### Front Yard
 
@@ -175,45 +175,45 @@ A human-readable map of the Home Assistant device model. The full audit dump is 
 | Device | Integration | Main controls | Original name |
 | --- | --- | --- | --- |
 | Garage Entry Lock | matter | Identify (`button.garage_entry_lock_identify`); `lock.garage_entry_lock`; Operating mode (`select.garage_entry_lock_operating_mode`) | Aqara Smart Lock U100 |
-| Garage Garage Lights | lutron_caseta | Garage Garage Lights (`switch.garage_garage_lights`) |  |
+| Garage Garage Lights | lutron_caseta | `switch.garage_garage_lights` |  |
 
 ### Great Room Speakers
 
 | Device | Integration | Main controls | Original name |
 | --- | --- | --- | --- |
-| Great Room Sonos | sonos, unifi | `media_player.great_room_speakers`; Balance (`number.great_room_speakers_balance`); Bass (`number.great_room_speakers_bass`); Treble (`number.great_room_speakers_treble`); Crossfade (`switch.great_room_speakers_crossfade`); +3 more |  |
+| Great Room Sonos | sonos, unifi | `media_player.great_room_speakers`; Balance (`number.great_room_speakers_balance`); Bass (`number.great_room_speakers_bass`); Treble (`number.great_room_speakers_treble`); Crossfade (`switch.great_room_speakers_crossfade`); +5 more |  |
 
 ### Kitchen
 
 | Device | Integration | Main controls | Original name |
 | --- | --- | --- | --- |
-| Kitchen Coffee Bar | lutron_caseta | Kitchen Coffee Bar (`light.kitchen_coffee_bar`) |  |
-| Kitchen Island | lutron_caseta | Kitchen Island (`light.kitchen_island`) |  |
-| Kitchen Main | lutron_caseta | Kitchen Main (`light.kitchen_main`) |  |
-| Kitchen Sink Light | lutron_caseta | Kitchen Sink Light (`light.kitchen_sink_light`) |  |
-| Kitchen Table Lights | lutron_caseta | Kitchen Table Lights (`light.kitchen_table_lights`) |  |
+| Kitchen Coffee Bar | lutron_caseta | `light.kitchen_coffee_bar` |  |
+| Kitchen Island | lutron_caseta | `light.kitchen_island` |  |
+| Kitchen Main | lutron_caseta | `light.kitchen_main` |  |
+| Kitchen Sink Light | lutron_caseta | `light.kitchen_sink_light` |  |
+| Kitchen Table Lights | lutron_caseta | `light.kitchen_table_lights` |  |
 
 ### Kitchen Speakers
 
 | Device | Integration | Main controls | Original name |
 | --- | --- | --- | --- |
-| Kitchen Sonos | sonos, unifi | `media_player.kitchen_speakers`; Balance (`number.kitchen_speakers_balance`); Bass (`number.kitchen_speakers_bass`); Treble (`number.kitchen_speakers_treble`); Crossfade (`switch.kitchen_speakers_crossfade`); +3 more |  |
+| Kitchen Sonos | sonos, unifi | `media_player.kitchen_speakers`; Balance (`number.kitchen_speakers_balance`); Bass (`number.kitchen_speakers_bass`); Treble (`number.kitchen_speakers_treble`); Crossfade (`switch.kitchen_speakers_crossfade`); +5 more |  |
 
 ### Master
 
 | Device | Integration | Main controls | Original name |
 | --- | --- | --- | --- |
 | Casey's closet | lutron_caseta | Casey's closet (`light.master_casey_s_closet`) | Master Casey's Closet |
-| Master Lantern | lutron_caseta | Master Lantern (`switch.master_lantern`) |  |
-| Master Thermostat | homekit_controller | Master Clear Hold (`button.master_clear_hold_2`); Master Identify (`button.master_identify_2`); Master Thermostat (`climate.master_2`); Master Current Mode (`select.master_current_mode_2`); Master Temperature Display Units (`select.master_temperature_display_units_2`); +1 more | Master |
+| Master Lantern | lutron_caseta | `switch.master_lantern` |  |
+| Master Thermostat | homekit_controller | Master Clear Hold (`button.master_clear_hold_2`); Master Identify (`button.master_identify_2`); Master Thermostat (`climate.master_2`); Master Current Mode (`select.master_current_mode_2`); Master Temperature Display Units (`select.master_temperature_display_units_2`); +2 more | Master |
 | Master Wall Remote | lutron_caseta | Unassigned Accent Lights Remote 1 Lower (`button.unassigned_accent_lights_remote_1_lower`); Unassigned Accent Lights Remote 1 Off (`button.unassigned_accent_lights_remote_1_off`); Unassigned Accent Lights Remote 1 On (`button.unassigned_accent_lights_remote_1_on`); Unassigned Accent Lights Remote 1 Raise (`button.unassigned_accent_lights_remote_1_raise`) | Unassigned Accent Lights Remote 1 |
 
 ### Master Bedroom
 
 | Device | Integration | Main controls | Original name |
 | --- | --- | --- | --- |
-| Master Sconce L | lutron_caseta | Master Sconce L (`light.master_bedroom_sconce_l`) |  |
-| Master Sconce R | lutron_caseta | Master Sconce R (`light.master_bedroom_sconce_r`) |  |
+| Master Sconce L | lutron_caseta | `light.master_bedroom_sconce_l` |  |
+| Master Sconce R | lutron_caseta | `light.master_bedroom_sconce_r` |  |
 
 ### Mechanical Room
 
@@ -230,8 +230,8 @@ A human-readable map of the Home Assistant device model. The full audit dump is 
 | Mud room | unifi, unifiprotect | Restart (`button.mud_room_restart`); Unadopt device (`button.mud_room_unadopt_device`); Speaker (`media_player.mud_room_speaker`); Infrared custom lux trigger (`number.mud_room_infrared_custom_lux_trigger`); Microphone level (`number.mud_room_microphone_level`); +27 more |  |
 | Mudroom Door | ring | Volume (`number.mudroom_door_volume`); In-home chime (`switch.mudroom_door_in_home_chime`); Motion detection (`switch.mudroom_door_motion_detection`) |  |
 | Mudroom Door Lock | matter | Identify (`button.mudroom_door_lock_identify`); `lock.mudroom_door_lock`; Operating mode (`select.mudroom_door_lock_operating_mode`) | Aqara Smart Lock U100 |
-| Mudroom Main Lights | lutron_caseta | Mudroom Main Lights (`light.mudroom_main_lights`) |  |
-| Mudroom Nook Lights | lutron_caseta | Mudroom Nook Lights (`light.mudroom_nook_lights`) |  |
+| Mudroom Main Lights | lutron_caseta | `light.mudroom_main_lights` |  |
+| Mudroom Nook Lights | lutron_caseta | `light.mudroom_nook_lights` |  |
 | Washer | lg_thinq | Delayed start (`number.washer_delayed_start`); Operation (`select.washer_operation`); Power (`switch.washer_power`) |  |
 
 ### Office
@@ -245,7 +245,7 @@ A human-readable map of the Home Assistant device model. The full audit dump is 
 
 | Device | Integration | Main controls | Original name |
 | --- | --- | --- | --- |
-| Stairs Front Stairs | lutron_caseta | Stairs Front Stairs (`light.stairs_front_stairs`) |  |
+| Stairs Front Stairs | lutron_caseta | `light.stairs_front_stairs` |  |
 
 ### Unassigned
 
@@ -254,24 +254,31 @@ A human-readable map of the Home Assistant device model. The full audit dump is 
 | Aqara Hub M100 | matter | Identify (`button.aqara_hub_m100_identify`) |  |
 | Aqara Smart Lock U100 | matter | Identify (`button.aqara_smart_lock_u100_identify`); `lock.aqara_smart_lock_u100`; Operating mode (`select.aqara_smart_lock_u100_operating_mode`) |  |
 | Basement TV | cast | `media_player.basement_tv` |  |
-| Bonticou | unifi | Regenerate Password (`button.bonticou_regenerate_password`); `switch.bonticou` |  |
-| Bonticou Guest | unifi | Regenerate Password (`button.bonticou_guest_regenerate_password`); `switch.bonticou_guest` |  |
+| Basil and forsythias | hydrawise | Automatic watering (`switch.zone_24_automatic_watering`); Manual watering (`switch.zone_24_manual_watering`); `valve.zone_24` |  |
+| Bonticou | unifi | Regenerate password (`button.bonticou_regenerate_password`); Enabled (`switch.bonticou`) |  |
+| Bonticou Guest | unifi | Regenerate password (`button.bonticou_guest_regenerate_password`); Enabled (`switch.bonticou_guest`) |  |
 | Casey's Closet | unifiprotect | Clear tamper (`button.casey_s_closet_clear_tamper`); Restart (`button.casey_s_closet_restart`); Unadopt device (`button.casey_s_closet_unadopt_device`); Motion sensitivity (`number.casey_s_closet_motion_sensitivity`); Mount type (`select.casey_s_closet_mount_type`); +7 more |  |
-| Dining Room | sonos, unifi | `media_player.unnamed_room_3`; Balance (`number.unnamed_room_balance_8`); Bass (`number.unnamed_room_bass_8`); Treble (`number.unnamed_room_treble_8`); Crossfade (`switch.unnamed_room_crossfade_8`); +3 more |  |
+| Dining Room | sonos, unifi | `media_player.unnamed_room_3`; Balance (`number.unnamed_room_balance_8`); Bass (`number.unnamed_room_bass_8`); Treble (`number.unnamed_room_treble_8`); TV autoplay (`switch.dining_room_tv_autoplay`); +5 more |  |
+| Dryer | lg_thinq | Operation (`select.dryer_operation`); Power (`switch.dryer_power`) |  |
 | Family Room TV | cast | `media_player.ls03f3973` |  |
 | Family Room TV | cast | `media_player.family_room_tv` |  |
 | File editor | hassio | `switch.file_editor` |  |
-| Fios-VHTx3 | unifi | Regenerate Password (`button.fios_vhtx3_regenerate_password`); `switch.fios_vhtx3` |  |
+| Fios-VHTx3 | unifi | Regenerate password (`button.fios_vhtx3_regenerate_password`); Enabled (`switch.fios_vhtx3`) |  |
 | Front Yard | unifi, unifiprotect | Restart (`button.g6_instant_restart_2`); Unadopt device (`button.g6_instant_unadopt_device_2`); Speaker (`media_player.back_yard_speaker`); Infrared custom lux trigger (`number.back_yard_infrared_custom_lux_trigger`); Microphone level (`number.back_yard_microphone_level`); +28 more |  |
+| Front door (incl. planters)  | hydrawise | Automatic watering (`switch.zone_1_automatic_watering`); Manual watering (`switch.zone_1_manual_watering`); `valve.zone_1` |  |
 | Garage | unifi, unifiprotect | Restart (`button.g6_instant_restart_3`); Unadopt device (`button.g6_instant_unadopt_device_3`); Speaker (`media_player.garage_speaker`); Wide dynamic range (`number.g6_instant_wide_dynamic_range_3`); Infrared custom lux trigger (`number.garage_infrared_custom_lux_trigger`); +28 more |  |
 | HACS | hacs | Pre-release (`switch.hacs_pre_release`) |  |
-| Kitchen | homekit_controller | Kitchen Identify (`button.rqn8_identify`) |  |
+| Kitchen | homekit_controller | Identify (`button.rqn8_identify`) |  |
+| Lower driveway | hydrawise | Automatic watering (`switch.zone_25_automatic_watering`); Manual watering (`switch.zone_25_manual_watering`); `valve.zone_25` |  |
 | Matter Server | hassio | `switch.matter_server` |  |
 | Mini Media Player | hacs | Pre-release (`switch.mini_media_player_pre_release`) |  |
-| Move 2 (A) | sonos, unifi | `media_player.unnamed_room_5`; Balance (`number.unnamed_room_balance_10`); Bass (`number.unnamed_room_bass_10`); Treble (`number.unnamed_room_treble_10`); Crossfade (`switch.unnamed_room_crossfade_10`); +3 more |  |
-| Move 2 (B) | sonos, unifi | `media_player.unnamed_room_7`; Balance (`number.unnamed_room_balance_11`); Bass (`number.unnamed_room_bass_11`); Treble (`number.unnamed_room_treble_11`); Crossfade (`switch.unnamed_room_crossfade_11`); +3 more |  |
+| Move 2 (A) | sonos, unifi | `media_player.unnamed_room_5`; Balance (`number.unnamed_room_balance_10`); Bass (`number.unnamed_room_bass_10`); Treble (`number.unnamed_room_treble_10`); TV autoplay (`switch.move_2_a_tv_autoplay`); +5 more |  |
+| Move 2 (B) | sonos, unifi | `media_player.unnamed_room_7`; Balance (`number.unnamed_room_balance_11`); Bass (`number.unnamed_room_bass_11`); Treble (`number.unnamed_room_treble_11`); TV autoplay (`switch.move_2_b_tv_autoplay`); +5 more |  |
 | Mushroom | hacs | Pre-release (`switch.mushroom_pre_release`) |  |
-| Office | sonos, unifi | `media_player.unnamed_room_2`; Sub gain (`number.office_sub_gain_2`); Audio delay (`number.unnamed_room_audio_delay_2`); Balance (`number.unnamed_room_balance_7`); Bass (`number.unnamed_room_bass_7`); +13 more |  |
+| North back lawn | hydrawise | Automatic watering (`switch.zone_20_automatic_watering`); Manual watering (`switch.zone_20_manual_watering`); `valve.zone_20` |  |
+| North back lawn lower | hydrawise | Automatic watering (`switch.zone_21_automatic_watering`); Manual watering (`switch.zone_21_manual_watering`); `valve.zone_21` |  |
+| Office | sonos, unifi | `media_player.unnamed_room_2`; Sub gain (`number.office_sub_gain_2`); Audio delay (`number.unnamed_room_audio_delay_2`); Balance (`number.unnamed_room_balance_7`); Bass (`number.unnamed_room_bass_7`); +15 more |  |
+| Peonies garden | hydrawise | Automatic watering (`switch.zone_26_automatic_watering`); Manual watering (`switch.zone_26_manual_watering`); `valve.zone_26` |  |
 | Play Room | unifi, unifiprotect | Restart (`button.g6_instant_restart`); Unadopt device (`button.g6_instant_unadopt_device`); Speaker (`media_player.play_room_speaker`); Wide dynamic range (`number.g6_instant_wide_dynamic_range`); Infrared custom lux trigger (`number.play_room_infrared_custom_lux_trigger`); +28 more |  |
 | Sonos Card | hacs | Pre-release (`switch.sonos_card_pre_release`) |  |
 | Spotify | spotify | `media_player.spotify` | Spotify Trevor Kiv |
@@ -281,9 +288,10 @@ A human-readable map of the Home Assistant device model. The full audit dump is 
 | U7 Pro (Mud Room) | unifi | Restart (`button.u7_pro_mud_room_restart`); LED (`light.u7_pro_mud_room_led`) |  |
 | U7 Pro Outdoor | unifi | Restart (`button.u7_pro_outdoor_restart`) |  |
 | USW Flex 2.5G 5 | unifi | Restart (`button.usw_flex_2_5g_5_restart`); Port 1 (`switch.usw_flex_2_5g_5_port_1`); Port 2 (`switch.usw_flex_2_5g_5_port_2`); Port 3 (`switch.usw_flex_2_5g_5_port_3`); Port 4 (`switch.usw_flex_2_5g_5_port_4`); +1 more |  |
+| USW-Lite-8-PoE | unifi | Restart (`button.usw_lite_8_poe_restart`) |  |
 | Unnamed Room | sonos, unifi | `media_player.unnamed_room_4`; Balance (`number.unnamed_room_balance_9`); Bass (`number.unnamed_room_bass_9`); Treble (`number.unnamed_room_treble_9`); Crossfade (`switch.unnamed_room_crossfade_9`); +3 more |  |
-| Vegetable Garden | hydrawise | Automatic watering (`switch.zone_23_automatic_watering`); Manual watering (`switch.zone_23_manual_watering`); `valve.zone_23` |  |
-| Zone 1 | hydrawise | Automatic watering (`switch.zone_1_automatic_watering`); Manual watering (`switch.zone_1_manual_watering`); `valve.zone_1` |  |
+| Upper back lawn | hydrawise | Automatic watering (`switch.zone_19_automatic_watering`); Manual watering (`switch.zone_19_manual_watering`); `valve.zone_19` |  |
+| Vegetable garden | hydrawise | Automatic watering (`switch.zone_23_automatic_watering`); Manual watering (`switch.zone_23_manual_watering`); `valve.zone_23` |  |
 | Zone 10 | hydrawise | Automatic watering (`switch.zone_10_automatic_watering`); Manual watering (`switch.zone_10_manual_watering`); `valve.zone_10` |  |
 | Zone 11 | hydrawise | Automatic watering (`switch.zone_11_automatic_watering`); Manual watering (`switch.zone_11_manual_watering`); `valve.zone_11` |  |
 | Zone 12 | hydrawise | Automatic watering (`switch.zone_12_automatic_watering`); Manual watering (`switch.zone_12_manual_watering`); `valve.zone_12` |  |
@@ -293,14 +301,8 @@ A human-readable map of the Home Assistant device model. The full audit dump is 
 | Zone 16 | hydrawise | Automatic watering (`switch.zone_16_automatic_watering`); Manual watering (`switch.zone_16_manual_watering`); `valve.zone_16` |  |
 | Zone 17 | hydrawise | Automatic watering (`switch.zone_17_automatic_watering`); Manual watering (`switch.zone_17_manual_watering`); `valve.zone_17` |  |
 | Zone 18 | hydrawise | Automatic watering (`switch.zone_18_automatic_watering`); Manual watering (`switch.zone_18_manual_watering`); `valve.zone_18` |  |
-| Zone 19 | hydrawise | Automatic watering (`switch.zone_19_automatic_watering`); Manual watering (`switch.zone_19_manual_watering`); `valve.zone_19` |  |
 | Zone 2 | hydrawise | Automatic watering (`switch.zone_2_automatic_watering`); Manual watering (`switch.zone_2_manual_watering`); `valve.zone_2` |  |
-| Zone 20 | hydrawise | Automatic watering (`switch.zone_20_automatic_watering`); Manual watering (`switch.zone_20_manual_watering`); `valve.zone_20` |  |
-| Zone 21 | hydrawise | Automatic watering (`switch.zone_21_automatic_watering`); Manual watering (`switch.zone_21_manual_watering`); `valve.zone_21` |  |
 | Zone 22 | hydrawise | Automatic watering (`switch.zone_22_automatic_watering`); Manual watering (`switch.zone_22_manual_watering`); `valve.zone_22` |  |
-| Zone 24 | hydrawise | Automatic watering (`switch.zone_24_automatic_watering`); Manual watering (`switch.zone_24_manual_watering`); `valve.zone_24` |  |
-| Zone 25 | hydrawise | Automatic watering (`switch.zone_25_automatic_watering`); Manual watering (`switch.zone_25_manual_watering`); `valve.zone_25` |  |
-| Zone 26 | hydrawise | Automatic watering (`switch.zone_26_automatic_watering`); Manual watering (`switch.zone_26_manual_watering`); `valve.zone_26` |  |
 | Zone 27 | hydrawise | Automatic watering (`switch.zone_27_automatic_watering`); Manual watering (`switch.zone_27_manual_watering`); `valve.zone_27` |  |
 | Zone 28 | hydrawise | Automatic watering (`switch.zone_28_automatic_watering`); Manual watering (`switch.zone_28_manual_watering`); `valve.zone_28` |  |
 | Zone 29 | hydrawise | Automatic watering (`switch.zone_29_automatic_watering`); Manual watering (`switch.zone_29_manual_watering`); `valve.zone_29` |  |
@@ -325,33 +327,35 @@ A human-readable map of the Home Assistant device model. The full audit dump is 
 
 | Device | Integration | Main controls | Original name |
 | --- | --- | --- | --- |
-| Master Sonos | sonos, unifi | `media_player.unnamed_room`; Sub gain (`number.master_sonos_sub_gain`); Audio delay (`number.unnamed_room_audio_delay`); Balance (`number.unnamed_room_balance`); Bass (`number.unnamed_room_bass`); +12 more |  |
+| Master | sonos, unifi | `media_player.unnamed_room_master`; Balance (`number.unnamed_room_balance_2`); Bass (`number.unnamed_room_bass_2`); Sub gain (`number.unnamed_room_master_sub_gain`); Treble (`number.unnamed_room_treble_2`); +7 more |  |
+| Master Sonos | sonos, unifi | `media_player.unnamed_room`; Sub gain (`number.master_sonos_sub_gain`); Audio delay (`number.unnamed_room_audio_delay`); Balance (`number.unnamed_room_balance`); Bass (`number.unnamed_room_bass`); +14 more |  |
 | Office | sonos, unifi | `media_player.unnamed_room_6`; Audio delay (`number.office_audio_delay`); Music surround level (`number.office_music_surround_level`); Sub gain (`number.office_sub_gain`); Surround level (`number.office_surround_level`); +13 more |  |
+| Office 2 | sonos, unifi | `media_player.unnamed_room_unnamed_room`; Balance (`number.unnamed_room_unnamed_room_balance`); Bass (`number.unnamed_room_unnamed_room_bass`); Treble (`number.unnamed_room_unnamed_room_treble`); Crossfade (`switch.unnamed_room_unnamed_room_crossfade`); +5 more |  |
+| Office 3 | sonos, unifi | `media_player.unnamed_room_unnamed_room_2`; Balance (`number.unnamed_room_unnamed_room_balance_2`); Bass (`number.unnamed_room_unnamed_room_bass_2`); Treble (`number.unnamed_room_unnamed_room_treble_2`); Crossfade (`switch.unnamed_room_unnamed_room_crossfade_2`); +5 more |  |
 | Unnamed Room | sonos, unifi | Balance (`number.unnamed_room_balance_3`); Bass (`number.unnamed_room_bass_3`); Treble (`number.unnamed_room_treble_3`); Crossfade (`switch.unnamed_room_crossfade_3`); Loudness (`switch.unnamed_room_loudness_3`); +2 more |  |
 | Unnamed Room | sonos, unifi | Balance (`number.unnamed_room_balance_5`); Bass (`number.unnamed_room_bass_5`); Treble (`number.unnamed_room_treble_5`); Crossfade (`switch.unnamed_room_crossfade_5`); Loudness (`switch.unnamed_room_loudness_5`); +2 more |  |
 | Unnamed Room | sonos, unifi | Balance (`number.unnamed_room_balance_4`); Bass (`number.unnamed_room_bass_4`); Treble (`number.unnamed_room_treble_4`); Crossfade (`switch.unnamed_room_crossfade_4`); Loudness (`switch.unnamed_room_loudness_4`); +2 more |  |
-| Unnamed Room | sonos, unifi | Balance (`number.unnamed_room_balance_2`); Bass (`number.unnamed_room_bass_2`); Treble (`number.unnamed_room_treble_2`); Crossfade (`switch.unnamed_room_crossfade_2`); Loudness (`switch.unnamed_room_loudness_2`); +2 more |  |
 
 ### Upstairs Hallway
 
 | Device | Integration | Main controls | Original name |
 | --- | --- | --- | --- |
-| Upstairs Hallway Main Lights | lutron_caseta | Upstairs Hallway Main Lights (`light.upstairs_hallway_main_lights`) |  |
+| Upstairs Hallway Main Lights | lutron_caseta | `light.upstairs_hallway_main_lights` |  |
 
 ### Vestibule
 
 | Device | Integration | Main controls | Original name |
 | --- | --- | --- | --- |
-| Vestibule Main Lights | lutron_caseta | Vestibule Main Lights (`light.vestibule_main_lights`) |  |
+| Vestibule Main Lights | lutron_caseta | `light.vestibule_main_lights` |  |
 
 ### Wynn's Room
 
 | Device | Integration | Main controls | Original name |
 | --- | --- | --- | --- |
 | Wynn Ecobee Sensor | homekit_controller | Wynn Room Identify (`button.wynn_room_identify`) | Wynn Room |
-| Wynn Sonos | sonos, unifi | `media_player.wynn_s_room`; Balance (`number.wynn_s_room_balance`); Bass (`number.wynn_s_room_bass`); Treble (`number.wynn_s_room_treble`); Crossfade (`switch.wynn_s_room_crossfade`); +3 more |  |
-| Wynn's Room Ceiling Lights | lutron_caseta | Wynn's Room Ceiling Lights (`light.wynn_s_room_ceiling_lights`) |  |
-| Wynn's Room Chandelier | lutron_caseta | Wynn's Room Chandelier (`light.wynn_s_room_chandelier`) |  |
+| Wynn Sonos | sonos, unifi | `media_player.wynn_s_room`; Balance (`number.wynn_s_room_balance`); Bass (`number.wynn_s_room_bass`); Treble (`number.wynn_s_room_treble`); Crossfade (`switch.wynn_s_room_crossfade`); +5 more |  |
+| Wynn's Room Ceiling Lights | lutron_caseta | `light.wynn_s_room_ceiling_lights` |  |
+| Wynn's Room Chandelier | lutron_caseta | `light.wynn_s_room_chandelier` |  |
 
 ## Files
 

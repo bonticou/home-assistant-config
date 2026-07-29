@@ -4,17 +4,17 @@ Full generated audit view. For the readable overview, use [device-inventory.md](
 
 ## Last Updated
 
-- Snapshot: `2026-06-30T15:32:28.018303+00:00`
-- Summary: 223 devices, 2356 entities, 138 network clients, 33 Lutron Caséta entities
+- Snapshot: `2026-07-29T14:29:24.057042+00:00`
+- Summary: 228 devices, 2470 entities, 151 network clients, 33 Lutron Caséta entities
 
 ## Summary
 
 | Metric | Count |
 | --- | --- |
-| Devices | 223 |
-| Entities | 2356 |
-| Orphan entities | 792 |
-| Network clients | 138 |
+| Devices | 228 |
+| Entities | 2470 |
+| Orphan entities | 832 |
+| Network clients | 151 |
 | Areas | 32 |
 | Integrations | 44 |
 
@@ -22,35 +22,35 @@ Full generated audit view. For the readable overview, use [device-inventory.md](
 
 | Role | Entities |
 | --- | --- |
-| control | 802 |
-| network | 138 |
-| other | 339 |
-| telemetry | 1077 |
+| control | 868 |
+| network | 151 |
+| other | 354 |
+| telemetry | 1097 |
 
 ### Top Integrations
 
 | Integration | Entities |
 | --- | --- |
-| unifiprotect | 399 |
-| unifi | 290 |
+| unifiprotect | 394 |
+| unifi | 309 |
 | hydrawise | 245 |
+| sonos | 224 |
 | template | 206 |
-| automation | 183 |
-| sonos | 179 |
-| script | 144 |
-| input_datetime | 82 |
+| automation | 189 |
+| script | 151 |
+| input_datetime | 90 |
 | sensorpush_cloud | 56 |
 | esphome | 55 |
 | whisker_ting | 48 |
+| input_boolean | 46 |
 | flo | 43 |
-| input_boolean | 42 |
-| homekit_controller | 39 |
+| homekit_controller | 41 |
 | ring | 39 |
 | hassio | 35 |
 | lutron_caseta | 33 |
-| mobile_app | 26 |
-| input_text | 23 |
-| input_number | 22 |
+| mobile_app | 31 |
+| input_text | 28 |
+| lg_thinq | 27 |
 
 ## Devices By Area
 
@@ -85,7 +85,7 @@ Full generated audit view. For the readable overview, use [device-inventory.md](
 
 | Entity | Name | Role | Integration | Detail | Availability |
 | --- | --- | --- | --- | --- | --- |
-| `light.back_stairs_back_stairs` | Back Stairs Back Stairs | control | lutron_caseta |  | not_enriched |
+| `light.back_stairs_back_stairs` | light.back_stairs_back_stairs | control | lutron_caseta |  | not_enriched |
 
 ### Back Yard
 
@@ -170,7 +170,7 @@ Full generated audit view. For the readable overview, use [device-inventory.md](
 
 | Entity | Name | Role | Integration | Detail | Availability |
 | --- | --- | --- | --- | --- | --- |
-| `light.deck_deck_lights` | Deck Deck Lights | control | lutron_caseta |  | not_enriched |
+| `light.deck_deck_lights` | light.deck_deck_lights | control | lutron_caseta |  | not_enriched |
 
 ### Dining Room
 
@@ -179,7 +179,7 @@ Full generated audit view. For the readable overview, use [device-inventory.md](
 - Device ID: `device_fe017352418f`
 - Integration: homekit_controller
 - Model: ecobee Inc. ECB601
-- Capability mix: 4 telemetry, 6 control, 0 network, 0 other
+- Capability mix: 4 telemetry, 7 control, 0 network, 0 other
 - Original name: Dining Room
 
 | Entity | Name | Role | Integration | Detail | Availability |
@@ -193,6 +193,7 @@ Full generated audit view. For the readable overview, use [device-inventory.md](
 | `select.dining_room_temperature_display_units` | Dining Room Temperature Display Units | control | homekit_controller | config | not_enriched |
 | `sensor.dining_room_current_humidity` | Dining Room Current Humidity | telemetry | homekit_controller |  | not_enriched |
 | `sensor.dining_room_current_temperature` | Dining Room Current Temperature | telemetry | homekit_controller |  | not_enriched |
+| `switch.dining_room_dining_room_thermostat_dining_room_airplay_enable` | Dining Room AirPlay Enable | control | homekit_controller | config | not_enriched |
 | `switch.dining_room_mute` | Dining Room Mute | control | homekit_controller | config | not_enriched |
 
 #### Main Floor 2
@@ -219,17 +220,18 @@ Full generated audit view. For the readable overview, use [device-inventory.md](
 
 - Device ID: `device_582d95951335`
 - Integration: unifi, unifiprotect
-- Model: Ubiquiti UCG Fiber
-- Capability mix: 35 telemetry, 12 control, 1 network, 0 other
+- Model: Ubiquiti Networks UDMA6A8
+- Capability mix: 35 telemetry, 13 control, 1 network, 0 other
 
 | Entity | Name | Role | Integration | Detail | Availability |
 | --- | --- | --- | --- | --- | --- |
+| `alarm_control_panel.electrical_room_bonticou_gateway_alarm_manager` | Alarm Manager | control | unifiprotect |  | not_enriched |
 | `binary_sensor.bonticou_gateway_ssd_1` | SSD 1 | telemetry | unifiprotect | diagnostic | not_enriched |
-| `button.bonticou_gateway_port_4_power_cycle` | Port 4 Power Cycle | control | unifi | config | not_enriched |
+| `button.bonticou_gateway_port_4_power_cycle` | Port 4 power cycle | control | unifi | config | not_enriched |
 | `button.bonticou_gateway_restart` | Restart | control | unifi | config | not_enriched |
 | `device_tracker.bonticou_gateway` | Bonticou Gateway | network | unifi | diagnostic | not_enriched |
-| `sensor.bonticou_gateway_bonticou_gateway_cpu_temperature` | Bonticou Gateway CPU Temperature | telemetry | unifi | diagnostic | disabled |
-| `sensor.bonticou_gateway_bonticou_gateway_local_temperature` | Bonticou Gateway Local Temperature | telemetry | unifi | diagnostic | disabled |
+| `sensor.bonticou_gateway_bonticou_gateway_cpu_temperature` | CPU temperature | telemetry | unifi | diagnostic | disabled |
+| `sensor.bonticou_gateway_bonticou_gateway_local_temperature` | Local temperature | telemetry | unifi | diagnostic | disabled |
 | `sensor.bonticou_gateway_clients` | Clients | telemetry | unifi | diagnostic | disabled |
 | `sensor.bonticou_gateway_cloudflare_wan2_latency` | Cloudflare WAN2 latency | telemetry | unifi | diagnostic | disabled |
 | `sensor.bonticou_gateway_cloudflare_wan_latency` | Cloudflare WAN latency | telemetry | unifi | diagnostic | disabled |
@@ -246,7 +248,7 @@ Full generated audit view. For the readable overview, use [device-inventory.md](
 | `sensor.bonticou_gateway_port_2_link_speed` | Port 2 link speed | telemetry | unifi | diagnostic | disabled |
 | `sensor.bonticou_gateway_port_3_link_speed` | Port 3 link speed | telemetry | unifi | diagnostic | disabled |
 | `sensor.bonticou_gateway_port_4_link_speed` | Port 4 link speed | telemetry | unifi | diagnostic | disabled |
-| `sensor.bonticou_gateway_port_4_poe_power` | Port 4 PoE Power | telemetry | unifi | diagnostic | disabled |
+| `sensor.bonticou_gateway_port_4_poe_power` | Port 4 PoE power | telemetry | unifi | diagnostic | disabled |
 | `sensor.bonticou_gateway_port_5_link_speed` | Port 5 link speed | telemetry | unifi | diagnostic | disabled |
 | `sensor.bonticou_gateway_recording_capacity` | Recording capacity | telemetry | unifiprotect | diagnostic | not_enriched |
 | `sensor.bonticou_gateway_resolution_4k_video` | Resolution: 4K video | telemetry | unifiprotect | diagnostic | not_enriched |
@@ -271,7 +273,7 @@ Full generated audit view. For the readable overview, use [device-inventory.md](
 | `switch.bonticou_gateway_port_5` | Port 5 | control | unifi | config | disabled |
 | `switch.bonticou_gateway_sfp_1` | SFP+ 1 | control | unifi | config | disabled |
 | `switch.bonticou_gateway_sfp_2` | SFP+ 2 | control | unifi | config | disabled |
-| `update.bonticou_gateway` | update.bonticou_gateway | telemetry | unifi | config | not_enriched |
+| `update.bonticou_gateway` | Firmware | telemetry | unifi | config | not_enriched |
 
 #### Electrical Room - Leak Detection
 
@@ -392,7 +394,7 @@ Full generated audit view. For the readable overview, use [device-inventory.md](
 
 | Entity | Name | Role | Integration | Detail | Availability |
 | --- | --- | --- | --- | --- | --- |
-| `light.exterior_deck_lights` | Exterior Deck Lights | control | lutron_caseta |  | not_enriched |
+| `light.exterior_deck_lights` | light.exterior_deck_lights | control | lutron_caseta |  | not_enriched |
 
 #### Exterior Mud Room Stairs
 
@@ -403,7 +405,7 @@ Full generated audit view. For the readable overview, use [device-inventory.md](
 
 | Entity | Name | Role | Integration | Detail | Availability |
 | --- | --- | --- | --- | --- | --- |
-| `switch.exterior_mud_room_stairs` | Exterior Mud Room Stairs | control | lutron_caseta |  | not_enriched |
+| `switch.exterior_mud_room_stairs` | switch.exterior_mud_room_stairs | control | lutron_caseta |  | not_enriched |
 
 #### Exterior Yard Lights
 
@@ -414,7 +416,7 @@ Full generated audit view. For the readable overview, use [device-inventory.md](
 
 | Entity | Name | Role | Integration | Detail | Availability |
 | --- | --- | --- | --- | --- | --- |
-| `light.exterior_yard_lights` | Exterior Yard Lights | control | lutron_caseta |  | not_enriched |
+| `light.exterior_yard_lights` | light.exterior_yard_lights | control | lutron_caseta |  | not_enriched |
 
 ### Family Room
 
@@ -423,7 +425,7 @@ Full generated audit view. For the readable overview, use [device-inventory.md](
 - Device ID: `device_dc0447a8354b`
 - Integration: sonos, unifi
 - Model: Sonos Arc Ultra
-- Capability mix: 2 telemetry, 18 control, 1 network, 0 other
+- Capability mix: 2 telemetry, 20 control, 1 network, 0 other
 
 | Entity | Name | Role | Integration | Detail | Availability |
 | --- | --- | --- | --- | --- | --- |
@@ -440,6 +442,8 @@ Full generated audit view. For the readable overview, use [device-inventory.md](
 | `select.family_room_speech_enhancement` | Speech enhancement | control | sonos |  | not_enriched |
 | `sensor.family_room_audio_input_format` | Audio input format | telemetry | sonos | diagnostic | not_enriched |
 | `switch.family_room_crossfade` | Crossfade | control | sonos | config | not_enriched |
+| `switch.family_room_family_room_tv_autoplay` | TV autoplay | control | sonos | config | not_enriched |
+| `switch.family_room_family_room_ungroup_on_autoplay` | Ungroup on autoplay | control | sonos | config | not_enriched |
 | `switch.family_room_loudness` | Loudness | control | sonos | config | not_enriched |
 | `switch.family_room_night_sound` | Night sound | control | sonos | config | not_enriched |
 | `switch.family_room_speech_enhancement` | Speech enhancement | control | sonos | config | not_enriched |
@@ -472,7 +476,7 @@ Full generated audit view. For the readable overview, use [device-inventory.md](
 
 | Entity | Name | Role | Integration | Detail | Availability |
 | --- | --- | --- | --- | --- | --- |
-| `light.family_room_main_lights_1` | Family Room Main Lights 1 | control | lutron_caseta |  | not_enriched |
+| `light.family_room_main_lights_1` | light.family_room_main_lights_1 | control | lutron_caseta |  | not_enriched |
 
 #### Family Room Main Lights 2
 
@@ -483,7 +487,7 @@ Full generated audit view. For the readable overview, use [device-inventory.md](
 
 | Entity | Name | Role | Integration | Detail | Availability |
 | --- | --- | --- | --- | --- | --- |
-| `light.family_room_main_lights_2` | Family Room Main Lights 2 | control | lutron_caseta |  | not_enriched |
+| `light.family_room_main_lights_2` | light.family_room_main_lights_2 | control | lutron_caseta |  | not_enriched |
 
 #### Family Room Main Lights 3
 
@@ -494,7 +498,7 @@ Full generated audit view. For the readable overview, use [device-inventory.md](
 
 | Entity | Name | Role | Integration | Detail | Availability |
 | --- | --- | --- | --- | --- | --- |
-| `light.family_room_main_lights_3` | Family Room Main Lights 3 | control | lutron_caseta |  | not_enriched |
+| `light.family_room_main_lights_3` | light.family_room_main_lights_3 | control | lutron_caseta |  | not_enriched |
 
 #### Main Floor
 
@@ -525,7 +529,7 @@ Full generated audit view. For the readable overview, use [device-inventory.md](
 | --- | --- | --- | --- | --- | --- |
 | `switch.unassigned_smart_away` | Unassigned Smart Away | control | lutron_caseta |  | not_enriched |
 
-#### Uplight
+#### Uplight 1
 
 - Device ID: `device_2be02e8f001e`
 - Integration: tplink, unifi
@@ -565,10 +569,11 @@ Full generated audit view. For the readable overview, use [device-inventory.md](
 - Device ID: `device_f5a5522ed109`
 - Integration: apple_tv
 - Model: Apple Apple TV 4K
-- Capability mix: 0 telemetry, 2 control, 0 network, 0 other
+- Capability mix: 1 telemetry, 2 control, 0 network, 0 other
 
 | Entity | Name | Role | Integration | Detail | Availability |
 | --- | --- | --- | --- | --- | --- |
+| `binary_sensor.family_room_tv_family_room_tv_keyboard_focus` | Keyboard focus | telemetry | apple_tv |  | not_enriched |
 | `media_player.family_room_tv_2` | media_player.family_room_tv_2 | control | apple_tv |  | not_enriched |
 | `remote.family_room_tv` | remote.family_room_tv | control | apple_tv |  | not_enriched |
 
@@ -605,7 +610,7 @@ Full generated audit view. For the readable overview, use [device-inventory.md](
 
 | Entity | Name | Role | Integration | Detail | Availability |
 | --- | --- | --- | --- | --- | --- |
-| `light.front_foyer_ceiling_lights` | Front Foyer Ceiling Lights | control | lutron_caseta |  | not_enriched |
+| `light.front_foyer_ceiling_lights` | light.front_foyer_ceiling_lights | control | lutron_caseta |  | not_enriched |
 
 #### Front Foyer Chandelier
 
@@ -616,7 +621,7 @@ Full generated audit view. For the readable overview, use [device-inventory.md](
 
 | Entity | Name | Role | Integration | Detail | Availability |
 | --- | --- | --- | --- | --- | --- |
-| `light.front_foyer_chandelier` | Front Foyer Chandelier | control | lutron_caseta |  | not_enriched |
+| `light.front_foyer_chandelier` | light.front_foyer_chandelier | control | lutron_caseta |  | not_enriched |
 
 #### Front Foyer Sconces
 
@@ -627,7 +632,7 @@ Full generated audit view. For the readable overview, use [device-inventory.md](
 
 | Entity | Name | Role | Integration | Detail | Availability |
 | --- | --- | --- | --- | --- | --- |
-| `switch.front_foyer_sconces` | Front Foyer Sconces | control | lutron_caseta |  | not_enriched |
+| `switch.front_foyer_sconces` | switch.front_foyer_sconces | control | lutron_caseta |  | not_enriched |
 
 ### Front Yard
 
@@ -636,7 +641,7 @@ Full generated audit view. For the readable overview, use [device-inventory.md](
 - Device ID: `device_ca0387716233`
 - Integration: unifi, unifiprotect
 - Model: Ubiquiti G6 Instant
-- Capability mix: 27 telemetry, 32 control, 1 network, 0 other
+- Capability mix: 26 telemetry, 32 control, 1 network, 0 other
 
 | Entity | Name | Role | Integration | Detail | Availability |
 | --- | --- | --- | --- | --- | --- |
@@ -659,7 +664,6 @@ Full generated audit view. For the readable overview, use [device-inventory.md](
 | `button.wynn_s_room_restart` | Restart | control | unifiprotect |  | disabled |
 | `button.wynn_s_room_unadopt_device` | Unadopt device | control | unifiprotect |  | disabled |
 | `camera.wynn_s_room_high_resolution_channel` | High resolution channel | telemetry | unifiprotect |  | not_enriched |
-| `camera.wynn_s_room_high_resolution_channel_insecure` | High resolution channel (insecure) | telemetry | unifiprotect |  | disabled |
 | `device_tracker.wynns_room` | wynns-room | network | unifi | diagnostic | not_enriched |
 | `event.wynn_s_room_vehicle` | Vehicle | telemetry | unifiprotect |  | not_enriched |
 | `media_player.wynn_s_room_speaker` | Speaker | control | unifiprotect |  | not_enriched |
@@ -686,7 +690,7 @@ Full generated audit view. For the readable overview, use [device-inventory.md](
 | `switch.wynn_s_room_hdr_mode` | HDR mode | control | unifiprotect | config | disabled |
 | `switch.wynn_s_room_license_plate_detection` | License plate detection | control | unifiprotect | config | not_enriched |
 | `switch.wynn_s_room_motion` | Motion | control | unifiprotect | config | not_enriched |
-| `switch.wynn_s_room_none` | switch.wynn_s_room_none | control | unifiprotect | config | not_enriched |
+| `switch.wynn_s_room_none` | Barking detection | control | unifiprotect | config | not_enriched |
 | `switch.wynn_s_room_overlay_show_date` | Overlay: show date | control | unifiprotect | config | not_enriched |
 | `switch.wynn_s_room_overlay_show_logo` | Overlay: show logo | control | unifiprotect | config | not_enriched |
 | `switch.wynn_s_room_overlay_show_name` | Overlay: show name | control | unifiprotect | config | not_enriched |
@@ -748,7 +752,7 @@ Full generated audit view. For the readable overview, use [device-inventory.md](
 
 | Entity | Name | Role | Integration | Detail | Availability |
 | --- | --- | --- | --- | --- | --- |
-| `switch.garage_garage_lights` | Garage Garage Lights | control | lutron_caseta |  | not_enriched |
+| `switch.garage_garage_lights` | switch.garage_garage_lights | control | lutron_caseta |  | not_enriched |
 
 ### Great Room Speakers
 
@@ -757,7 +761,7 @@ Full generated audit view. For the readable overview, use [device-inventory.md](
 - Device ID: `device_96c096ed4a91`
 - Integration: sonos, unifi
 - Model: Sonos Era 300
-- Capability mix: 1 telemetry, 8 control, 1 network, 0 other
+- Capability mix: 1 telemetry, 10 control, 1 network, 0 other
 
 | Entity | Name | Role | Integration | Detail | Availability |
 | --- | --- | --- | --- | --- | --- |
@@ -768,6 +772,8 @@ Full generated audit view. For the readable overview, use [device-inventory.md](
 | `number.great_room_speakers_bass` | Bass | control | sonos | config | not_enriched |
 | `number.great_room_speakers_treble` | Treble | control | sonos | config | not_enriched |
 | `switch.great_room_speakers_crossfade` | Crossfade | control | sonos | config | not_enriched |
+| `switch.great_room_speakers_great_room_sonos_tv_autoplay` | TV autoplay | control | sonos | config | not_enriched |
+| `switch.great_room_speakers_great_room_sonos_ungroup_on_autoplay` | Ungroup on autoplay | control | sonos | config | not_enriched |
 | `switch.great_room_speakers_loudness` | Loudness | control | sonos | config | not_enriched |
 | `switch.great_room_speakers_status_light` | Status light | control | sonos | config | disabled |
 | `switch.great_room_speakers_touch_controls` | Touch controls | control | sonos | config | disabled |
@@ -816,7 +822,7 @@ Full generated audit view. For the readable overview, use [device-inventory.md](
 
 | Entity | Name | Role | Integration | Detail | Availability |
 | --- | --- | --- | --- | --- | --- |
-| `light.kitchen_coffee_bar` | Kitchen Coffee Bar | control | lutron_caseta |  | not_enriched |
+| `light.kitchen_coffee_bar` | light.kitchen_coffee_bar | control | lutron_caseta |  | not_enriched |
 
 #### Kitchen Fridge - Leak Detection
 
@@ -844,7 +850,7 @@ Full generated audit view. For the readable overview, use [device-inventory.md](
 
 | Entity | Name | Role | Integration | Detail | Availability |
 | --- | --- | --- | --- | --- | --- |
-| `light.kitchen_island` | Kitchen Island | control | lutron_caseta |  | not_enriched |
+| `light.kitchen_island` | light.kitchen_island | control | lutron_caseta |  | not_enriched |
 
 #### Kitchen Main
 
@@ -855,7 +861,7 @@ Full generated audit view. For the readable overview, use [device-inventory.md](
 
 | Entity | Name | Role | Integration | Detail | Availability |
 | --- | --- | --- | --- | --- | --- |
-| `light.kitchen_main` | Kitchen Main | control | lutron_caseta |  | not_enriched |
+| `light.kitchen_main` | light.kitchen_main | control | lutron_caseta |  | not_enriched |
 
 #### Kitchen Sink - Leak Detection
 
@@ -883,7 +889,7 @@ Full generated audit view. For the readable overview, use [device-inventory.md](
 
 | Entity | Name | Role | Integration | Detail | Availability |
 | --- | --- | --- | --- | --- | --- |
-| `light.kitchen_sink_light` | Kitchen Sink Light | control | lutron_caseta |  | not_enriched |
+| `light.kitchen_sink_light` | light.kitchen_sink_light | control | lutron_caseta |  | not_enriched |
 
 #### Kitchen Table Lights
 
@@ -894,7 +900,7 @@ Full generated audit view. For the readable overview, use [device-inventory.md](
 
 | Entity | Name | Role | Integration | Detail | Availability |
 | --- | --- | --- | --- | --- | --- |
-| `light.kitchen_table_lights` | Kitchen Table Lights | control | lutron_caseta |  | not_enriched |
+| `light.kitchen_table_lights` | light.kitchen_table_lights | control | lutron_caseta |  | not_enriched |
 
 ### Kitchen Speakers
 
@@ -903,7 +909,7 @@ Full generated audit view. For the readable overview, use [device-inventory.md](
 - Device ID: `device_df07ddeb668b`
 - Integration: sonos, unifi
 - Model: Sonos Era 100
-- Capability mix: 1 telemetry, 8 control, 1 network, 0 other
+- Capability mix: 1 telemetry, 10 control, 1 network, 0 other
 
 | Entity | Name | Role | Integration | Detail | Availability |
 | --- | --- | --- | --- | --- | --- |
@@ -914,6 +920,8 @@ Full generated audit view. For the readable overview, use [device-inventory.md](
 | `number.kitchen_speakers_bass` | Bass | control | sonos | config | not_enriched |
 | `number.kitchen_speakers_treble` | Treble | control | sonos | config | not_enriched |
 | `switch.kitchen_speakers_crossfade` | Crossfade | control | sonos | config | not_enriched |
+| `switch.kitchen_speakers_kitchen_sonos_tv_autoplay` | TV autoplay | control | sonos | config | not_enriched |
+| `switch.kitchen_speakers_kitchen_sonos_ungroup_on_autoplay` | Ungroup on autoplay | control | sonos | config | not_enriched |
 | `switch.kitchen_speakers_loudness` | Loudness | control | sonos | config | not_enriched |
 | `switch.kitchen_speakers_status_light` | Status light | control | sonos | config | disabled |
 | `switch.kitchen_speakers_touch_controls` | Touch controls | control | sonos | config | disabled |
@@ -959,14 +967,14 @@ Full generated audit view. For the readable overview, use [device-inventory.md](
 
 | Entity | Name | Role | Integration | Detail | Availability |
 | --- | --- | --- | --- | --- | --- |
-| `switch.master_lantern` | Master Lantern | control | lutron_caseta |  | not_enriched |
+| `switch.master_lantern` | switch.master_lantern | control | lutron_caseta |  | not_enriched |
 
 #### Master Thermostat
 
 - Device ID: `device_22d9acd7ac2f`
 - Integration: homekit_controller
 - Model: ecobee Inc. ECB601
-- Capability mix: 4 telemetry, 6 control, 0 network, 0 other
+- Capability mix: 4 telemetry, 7 control, 0 network, 0 other
 - Original name: Master
 
 | Entity | Name | Role | Integration | Detail | Availability |
@@ -980,6 +988,7 @@ Full generated audit view. For the readable overview, use [device-inventory.md](
 | `select.master_temperature_display_units_2` | Master Temperature Display Units | control | homekit_controller | config | not_enriched |
 | `sensor.master_current_humidity_2` | Master Current Humidity | telemetry | homekit_controller |  | not_enriched |
 | `sensor.master_current_temperature_2` | Master Current Temperature | telemetry | homekit_controller |  | not_enriched |
+| `switch.master_master_thermostat_master_airplay_enable` | Master AirPlay Enable | control | homekit_controller | config | not_enriched |
 | `switch.master_mute_2` | Master Mute | control | homekit_controller | config | not_enriched |
 
 #### Master Wall Remote
@@ -1020,7 +1029,7 @@ _No registered entities._
 
 | Entity | Name | Role | Integration | Detail | Availability |
 | --- | --- | --- | --- | --- | --- |
-| `light.master_bedroom_sconce_l` | Master Sconce L | control | lutron_caseta |  | not_enriched |
+| `light.master_bedroom_sconce_l` | light.master_bedroom_sconce_l | control | lutron_caseta |  | not_enriched |
 
 #### Master Sconce R
 
@@ -1031,7 +1040,7 @@ _No registered entities._
 
 | Entity | Name | Role | Integration | Detail | Availability |
 | --- | --- | --- | --- | --- | --- |
-| `light.master_bedroom_sconce_r` | Master Sconce R | control | lutron_caseta |  | not_enriched |
+| `light.master_bedroom_sconce_r` | light.master_bedroom_sconce_r | control | lutron_caseta |  | not_enriched |
 
 ### Mechanical Room
 
@@ -1095,7 +1104,7 @@ _No registered entities._
 - Device ID: `device_a21ac907c776`
 - Integration: unifi, unifiprotect
 - Model: Ubiquiti G6 Instant
-- Capability mix: 27 telemetry, 32 control, 1 network, 0 other
+- Capability mix: 26 telemetry, 32 control, 1 network, 0 other
 
 | Entity | Name | Role | Integration | Detail | Availability |
 | --- | --- | --- | --- | --- | --- |
@@ -1118,7 +1127,6 @@ _No registered entities._
 | `button.mechanical_room_restart` | Restart | control | unifiprotect |  | disabled |
 | `button.mechanical_room_unadopt_device` | Unadopt device | control | unifiprotect |  | disabled |
 | `camera.mechanical_room_high_resolution_channel` | High resolution channel | telemetry | unifiprotect |  | not_enriched |
-| `camera.mechanical_room_high_resolution_channel_insecure` | High resolution channel (insecure) | telemetry | unifiprotect |  | disabled |
 | `device_tracker.mechanical_room` | mechanical-room | network | unifi | diagnostic | not_enriched |
 | `event.mechanical_room_vehicle` | Vehicle | telemetry | unifiprotect |  | not_enriched |
 | `media_player.mechanical_room_speaker` | Speaker | control | unifiprotect |  | not_enriched |
@@ -1145,7 +1153,7 @@ _No registered entities._
 | `switch.mechanical_room_hdr_mode` | HDR mode | control | unifiprotect | config | disabled |
 | `switch.mechanical_room_license_plate_detection` | License plate detection | control | unifiprotect | config | not_enriched |
 | `switch.mechanical_room_motion` | Motion | control | unifiprotect | config | not_enriched |
-| `switch.mechanical_room_none` | switch.mechanical_room_none | control | unifiprotect | config | not_enriched |
+| `switch.mechanical_room_none` | Barking detection | control | unifiprotect | config | not_enriched |
 | `switch.mechanical_room_overlay_show_date` | Overlay: show date | control | unifiprotect | config | not_enriched |
 | `switch.mechanical_room_overlay_show_logo` | Overlay: show logo | control | unifiprotect | config | not_enriched |
 | `switch.mechanical_room_overlay_show_name` | Overlay: show name | control | unifiprotect | config | not_enriched |
@@ -1203,7 +1211,7 @@ _No registered entities._
 - Device ID: `device_e5236ec8767c`
 - Integration: unifi, unifiprotect
 - Model: Ubiquiti G6 Instant
-- Capability mix: 27 telemetry, 32 control, 1 network, 0 other
+- Capability mix: 26 telemetry, 32 control, 1 network, 0 other
 
 | Entity | Name | Role | Integration | Detail | Availability |
 | --- | --- | --- | --- | --- | --- |
@@ -1226,7 +1234,6 @@ _No registered entities._
 | `button.mud_room_restart` | Restart | control | unifiprotect |  | disabled |
 | `button.mud_room_unadopt_device` | Unadopt device | control | unifiprotect |  | disabled |
 | `camera.mud_room_high_resolution_channel` | High resolution channel | telemetry | unifiprotect |  | not_enriched |
-| `camera.mud_room_high_resolution_channel_insecure` | High resolution channel (insecure) | telemetry | unifiprotect |  | disabled |
 | `device_tracker.mud_room` | mud-room | network | unifi | diagnostic | not_enriched |
 | `event.mud_room_vehicle` | Vehicle | telemetry | unifiprotect |  | not_enriched |
 | `media_player.mud_room_speaker` | Speaker | control | unifiprotect |  | not_enriched |
@@ -1253,7 +1260,7 @@ _No registered entities._
 | `switch.mud_room_hdr_mode` | HDR mode | control | unifiprotect | config | disabled |
 | `switch.mud_room_license_plate_detection` | License plate detection | control | unifiprotect | config | not_enriched |
 | `switch.mud_room_motion` | Motion | control | unifiprotect | config | not_enriched |
-| `switch.mud_room_none` | switch.mud_room_none | control | unifiprotect | config | not_enriched |
+| `switch.mud_room_none` | Barking detection | control | unifiprotect | config | not_enriched |
 | `switch.mud_room_overlay_show_date` | Overlay: show date | control | unifiprotect | config | not_enriched |
 | `switch.mud_room_overlay_show_logo` | Overlay: show logo | control | unifiprotect | config | not_enriched |
 | `switch.mud_room_overlay_show_name` | Overlay: show name | control | unifiprotect | config | not_enriched |
@@ -1315,7 +1322,7 @@ _No registered entities._
 
 | Entity | Name | Role | Integration | Detail | Availability |
 | --- | --- | --- | --- | --- | --- |
-| `light.mudroom_main_lights` | Mudroom Main Lights | control | lutron_caseta |  | not_enriched |
+| `light.mudroom_main_lights` | light.mudroom_main_lights | control | lutron_caseta |  | not_enriched |
 
 #### Mudroom Nook Lights
 
@@ -1326,14 +1333,14 @@ _No registered entities._
 
 | Entity | Name | Role | Integration | Detail | Availability |
 | --- | --- | --- | --- | --- | --- |
-| `light.mudroom_nook_lights` | Mudroom Nook Lights | control | lutron_caseta |  | not_enriched |
+| `light.mudroom_nook_lights` | light.mudroom_nook_lights | control | lutron_caseta |  | not_enriched |
 
 #### Washer
 
 - Device ID: `device_7ef3067de9fe`
 - Integration: lg_thinq
 - Model: LGE FAFXU22027 (DEVICE_WASHER)
-- Capability mix: 11 telemetry, 3 control, 0 network, 0 other
+- Capability mix: 12 telemetry, 3 control, 0 network, 0 other
 
 | Entity | Name | Role | Integration | Detail | Availability |
 | --- | --- | --- | --- | --- | --- |
@@ -1342,6 +1349,7 @@ _No registered entities._
 | `event.washer_notification` | Notification | telemetry | lg_thinq |  | not_enriched |
 | `number.washer_delayed_start` | Delayed start | control | lg_thinq |  | not_enriched |
 | `select.washer_operation` | Operation | control | lg_thinq |  | not_enriched |
+| `sensor.mudroom_washer_energy_today` | Energy today | telemetry | lg_thinq |  | not_enriched |
 | `sensor.washer_current_status` | Current status | telemetry | lg_thinq |  | not_enriched |
 | `sensor.washer_cycles` | Cycles | telemetry | lg_thinq |  | not_enriched |
 | `sensor.washer_delayed_start` | Delayed start | telemetry | lg_thinq |  | not_enriched |
@@ -1380,14 +1388,14 @@ _No registered entities._
 
 | Entity | Name | Role | Integration | Detail | Availability |
 | --- | --- | --- | --- | --- | --- |
-| `device_tracker.brw849e567c91bc` | Office Printer | network | unifi | diagnostic | not_enriched |
+| `device_tracker.brw849e567c91bc` | Printer | network | unifi | diagnostic | not_enriched |
 | `sensor.brw849e567c91bc_link_speed` | Link speed | telemetry | unifi | diagnostic | disabled |
 | `sensor.dcp_l2640dw_black_toner_remaining` | Black toner remaining | telemetry | brother | diagnostic | not_enriched |
 | `sensor.dcp_l2640dw_drum_page_counter` | Drum page counter | telemetry | brother | diagnostic | not_enriched |
 | `sensor.dcp_l2640dw_drum_remaining_lifetime` | Drum remaining lifetime | telemetry | brother | diagnostic | not_enriched |
 | `sensor.dcp_l2640dw_drum_remaining_pages` | Drum remaining pages | telemetry | brother | diagnostic | not_enriched |
 | `sensor.dcp_l2640dw_duplex_unit_page_counter` | Duplex unit page counter | telemetry | brother | diagnostic | not_enriched |
-| `sensor.dcp_l2640dw_last_restart` | Last restart | telemetry | brother | diagnostic | disabled |
+| `sensor.dcp_l2640dw_last_restart` | Uptime | telemetry | brother | diagnostic | disabled |
 | `sensor.dcp_l2640dw_page_counter` | Page counter | telemetry | brother | diagnostic | not_enriched |
 | `sensor.dcp_l2640dw_status` | Status | telemetry | brother | diagnostic | not_enriched |
 
@@ -1396,10 +1404,11 @@ _No registered entities._
 - Device ID: `device_a76f54877bef`
 - Integration: apple_tv
 - Model: Apple Apple TV 4K
-- Capability mix: 0 telemetry, 2 control, 0 network, 0 other
+- Capability mix: 1 telemetry, 2 control, 0 network, 0 other
 
 | Entity | Name | Role | Integration | Detail | Availability |
 | --- | --- | --- | --- | --- | --- |
+| `binary_sensor.office_office_tv_keyboard_focus` | Keyboard focus | telemetry | apple_tv |  | not_enriched |
 | `media_player.office_tv` | media_player.office_tv | control | apple_tv |  | not_enriched |
 | `remote.office_tv` | remote.office_tv | control | apple_tv |  | not_enriched |
 
@@ -1434,7 +1443,7 @@ _No registered entities._
 
 | Entity | Name | Role | Integration | Detail | Availability |
 | --- | --- | --- | --- | --- | --- |
-| `light.stairs_front_stairs` | Stairs Front Stairs | control | lutron_caseta |  | not_enriched |
+| `light.stairs_front_stairs` | light.stairs_front_stairs | control | lutron_caseta |  | not_enriched |
 
 ### Unassigned
 
@@ -1470,11 +1479,14 @@ _No registered entities._
 - Device ID: `device_a735aed44232`
 - Integration: matter
 - Model: Aqara Aqara Hub M100
-- Capability mix: 0 telemetry, 1 control, 0 network, 0 other
+- Capability mix: 3 telemetry, 1 control, 0 network, 0 other
 
 | Entity | Name | Role | Integration | Detail | Availability |
 | --- | --- | --- | --- | --- | --- |
 | `button.aqara_hub_m100_identify` | Identify | control | matter | diagnostic | not_enriched |
+| `sensor.aqara_hub_m100_reboot_count` | Reboot count | telemetry | matter | diagnostic | disabled |
+| `sensor.aqara_hub_m100_uptime` | Uptime | telemetry | matter | diagnostic | disabled |
+| `sensor.aqara_hub_m100_wi_fi_rssi` | Wi-Fi RSSI | telemetry | matter | diagnostic | disabled |
 
 #### Aqara Smart Lock U100
 
@@ -1528,6 +1540,24 @@ _No registered entities._
 | --- | --- | --- | --- | --- | --- |
 | `media_player.basement_tv` | media_player.basement_tv | control | cast |  | not_enriched |
 
+#### Basil and forsythias
+
+- Device ID: `device_1ddfd13c29d4`
+- Integration: hydrawise
+- Model: Hydrawise Zone
+- Capability mix: 5 telemetry, 3 control, 0 network, 0 other
+
+| Entity | Name | Role | Integration | Detail | Availability |
+| --- | --- | --- | --- | --- | --- |
+| `binary_sensor.zone_24_watering` | Watering | telemetry | hydrawise |  | not_enriched |
+| `sensor.zone_24_daily_active_water_use` | Daily active water use | telemetry | hydrawise |  | not_enriched |
+| `sensor.zone_24_daily_active_watering_time` | Daily active watering time | telemetry | hydrawise |  | not_enriched |
+| `sensor.zone_24_next_cycle` | Next cycle | telemetry | hydrawise |  | not_enriched |
+| `sensor.zone_24_remaining_watering_time` | Remaining watering time | telemetry | hydrawise |  | not_enriched |
+| `switch.zone_24_automatic_watering` | Automatic watering | control | hydrawise |  | not_enriched |
+| `switch.zone_24_manual_watering` | Manual watering | control | hydrawise |  | not_enriched |
+| `valve.zone_24` | valve.zone_24 | control | hydrawise |  | not_enriched |
+
 #### Bonticou
 
 - Device ID: `device_af91ab644a46`
@@ -1537,10 +1567,10 @@ _No registered entities._
 
 | Entity | Name | Role | Integration | Detail | Availability |
 | --- | --- | --- | --- | --- | --- |
-| `button.bonticou_regenerate_password` | Regenerate Password | control | unifi | config | disabled |
-| `image.bonticou_qr_code` | QR Code | telemetry | unifi | diagnostic | disabled |
-| `sensor.bonticou` | sensor.bonticou | telemetry | unifi | diagnostic | not_enriched |
-| `switch.bonticou` | switch.bonticou | control | unifi | config | not_enriched |
+| `button.bonticou_regenerate_password` | Regenerate password | control | unifi | config | disabled |
+| `image.bonticou_qr_code` | QR code | telemetry | unifi | diagnostic | disabled |
+| `sensor.bonticou` | Clients | telemetry | unifi | diagnostic | not_enriched |
+| `switch.bonticou` | Enabled | control | unifi | config | not_enriched |
 
 #### Bonticou Guest
 
@@ -1551,10 +1581,10 @@ _No registered entities._
 
 | Entity | Name | Role | Integration | Detail | Availability |
 | --- | --- | --- | --- | --- | --- |
-| `button.bonticou_guest_regenerate_password` | Regenerate Password | control | unifi | config | disabled |
-| `image.bonticou_guest_qr_code` | QR Code | telemetry | unifi | diagnostic | disabled |
-| `sensor.bonticou_guest` | sensor.bonticou_guest | telemetry | unifi | diagnostic | not_enriched |
-| `switch.bonticou_guest` | switch.bonticou_guest | control | unifi | config | not_enriched |
+| `button.bonticou_guest_regenerate_password` | Regenerate password | control | unifi | config | disabled |
+| `image.bonticou_guest_qr_code` | QR code | telemetry | unifi | diagnostic | disabled |
+| `sensor.bonticou_guest` | Clients | telemetry | unifi | diagnostic | not_enriched |
+| `switch.bonticou_guest` | Enabled | control | unifi | config | not_enriched |
 
 #### Casey's Closet
 
@@ -1597,7 +1627,7 @@ _No registered entities._
 
 - Device ID: `device_e12e907a53c0`
 - Integration: anthropic
-- Model: Anthropic claude-haiku-4-5
+- Model: Anthropic Claude Haiku 4.5
 - Capability mix: 0 telemetry, 0 control, 0 network, 1 other
 
 | Entity | Name | Role | Integration | Detail | Availability |
@@ -1608,7 +1638,7 @@ _No registered entities._
 
 - Device ID: `device_f53f8bf84a9b`
 - Integration: anthropic
-- Model: Anthropic claude-haiku-4-5
+- Model: Anthropic Claude Haiku 4.5
 - Capability mix: 0 telemetry, 0 control, 0 network, 1 other
 
 | Entity | Name | Role | Integration | Detail | Availability |
@@ -1632,7 +1662,7 @@ _No registered entities._
 - Device ID: `device_958d2caf578a`
 - Integration: sonos, unifi
 - Model: Sonos Era 100
-- Capability mix: 2 telemetry, 8 control, 1 network, 0 other
+- Capability mix: 2 telemetry, 10 control, 1 network, 0 other
 
 | Entity | Name | Role | Integration | Detail | Availability |
 | --- | --- | --- | --- | --- | --- |
@@ -1643,10 +1673,34 @@ _No registered entities._
 | `number.unnamed_room_bass_8` | Bass | control | sonos | config | not_enriched |
 | `number.unnamed_room_treble_8` | Treble | control | sonos | config | not_enriched |
 | `sensor.link_speed_12` | Link speed | telemetry | unifi | diagnostic | disabled |
+| `switch.dining_room_tv_autoplay` | TV autoplay | control | sonos | config | not_enriched |
+| `switch.dining_room_ungroup_on_autoplay` | Ungroup on autoplay | control | sonos | config | not_enriched |
 | `switch.unnamed_room_crossfade_8` | Crossfade | control | sonos | config | not_enriched |
 | `switch.unnamed_room_loudness_8` | Loudness | control | sonos | config | not_enriched |
 | `switch.unnamed_room_status_light_8` | Status light | control | sonos | config | disabled |
 | `switch.unnamed_room_touch_controls_8` | Touch controls | control | sonos | config | disabled |
+
+#### Dryer
+
+- Device ID: `device_8ad0ff69cb92`
+- Integration: lg_thinq
+- Model: LGE BDVG_FX0003_US (DEVICE_DRYER)
+- Capability mix: 10 telemetry, 2 control, 0 network, 0 other
+
+| Entity | Name | Role | Integration | Detail | Availability |
+| --- | --- | --- | --- | --- | --- |
+| `binary_sensor.dryer_remote_start` | Remote start | telemetry | lg_thinq |  | not_enriched |
+| `event.dryer_error` | Error | telemetry | lg_thinq |  | not_enriched |
+| `event.dryer_notification` | Notification | telemetry | lg_thinq |  | not_enriched |
+| `select.dryer_operation` | Operation | control | lg_thinq |  | not_enriched |
+| `sensor.dryer_current_status` | Current status | telemetry | lg_thinq |  | not_enriched |
+| `sensor.dryer_energy_last_month` | Energy last month | telemetry | lg_thinq |  | not_enriched |
+| `sensor.dryer_energy_this_month` | Energy this month | telemetry | lg_thinq |  | not_enriched |
+| `sensor.dryer_energy_today` | Energy today | telemetry | lg_thinq |  | not_enriched |
+| `sensor.dryer_energy_yesterday` | Energy yesterday | telemetry | lg_thinq |  | not_enriched |
+| `sensor.dryer_remaining_time` | Remaining time | telemetry | lg_thinq |  | not_enriched |
+| `sensor.dryer_total_time` | Total time | telemetry | lg_thinq |  | not_enriched |
+| `switch.dryer_power` | Power | control | lg_thinq |  | not_enriched |
 
 #### EP25
 
@@ -1717,10 +1771,10 @@ _No registered entities._
 
 | Entity | Name | Role | Integration | Detail | Availability |
 | --- | --- | --- | --- | --- | --- |
-| `button.fios_vhtx3_regenerate_password` | Regenerate Password | control | unifi | config | disabled |
-| `image.fios_vhtx3_qr_code` | QR Code | telemetry | unifi | diagnostic | disabled |
-| `sensor.fios_vhtx3` | sensor.fios_vhtx3 | telemetry | unifi | diagnostic | not_enriched |
-| `switch.fios_vhtx3` | switch.fios_vhtx3 | control | unifi | config | not_enriched |
+| `button.fios_vhtx3_regenerate_password` | Regenerate password | control | unifi | config | disabled |
+| `image.fios_vhtx3_qr_code` | QR code | telemetry | unifi | diagnostic | disabled |
+| `sensor.fios_vhtx3` | Clients | telemetry | unifi | diagnostic | not_enriched |
+| `switch.fios_vhtx3` | Enabled | control | unifi | config | not_enriched |
 
 #### Forecast
 
@@ -1747,7 +1801,7 @@ _No registered entities._
 - Device ID: `device_1557543cefbd`
 - Integration: unifi, unifiprotect
 - Model: Ubiquiti G6 Instant
-- Capability mix: 28 telemetry, 33 control, 1 network, 0 other
+- Capability mix: 27 telemetry, 33 control, 1 network, 0 other
 
 | Entity | Name | Role | Integration | Detail | Availability |
 | --- | --- | --- | --- | --- | --- |
@@ -1769,7 +1823,6 @@ _No registered entities._
 | `binary_sensor.g6_instant_motion_2` | Motion | telemetry | unifiprotect |  | not_enriched |
 | `button.g6_instant_restart_2` | Restart | control | unifiprotect |  | disabled |
 | `button.g6_instant_unadopt_device_2` | Unadopt device | control | unifiprotect |  | disabled |
-| `camera.front_yard_high_resolution_channel_insecure` | High resolution channel (insecure) | telemetry | unifiprotect |  | disabled |
 | `camera.g6_instant_high_resolution_channel_2` | High resolution channel | telemetry | unifiprotect |  | not_enriched |
 | `device_tracker.uvc_g6_instant_2` | front-yard | network | unifi | diagnostic | not_enriched |
 | `event.back_yard_vehicle` | Vehicle | telemetry | unifiprotect |  | not_enriched |
@@ -1798,7 +1851,7 @@ _No registered entities._
 | `switch.back_yard_glass_break_detection` | Glass break detection | control | unifiprotect | config | not_enriched |
 | `switch.back_yard_hdr_mode` | HDR mode | control | unifiprotect | config | disabled |
 | `switch.back_yard_license_plate_detection` | License plate detection | control | unifiprotect | config | not_enriched |
-| `switch.back_yard_none` | switch.back_yard_none | control | unifiprotect | config | not_enriched |
+| `switch.back_yard_none` | Barking detection | control | unifiprotect | config | not_enriched |
 | `switch.back_yard_person_detection` | Person detection | control | unifiprotect | config | not_enriched |
 | `switch.back_yard_privacy_mode` | Privacy mode | control | unifiprotect | config | not_enriched |
 | `switch.back_yard_siren_detection` | Siren detection | control | unifiprotect | config | not_enriched |
@@ -1823,6 +1876,24 @@ _No registered entities._
 
 _No registered entities._
 
+#### Front door (incl. planters)
+
+- Device ID: `device_e1d90524caea`
+- Integration: hydrawise
+- Model: Hydrawise Zone
+- Capability mix: 5 telemetry, 3 control, 0 network, 0 other
+
+| Entity | Name | Role | Integration | Detail | Availability |
+| --- | --- | --- | --- | --- | --- |
+| `binary_sensor.zone_1_watering` | Watering | telemetry | hydrawise |  | not_enriched |
+| `sensor.zone_1_daily_active_water_use` | Daily active water use | telemetry | hydrawise |  | not_enriched |
+| `sensor.zone_1_daily_active_watering_time` | Daily active watering time | telemetry | hydrawise |  | not_enriched |
+| `sensor.zone_1_next_cycle` | Next cycle | telemetry | hydrawise |  | not_enriched |
+| `sensor.zone_1_remaining_watering_time` | Remaining watering time | telemetry | hydrawise |  | not_enriched |
+| `switch.zone_1_automatic_watering` | Automatic watering | control | hydrawise |  | not_enriched |
+| `switch.zone_1_manual_watering` | Manual watering | control | hydrawise |  | not_enriched |
+| `valve.zone_1` | valve.zone_1 | control | hydrawise |  | not_enriched |
+
 #### Galaxy-S24-Ultra
 
 - Device ID: `device_66bf3c0457ee`
@@ -1840,7 +1911,7 @@ _No registered entities._
 - Device ID: `device_c305c1f8549c`
 - Integration: unifi, unifiprotect
 - Model: Ubiquiti G6 Instant
-- Capability mix: 27 telemetry, 33 control, 1 network, 0 other
+- Capability mix: 26 telemetry, 33 control, 1 network, 0 other
 
 | Entity | Name | Role | Integration | Detail | Availability |
 | --- | --- | --- | --- | --- | --- |
@@ -1863,7 +1934,6 @@ _No registered entities._
 | `button.g6_instant_restart_3` | Restart | control | unifiprotect |  | disabled |
 | `button.g6_instant_unadopt_device_3` | Unadopt device | control | unifiprotect |  | disabled |
 | `camera.g6_instant_high_resolution_channel_3` | High resolution channel | telemetry | unifiprotect |  | not_enriched |
-| `camera.garage_high_resolution_channel_insecure` | High resolution channel (insecure) | telemetry | unifiprotect |  | disabled |
 | `device_tracker.uvc_g6_instant_3` | garage | network | unifi | diagnostic | not_enriched |
 | `event.garage_vehicle` | Vehicle | telemetry | unifiprotect |  | not_enriched |
 | `media_player.garage_speaker` | Speaker | control | unifiprotect |  | not_enriched |
@@ -1888,7 +1958,7 @@ _No registered entities._
 | `switch.g6_instant_overlay_show_name_3` | Overlay: show name | control | unifiprotect | config | not_enriched |
 | `switch.g6_instant_overlay_show_nerd_mode_3` | Overlay: show nerd mode | control | unifiprotect | config | not_enriched |
 | `switch.g6_instant_ssh_enabled_3` | SSH enabled | control | unifiprotect | config | disabled |
-| `switch.garage` | switch.garage | control | unifiprotect | config | not_enriched |
+| `switch.garage` | Barking detection | control | unifiprotect | config | not_enriched |
 | `switch.garage_animal_detection` | Animal detection | control | unifiprotect | config | not_enriched |
 | `switch.garage_baby_cry_detection` | Baby cry detection | control | unifiprotect | config | not_enriched |
 | `switch.garage_car_alarm_detection` | Car alarm detection | control | unifiprotect | config | not_enriched |
@@ -1915,7 +1985,7 @@ _No registered entities._
 
 | Entity | Name | Role | Integration | Detail | Availability |
 | --- | --- | --- | --- | --- | --- |
-| `tts.google_translate_en_com` | Google Translate en com | other | google_translate |  | not_enriched |
+| `tts.google_translate_en_com` | tts.google_translate_en_com | other | google_translate |  | not_enriched |
 
 #### HACS
 
@@ -1927,7 +1997,7 @@ _No registered entities._
 | Entity | Name | Role | Integration | Detail | Availability |
 | --- | --- | --- | --- | --- | --- |
 | `switch.hacs_pre_release` | Pre-release | control | hacs | diagnostic | disabled |
-| `update.hacs_update` | HACS update | telemetry | hacs | config | not_enriched |
+| `update.hacs_update` | Update | telemetry | hacs | config | not_enriched |
 
 #### HASS Bridge GD:21066
 
@@ -2031,13 +2101,13 @@ _No registered entities._
 
 | Entity | Name | Role | Integration | Detail | Availability |
 | --- | --- | --- | --- | --- | --- |
-| `binary_sensor.rqn8_motion` | Kitchen Motion | telemetry | homekit_controller |  | not_enriched |
-| `binary_sensor.rqn8_occupancy` | Kitchen Occupancy | telemetry | homekit_controller |  | not_enriched |
-| `button.rqn8_identify` | Kitchen Identify | control | homekit_controller | diagnostic | not_enriched |
-| `sensor.rqn8_battery` | Kitchen Battery | telemetry | homekit_controller | diagnostic | not_enriched |
-| `sensor.rqn8_temperature` | Kitchen Temperature | telemetry | homekit_controller |  | not_enriched |
+| `binary_sensor.rqn8_motion` | Motion | telemetry | homekit_controller |  | not_enriched |
+| `binary_sensor.rqn8_occupancy` | Occupancy | telemetry | homekit_controller |  | not_enriched |
+| `button.rqn8_identify` | Identify | control | homekit_controller | diagnostic | not_enriched |
+| `sensor.rqn8_battery` | Battery | telemetry | homekit_controller | diagnostic | not_enriched |
+| `sensor.rqn8_temperature` | Temperature | telemetry | homekit_controller |  | not_enriched |
 
-#### Live view:21075
+#### Live view:21075 (Back Stairs Live view)
 
 - Device ID: `device_c8464794ceae`
 - Integration: unknown
@@ -2055,8 +2125,26 @@ _No registered entities._
 
 | Entity | Name | Role | Integration | Detail | Availability |
 | --- | --- | --- | --- | --- | --- |
-| `device_tracker.living_332` | Kitchen | network | unifi | diagnostic | not_enriched |
+| `device_tracker.living_332` | Apple TV (Kitchen) | network | unifi | diagnostic | not_enriched |
 | `sensor.living_332_link_speed` | Link speed | telemetry | unifi | diagnostic | disabled |
+
+#### Lower driveway
+
+- Device ID: `device_6d0dbc34e5b5`
+- Integration: hydrawise
+- Model: Hydrawise Zone
+- Capability mix: 5 telemetry, 3 control, 0 network, 0 other
+
+| Entity | Name | Role | Integration | Detail | Availability |
+| --- | --- | --- | --- | --- | --- |
+| `binary_sensor.zone_25_watering` | Watering | telemetry | hydrawise |  | not_enriched |
+| `sensor.zone_25_daily_active_water_use` | Daily active water use | telemetry | hydrawise |  | not_enriched |
+| `sensor.zone_25_daily_active_watering_time` | Daily active watering time | telemetry | hydrawise |  | not_enriched |
+| `sensor.zone_25_next_cycle` | Next cycle | telemetry | hydrawise |  | not_enriched |
+| `sensor.zone_25_remaining_watering_time` | Remaining watering time | telemetry | hydrawise |  | not_enriched |
+| `switch.zone_25_automatic_watering` | Automatic watering | control | hydrawise |  | not_enriched |
+| `switch.zone_25_manual_watering` | Manual watering | control | hydrawise |  | not_enriched |
+| `valve.zone_25` | valve.zone_25 | control | hydrawise |  | not_enriched |
 
 #### Lutron-06926f09
 
@@ -2118,14 +2206,14 @@ _No registered entities._
 | Entity | Name | Role | Integration | Detail | Availability |
 | --- | --- | --- | --- | --- | --- |
 | `switch.mini_media_player_pre_release` | Pre-release | control | hacs | diagnostic | disabled |
-| `update.mini_media_player_update` | Mini Media Player update | telemetry | hacs | config | not_enriched |
+| `update.mini_media_player_update` | Update | telemetry | hacs | config | not_enriched |
 
 #### Move 2 (A)
 
 - Device ID: `device_6c8f6c6004b2`
 - Integration: sonos, unifi
 - Model: Sonos Move 2
-- Capability mix: 4 telemetry, 8 control, 1 network, 0 other
+- Capability mix: 4 telemetry, 10 control, 1 network, 0 other
 
 | Entity | Name | Role | Integration | Detail | Availability |
 | --- | --- | --- | --- | --- | --- |
@@ -2138,6 +2226,8 @@ _No registered entities._
 | `number.unnamed_room_treble_10` | Treble | control | sonos | config | not_enriched |
 | `sensor.unnamed_room_battery` | Battery | telemetry | sonos | diagnostic | not_enriched |
 | `sensor.unnamed_room_power_source` | Power source | telemetry | sonos | diagnostic | disabled |
+| `switch.move_2_a_tv_autoplay` | TV autoplay | control | sonos | config | not_enriched |
+| `switch.move_2_a_ungroup_on_autoplay` | Ungroup on autoplay | control | sonos | config | not_enriched |
 | `switch.unnamed_room_crossfade_10` | Crossfade | control | sonos | config | not_enriched |
 | `switch.unnamed_room_loudness_10` | Loudness | control | sonos | config | not_enriched |
 | `switch.unnamed_room_status_light_10` | Status light | control | sonos | config | disabled |
@@ -2148,7 +2238,7 @@ _No registered entities._
 - Device ID: `device_df59d635d00f`
 - Integration: sonos, unifi
 - Model: Sonos Move 2
-- Capability mix: 4 telemetry, 8 control, 1 network, 0 other
+- Capability mix: 4 telemetry, 10 control, 1 network, 0 other
 
 | Entity | Name | Role | Integration | Detail | Availability |
 | --- | --- | --- | --- | --- | --- |
@@ -2161,6 +2251,8 @@ _No registered entities._
 | `number.unnamed_room_treble_11` | Treble | control | sonos | config | not_enriched |
 | `sensor.unnamed_room_battery_2` | Battery | telemetry | sonos | diagnostic | not_enriched |
 | `sensor.unnamed_room_power_source_2` | Power source | telemetry | sonos | diagnostic | disabled |
+| `switch.move_2_b_tv_autoplay` | TV autoplay | control | sonos | config | not_enriched |
+| `switch.move_2_b_ungroup_on_autoplay` | Ungroup on autoplay | control | sonos | config | not_enriched |
 | `switch.unnamed_room_crossfade_11` | Crossfade | control | sonos | config | not_enriched |
 | `switch.unnamed_room_loudness_11` | Loudness | control | sonos | config | not_enriched |
 | `switch.unnamed_room_status_light_11` | Status light | control | sonos | config | disabled |
@@ -2194,14 +2286,50 @@ _No registered entities._
 | Entity | Name | Role | Integration | Detail | Availability |
 | --- | --- | --- | --- | --- | --- |
 | `switch.mushroom_pre_release` | Pre-release | control | hacs | diagnostic | disabled |
-| `update.mushroom_update` | Mushroom update | telemetry | hacs | config | not_enriched |
+| `update.mushroom_update` | Update | telemetry | hacs | config | not_enriched |
+
+#### North back lawn
+
+- Device ID: `device_13f58e5b13b0`
+- Integration: hydrawise
+- Model: Hydrawise Zone
+- Capability mix: 5 telemetry, 3 control, 0 network, 0 other
+
+| Entity | Name | Role | Integration | Detail | Availability |
+| --- | --- | --- | --- | --- | --- |
+| `binary_sensor.zone_20_watering` | Watering | telemetry | hydrawise |  | not_enriched |
+| `sensor.zone_20_daily_active_water_use` | Daily active water use | telemetry | hydrawise |  | not_enriched |
+| `sensor.zone_20_daily_active_watering_time` | Daily active watering time | telemetry | hydrawise |  | not_enriched |
+| `sensor.zone_20_next_cycle` | Next cycle | telemetry | hydrawise |  | not_enriched |
+| `sensor.zone_20_remaining_watering_time` | Remaining watering time | telemetry | hydrawise |  | not_enriched |
+| `switch.zone_20_automatic_watering` | Automatic watering | control | hydrawise |  | not_enriched |
+| `switch.zone_20_manual_watering` | Manual watering | control | hydrawise |  | not_enriched |
+| `valve.zone_20` | valve.zone_20 | control | hydrawise |  | not_enriched |
+
+#### North back lawn lower
+
+- Device ID: `device_ce5c58ea2265`
+- Integration: hydrawise
+- Model: Hydrawise Zone
+- Capability mix: 5 telemetry, 3 control, 0 network, 0 other
+
+| Entity | Name | Role | Integration | Detail | Availability |
+| --- | --- | --- | --- | --- | --- |
+| `binary_sensor.zone_21_watering` | Watering | telemetry | hydrawise |  | not_enriched |
+| `sensor.zone_21_daily_active_water_use` | Daily active water use | telemetry | hydrawise |  | not_enriched |
+| `sensor.zone_21_daily_active_watering_time` | Daily active watering time | telemetry | hydrawise |  | not_enriched |
+| `sensor.zone_21_next_cycle` | Next cycle | telemetry | hydrawise |  | not_enriched |
+| `sensor.zone_21_remaining_watering_time` | Remaining watering time | telemetry | hydrawise |  | not_enriched |
+| `switch.zone_21_automatic_watering` | Automatic watering | control | hydrawise |  | not_enriched |
+| `switch.zone_21_manual_watering` | Manual watering | control | hydrawise |  | not_enriched |
+| `valve.zone_21` | valve.zone_21 | control | hydrawise |  | not_enriched |
 
 #### Office
 
 - Device ID: `device_cc546a11400c`
 - Integration: sonos, unifi
 - Model: Sonos Arc Ultra
-- Capability mix: 3 telemetry, 18 control, 1 network, 0 other
+- Capability mix: 3 telemetry, 20 control, 1 network, 0 other
 
 | Entity | Name | Role | Integration | Detail | Availability |
 | --- | --- | --- | --- | --- | --- |
@@ -2219,6 +2347,8 @@ _No registered entities._
 | `sensor.link_speed_4` | Link speed | telemetry | unifi | diagnostic | disabled |
 | `sensor.unnamed_room_audio_input_format_2` | Audio input format | telemetry | sonos | diagnostic | not_enriched |
 | `switch.office_subwoofer_enabled_2` | Subwoofer enabled | control | sonos | config | not_enriched |
+| `switch.office_tv_autoplay` | TV autoplay | control | sonos | config | not_enriched |
+| `switch.office_ungroup_on_autoplay` | Ungroup on autoplay | control | sonos | config | not_enriched |
 | `switch.unnamed_room_crossfade_7` | Crossfade | control | sonos | config | not_enriched |
 | `switch.unnamed_room_loudness_7` | Loudness | control | sonos | config | not_enriched |
 | `switch.unnamed_room_night_sound_2` | Night sound | control | sonos | config | not_enriched |
@@ -2270,14 +2400,32 @@ _No registered entities._
 
 | Entity | Name | Role | Integration | Detail | Availability |
 | --- | --- | --- | --- | --- | --- |
-| `tts.openai_tts` | OpenAI TTS | other | openai_conversation |  | not_enriched |
+| `tts.openai_tts` | tts.openai_tts | other | openai_conversation |  | not_enriched |
+
+#### Peonies garden
+
+- Device ID: `device_82355cba4b2a`
+- Integration: hydrawise
+- Model: Hydrawise Zone
+- Capability mix: 5 telemetry, 3 control, 0 network, 0 other
+
+| Entity | Name | Role | Integration | Detail | Availability |
+| --- | --- | --- | --- | --- | --- |
+| `binary_sensor.zone_26_watering` | Watering | telemetry | hydrawise |  | not_enriched |
+| `sensor.zone_26_daily_active_water_use` | Daily active water use | telemetry | hydrawise |  | not_enriched |
+| `sensor.zone_26_daily_active_watering_time` | Daily active watering time | telemetry | hydrawise |  | not_enriched |
+| `sensor.zone_26_next_cycle` | Next cycle | telemetry | hydrawise |  | not_enriched |
+| `sensor.zone_26_remaining_watering_time` | Remaining watering time | telemetry | hydrawise |  | not_enriched |
+| `switch.zone_26_automatic_watering` | Automatic watering | control | hydrawise |  | not_enriched |
+| `switch.zone_26_manual_watering` | Manual watering | control | hydrawise |  | not_enriched |
+| `valve.zone_26` | valve.zone_26 | control | hydrawise |  | not_enriched |
 
 #### Play Room
 
 - Device ID: `device_5a7bbc9548a4`
 - Integration: unifi, unifiprotect
 - Model: Ubiquiti G6 Instant
-- Capability mix: 27 telemetry, 33 control, 1 network, 0 other
+- Capability mix: 26 telemetry, 33 control, 1 network, 0 other
 
 | Entity | Name | Role | Integration | Detail | Availability |
 | --- | --- | --- | --- | --- | --- |
@@ -2300,7 +2448,6 @@ _No registered entities._
 | `button.g6_instant_restart` | Restart | control | unifiprotect |  | disabled |
 | `button.g6_instant_unadopt_device` | Unadopt device | control | unifiprotect |  | disabled |
 | `camera.g6_instant_high_resolution_channel` | High resolution channel | telemetry | unifiprotect |  | not_enriched |
-| `camera.play_room_high_resolution_channel_insecure` | High resolution channel (insecure) | telemetry | unifiprotect |  | disabled |
 | `device_tracker.uvc_g6_instant` | play-room | network | unifi | diagnostic | not_enriched |
 | `event.play_room_vehicle` | Vehicle | telemetry | unifiprotect |  | not_enriched |
 | `media_player.play_room_speaker` | Speaker | control | unifiprotect |  | not_enriched |
@@ -2333,7 +2480,7 @@ _No registered entities._
 | `switch.play_room_glass_break_detection` | Glass break detection | control | unifiprotect | config | not_enriched |
 | `switch.play_room_hdr_mode` | HDR mode | control | unifiprotect | config | disabled |
 | `switch.play_room_license_plate_detection` | License plate detection | control | unifiprotect | config | not_enriched |
-| `switch.play_room_none` | switch.play_room_none | control | unifiprotect | config | not_enriched |
+| `switch.play_room_none` | Barking detection | control | unifiprotect | config | not_enriched |
 | `switch.play_room_person_detection` | Person detection | control | unifiprotect | config | not_enriched |
 | `switch.play_room_privacy_mode` | Privacy mode | control | unifiprotect | config | not_enriched |
 | `switch.play_room_siren_detection` | Siren detection | control | unifiprotect | config | not_enriched |
@@ -2374,7 +2521,7 @@ _No registered entities._
 | Entity | Name | Role | Integration | Detail | Availability |
 | --- | --- | --- | --- | --- | --- |
 | `switch.sonos_card_pre_release` | Pre-release | control | hacs | diagnostic | disabled |
-| `update.sonos_card_update` | Sonos Card update | telemetry | hacs | config | not_enriched |
+| `update.sonos_card_update` | Update | telemetry | hacs | config | not_enriched |
 
 #### Spotify
 
@@ -2393,7 +2540,7 @@ _No registered entities._
 - Device ID: `device_a33df9341ba8`
 - Integration: sun
 - Model: unknown model
-- Capability mix: 10 telemetry, 0 control, 0 network, 0 other
+- Capability mix: 9 telemetry, 0 control, 0 network, 0 other
 
 | Entity | Name | Role | Integration | Detail | Availability |
 | --- | --- | --- | --- | --- | --- |
@@ -2406,31 +2553,34 @@ _No registered entities._
 | `sensor.sun_next_setting` | Next setting | telemetry | sun | diagnostic | not_enriched |
 | `sensor.sun_solar_azimuth` | Solar azimuth | telemetry | sun | diagnostic | disabled |
 | `sensor.sun_solar_elevation` | Solar elevation | telemetry | sun | diagnostic | disabled |
-| `sensor.sun_solar_rising` | Solar rising | telemetry | sun | diagnostic | disabled |
 
 #### TK iPhone 16 Pro
 
 - Device ID: `device_784e00b00a1e`
 - Integration: mobile_app
 - Model: Apple iPhone17,1
-- Capability mix: 14 telemetry, 0 control, 0 network, 0 other
+- Capability mix: 17 telemetry, 0 control, 0 network, 1 other
 
 | Entity | Name | Role | Integration | Detail | Availability |
 | --- | --- | --- | --- | --- | --- |
-| `device_tracker.tk_iphone_16_pro` | TK iPhone 16 Pro | telemetry | mobile_app | diagnostic | not_enriched |
-| `sensor.tk_iphone_16_pro_app_version` | TK iPhone 16 Pro App Version | telemetry | mobile_app | diagnostic | not_enriched |
-| `sensor.tk_iphone_16_pro_audio_output` | TK iPhone 16 Pro Audio Output | telemetry | mobile_app |  | not_enriched |
-| `sensor.tk_iphone_16_pro_battery_level` | TK iPhone 16 Pro Battery Level | telemetry | mobile_app |  | not_enriched |
-| `sensor.tk_iphone_16_pro_battery_state` | TK iPhone 16 Pro Battery State | telemetry | mobile_app |  | not_enriched |
-| `sensor.tk_iphone_16_pro_bssid` | TK iPhone 16 Pro BSSID | telemetry | mobile_app |  | not_enriched |
-| `sensor.tk_iphone_16_pro_connection_type` | TK iPhone 16 Pro Connection Type | telemetry | mobile_app |  | not_enriched |
-| `sensor.tk_iphone_16_pro_geocoded_location` | TK iPhone 16 Pro Geocoded Location | telemetry | mobile_app |  | not_enriched |
-| `sensor.tk_iphone_16_pro_last_update_trigger` | TK iPhone 16 Pro Last Update Trigger | telemetry | mobile_app |  | not_enriched |
-| `sensor.tk_iphone_16_pro_location_permission` | TK iPhone 16 Pro Location permission | telemetry | mobile_app |  | not_enriched |
-| `sensor.tk_iphone_16_pro_sim_1` | TK iPhone 16 Pro SIM 1 | telemetry | mobile_app |  | not_enriched |
-| `sensor.tk_iphone_16_pro_sim_2` | TK iPhone 16 Pro SIM 2 | telemetry | mobile_app |  | not_enriched |
-| `sensor.tk_iphone_16_pro_ssid` | TK iPhone 16 Pro SSID | telemetry | mobile_app |  | not_enriched |
-| `sensor.tk_iphone_16_pro_storage` | TK iPhone 16 Pro Storage | telemetry | mobile_app |  | not_enriched |
+| `binary_sensor.tk_iphone_16_pro_kiosk_mode` | Kiosk Mode | telemetry | mobile_app |  | not_enriched |
+| `device_tracker.tk_iphone_16_pro` | device_tracker.tk_iphone_16_pro | telemetry | mobile_app | diagnostic | not_enriched |
+| `notify.tk_iphone_16_pro` | notify.tk_iphone_16_pro | other | mobile_app |  | not_enriched |
+| `sensor.tk_iphone_16_pro_app_version` | App Version | telemetry | mobile_app | diagnostic | not_enriched |
+| `sensor.tk_iphone_16_pro_audio_output` | Audio Output | telemetry | mobile_app |  | not_enriched |
+| `sensor.tk_iphone_16_pro_battery_level` | Battery Level | telemetry | mobile_app |  | not_enriched |
+| `sensor.tk_iphone_16_pro_battery_state` | Battery State | telemetry | mobile_app |  | not_enriched |
+| `sensor.tk_iphone_16_pro_bssid` | BSSID | telemetry | mobile_app |  | not_enriched |
+| `sensor.tk_iphone_16_pro_connection_type` | Connection Type | telemetry | mobile_app |  | not_enriched |
+| `sensor.tk_iphone_16_pro_geocoded_location` | Geocoded Location | telemetry | mobile_app |  | not_enriched |
+| `sensor.tk_iphone_16_pro_kiosk_brightness` | Kiosk Brightness | telemetry | mobile_app |  | not_enriched |
+| `sensor.tk_iphone_16_pro_kiosk_volume` | Kiosk Volume | telemetry | mobile_app |  | not_enriched |
+| `sensor.tk_iphone_16_pro_last_update_trigger` | Last Update Trigger | telemetry | mobile_app |  | not_enriched |
+| `sensor.tk_iphone_16_pro_location_permission` | Location permission | telemetry | mobile_app |  | not_enriched |
+| `sensor.tk_iphone_16_pro_sim_1` | SIM 1 | telemetry | mobile_app |  | not_enriched |
+| `sensor.tk_iphone_16_pro_sim_2` | SIM 2 | telemetry | mobile_app |  | not_enriched |
+| `sensor.tk_iphone_16_pro_ssid` | SSID | telemetry | mobile_app |  | not_enriched |
+| `sensor.tk_iphone_16_pro_storage` | Storage | telemetry | mobile_app |  | not_enriched |
 
 #### Terminal & SSH
 
@@ -2488,7 +2638,7 @@ _No registered entities._
 | `sensor.u7_pro_family_room_state` | State | telemetry | unifi | diagnostic | not_enriched |
 | `sensor.u7_pro_family_room_uplink_mac` | Uplink MAC | telemetry | unifi | diagnostic | not_enriched |
 | `sensor.u7_pro_family_room_uptime` | Uptime | telemetry | unifi | diagnostic | not_enriched |
-| `update.u7_pro_family_room` | update.u7_pro_family_room | telemetry | unifi | config | not_enriched |
+| `update.u7_pro_family_room` | Firmware | telemetry | unifi | config | not_enriched |
 
 #### U7 Pro (Mesh)
 
@@ -2508,7 +2658,7 @@ _No registered entities._
 | `sensor.u7_pro_mesh_state` | State | telemetry | unifi | diagnostic | not_enriched |
 | `sensor.u7_pro_mesh_uplink_mac` | Uplink MAC | telemetry | unifi | diagnostic | not_enriched |
 | `sensor.u7_pro_mesh_uptime` | Uptime | telemetry | unifi | diagnostic | not_enriched |
-| `update.u7_pro_mesh` | update.u7_pro_mesh | telemetry | unifi | config | not_enriched |
+| `update.u7_pro_mesh` | Firmware | telemetry | unifi | config | not_enriched |
 
 #### U7 Pro (Mud Room)
 
@@ -2528,7 +2678,7 @@ _No registered entities._
 | `sensor.u7_pro_mud_room_state` | State | telemetry | unifi | diagnostic | not_enriched |
 | `sensor.u7_pro_mud_room_uplink_mac` | Uplink MAC | telemetry | unifi | diagnostic | not_enriched |
 | `sensor.u7_pro_mud_room_uptime` | Uptime | telemetry | unifi | diagnostic | not_enriched |
-| `update.u7_pro_mud_room` | update.u7_pro_mud_room | telemetry | unifi | config | not_enriched |
+| `update.u7_pro_mud_room` | Firmware | telemetry | unifi | config | not_enriched |
 
 #### U7 Pro Outdoor
 
@@ -2547,7 +2697,7 @@ _No registered entities._
 | `sensor.u7_pro_outdoor_state` | State | telemetry | unifi | diagnostic | not_enriched |
 | `sensor.u7_pro_outdoor_uplink_mac` | Uplink MAC | telemetry | unifi | diagnostic | not_enriched |
 | `sensor.u7_pro_outdoor_uptime` | Uptime | telemetry | unifi | diagnostic | not_enriched |
-| `update.u7_pro_outdoor` | update.u7_pro_outdoor | telemetry | unifi | config | not_enriched |
+| `update.u7_pro_outdoor` | Firmware | telemetry | unifi | config | not_enriched |
 
 #### USW Flex 2.5G 5
 
@@ -2576,7 +2726,23 @@ _No registered entities._
 | `switch.usw_flex_2_5g_5_port_3` | Port 3 | control | unifi | config | disabled |
 | `switch.usw_flex_2_5g_5_port_4` | Port 4 | control | unifi | config | disabled |
 | `switch.usw_flex_2_5g_5_port_5` | Port 5 | control | unifi | config | disabled |
-| `update.usw_flex_2_5g_5` | update.usw_flex_2_5g_5 | telemetry | unifi | config | not_enriched |
+| `update.usw_flex_2_5g_5` | Firmware | telemetry | unifi | config | not_enriched |
+
+#### USW-Lite-8-PoE
+
+- Device ID: `device_30fd0bafd7fa`
+- Integration: unifi
+- Model: Ubiquiti Networks USL8LPB
+- Capability mix: 4 telemetry, 1 control, 1 network, 0 other
+
+| Entity | Name | Role | Integration | Detail | Availability |
+| --- | --- | --- | --- | --- | --- |
+| `button.usw_lite_8_poe_restart` | Restart | control | unifi | config | not_enriched |
+| `device_tracker.usw_lite_8_poe` | USW-Lite-8-PoE | network | unifi | diagnostic | not_enriched |
+| `sensor.usw_lite_8_poe_clients` | Clients | telemetry | unifi | diagnostic | disabled |
+| `sensor.usw_lite_8_poe_state` | State | telemetry | unifi | diagnostic | not_enriched |
+| `sensor.usw_lite_8_poe_uptime` | Uptime | telemetry | unifi | diagnostic | not_enriched |
+| `update.usw_lite_8_poe_firmware` | Firmware | telemetry | unifi | config | not_enriched |
 
 #### UniFi Network
 
@@ -2608,7 +2774,25 @@ _No registered entities._
 | `switch.unnamed_room_status_light_9` | Status light | control | sonos | config | disabled |
 | `switch.unnamed_room_touch_controls_9` | Touch controls | control | sonos | config | disabled |
 
-#### Vegetable Garden
+#### Upper back lawn
+
+- Device ID: `device_03c18f9acef1`
+- Integration: hydrawise
+- Model: Hydrawise Zone
+- Capability mix: 5 telemetry, 3 control, 0 network, 0 other
+
+| Entity | Name | Role | Integration | Detail | Availability |
+| --- | --- | --- | --- | --- | --- |
+| `binary_sensor.zone_19_watering` | Watering | telemetry | hydrawise |  | not_enriched |
+| `sensor.zone_19_daily_active_water_use` | Daily active water use | telemetry | hydrawise |  | not_enriched |
+| `sensor.zone_19_daily_active_watering_time` | Daily active watering time | telemetry | hydrawise |  | not_enriched |
+| `sensor.zone_19_next_cycle` | Next cycle | telemetry | hydrawise |  | not_enriched |
+| `sensor.zone_19_remaining_watering_time` | Remaining watering time | telemetry | hydrawise |  | not_enriched |
+| `switch.zone_19_automatic_watering` | Automatic watering | control | hydrawise |  | not_enriched |
+| `switch.zone_19_manual_watering` | Manual watering | control | hydrawise |  | not_enriched |
+| `valve.zone_19` | valve.zone_19 | control | hydrawise |  | not_enriched |
+
+#### Vegetable garden
 
 - Device ID: `device_706e4c03d904`
 - Integration: hydrawise
@@ -2646,24 +2830,6 @@ _No registered entities._
 - Capability mix: 0 telemetry, 0 control, 0 network, 0 other
 
 _No registered entities._
-
-#### Zone 1
-
-- Device ID: `device_e1d90524caea`
-- Integration: hydrawise
-- Model: Hydrawise Zone
-- Capability mix: 5 telemetry, 3 control, 0 network, 0 other
-
-| Entity | Name | Role | Integration | Detail | Availability |
-| --- | --- | --- | --- | --- | --- |
-| `binary_sensor.zone_1_watering` | Watering | telemetry | hydrawise |  | not_enriched |
-| `sensor.zone_1_daily_active_water_use` | Daily active water use | telemetry | hydrawise |  | not_enriched |
-| `sensor.zone_1_daily_active_watering_time` | Daily active watering time | telemetry | hydrawise |  | not_enriched |
-| `sensor.zone_1_next_cycle` | Next cycle | telemetry | hydrawise |  | not_enriched |
-| `sensor.zone_1_remaining_watering_time` | Remaining watering time | telemetry | hydrawise |  | not_enriched |
-| `switch.zone_1_automatic_watering` | Automatic watering | control | hydrawise |  | not_enriched |
-| `switch.zone_1_manual_watering` | Manual watering | control | hydrawise |  | not_enriched |
-| `valve.zone_1` | valve.zone_1 | control | hydrawise |  | not_enriched |
 
 #### Zone 10
 
@@ -2827,24 +2993,6 @@ _No registered entities._
 | `switch.zone_18_manual_watering` | Manual watering | control | hydrawise |  | not_enriched |
 | `valve.zone_18` | valve.zone_18 | control | hydrawise |  | not_enriched |
 
-#### Zone 19
-
-- Device ID: `device_03c18f9acef1`
-- Integration: hydrawise
-- Model: Hydrawise Zone
-- Capability mix: 5 telemetry, 3 control, 0 network, 0 other
-
-| Entity | Name | Role | Integration | Detail | Availability |
-| --- | --- | --- | --- | --- | --- |
-| `binary_sensor.zone_19_watering` | Watering | telemetry | hydrawise |  | not_enriched |
-| `sensor.zone_19_daily_active_water_use` | Daily active water use | telemetry | hydrawise |  | not_enriched |
-| `sensor.zone_19_daily_active_watering_time` | Daily active watering time | telemetry | hydrawise |  | not_enriched |
-| `sensor.zone_19_next_cycle` | Next cycle | telemetry | hydrawise |  | not_enriched |
-| `sensor.zone_19_remaining_watering_time` | Remaining watering time | telemetry | hydrawise |  | not_enriched |
-| `switch.zone_19_automatic_watering` | Automatic watering | control | hydrawise |  | not_enriched |
-| `switch.zone_19_manual_watering` | Manual watering | control | hydrawise |  | not_enriched |
-| `valve.zone_19` | valve.zone_19 | control | hydrawise |  | not_enriched |
-
 #### Zone 2
 
 - Device ID: `device_c59f911b797b`
@@ -2863,42 +3011,6 @@ _No registered entities._
 | `switch.zone_2_manual_watering` | Manual watering | control | hydrawise |  | not_enriched |
 | `valve.zone_2` | valve.zone_2 | control | hydrawise |  | not_enriched |
 
-#### Zone 20
-
-- Device ID: `device_13f58e5b13b0`
-- Integration: hydrawise
-- Model: Hydrawise Zone
-- Capability mix: 5 telemetry, 3 control, 0 network, 0 other
-
-| Entity | Name | Role | Integration | Detail | Availability |
-| --- | --- | --- | --- | --- | --- |
-| `binary_sensor.zone_20_watering` | Watering | telemetry | hydrawise |  | not_enriched |
-| `sensor.zone_20_daily_active_water_use` | Daily active water use | telemetry | hydrawise |  | not_enriched |
-| `sensor.zone_20_daily_active_watering_time` | Daily active watering time | telemetry | hydrawise |  | not_enriched |
-| `sensor.zone_20_next_cycle` | Next cycle | telemetry | hydrawise |  | not_enriched |
-| `sensor.zone_20_remaining_watering_time` | Remaining watering time | telemetry | hydrawise |  | not_enriched |
-| `switch.zone_20_automatic_watering` | Automatic watering | control | hydrawise |  | not_enriched |
-| `switch.zone_20_manual_watering` | Manual watering | control | hydrawise |  | not_enriched |
-| `valve.zone_20` | valve.zone_20 | control | hydrawise |  | not_enriched |
-
-#### Zone 21
-
-- Device ID: `device_ce5c58ea2265`
-- Integration: hydrawise
-- Model: Hydrawise Zone
-- Capability mix: 5 telemetry, 3 control, 0 network, 0 other
-
-| Entity | Name | Role | Integration | Detail | Availability |
-| --- | --- | --- | --- | --- | --- |
-| `binary_sensor.zone_21_watering` | Watering | telemetry | hydrawise |  | not_enriched |
-| `sensor.zone_21_daily_active_water_use` | Daily active water use | telemetry | hydrawise |  | not_enriched |
-| `sensor.zone_21_daily_active_watering_time` | Daily active watering time | telemetry | hydrawise |  | not_enriched |
-| `sensor.zone_21_next_cycle` | Next cycle | telemetry | hydrawise |  | not_enriched |
-| `sensor.zone_21_remaining_watering_time` | Remaining watering time | telemetry | hydrawise |  | not_enriched |
-| `switch.zone_21_automatic_watering` | Automatic watering | control | hydrawise |  | not_enriched |
-| `switch.zone_21_manual_watering` | Manual watering | control | hydrawise |  | not_enriched |
-| `valve.zone_21` | valve.zone_21 | control | hydrawise |  | not_enriched |
-
 #### Zone 22
 
 - Device ID: `device_a028e08b08a4`
@@ -2916,60 +3028,6 @@ _No registered entities._
 | `switch.zone_22_automatic_watering` | Automatic watering | control | hydrawise |  | not_enriched |
 | `switch.zone_22_manual_watering` | Manual watering | control | hydrawise |  | not_enriched |
 | `valve.zone_22` | valve.zone_22 | control | hydrawise |  | not_enriched |
-
-#### Zone 24
-
-- Device ID: `device_1ddfd13c29d4`
-- Integration: hydrawise
-- Model: Hydrawise Zone
-- Capability mix: 5 telemetry, 3 control, 0 network, 0 other
-
-| Entity | Name | Role | Integration | Detail | Availability |
-| --- | --- | --- | --- | --- | --- |
-| `binary_sensor.zone_24_watering` | Watering | telemetry | hydrawise |  | not_enriched |
-| `sensor.zone_24_daily_active_water_use` | Daily active water use | telemetry | hydrawise |  | not_enriched |
-| `sensor.zone_24_daily_active_watering_time` | Daily active watering time | telemetry | hydrawise |  | not_enriched |
-| `sensor.zone_24_next_cycle` | Next cycle | telemetry | hydrawise |  | not_enriched |
-| `sensor.zone_24_remaining_watering_time` | Remaining watering time | telemetry | hydrawise |  | not_enriched |
-| `switch.zone_24_automatic_watering` | Automatic watering | control | hydrawise |  | not_enriched |
-| `switch.zone_24_manual_watering` | Manual watering | control | hydrawise |  | not_enriched |
-| `valve.zone_24` | valve.zone_24 | control | hydrawise |  | not_enriched |
-
-#### Zone 25
-
-- Device ID: `device_6d0dbc34e5b5`
-- Integration: hydrawise
-- Model: Hydrawise Zone
-- Capability mix: 5 telemetry, 3 control, 0 network, 0 other
-
-| Entity | Name | Role | Integration | Detail | Availability |
-| --- | --- | --- | --- | --- | --- |
-| `binary_sensor.zone_25_watering` | Watering | telemetry | hydrawise |  | not_enriched |
-| `sensor.zone_25_daily_active_water_use` | Daily active water use | telemetry | hydrawise |  | not_enriched |
-| `sensor.zone_25_daily_active_watering_time` | Daily active watering time | telemetry | hydrawise |  | not_enriched |
-| `sensor.zone_25_next_cycle` | Next cycle | telemetry | hydrawise |  | not_enriched |
-| `sensor.zone_25_remaining_watering_time` | Remaining watering time | telemetry | hydrawise |  | not_enriched |
-| `switch.zone_25_automatic_watering` | Automatic watering | control | hydrawise |  | not_enriched |
-| `switch.zone_25_manual_watering` | Manual watering | control | hydrawise |  | not_enriched |
-| `valve.zone_25` | valve.zone_25 | control | hydrawise |  | not_enriched |
-
-#### Zone 26
-
-- Device ID: `device_82355cba4b2a`
-- Integration: hydrawise
-- Model: Hydrawise Zone
-- Capability mix: 5 telemetry, 3 control, 0 network, 0 other
-
-| Entity | Name | Role | Integration | Detail | Availability |
-| --- | --- | --- | --- | --- | --- |
-| `binary_sensor.zone_26_watering` | Watering | telemetry | hydrawise |  | not_enriched |
-| `sensor.zone_26_daily_active_water_use` | Daily active water use | telemetry | hydrawise |  | not_enriched |
-| `sensor.zone_26_daily_active_watering_time` | Daily active watering time | telemetry | hydrawise |  | not_enriched |
-| `sensor.zone_26_next_cycle` | Next cycle | telemetry | hydrawise |  | not_enriched |
-| `sensor.zone_26_remaining_watering_time` | Remaining watering time | telemetry | hydrawise |  | not_enriched |
-| `switch.zone_26_automatic_watering` | Automatic watering | control | hydrawise |  | not_enriched |
-| `switch.zone_26_manual_watering` | Manual watering | control | hydrawise |  | not_enriched |
-| `valve.zone_26` | valve.zone_26 | control | hydrawise |  | not_enriched |
 
 #### Zone 27
 
@@ -3179,7 +3237,7 @@ _No registered entities._
 | Entity | Name | Role | Integration | Detail | Availability |
 | --- | --- | --- | --- | --- | --- |
 | `switch.apexcharts_card_pre_release` | Pre-release | control | hacs | diagnostic | disabled |
-| `update.apexcharts_card_update` | apexcharts-card update | telemetry | hacs | config | not_enriched |
+| `update.apexcharts_card_update` | Update | telemetry | hacs | config | not_enriched |
 
 #### browser_mod
 
@@ -3191,7 +3249,7 @@ _No registered entities._
 | Entity | Name | Role | Integration | Detail | Availability |
 | --- | --- | --- | --- | --- | --- |
 | `switch.browser_mod_pre_release` | Pre-release | control | hacs | diagnostic | disabled |
-| `update.browser_mod_update` | browser_mod update | telemetry | hacs | config | not_enriched |
+| `update.browser_mod_update` | Update | telemetry | hacs | config | not_enriched |
 
 #### button-card
 
@@ -3203,7 +3261,7 @@ _No registered entities._
 | Entity | Name | Role | Integration | Detail | Availability |
 | --- | --- | --- | --- | --- | --- |
 | `switch.button_card_pre_release` | Pre-release | control | hacs | diagnostic | disabled |
-| `update.button_card_update` | button-card update | telemetry | hacs | config | not_enriched |
+| `update.button_card_update` | Update | telemetry | hacs | config | not_enriched |
 
 #### card-mod
 
@@ -3215,7 +3273,7 @@ _No registered entities._
 | Entity | Name | Role | Integration | Detail | Availability |
 | --- | --- | --- | --- | --- | --- |
 | `switch.card_mod_pre_release` | Pre-release | control | hacs | diagnostic | disabled |
-| `update.card_mod_update` | card-mod update | telemetry | hacs | config | not_enriched |
+| `update.card_mod_update` | Update | telemetry | hacs | config | not_enriched |
 
 #### device_029571f3b27b
 
@@ -3385,6 +3443,18 @@ _No registered entities._
 | `device_tracker.unifi_default_mac_d9959f2a8987` | Watch | network | unifi | diagnostic | not_enriched |
 | `sensor.link_speed_26` | Link speed | telemetry | unifi | diagnostic | disabled |
 
+#### device_918a3c2d3306
+
+- Device ID: `device_918a3c2d3306`
+- Integration: unifi
+- Model: unknown model
+- Capability mix: 1 telemetry, 0 control, 1 network, 0 other
+
+| Entity | Name | Role | Integration | Detail | Availability |
+| --- | --- | --- | --- | --- | --- |
+| `device_tracker.unifi_default_mac_5d06587a36b2` | device_tracker.unifi_default_mac_5d06587a36b2 | network | unifi | diagnostic | not_enriched |
+| `sensor.link_speed_30` | Link speed | telemetry | unifi | diagnostic | disabled |
+
 #### device_a077a8676de8
 
 - Device ID: `device_a077a8676de8`
@@ -3522,22 +3592,23 @@ _No registered entities._
 - Device ID: `device_29a3a3367e9a`
 - Integration: mobile_app
 - Model: Apple iPad13,1
-- Capability mix: 12 telemetry, 0 control, 0 network, 0 other
+- Capability mix: 12 telemetry, 0 control, 0 network, 1 other
 
 | Entity | Name | Role | Integration | Detail | Availability |
 | --- | --- | --- | --- | --- | --- |
-| `device_tracker.ipad_2` | iPad | telemetry | mobile_app | diagnostic | not_enriched |
-| `sensor.ipad_app_version` | iPad App Version | telemetry | mobile_app | diagnostic | not_enriched |
-| `sensor.ipad_audio_output` | iPad Audio Output | telemetry | mobile_app |  | not_enriched |
-| `sensor.ipad_battery_level` | iPad Battery Level | telemetry | mobile_app |  | not_enriched |
-| `sensor.ipad_battery_state` | iPad Battery State | telemetry | mobile_app |  | not_enriched |
-| `sensor.ipad_bssid` | iPad BSSID | telemetry | mobile_app |  | not_enriched |
-| `sensor.ipad_connection_type` | iPad Connection Type | telemetry | mobile_app |  | not_enriched |
-| `sensor.ipad_geocoded_location` | iPad Geocoded Location | telemetry | mobile_app |  | not_enriched |
-| `sensor.ipad_last_update_trigger` | iPad Last Update Trigger | telemetry | mobile_app |  | not_enriched |
-| `sensor.ipad_location_permission` | iPad Location permission | telemetry | mobile_app |  | not_enriched |
-| `sensor.ipad_ssid` | iPad SSID | telemetry | mobile_app |  | not_enriched |
-| `sensor.ipad_storage` | iPad Storage | telemetry | mobile_app |  | not_enriched |
+| `device_tracker.ipad_2` | device_tracker.ipad_2 | telemetry | mobile_app | diagnostic | not_enriched |
+| `notify.ipad` | notify.ipad | other | mobile_app |  | not_enriched |
+| `sensor.ipad_app_version` | App Version | telemetry | mobile_app | diagnostic | not_enriched |
+| `sensor.ipad_audio_output` | Audio Output | telemetry | mobile_app |  | not_enriched |
+| `sensor.ipad_battery_level` | Battery Level | telemetry | mobile_app |  | not_enriched |
+| `sensor.ipad_battery_state` | Battery State | telemetry | mobile_app |  | not_enriched |
+| `sensor.ipad_bssid` | BSSID | telemetry | mobile_app |  | not_enriched |
+| `sensor.ipad_connection_type` | Connection Type | telemetry | mobile_app |  | not_enriched |
+| `sensor.ipad_geocoded_location` | Geocoded Location | telemetry | mobile_app |  | not_enriched |
+| `sensor.ipad_last_update_trigger` | Last Update Trigger | telemetry | mobile_app |  | not_enriched |
+| `sensor.ipad_location_permission` | Location permission | telemetry | mobile_app |  | not_enriched |
+| `sensor.ipad_ssid` | SSID | telemetry | mobile_app |  | not_enriched |
+| `sensor.ipad_storage` | Storage | telemetry | mobile_app |  | not_enriched |
 
 #### iPhone
 
@@ -3585,7 +3656,7 @@ _No registered entities._
 | Entity | Name | Role | Integration | Detail | Availability |
 | --- | --- | --- | --- | --- | --- |
 | `switch.mini_graph_card_pre_release` | Pre-release | control | hacs | diagnostic | disabled |
-| `update.mini_graph_card_update` | mini-graph-card update | telemetry | hacs | config | not_enriched |
+| `update.mini_graph_card_update` | Update | telemetry | hacs | config | not_enriched |
 
 #### ratgdo32 4536e8
 
@@ -3608,7 +3679,7 @@ _No registered entities._
 | `button.ratgdo32_4536e8_sync` | Sync | control | esphome | diagnostic | not_enriched |
 | `button.ratgdo32_4536e8_toggle_door` | Toggle door | control | esphome |  | not_enriched |
 | `cover.ratgdo32_4536e8_door` | Door | control | esphome |  | not_enriched |
-| `device_tracker.ratgdo32_4536e8` | ratgdo32-4536e8 | network | unifi | diagnostic | not_enriched |
+| `device_tracker.ratgdo32_4536e8` | Garage Door (Lexus) | network | unifi | diagnostic | not_enriched |
 | `light.ratgdo32_4536e8_light` | Light | control | esphome |  | not_enriched |
 | `lock.ratgdo32_4536e8_lock_remotes` | Lock remotes | control | esphome |  | not_enriched |
 | `number.ratgdo32_4536e8_client_id` | Client ID | control | esphome | config | not_enriched |
@@ -3687,16 +3758,39 @@ _No registered entities._
 | Entity | Name | Role | Integration | Detail | Availability |
 | --- | --- | --- | --- | --- | --- |
 | `switch.visionos_ios_26_liquid_glass_theme_pre_release` | Pre-release | control | hacs | diagnostic | disabled |
-| `update.visionos_ios_26_liquid_glass_theme_update` | visionOS & iOS 26 Liquid Glass Theme update | telemetry | hacs | config | not_enriched |
+| `update.visionos_ios_26_liquid_glass_theme_update` | Update | telemetry | hacs | config | not_enriched |
 
 ### Unnamed Room
+
+#### Master
+
+- Device ID: `device_73cd04bd08c1`
+- Integration: sonos, unifi
+- Model: Sonos One SL
+- Capability mix: 0 telemetry, 12 control, 1 network, 0 other
+
+| Entity | Name | Role | Integration | Detail | Availability |
+| --- | --- | --- | --- | --- | --- |
+| `device_tracker.sonoszp_14` | SonosZP | network | unifi | diagnostic | not_enriched |
+| `media_player.unnamed_room_master` | media_player.unnamed_room_master | control | sonos |  | not_enriched |
+| `number.unnamed_room_balance_2` | Balance | control | sonos | config | not_enriched |
+| `number.unnamed_room_bass_2` | Bass | control | sonos | config | not_enriched |
+| `number.unnamed_room_master_sub_gain` | Sub gain | control | sonos | config | not_enriched |
+| `number.unnamed_room_treble_2` | Treble | control | sonos | config | not_enriched |
+| `switch.unnamed_room_crossfade_2` | Crossfade | control | sonos | config | not_enriched |
+| `switch.unnamed_room_loudness_2` | Loudness | control | sonos | config | not_enriched |
+| `switch.unnamed_room_master_subwoofer_enabled` | Subwoofer enabled | control | sonos | config | not_enriched |
+| `switch.unnamed_room_master_tv_autoplay` | TV autoplay | control | sonos | config | not_enriched |
+| `switch.unnamed_room_master_ungroup_on_autoplay` | Ungroup on autoplay | control | sonos | config | not_enriched |
+| `switch.unnamed_room_status_light_2` | Status light | control | sonos | config | disabled |
+| `switch.unnamed_room_touch_controls_2` | Touch controls | control | sonos | config | disabled |
 
 #### Master Sonos
 
 - Device ID: `device_f1a2af0f711a`
 - Integration: sonos, unifi
 - Model: Sonos Beam
-- Capability mix: 2 telemetry, 17 control, 1 network, 0 other
+- Capability mix: 2 telemetry, 19 control, 1 network, 0 other
 
 | Entity | Name | Role | Integration | Detail | Availability |
 | --- | --- | --- | --- | --- | --- |
@@ -3714,6 +3808,8 @@ _No registered entities._
 | `switch.master_sonos_subwoofer_enabled` | Subwoofer enabled | control | sonos | config | not_enriched |
 | `switch.unnamed_room_crossfade` | Crossfade | control | sonos | config | not_enriched |
 | `switch.unnamed_room_loudness` | Loudness | control | sonos | config | not_enriched |
+| `switch.unnamed_room_master_sonos_tv_autoplay` | TV autoplay | control | sonos | config | not_enriched |
+| `switch.unnamed_room_master_sonos_ungroup_on_autoplay` | Ungroup on autoplay | control | sonos | config | not_enriched |
 | `switch.unnamed_room_night_sound` | Night sound | control | sonos | config | not_enriched |
 | `switch.unnamed_room_speech_enhancement` | Speech enhancement | control | sonos | config | not_enriched |
 | `switch.unnamed_room_status_light` | Status light | control | sonos | config | disabled |
@@ -3751,6 +3847,50 @@ _No registered entities._
 | `switch.unnamed_room_loudness_6` | Loudness | control | sonos | config | not_enriched |
 | `switch.unnamed_room_status_light_6` | Status light | control | sonos | config | disabled |
 | `switch.unnamed_room_touch_controls_6` | Touch controls | control | sonos | config | disabled |
+
+#### Office 2
+
+- Device ID: `device_ae01660c3a5f`
+- Integration: sonos, unifi
+- Model: Sonos Era 100
+- Capability mix: 1 telemetry, 10 control, 1 network, 0 other
+
+| Entity | Name | Role | Integration | Detail | Availability |
+| --- | --- | --- | --- | --- | --- |
+| `binary_sensor.unnamed_room_unnamed_room_microphone` | Microphone | telemetry | sonos | diagnostic | not_enriched |
+| `device_tracker.sonoszp_18` | SonosZP | network | unifi | diagnostic | not_enriched |
+| `media_player.unnamed_room_unnamed_room` | media_player.unnamed_room_unnamed_room | control | sonos |  | not_enriched |
+| `number.unnamed_room_unnamed_room_balance` | Balance | control | sonos | config | not_enriched |
+| `number.unnamed_room_unnamed_room_bass` | Bass | control | sonos | config | not_enriched |
+| `number.unnamed_room_unnamed_room_treble` | Treble | control | sonos | config | not_enriched |
+| `switch.unnamed_room_unnamed_room_crossfade` | Crossfade | control | sonos | config | not_enriched |
+| `switch.unnamed_room_unnamed_room_loudness` | Loudness | control | sonos | config | not_enriched |
+| `switch.unnamed_room_unnamed_room_status_light` | Status light | control | sonos | config | disabled |
+| `switch.unnamed_room_unnamed_room_touch_controls` | Touch controls | control | sonos | config | disabled |
+| `switch.unnamed_room_unnamed_room_tv_autoplay` | TV autoplay | control | sonos | config | not_enriched |
+| `switch.unnamed_room_unnamed_room_ungroup_on_autoplay` | Ungroup on autoplay | control | sonos | config | not_enriched |
+
+#### Office 3
+
+- Device ID: `device_22d7adde2eb7`
+- Integration: sonos, unifi
+- Model: Sonos Era 100
+- Capability mix: 1 telemetry, 10 control, 1 network, 0 other
+
+| Entity | Name | Role | Integration | Detail | Availability |
+| --- | --- | --- | --- | --- | --- |
+| `binary_sensor.unnamed_room_unnamed_room_microphone_2` | Microphone | telemetry | sonos | diagnostic | not_enriched |
+| `device_tracker.sonoszp_19` | SonosZP | network | unifi | diagnostic | not_enriched |
+| `media_player.unnamed_room_unnamed_room_2` | media_player.unnamed_room_unnamed_room_2 | control | sonos |  | not_enriched |
+| `number.unnamed_room_unnamed_room_balance_2` | Balance | control | sonos | config | not_enriched |
+| `number.unnamed_room_unnamed_room_bass_2` | Bass | control | sonos | config | not_enriched |
+| `number.unnamed_room_unnamed_room_treble_2` | Treble | control | sonos | config | not_enriched |
+| `switch.unnamed_room_unnamed_room_crossfade_2` | Crossfade | control | sonos | config | not_enriched |
+| `switch.unnamed_room_unnamed_room_loudness_2` | Loudness | control | sonos | config | not_enriched |
+| `switch.unnamed_room_unnamed_room_status_light_2` | Status light | control | sonos | config | disabled |
+| `switch.unnamed_room_unnamed_room_touch_controls_2` | Touch controls | control | sonos | config | disabled |
+| `switch.unnamed_room_unnamed_room_tv_autoplay_2` | TV autoplay | control | sonos | config | not_enriched |
+| `switch.unnamed_room_unnamed_room_ungroup_on_autoplay_2` | Ungroup on autoplay | control | sonos | config | not_enriched |
 
 #### Unnamed Room
 
@@ -3808,24 +3948,6 @@ _No registered entities._
 | `switch.unnamed_room_status_light_4` | Status light | control | sonos | config | disabled |
 | `switch.unnamed_room_touch_controls_4` | Touch controls | control | sonos | config | disabled |
 
-#### Unnamed Room
-
-- Device ID: `device_73cd04bd08c1`
-- Integration: sonos, unifi
-- Model: Sonos One SL
-- Capability mix: 0 telemetry, 7 control, 1 network, 0 other
-
-| Entity | Name | Role | Integration | Detail | Availability |
-| --- | --- | --- | --- | --- | --- |
-| `device_tracker.sonoszp_14` | SonosZP | network | unifi | diagnostic | not_enriched |
-| `number.unnamed_room_balance_2` | Balance | control | sonos | config | not_enriched |
-| `number.unnamed_room_bass_2` | Bass | control | sonos | config | not_enriched |
-| `number.unnamed_room_treble_2` | Treble | control | sonos | config | not_enriched |
-| `switch.unnamed_room_crossfade_2` | Crossfade | control | sonos | config | not_enriched |
-| `switch.unnamed_room_loudness_2` | Loudness | control | sonos | config | not_enriched |
-| `switch.unnamed_room_status_light_2` | Status light | control | sonos | config | disabled |
-| `switch.unnamed_room_touch_controls_2` | Touch controls | control | sonos | config | disabled |
-
 ### Upstairs Hallway
 
 #### Upstairs Hallway Main Lights
@@ -3837,7 +3959,7 @@ _No registered entities._
 
 | Entity | Name | Role | Integration | Detail | Availability |
 | --- | --- | --- | --- | --- | --- |
-| `light.upstairs_hallway_main_lights` | Upstairs Hallway Main Lights | control | lutron_caseta |  | not_enriched |
+| `light.upstairs_hallway_main_lights` | light.upstairs_hallway_main_lights | control | lutron_caseta |  | not_enriched |
 
 ### Vestibule
 
@@ -3850,7 +3972,7 @@ _No registered entities._
 
 | Entity | Name | Role | Integration | Detail | Availability |
 | --- | --- | --- | --- | --- | --- |
-| `light.vestibule_main_lights` | Vestibule Main Lights | control | lutron_caseta |  | not_enriched |
+| `light.vestibule_main_lights` | light.vestibule_main_lights | control | lutron_caseta |  | not_enriched |
 
 ### Wynn's Room
 
@@ -3875,7 +3997,7 @@ _No registered entities._
 - Device ID: `device_d2716c1c55b9`
 - Integration: sonos, unifi
 - Model: Sonos Era 100
-- Capability mix: 1 telemetry, 8 control, 1 network, 0 other
+- Capability mix: 1 telemetry, 10 control, 1 network, 0 other
 
 | Entity | Name | Role | Integration | Detail | Availability |
 | --- | --- | --- | --- | --- | --- |
@@ -3889,6 +4011,8 @@ _No registered entities._
 | `switch.wynn_s_room_loudness` | Loudness | control | sonos | config | not_enriched |
 | `switch.wynn_s_room_status_light` | Status light | control | sonos | config | disabled |
 | `switch.wynn_s_room_touch_controls` | Touch controls | control | sonos | config | disabled |
+| `switch.wynn_s_room_wynn_sonos_tv_autoplay` | TV autoplay | control | sonos | config | not_enriched |
+| `switch.wynn_s_room_wynn_sonos_ungroup_on_autoplay` | Ungroup on autoplay | control | sonos | config | not_enriched |
 
 #### Wynn's Room Ceiling Lights
 
@@ -3899,7 +4023,7 @@ _No registered entities._
 
 | Entity | Name | Role | Integration | Detail | Availability |
 | --- | --- | --- | --- | --- | --- |
-| `light.wynn_s_room_ceiling_lights` | Wynn's Room Ceiling Lights | control | lutron_caseta |  | not_enriched |
+| `light.wynn_s_room_ceiling_lights` | light.wynn_s_room_ceiling_lights | control | lutron_caseta |  | not_enriched |
 
 #### Wynn's Room Chandelier
 
@@ -3910,7 +4034,7 @@ _No registered entities._
 
 | Entity | Name | Role | Integration | Detail | Availability |
 | --- | --- | --- | --- | --- | --- |
-| `light.wynn_s_room_chandelier` | Wynn's Room Chandelier | control | lutron_caseta |  | not_enriched |
+| `light.wynn_s_room_chandelier` | light.wynn_s_room_chandelier | control | lutron_caseta |  | not_enriched |
 
 ## Orphan Entities
 
@@ -3982,7 +4106,7 @@ _No registered entities._
 | `automation.irrigation_hunter_flow_high` | Irrigation — Hunter Flow High | other | automation | not_enriched |
 | `automation.irrigation_hunter_flow_low` | Irrigation — Hunter Flow Low | other | automation | not_enriched |
 | `automation.irrigation_hunter_flow_meter_stale` | Irrigation — Hunter Flow Meter Stale | other | automation | not_enriched |
-| `automation.irrigation_hunter_no_flow` | Irrigation — Hunter No Flow | other | automation | not_enriched |
+| `automation.irrigation_hunter_no_flow` | Irrigation — Hunter Flow Not Confirmed | other | automation | not_enriched |
 | `automation.irrigation_hunter_unscheduled_flow` | Irrigation — Hunter Unscheduled Flow | other | automation | not_enriched |
 | `automation.irrigation_hydrawise_offline_before_watering` | Irrigation — Hydrawise Offline Before Watering | other | automation | not_enriched |
 | `automation.irrigation_hydrawise_offline_during_watering` | Irrigation — Hydrawise Offline During Watering | other | automation | not_enriched |
@@ -4001,6 +4125,11 @@ _No registered entities._
 | `automation.irrigation_zone_may_not_have_opened` | Irrigation — Zone May Not Have Opened | other | automation | not_enriched |
 | `automation.irrigation_zone_ran_too_long` | Irrigation — Zone Ran Too Long | other | automation | not_enriched |
 | `automation.irrigation_zone_state_tracking` | Irrigation — Zone State Tracking | other | automation | not_enriched |
+| `automation.laundry_washer_cycle_complete_notification` | Laundry — Washer Cycle Complete Notification | other | automation | not_enriched |
+| `automation.laundry_washer_cycle_unhandled_follow_up` | Laundry — Washer Cycle Unhandled Follow-Up | other | automation | not_enriched |
+| `automation.laundry_washer_error_notification` | Laundry — Washer Error Notification | other | automation | not_enriched |
+| `automation.laundry_washer_notification_actions` | Laundry — Washer Notification Actions | other | automation | not_enriched |
+| `automation.laundry_washer_pending_notice_when_trevor_is_home` | Laundry — Washer Pending Notice When Trevor Is Home | other | automation | not_enriched |
 | `automation.lights_casey_s_closet_auto_off` | Lights — Casey's Closet Auto-Off | other | automation | not_enriched |
 | `automation.lights_clear_late_night_exterior_reminder` | Lights — Clear Late Night Exterior Reminder | other | automation | not_enriched |
 | `automation.lights_clear_overnight_left_on_reminder` | Lights — Clear Overnight Left-On Reminder | other | automation | not_enriched |
@@ -4016,6 +4145,7 @@ _No registered entities._
 | `automation.lights_overnight_left_on_auto_off` | Lights — Overnight Left-On Auto-Off | other | automation | not_enriched |
 | `automation.lights_overnight_left_on_notification_action` | Lights — Overnight Left-On Notification Action | other | automation | not_enriched |
 | `automation.lights_sync_master_bedroom_sconces` | Lights — Sync Master Bedroom Sconces | other | automation | not_enriched |
+| `automation.lights_wynn_s_room_daylight_camera_quiet_auto_off` | Lights — Wynn's Room Daylight Camera Quiet Auto-Off | other | automation | not_enriched |
 | `automation.new_automation` | Noise Detection - Wynn's Room | other | automation | not_enriched |
 | `automation.notices_ai_notification_action_history` | Notices — Notification Action History | other | automation | not_enriched |
 | `automation.nwp_parking_pass_expiration_reminder` | NWP Parking Pass — Expiration Reminder | other | automation | not_enriched |
@@ -4199,6 +4329,7 @@ _No registered entities._
 | `device_tracker.casey_s_iphone_16_pro` | Casey's iPhone 16 Pro | network | unifi | disabled |
 | `device_tracker.db15_2` | DB15 | network | unifi | disabled |
 | `device_tracker.db15_3` | DB15 | network | unifi | disabled |
+| `device_tracker.db15_4` | DB15 | network | unifi | disabled |
 | `device_tracker.dining_room` | Ecobee (Dining) | network | unifi | disabled |
 | `device_tracker.ecobee_master` | Ecobee (Master) | network | unifi | disabled |
 | `device_tracker.ecobee_office` | Ecobee (Office) | network | unifi | disabled |
@@ -4210,6 +4341,8 @@ _No registered entities._
 | `device_tracker.hs103_2` | HS103 | network | unifi | disabled |
 | `device_tracker.hydrawise_075f` | Hunter Hydrawise | network | unifi | disabled |
 | `device_tracker.ipad` | iPad | network | unifi | disabled |
+| `device_tracker.iphone_11` | iPhone | network | unifi | disabled |
+| `device_tracker.iphone_12` | iPhone | network | unifi | disabled |
 | `device_tracker.iphone_2` | iPhone | network | unifi | disabled |
 | `device_tracker.iphone_3` | iPhone | network | unifi | disabled |
 | `device_tracker.iphone_4` | iPhone | network | unifi | disabled |
@@ -4218,13 +4351,15 @@ _No registered entities._
 | `device_tracker.iphone_7` | iPhone | network | unifi | disabled |
 | `device_tracker.iphone_9` | iPhone | network | unifi | disabled |
 | `device_tracker.jose_s_s23_fe` | Jose-s-S23-FE | network | unifi | disabled |
-| `device_tracker.lg_smart_laundry2_open` | LG_Smart_Laundry2_open | network | unifi | disabled |
+| `device_tracker.lg_smart_dryer2_open` | LG_Smart_Dryer2_open | network | unifi | disabled |
+| `device_tracker.lg_smart_laundry2_open` | Washing Machine | network | unifi | disabled |
 | `device_tracker.lg_tv_master` | LG TV (Master) | network | unifi | disabled |
-| `device_tracker.mac` | Mac | network | unifi | disabled |
+| `device_tracker.mac` | Trevors-Air | network | unifi | disabled |
 | `device_tracker.mac_2` | Mac | network | unifi | disabled |
 | `device_tracker.macbook_air_casey` | Macbook Air (Casey) | network | unifi | disabled |
 | `device_tracker.macbook_air_trevor` | Macbook Air (Trevor) | network | unifi | disabled |
 | `device_tracker.office_tv` | Apple TV (Office) | network | unifi | disabled |
+| `device_tracker.samsung_2` | Samsung | network | unifi | disabled |
 | `device_tracker.security_camera_backyard` | Security Camera (Backyard) | network | unifi | disabled |
 | `device_tracker.security_camera_doorbell` | Security Camera (Doorbell) | network | unifi | disabled |
 | `device_tracker.security_camera_side_entry` | Security Camera (Side Entry) | network | unifi | disabled |
@@ -4236,11 +4371,15 @@ _No registered entities._
 | `device_tracker.ting_8b_86` | Ting-8B-86 | network | unifi | disabled |
 | `device_tracker.ting_8b_8e` | Ting-8B-8E | network | unifi | disabled |
 | `device_tracker.trevor_s_iphone_16_pro` | Trevor's iPhone 16 Pro | network | unifi | disabled |
+| `device_tracker.unifi_default_mac_22e3a0baed45` | Mac | network | unifi | disabled |
 | `device_tracker.unifi_default_mac_5395b13a8a3d` | iPhone | network | unifi | disabled |
+| `device_tracker.unifi_default_mac_a9a6ceae63df` | device_tracker.unifi_default_mac_a9a6ceae63df | network | unifi | disabled |
 | `device_tracker.unifi_default_mac_c8c81f1a78e1` | device_tracker.unifi_default_mac_c8c81f1a78e1 | network | unifi | disabled |
 | `device_tracker.unifi_default_mac_fd58284dab4a` | device_tracker.unifi_default_mac_fd58284dab4a | network | unifi | disabled |
 | `device_tracker.vizio_tv_family_room` | Vizio TV (Family Room) | network | unifi | disabled |
 | `device_tracker.watch` | Watch | network | unifi | disabled |
+| `device_tracker.watch_10` | Watch | network | unifi | disabled |
+| `device_tracker.watch_11` | Watch | network | unifi | disabled |
 | `device_tracker.watch_2` | Watch | network | unifi | disabled |
 | `device_tracker.watch_4` | Watch | network | unifi | disabled |
 | `device_tracker.watch_5` | Watch | network | unifi | disabled |
@@ -4281,6 +4420,7 @@ _No registered entities._
 | `input_boolean.ting_watch_notifications_enabled` | Ting Watch Notifications Enabled | control | input_boolean | not_enriched |
 | `input_boolean.vacation_mode` | Vacation Mode | control | input_boolean | not_enriched |
 | `input_boolean.vacation_mode_start_confirm` | Vacation Mode Start Confirm | control | input_boolean | not_enriched |
+| `input_boolean.washer_notifications_enabled` | Washer Notifications Enabled | control | input_boolean | not_enriched |
 | `input_boolean.water_flow_alert_active` | Water Flow Alert Active | control | input_boolean | not_enriched |
 | `input_boolean.water_irrigation_alert_active` | Water Irrigation Alert Active | control | input_boolean | not_enriched |
 | `input_boolean.water_leak_alert_active` | Water Leak Alert Active | control | input_boolean | not_enriched |
@@ -4290,6 +4430,9 @@ _No registered entities._
 | `input_boolean.wine_cave_maintenance_enabled` | Wine Cave Maintenance Enabled | control | input_boolean | not_enriched |
 | `input_boolean.wine_cave_rating_plate_captured` | Wine Cave Rating Plate Captured | control | input_boolean | not_enriched |
 | `input_boolean.wine_cave_rating_plate_reminder_sent` | Wine Cave Rating Plate Reminder Sent | control | input_boolean | not_enriched |
+| `input_boolean.wine_chart_24h_expanded` | Wine Chart 24h Expanded | control | input_boolean | not_enriched |
+| `input_boolean.wine_chart_30d_expanded` | Wine Chart 30d Expanded | control | input_boolean | not_enriched |
+| `input_boolean.wine_chart_7d_expanded` | Wine Chart 7d Expanded | control | input_boolean | not_enriched |
 | `input_datetime.ai_home_brief_updated` | AI Home Brief Updated | control | input_datetime | not_enriched |
 | `input_datetime.ai_wine_brief_updated` | AI Wine Brief Updated | control | input_datetime | not_enriched |
 | `input_datetime.away_motion_security_snooze_until` | Away Motion Security Snooze Until | control | input_datetime | not_enriched |
@@ -4361,6 +4504,13 @@ _No registered entities._
 | `input_datetime.ting_unverified_hazard_last_sent_at` | Ting Unverified Hazard Last Sent At | control | input_datetime | not_enriched |
 | `input_datetime.ting_voltage_watch_last_sent_at` | Ting Voltage Watch Last Sent At | control | input_datetime | not_enriched |
 | `input_datetime.town_tax_last_paid_at` | Town Tax Last Paid At | control | input_datetime | not_enriched |
+| `input_datetime.washer_last_completed_at` | Washer Last Completed At | control | input_datetime | not_enriched |
+| `input_datetime.washer_last_completion_notified_at` | Washer Last Completion Notified At | control | input_datetime | not_enriched |
+| `input_datetime.washer_last_error_detected_at` | Washer Last Error Detected At | control | input_datetime | not_enriched |
+| `input_datetime.washer_last_error_notified_at` | Washer Last Error Notified At | control | input_datetime | not_enriched |
+| `input_datetime.washer_last_follow_up_at` | Washer Last Follow-Up At | control | input_datetime | not_enriched |
+| `input_datetime.washer_last_handled_at` | Washer Last Handled At | control | input_datetime | not_enriched |
+| `input_datetime.washer_reminder_snooze_until` | Washer Reminder Snooze Until | control | input_datetime | not_enriched |
 | `input_datetime.water_latest_alert_at` | Water Latest Alert At | control | input_datetime | not_enriched |
 | `input_datetime.water_pressure_snooze_until` | Water Pressure Snooze Until | control | input_datetime | not_enriched |
 | `input_datetime.wine_cave_cabinet_cleaning_snooze_until` | Wine Cave Cabinet Cleaning Snooze Until | control | input_datetime | not_enriched |
@@ -4372,6 +4522,7 @@ _No registered entities._
 | `input_datetime.wine_cave_parts_labor_warranty_review` | Wine Cave Parts Labor Warranty Review | control | input_datetime | not_enriched |
 | `input_datetime.wine_cave_placed_in_service_date` | Wine Cave Placed In Service Date | control | input_datetime | not_enriched |
 | `input_datetime.wine_cave_purchase_date` | Wine Cave Purchase Date | control | input_datetime | not_enriched |
+| `input_datetime.wynn_room_camera_last_activity_at` | Wynn Room Camera Last Activity At | control | input_datetime | not_enriched |
 | `input_number.downstairs_aux_cutover_temp` | Main Floor Aux Max Outdoor Temp | control | input_number | not_enriched |
 | `input_number.downstairs_away_profile_delay_minutes` | Main Floor Away Profile Delay | control | input_number | not_enriched |
 | `input_number.downstairs_compressor_lockout_temp` | Main Floor Compressor Lockout Temp | control | input_number | not_enriched |
@@ -4418,6 +4569,11 @@ _No registered entities._
 | `input_text.latest_camera_motion_entity` | Latest Camera Motion Entity | control | input_text | not_enriched |
 | `input_text.latest_camera_motion_label` | Latest Camera Motion Label | control | input_text | not_enriched |
 | `input_text.metro_north_commute_card_message` | Metro-North Commute Card Message | control | input_text | not_enriched |
+| `input_text.nwp_parking_pass_replaced_expiration_date` | NWP Parking Pass Replaced Expiration Date | control | input_text | not_enriched |
+| `input_text.washer_last_completion_event_key` | Washer Last Completion Event Key | control | input_text | not_enriched |
+| `input_text.washer_last_cycle_name` | Washer Last Cycle Name | control | input_text | not_enriched |
+| `input_text.washer_last_error_event_key` | Washer Last Error Event Key | control | input_text | not_enriched |
+| `input_text.washer_last_error_type` | Washer Last Error Type | control | input_text | not_enriched |
 | `input_text.water_latest_alert_kind` | Water Latest Alert Kind | control | input_text | not_enriched |
 | `input_text.water_latest_alert_label` | Water Latest Alert Label | control | input_text | not_enriched |
 | `light.family_room` | Family Room | control | group | not_enriched |
@@ -4560,6 +4716,13 @@ _No registered entities._
 | `script.vacation_activity_apply` | Vacation Activity Apply | other | script | not_enriched |
 | `script.vacation_mode_end` | Vacation Mode End | other | script | not_enriched |
 | `script.vacation_mode_start` | Vacation Mode Start | other | script | not_enriched |
+| `script.washer_clear_cycle_notification` | Washer Clear Cycle Notification | other | script | not_enriched |
+| `script.washer_clear_error_notification` | Washer Clear Error Notification | other | script | not_enriched |
+| `script.washer_mark_laundry_handled` | Washer Mark Laundry Handled | other | script | not_enriched |
+| `script.washer_send_completion_notification` | Washer Send Completion Notification | other | script | not_enriched |
+| `script.washer_send_error_notification` | Washer Send Error Notification | other | script | not_enriched |
+| `script.washer_send_follow_up_notification` | Washer Send Follow-Up Notification | other | script | not_enriched |
+| `script.washer_snooze_reminder` | Washer Snooze Reminder | other | script | not_enriched |
 | `script.water_send_alert` | Water Send Alert | other | script | not_enriched |
 | `script.wine_cave_clear_cabinet_cleaning_notification` | Wine Cave Clear Cabinet Cleaning Notification | other | script | not_enriched |
 | `script.wine_cave_clear_charcoal_filter_notification` | Wine Cave Clear Charcoal Filter Notification | other | script | not_enriched |
@@ -4639,6 +4802,7 @@ _No registered entities._
 | `sensor.house_low_battery_summary` | House Low Battery Summary | telemetry | template | not_enriched |
 | `sensor.house_notice_history` | House Notice History | telemetry | template | not_enriched |
 | `sensor.house_notice_timeline` | House Notice Timeline | telemetry | template | not_enriched |
+| `sensor.irrigation_7_day_ledger` | Irrigation 7 Day Ledger | telemetry | command_line | not_enriched |
 | `sensor.irrigation_active_zone` | Irrigation Active Zone | telemetry | template | not_enriched |
 | `sensor.irrigation_active_zone_count` | Irrigation Active Zone Count | telemetry | template | not_enriched |
 | `sensor.irrigation_daily_gallons` | Irrigation Daily Gallons | telemetry | template | not_enriched |
@@ -4705,7 +4869,7 @@ _No registered entities._
 | `sensor.wine_temperature_30d_stats` | Wine Temperature 30d Stats | telemetry | statistics | not_enriched |
 | `sensor.wine_temperature_7d_stats` | Wine Temperature 7d Stats | telemetry | statistics | not_enriched |
 | `stt.home_assistant_cloud` | Home Assistant Cloud | other | cloud | not_enriched |
-| `switch.great_room_uplights` | Great Room Uplights | control | template | not_enriched |
+| `switch.great_room_uplights` | Great Room uplights | control | template | not_enriched |
 | `todo.shopping_list` | Shopping List | other | shopping_list | not_enriched |
 | `tts.home_assistant_cloud` | Home Assistant Cloud | other | cloud | not_enriched |
 
@@ -4717,6 +4881,7 @@ _No registered entities._
 | `network_01b362394491` | entity_registry |  |  | `device_tracker.unifi_default_mac_4e93a0a4b48b` | Watch |
 | `network_0349e3cbc41e` | entity_registry |  |  | `device_tracker.wynns_room` | wynns-room |
 | `network_063dcd69dabd` | entity_registry |  |  | `device_tracker.sonoszp_13` | SonosZP |
+| `network_063e284f5c15` | entity_registry |  |  | `device_tracker.sonoszp_18` | SonosZP |
 | `network_0701248004f4` | entity_registry |  |  | `device_tracker.sonoszp_7` | SonosZP |
 | `network_077f803201db` | entity_registry |  |  | `device_tracker.mechanical_room_leak_detection_espressif` | espressif |
 | `network_084d7be75689` | entity_registry |  |  | `device_tracker.ep25_2` | EP25 |
@@ -4725,11 +4890,14 @@ _No registered entities._
 | `network_1134d72f2862` | entity_registry |  |  | `device_tracker.u7_pro_mesh` | U7 Pro (Mesh) |
 | `network_1267ce0e8fd7` | entity_registry |  |  | `device_tracker.ting_8b_86` | Ting-8B-86 |
 | `network_138dd978fd39` | entity_registry |  |  | `device_tracker.tesla` | Tesla |
+| `network_155c9ce18746` | entity_registry |  |  | `device_tracker.lg_smart_dryer2_open` | LG_Smart_Dryer2_open |
 | `network_162861e9f8a0` | entity_registry |  |  | `device_tracker.macbook_air_trevor` | Macbook Air (Trevor) |
 | `network_1becf4615ae2` | entity_registry |  |  | `device_tracker.unifi_default_mac_b01ea2b181ff` |  |
 | `network_1c390e0e7586` | entity_registry |  |  | `device_tracker.office_tv` | Apple TV (Office) |
+| `network_1df443041b25` | entity_registry |  |  | `device_tracker.unifi_default_mac_5d06587a36b2` |  |
 | `network_20a878e32d3a` | entity_registry |  |  | `device_tracker.watch_8` | Watch |
 | `network_24f2b3079862` | entity_registry |  |  | `device_tracker.unifi_default_mac_5395b13a8a3d` | iPhone |
+| `network_2a662b64fb66` | entity_registry |  |  | `device_tracker.iphone_12` | iPhone |
 | `network_2beafa674dcb` | entity_registry |  |  | `device_tracker.iphone_8` | iPhone |
 | `network_2cad38dabb52` | entity_registry |  |  | `device_tracker.galaxy_tab_a_80_2019` | Google Tablet (Monitor) |
 | `network_2dbcba4c5e25` | entity_registry |  |  | `device_tracker.unifi_default_mac_c8c81f1a78e1` |  |
@@ -4742,7 +4910,7 @@ _No registered entities._
 | `network_3dcc9e36ff54` | entity_registry |  |  | `device_tracker.sonoszp_2` | SonosZP |
 | `network_40b057178bcb` | entity_registry |  |  | `device_tracker.uvc_g6_instant` | play-room |
 | `network_4189d84d149c` | entity_registry |  |  | `device_tracker.ep25_3` | EP25 |
-| `network_430638a00e13` | entity_registry |  |  | `device_tracker.living_332` | Kitchen |
+| `network_430638a00e13` | entity_registry |  |  | `device_tracker.living_332` | Apple TV (Kitchen) |
 | `network_44cdd51d8e44` | entity_registry |  |  | `device_tracker.unifi_default_mac_d112ffa56fc6` |  |
 | `network_46029d337c7c` | entity_registry |  |  | `device_tracker.unifi_default_mac_4e99000aad0a` | EP25 |
 | `network_46e900e653b2` | entity_registry |  |  | `device_tracker.sonoszp_9` | SonosZP |
@@ -4752,8 +4920,10 @@ _No registered entities._
 | `network_4c75cbea40e0` | entity_registry |  |  | `device_tracker.unifi_default_mac_e75396edd3fe` | iPhone |
 | `network_4dce3587a71b` | entity_registry |  |  | `device_tracker.dining_room` | Ecobee (Dining) |
 | `network_4eb1785061b8` | entity_registry |  |  | `device_tracker.macbook_air_casey` | Macbook Air (Casey) |
+| `network_4ed3652485dc` | entity_registry |  |  | `device_tracker.watch_10` | Watch |
 | `network_50358c472a72` | entity_registry |  |  | `device_tracker.island_sink_leak_detection_espressif` | espressif |
 | `network_50c937441dd5` | entity_registry |  |  | `device_tracker.hs103` | HS103 |
+| `network_510ba44acccf` | entity_registry |  |  | `device_tracker.unifi_default_mac_22e3a0baed45` | Mac |
 | `network_5200a5ded176` | entity_registry |  |  | `device_tracker.home_assistant` | Home Assistant |
 | `network_52793b9da44a` | entity_registry |  |  | `device_tracker.laundry_sink_leak_detection_espressif` | espressif |
 | `network_56124397cc01` | entity_registry |  |  | `device_tracker.flo_d4e95ef8775b` | Moen Flo |
@@ -4763,7 +4933,9 @@ _No registered entities._
 | `network_5db1c1849ddb` | entity_registry |  |  | `device_tracker.basement_ejector_leak_detection_espressif` | espressif |
 | `network_5dca10f15aa3` | entity_registry |  |  | `device_tracker.lg_tv_master` | LG TV (Master) |
 | `network_5f232cbd21d5` | entity_registry |  |  | `device_tracker.ecobee_office` | Ecobee (Office) |
+| `network_5fcddfc1315a` | entity_registry |  |  | `device_tracker.db15_4` | DB15 |
 | `network_60e35b633815` | entity_registry |  |  | `device_tracker.google_tablet` |  |
+| `network_616d45c77f37` | entity_registry |  |  | `device_tracker.unifi_default_mac_a9a6ceae63df` |  |
 | `network_62b3b60215cc` | entity_registry |  |  | `device_tracker.unifi_default_mac_9878938b26f8` | Watch |
 | `network_68a3d3ec0b4d` | entity_registry |  |  | `device_tracker.apple_tv_family_room_2` | Apple TV (Family Room) |
 | `network_6b848b8b0f65` | entity_registry |  |  | `device_tracker.unifi_default_mac_d8484ff5d8dc` | iPad |
@@ -4791,8 +4963,9 @@ _No registered entities._
 | `network_853689a7af66` | entity_registry |  |  | `device_tracker.unifi_default_mac_b019bd33cc89` | iPhone |
 | `network_88fdba8f6b4d` | entity_registry |  |  | `device_tracker.usw_flex_2_5g_5` | USW Flex 2.5G 5 |
 | `network_89e7f0fa3fd2` | entity_registry |  |  | `device_tracker.db15_2` | DB15 |
-| `network_8a7a9f3fb2a8` | entity_registry |  |  | `device_tracker.brw849e567c91bc` | Office Printer |
+| `network_8a7a9f3fb2a8` | entity_registry |  |  | `device_tracker.brw849e567c91bc` | Printer |
 | `network_8b065ef7c1a0` | entity_registry |  |  | `device_tracker.lutron_06926f09` | Lutron Hub |
+| `network_8b27e08e959a` | entity_registry |  |  | `device_tracker.iphone_11` | iPhone |
 | `network_8bf2dc842566` | entity_registry |  |  | `device_tracker.watch_9` | Watch |
 | `network_90db9d129b74` | entity_registry |  |  | `device_tracker.mud_room` | mud-room |
 | `network_968a6d9f0306` | entity_registry |  |  | `device_tracker.sonoszp_6` | SonosZP |
@@ -4809,8 +4982,9 @@ _No registered entities._
 | `network_ad87894f3188` | entity_registry |  |  | `device_tracker.ipad` | iPad |
 | `network_addb6fd64468` | entity_registry |  |  | `device_tracker.sonoszp` | SonosZP |
 | `network_afc2c317cfe4` | entity_registry |  |  | `device_tracker.unifi_default_mac_7ed0c6182c02` | Watch |
+| `network_b17739d86da1` | entity_registry |  |  | `device_tracker.usw_lite_8_poe` | USW-Lite-8-PoE |
 | `network_b39ec9ba6c3e` | entity_registry |  |  | `device_tracker.unifi_default_mac_d129d9e3d6b1` |  |
-| `network_b4637ea34483` | entity_registry |  |  | `device_tracker.ratgdo32_4536e8` | ratgdo32-4536e8 |
+| `network_b4637ea34483` | entity_registry |  |  | `device_tracker.ratgdo32_4536e8` | Garage Door (Lexus) |
 | `network_b59508f39367` | entity_registry |  |  | `device_tracker.watch_3` | Watch |
 | `network_b5f62e7218fc` | entity_registry |  |  | `device_tracker.unifi_default_mac_fd58284dab4a` |  |
 | `network_b626f9bdd329` | entity_registry |  |  | `device_tracker.kitchen_sink_leak_detection_espressif` | espressif |
@@ -4820,7 +4994,7 @@ _No registered entities._
 | `network_c0277907fb7a` | entity_registry |  |  | `device_tracker.uvc_g6_instant_3` | garage |
 | `network_c1e39619d733` | entity_registry |  |  | `device_tracker.airthings_view` | airthings-view |
 | `network_c1f8fd216eb9` | entity_registry |  |  | `device_tracker.iphone_9` | iPhone |
-| `network_c1face513856` | entity_registry |  |  | `device_tracker.mac` | Mac |
+| `network_c1face513856` | entity_registry |  |  | `device_tracker.mac` | Trevors-Air |
 | `network_c2dfbbd33698` | entity_registry |  |  | `device_tracker.security_camera_doorbell` | Security Camera (Doorbell) |
 | `network_cbae0aa1353c` | entity_registry |  |  | `device_tracker.sonoszp_3` | SonosZP |
 | `network_cc8a57ab7094` | entity_registry |  |  | `device_tracker.unifi_default_mac_e322eb2d1cf7` | SonosZP |
@@ -4833,14 +5007,17 @@ _No registered entities._
 | `network_d8833f9e6da5` | entity_registry |  |  | `device_tracker.sonoszp_4` | SonosZP |
 | `network_daaa0c318301` | entity_registry |  |  | `device_tracker.casey_s_iphone_16_pro` | Casey's iPhone 16 Pro |
 | `network_db9f019d8988` | entity_registry |  |  | `device_tracker.security_camera_backyard` | Security Camera (Backyard) |
-| `network_dc70542c4ea5` | entity_registry |  |  | `device_tracker.lg_smart_laundry2_open` | LG_Smart_Laundry2_open |
+| `network_dc70542c4ea5` | entity_registry |  |  | `device_tracker.lg_smart_laundry2_open` | Washing Machine |
 | `network_dfabd39e61a1` | entity_registry |  |  | `device_tracker.iphone_2` | iPhone |
 | `network_e135643655fd` | entity_registry |  |  | `device_tracker.galaxy_s24_ultra` | Galaxy-S24-Ultra |
 | `network_e1854c2ce2bc` | entity_registry |  |  | `device_tracker.unifi_default_mac_be3f4a9ec204` | iPhone |
 | `network_e238f98d2452` | entity_registry |  |  | `device_tracker.sonos_beam_master` | Sonos Beam (Master) |
 | `network_e26deec2f3f8` | entity_registry |  |  | `device_tracker.iphone_6` | iPhone |
+| `network_e2adfc2f1c0f` | entity_registry |  |  | `device_tracker.sonoszp_19` | SonosZP |
 | `network_ea0e56c4cac6` | entity_registry |  |  | `device_tracker.usl_gateway` | usl-gateway |
 | `network_ece0fee4cc8a` | entity_registry |  |  | `device_tracker.u7_pro_mud_room` | U7 Pro (Mud Room) |
+| `network_ef6f219353c7` | entity_registry |  |  | `device_tracker.samsung_2` | Samsung |
+| `network_f03751fd92c9` | entity_registry |  |  | `device_tracker.watch_11` | Watch |
 | `network_f17d59d143c7` | entity_registry |  |  | `device_tracker.db15` | DB15 |
 | `network_f24001ded53e` | entity_registry |  |  | `device_tracker.sonoszp_5` | SonosZP |
 | `network_f2a454263d08` | entity_registry |  |  | `device_tracker.samsung` | Samsung |

@@ -628,6 +628,38 @@ input_datetime:
     name: Washer Last Error Detected At
     has_date: true
     has_time: true
+  dryer_last_completed_at:
+    name: Dryer Last Completed At
+    has_date: true
+    has_time: true
+  dryer_last_completion_notified_at:
+    name: Dryer Last Completion Notified At
+    has_date: true
+    has_time: true
+  dryer_last_handled_at:
+    name: Dryer Last Handled At
+    has_date: true
+    has_time: true
+  dryer_reminder_snooze_until:
+    name: Dryer Reminder Snooze Until
+    has_date: true
+    has_time: true
+  dryer_last_follow_up_at:
+    name: Dryer Last Follow-Up At
+    has_date: true
+    has_time: true
+  dryer_last_error_notified_at:
+    name: Dryer Last Error Notified At
+    has_date: true
+    has_time: true
+  dryer_last_error_detected_at:
+    name: Dryer Last Error Detected At
+    has_date: true
+    has_time: true
+  dryer_last_error_handled_at:
+    name: Dryer Last Error Handled At
+    has_date: true
+    has_time: true
   latest_camera_motion_at:
     name: Latest Camera Motion At
     has_date: true
@@ -902,6 +934,15 @@ input_text:
   washer_last_cycle_name:
     name: Washer Last Cycle Name
     max: 120
+  dryer_last_completion_event_key:
+    name: Dryer Last Completion Event Key
+    max: 120
+  dryer_last_error_event_key:
+    name: Dryer Last Error Event Key
+    max: 160
+  dryer_last_error_type:
+    name: Dryer Last Error Type
+    max: 120
   garbage_recycling_last_taken_out_pickup:
     name: Garbage Recycling Last Taken Out Pickup
     max: 10
@@ -1009,6 +1050,10 @@ input_boolean:
   washer_notifications_enabled:
     name: Washer Notifications Enabled
     icon: mdi:washing-machine
+    initial: true
+  dryer_notifications_enabled:
+    name: Dryer Notifications Enabled
+    icon: mdi:tumble-dryer
     initial: true
   piano_care_enabled:
     name: Piano Care Enabled

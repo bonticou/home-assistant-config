@@ -280,7 +280,7 @@
 
 - id: washer_cycle_complete_notification
   alias: "Laundry — Washer Cycle Complete Notification"
-  description: Records every ThinQ completion and pushes only while Trevor is home.
+  description: Records every ThinQ completion, treats housekeeper-window loads as handled, and otherwise pushes only while Trevor is home.
   triggers:
     - trigger: state
       entity_id: event.washer_notification
@@ -328,17 +328,27 @@
         entity_id: input_text.washer_last_cycle_name
       data:
         value: "{{ cycle_label }}"
-    - if:
-        - condition: state
-          entity_id: input_boolean.washer_notifications_enabled
-          state: "on"
-        - condition: state
-          entity_id: device_tracker.tk_iphone_16_pro
-          state: "home"
-      then:
-        - action: script.washer_send_completion_notification
-          data:
-            deferred_until_home: false
+    - choose:
+        - conditions:
+            - condition: state
+              entity_id: binary_sensor.away_motion_security_housekeeper_window
+              state: "on"
+          sequence:
+            - action: script.washer_mark_laundry_handled
+              data:
+                source: housekeeper_window
+      default:
+        - if:
+            - condition: state
+              entity_id: input_boolean.washer_notifications_enabled
+              state: "on"
+            - condition: state
+              entity_id: device_tracker.tk_iphone_16_pro
+              state: "home"
+          then:
+            - action: script.washer_send_completion_notification
+              data:
+                deferred_until_home: false
   mode: queued
   max: 5
 
@@ -356,6 +366,9 @@
     - condition: state
       entity_id: device_tracker.tk_iphone_16_pro
       state: "home"
+    - condition: state
+      entity_id: binary_sensor.away_motion_security_housekeeper_window
+      state: "off"
     - condition: template
       value_template: >-
         {{ (as_timestamp(now())
@@ -407,6 +420,9 @@
     - condition: state
       entity_id: device_tracker.tk_iphone_16_pro
       state: "home"
+    - condition: state
+      entity_id: binary_sensor.away_motion_security_housekeeper_window
+      state: "off"
     - condition: template
       value_template: >-
         {{ (as_timestamp(now())
@@ -486,6 +502,395 @@
           data:
             error_type: "{{ error_type }}"
             deferred_until_home: false
+  mode: single
+
+- id: dryer_notification_actions
+  alias: "Laundry — Dryer Notification Actions"
+  description: Handles unload, snooze, and error acknowledgement actions from dryer pushes.
+  triggers:
+    - trigger: event
+      event_type: mobile_app_notification_action
+  conditions:
+    - condition: template
+      value_template: >-
+        {{ trigger.event.data.action in [
+          'DRYER_LAUNDRY_HANDLED',
+          'DRYER_REMIND_30',
+          'DRYER_ERROR_ACKNOWLEDGED'
+        ] }}
+  actions:
+    - choose:
+        - conditions:
+            - condition: template
+              value_template: "{{ trigger.event.data.action == 'DRYER_LAUNDRY_HANDLED' }}"
+            - condition: template
+              value_template: >-
+                {{ as_timestamp(states('input_datetime.dryer_last_handled_at'), 0)
+                   < as_timestamp(states('input_datetime.dryer_last_completed_at'), 0) }}
+          sequence:
+            - action: script.dryer_mark_laundry_handled
+              data:
+                source: home_assistant_notification_action
+        - conditions:
+            - condition: template
+              value_template: "{{ trigger.event.data.action == 'DRYER_REMIND_30' }}"
+            - condition: template
+              value_template: >-
+                {{ as_timestamp(states('input_datetime.dryer_last_handled_at'), 0)
+                   < as_timestamp(states('input_datetime.dryer_last_completed_at'), 0) }}
+          sequence:
+            - action: script.dryer_snooze_reminder
+        - conditions:
+            - condition: template
+              value_template: "{{ trigger.event.data.action == 'DRYER_ERROR_ACKNOWLEDGED' }}"
+          sequence:
+            - action: script.dryer_clear_error_notification
+  mode: parallel
+  max: 5
+
+- id: dryer_cycle_complete_notification
+  alias: "Laundry — Dryer Cycle Complete Notification"
+  description: Records every ThinQ completion, treats housekeeper-window loads as handled, and otherwise applies presence and quiet-hour delivery.
+  triggers:
+    - trigger: state
+      entity_id: event.dryer_notification
+  conditions:
+    - condition: template
+      value_template: >-
+        {{ trigger.to_state is not none
+           and trigger.to_state.attributes.event_type | default('', true) == 'drying_is_complete' }}
+    - condition: template
+      value_template: >-
+        {{ trigger.to_state.state not in ['unknown', 'unavailable', 'none', '']
+           and states('input_text.dryer_last_completion_event_key') != trigger.to_state.state }}
+  actions:
+    - variables:
+        event_key: "{{ trigger.to_state.state | string | truncate(120, true, '') }}"
+        completion_ts: "{{ as_timestamp(trigger.to_state.state, as_timestamp(now())) }}"
+        completed_value: "{{ completion_ts | float(0) | timestamp_custom('%Y-%m-%d %H:%M:%S', true) }}"
+        quiet_hours: "{{ now().hour >= 22 or now().hour < 7 }}"
+    - action: input_datetime.set_datetime
+      target:
+        entity_id: input_datetime.dryer_last_completed_at
+      data:
+        datetime: "{{ completed_value }}"
+    - action: input_datetime.set_datetime
+      target:
+        entity_id:
+          - input_datetime.dryer_last_completion_notified_at
+          - input_datetime.dryer_reminder_snooze_until
+          - input_datetime.dryer_last_follow_up_at
+      data:
+        datetime: "1970-01-01 00:00:00"
+    - action: input_text.set_value
+      target:
+        entity_id: input_text.dryer_last_completion_event_key
+      data:
+        value: "{{ event_key }}"
+    - choose:
+        - conditions:
+            - condition: state
+              entity_id: binary_sensor.away_motion_security_housekeeper_window
+              state: "on"
+          sequence:
+            - action: script.dryer_mark_laundry_handled
+              data:
+                source: housekeeper_window
+      default:
+        - if:
+            - condition: state
+              entity_id: input_boolean.dryer_notifications_enabled
+              state: "on"
+            - condition: state
+              entity_id: device_tracker.tk_iphone_16_pro
+              state: "home"
+            - condition: template
+              value_template: "{{ not (quiet_hours | bool) }}"
+          then:
+            - action: script.dryer_send_completion_notification
+              data:
+                deferred_until_home: false
+  mode: queued
+  max: 5
+
+- id: dryer_pending_notice_on_trevor_home
+  alias: "Laundry — Dryer Pending Notice When Trevor Is Home"
+  description: Delivers pending dryer completion or error notices after Trevor is home, while respecting quiet hours and housekeeper handling.
+  triggers:
+    - trigger: state
+      entity_id: device_tracker.tk_iphone_16_pro
+      to: "home"
+      for: "00:05:00"
+    - trigger: time_pattern
+      minutes: "/5"
+  conditions:
+    - condition: state
+      entity_id: device_tracker.tk_iphone_16_pro
+      state: "home"
+    - condition: template
+      value_template: >-
+        {{ (as_timestamp(now())
+            - as_timestamp(states.device_tracker.tk_iphone_16_pro.last_changed, 0)) >= 300 }}
+  actions:
+    - variables:
+        completed_ts: "{{ as_timestamp(states('input_datetime.dryer_last_completed_at'), 0) }}"
+        completion_notified_ts: "{{ as_timestamp(states('input_datetime.dryer_last_completion_notified_at'), 0) }}"
+        completion_notified_known: >-
+          {{ states('input_datetime.dryer_last_completion_notified_at')
+             not in ['unknown', 'unavailable', 'none', ''] }}
+        handled_ts: "{{ as_timestamp(states('input_datetime.dryer_last_handled_at'), 0) }}"
+        error_detected_ts: "{{ as_timestamp(states('input_datetime.dryer_last_error_detected_at'), 0) }}"
+        error_notified_ts: "{{ as_timestamp(states('input_datetime.dryer_last_error_notified_at'), 0) }}"
+        error_handled_ts: "{{ as_timestamp(states('input_datetime.dryer_last_error_handled_at'), 0) }}"
+        quiet_hours: "{{ now().hour >= 22 or now().hour < 7 }}"
+        housekeeper_active: "{{ is_state('binary_sensor.away_motion_security_housekeeper_window', 'on') }}"
+        pending_completion: >-
+          {{ is_state('input_boolean.dryer_notifications_enabled', 'on')
+             and completion_notified_known | bool
+             and not (quiet_hours | bool)
+             and not (housekeeper_active | bool)
+             and completed_ts > 0
+             and handled_ts < completed_ts
+             and completion_notified_ts < completed_ts }}
+        pending_error: >-
+          {{ error_detected_ts > error_notified_ts
+             and error_detected_ts > error_handled_ts }}
+    - if:
+        - condition: template
+          value_template: "{{ pending_completion | bool }}"
+      then:
+        - action: script.dryer_send_completion_notification
+          data:
+            deferred_until_home: true
+    - if:
+        - condition: template
+          value_template: "{{ pending_error | bool }}"
+      then:
+        - action: script.dryer_send_error_notification
+          data:
+            error_type: "{{ states('input_text.dryer_last_error_type') }}"
+            deferred_until_home: true
+  mode: single
+
+- id: dryer_cycle_unhandled_follow_up
+  alias: "Laundry — Dryer Cycle Unhandled Follow-Up"
+  description: Sends one follow-up after 90 minutes, or once more after an explicit snooze, only while Trevor is home.
+  triggers:
+    - trigger: time_pattern
+      minutes: "/1"
+  conditions:
+    - condition: state
+      entity_id: input_boolean.dryer_notifications_enabled
+      state: "on"
+    - condition: state
+      entity_id: device_tracker.tk_iphone_16_pro
+      state: "home"
+    - condition: state
+      entity_id: binary_sensor.away_motion_security_housekeeper_window
+      state: "off"
+    - condition: template
+      value_template: "{{ now().hour >= 7 and now().hour < 22 }}"
+    - condition: template
+      value_template: >-
+        {{ (as_timestamp(now())
+            - as_timestamp(states.device_tracker.tk_iphone_16_pro.last_changed, 0)) >= 300 }}
+  actions:
+    - variables:
+        completed_ts: "{{ as_timestamp(states('input_datetime.dryer_last_completed_at'), 0) }}"
+        notified_ts: "{{ as_timestamp(states('input_datetime.dryer_last_completion_notified_at'), 0) }}"
+        handled_ts: "{{ as_timestamp(states('input_datetime.dryer_last_handled_at'), 0) }}"
+        snooze_ts: "{{ as_timestamp(states('input_datetime.dryer_reminder_snooze_until'), 0) }}"
+        follow_up_ts: "{{ as_timestamp(states('input_datetime.dryer_last_follow_up_at'), 0) }}"
+        next_due_ts: >-
+          {{ snooze_ts if snooze_ts > notified_ts and snooze_ts > follow_up_ts
+             else notified_ts + 5400 }}
+        should_notify: >-
+          {{ completed_ts > 0
+             and notified_ts >= completed_ts
+             and handled_ts < completed_ts
+             and as_timestamp(now()) >= next_due_ts | float(0)
+             and follow_up_ts < next_due_ts | float(0) }}
+    - condition: template
+      value_template: "{{ should_notify | bool }}"
+    - action: script.dryer_send_follow_up_notification
+  mode: single
+
+- id: dryer_error_notification
+  alias: "Laundry — Dryer Error Notification"
+  description: Records every new ThinQ dryer failure, suppresses routine failures during housekeeper handling, and immediately escalates active hardware errors.
+  triggers:
+    - trigger: state
+      entity_id: event.dryer_error
+      id: error_event
+    - trigger: state
+      entity_id: event.dryer_notification
+      id: notification_event
+  conditions:
+    - condition: template
+      value_template: >-
+        {% set event_type = trigger.to_state.attributes.event_type | default('', true) if trigger.to_state is not none else '' %}
+        {{ event_type not in ['unknown', 'unavailable', 'none', '']
+           and (trigger.id == 'error_event' or event_type == 'drying_failed') }}
+    - condition: template
+      value_template: >-
+        {% set event_type = trigger.to_state.attributes.event_type | default('dryer_error', true) %}
+        {% set event_key = trigger.entity_id ~ '|' ~ trigger.to_state.state ~ '|' ~ event_type %}
+        {{ trigger.to_state.state not in ['unknown', 'unavailable', 'none', '']
+           and states('input_text.dryer_last_error_event_key') != event_key
+           and (as_timestamp(now())
+                - as_timestamp(states('input_datetime.dryer_last_error_detected_at'), 0)) >= 60 }}
+  actions:
+    - variables:
+        error_type: "{{ trigger.to_state.attributes.event_type | default('dryer_error', true) }}"
+        error_key: "{{ trigger.entity_id ~ '|' ~ trigger.to_state.state ~ '|' ~ error_type }}"
+        error_value: "{{ error_type | string | trim | truncate(120, true, '') }}"
+        detected_now: "{{ now().strftime('%Y-%m-%d %H:%M:%S') }}"
+        safety_error: >-
+          {{ error_type in [
+            'power_code_connection_error',
+            'temperature_sensor_error',
+            'high_power_supply_error'
+          ] }}
+        dryer_active: >-
+          {{ states('sensor.dryer_current_status') in [
+            'pause',
+            'cooling',
+            'running',
+            'wrinkle_care',
+            'detecting',
+            'initial',
+            'error',
+            'reserved'
+          ] }}
+    - action: input_datetime.set_datetime
+      target:
+        entity_id: input_datetime.dryer_last_error_detected_at
+      data:
+        datetime: "{{ detected_now }}"
+    - action: input_text.set_value
+      target:
+        entity_id: input_text.dryer_last_error_event_key
+      data:
+        value: "{{ error_key | string | truncate(160, true, '') }}"
+    - action: input_text.set_value
+      target:
+        entity_id: input_text.dryer_last_error_type
+      data:
+        value: "{{ error_value }}"
+    - choose:
+        - conditions:
+            - condition: template
+              value_template: "{{ error_type == 'drying_failed' }}"
+            - condition: state
+              entity_id: binary_sensor.away_motion_security_housekeeper_window
+              state: "on"
+          sequence:
+            - action: input_datetime.set_datetime
+              target:
+                entity_id: input_datetime.dryer_last_error_handled_at
+              data:
+                datetime: "{{ detected_now }}"
+            - action: script.dryer_clear_error_notification
+        - conditions:
+            - condition: state
+              entity_id: device_tracker.tk_iphone_16_pro
+              state: "home"
+          sequence:
+            - action: script.dryer_send_error_notification
+              data:
+                error_type: "{{ error_type }}"
+                deferred_until_home: false
+        - conditions:
+            - condition: template
+              value_template: "{{ safety_error | bool and dryer_active | bool }}"
+          sequence:
+            - action: script.dryer_send_error_notification
+              data:
+                error_type: "{{ error_type }}"
+                deferred_until_home: true
+  mode: single
+
+- id: dryer_cycle_started_laundry_handoff
+  alias: "Laundry — Dryer Started Handoff"
+  description: Clears an older dryer reminder and treats a recent washer completion as moved when the dryer begins running.
+  triggers:
+    - trigger: state
+      entity_id: sensor.dryer_current_status
+      to: "running"
+  conditions: []
+  actions:
+    - variables:
+        now_ts: "{{ as_timestamp(now()) }}"
+        dryer_completed_ts: "{{ as_timestamp(states('input_datetime.dryer_last_completed_at'), 0) }}"
+        dryer_handled_ts: "{{ as_timestamp(states('input_datetime.dryer_last_handled_at'), 0) }}"
+        washer_completed_ts: "{{ as_timestamp(states('input_datetime.washer_last_completed_at'), 0) }}"
+        washer_handled_ts: "{{ as_timestamp(states('input_datetime.washer_last_handled_at'), 0) }}"
+    - if:
+        - condition: template
+          value_template: "{{ dryer_completed_ts > 0 and dryer_handled_ts < dryer_completed_ts }}"
+      then:
+        - action: script.dryer_mark_laundry_handled
+          data:
+            source: dryer_started_new_cycle
+    - if:
+        - condition: template
+          value_template: >-
+            {{ washer_completed_ts > 0
+               and washer_handled_ts < washer_completed_ts
+               and now_ts - washer_completed_ts <= 14400 }}
+      then:
+        - action: script.washer_mark_laundry_handled
+          data:
+            source: dryer_started
+  mode: single
+
+- id: laundry_housekeeper_window_started
+  alias: "Laundry — Housekeeper Window Started"
+  description: Treats pending washer and dryer completions as handled when the expected laundry-handling window begins.
+  triggers:
+    - trigger: state
+      entity_id: binary_sensor.away_motion_security_housekeeper_window
+      to: "on"
+  conditions: []
+  actions:
+    - variables:
+        handled_now: "{{ now().strftime('%Y-%m-%d %H:%M:%S') }}"
+        washer_completed_ts: "{{ as_timestamp(states('input_datetime.washer_last_completed_at'), 0) }}"
+        washer_handled_ts: "{{ as_timestamp(states('input_datetime.washer_last_handled_at'), 0) }}"
+        dryer_completed_ts: "{{ as_timestamp(states('input_datetime.dryer_last_completed_at'), 0) }}"
+        dryer_handled_ts: "{{ as_timestamp(states('input_datetime.dryer_last_handled_at'), 0) }}"
+        dryer_error_detected_ts: "{{ as_timestamp(states('input_datetime.dryer_last_error_detected_at'), 0) }}"
+        dryer_error_handled_ts: "{{ as_timestamp(states('input_datetime.dryer_last_error_handled_at'), 0) }}"
+    - if:
+        - condition: template
+          value_template: "{{ washer_completed_ts > 0 and washer_handled_ts < washer_completed_ts }}"
+      then:
+        - action: script.washer_mark_laundry_handled
+          data:
+            source: housekeeper_window_started
+      else:
+        - action: script.washer_clear_cycle_notification
+    - if:
+        - condition: template
+          value_template: "{{ dryer_completed_ts > 0 and dryer_handled_ts < dryer_completed_ts }}"
+      then:
+        - action: script.dryer_mark_laundry_handled
+          data:
+            source: housekeeper_window_started
+      else:
+        - action: script.dryer_clear_cycle_notification
+    - if:
+        - condition: template
+          value_template: >-
+            {{ states('input_text.dryer_last_error_type') == 'drying_failed'
+               and dryer_error_detected_ts > dryer_error_handled_ts }}
+      then:
+        - action: input_datetime.set_datetime
+          target:
+            entity_id: input_datetime.dryer_last_error_handled_at
+          data:
+            datetime: "{{ handled_now }}"
+        - action: script.dryer_clear_error_notification
   mode: single
 
 - id: robison_oil_annual_tune_up_reminder
