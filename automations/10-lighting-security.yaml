@@ -1297,7 +1297,9 @@
   alias: "Security — House Unsecured While Away"
   description: >
     Reminds Trevor when both Trevor and Casey are away while an entry point is
-    unsecured or lights are still on. Reminder can be snoozed from the push.
+    unsecured or lights are still on. Suppresses reminders during the expected
+    housekeeper window and reevaluates when it ends. Reminder can be snoozed
+    from the push.
   triggers:
     - trigger: state
       entity_id: binary_sensor.house_unsecured_while_away
@@ -1342,6 +1344,14 @@
     - trigger: state
       entity_id: sensor.away_security_issue_summary
       id: issue_changed
+    - trigger: state
+      entity_id: binary_sensor.away_motion_security_housekeeper_window
+      to: "on"
+      id: housekeeper_started
+    - trigger: state
+      entity_id: binary_sensor.away_motion_security_housekeeper_window
+      to: "off"
+      id: housekeeper_ended
     - trigger: time_pattern
       minutes: "/15"
       id: repeat
@@ -1349,7 +1359,8 @@
     - condition: template
       value_template: >
         {% set snooze = states('input_datetime.away_security_snooze_until') %}
-        {{ snooze in ['unknown', 'unavailable', '']
+        {{ trigger.id == 'housekeeper_started'
+           or snooze in ['unknown', 'unavailable', '']
            or as_timestamp(snooze, 0) <= as_timestamp(now()) }}
   actions:
     - if:
@@ -1358,6 +1369,16 @@
       then:
         - delay:
             seconds: 15
+    - if:
+        - condition: state
+          entity_id: binary_sensor.away_motion_security_housekeeper_window
+          state: "on"
+      then:
+        - action: script.away_security_clear_alert
+        - action: script.casey_left_combo_clear_alert
+        - action: script.casey_left_garage_clear_alert
+        - action: script.casey_left_lights_clear_alert
+        - stop: Expected housekeeper window suppresses routine away-security reminders.
     - variables:
         trevor_state: "{{ states('device_tracker.tk_iphone_16_pro') }}"
         casey_state: "{{ states('device_tracker.unifi_default_42_15_78_4a_d9_f8') }}"

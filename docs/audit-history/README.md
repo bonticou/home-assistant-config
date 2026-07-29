@@ -35,6 +35,7 @@ unless the exact value is necessary and safe to store.
 
 | Date | Entry | Scope |
 | --- | --- | --- |
+| 2026-07-29 | [Housekeeper away-security suppression](2026-07-29-housekeeper-away-security-suppression.md) | Suppresses routine lights-on and unsecured-home reminders during the expected housekeeper window, clears active related pushes, and reevaluates at 3:00 PM while preserving safety alerts |
 | 2026-07-28 | [Washer presence-aware notifications](2026-07-28-washer-presence-aware-notifications.md) | Records ThinQ completions and machine errors while Trevor is away, defers pushes until five minutes after arrival, and starts follow-ups from the first delivered notice while preserving immediate Flo leak protection |
 | 2026-07-20 | [Washer cycle notifications](2026-07-20-washer-cycle-notifications.md) | Adds durable ThinQ completion, unattended-laundry follow-up, snooze/handled actions, and deduplicated high-priority washer error notifications while preserving Flo leak coverage |
 | 2026-07-20 | [Wine trend disclosure state](2026-07-20-wine-trend-disclosure-state.md) | Replaces restored helper-backed Wine chart expansion with local ephemeral disclosure state so every page load starts collapsed and charts mount only on demand |
