@@ -4393,7 +4393,7 @@ garage_security_send_alert:
           {% elif kind == 'trevor_away' %}
             🚗 {{ open_issue_title }} while you're away
           {% elif kind == 'casey_away' %}
-            {% if open_count | int(0) == 2 %}🚗 Casey left both garage doors open{% else %}🚗 Casey left {{ casey_departure_open_label }} open{% endif %}
+            {% if open_count | int(0) == 2 %}🚗 Both garage doors are still open{% else %}🚗 {{ open_label_title }} is still open{% endif %}
           {% elif kind == 'obstruction' %}
             🚗 {{ target_label_title }} obstruction detected
           {% else %}

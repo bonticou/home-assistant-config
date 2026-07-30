@@ -35,6 +35,7 @@ unless the exact value is necessary and safe to store.
 
 | Date | Entry | Scope |
 | --- | --- | --- |
+| 2026-07-29 | [Garage transient-open notification grace](2026-07-29-garage-transient-open-notification-grace.md) | Requires a garage door to remain open for five minutes before the one-person-away reminder and removes unsupported blame from its title while preserving immediate both-away and overnight alerts |
 | 2026-07-29 | [Dryer cycle notifications](2026-07-29-dryer-cycle-notifications.md) | Adds durable presence- and quiet-hour-aware ThinQ dryer notifications, uses dryer starts as washer-turnover evidence, and reevaluates unresolved washer loads after the housekeeper window |
 | 2026-07-29 | [Housekeeper away-security suppression](2026-07-29-housekeeper-away-security-suppression.md) | Suppresses routine lights-on and unsecured-home reminders during the expected housekeeper window, clears active related pushes, and reevaluates at 3:00 PM while preserving safety alerts |
 | 2026-07-28 | [Washer presence-aware notifications](2026-07-28-washer-presence-aware-notifications.md) | Records ThinQ completions and machine errors while Trevor is away, defers pushes until five minutes after arrival, and starts follow-ups from the first delivered notice while preserving immediate Flo leak protection |

@@ -1800,12 +1800,15 @@
 - id: garage_security_open_while_person_away
   alias: "Garage — Open While Person Away"
   description: >
-    Notifies Trevor when either garage door is open while exactly one household
-    person is away. Everyone-away cases stay in the away-security guardrail.
+    Notifies Trevor when either garage door remains open for five minutes while
+    exactly one household person is away. Everyone-away cases stay in the
+    immediate away-security guardrail.
   triggers:
     - trigger: state
       entity_id: binary_sensor.away_security_garage_door_open
       to: "on"
+      for:
+        minutes: 5
       id: garage_opened
     - trigger: state
       entity_id: device_tracker.tk_iphone_16_pro
