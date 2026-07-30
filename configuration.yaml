@@ -60,6 +60,8 @@ homekit:
         - script.lights_tv_scene
         - script.lights_bedtime_scene
         - script.lights_all_off_scene
+        - cover.ratgdo32disco_c26634_door
+        - cover.ratgdo32_4536e8_door
     entity_config:
       script.lights_evening_scene:
         name: Evening Lights
@@ -69,6 +71,10 @@ homekit:
         name: Bedtime Lights
       script.lights_all_off_scene:
         name: House Lights Off
+      cover.ratgdo32disco_c26634_door:
+        name: Casey's Garage Door
+      cover.ratgdo32_4536e8_door:
+        name: Trevor's Garage Door
 
 command_line:
   - sensor:
