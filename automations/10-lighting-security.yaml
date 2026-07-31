@@ -577,7 +577,7 @@
 
 - id: wynn_room_daylight_camera_quiet_auto_off
   alias: "Lights — Wynn's Room Daylight Camera Quiet Auto-Off"
-  description: Turn Wynn's room lights off during daylight after the room camera has been quiet for thirty minutes.
+  description: Turn Wynn's room lights off during daylight after the room camera has been quiet for twenty minutes.
   initial_state: true
   triggers:
     - trigger: homeassistant
@@ -601,7 +601,7 @@
         - binary_sensor.wynn_s_room_person_detected
       to: "off"
       for:
-        minutes: 30
+        minutes: 20
       id: camera_quiet
     - trigger: state
       entity_id:
@@ -610,7 +610,7 @@
         - light.wynn_s_room_ceiling_lights
       to: "on"
       for:
-        minutes: 30
+        minutes: 20
       id: light_quiet
   actions:
     - choose:
@@ -670,7 +670,7 @@
                 {% endif %}
               {% endif %}
             {% endfor %}
-            {{ ns.known and ns.last > 0 and (as_timestamp(now()) - ns.last) >= 30 * 60 }}
+            {{ ns.known and ns.last > 0 and (as_timestamp(now()) - ns.last) >= 20 * 60 }}
         - action: light.turn_off
           continue_on_error: true
           target:
