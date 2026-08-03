@@ -948,17 +948,6 @@ views:
             tap_action:
               action: more-info
           - type: template
-            entity: device_tracker.tesla
-            icon: mdi:car-electric
-            icon_color: >-
-              {% if is_state('device_tracker.tesla', 'home') %}blue
-              {% elif states('device_tracker.tesla') in ['unknown', 'unavailable'] %}amber
-              {% else %}grey{% endif %}
-            content: >-
-              {{ 'Tesla online' if is_state('device_tracker.tesla', 'home') else 'Tesla offline' }}
-            tap_action:
-              action: more-info
-          - type: template
             entity: sensor.away_security_active_lights
             icon: >-
               {{ 'mdi:lightbulb-on-outline' if states('sensor.away_security_active_lights') | int(0) > 0 else 'mdi:lightbulb-off-outline' }}
