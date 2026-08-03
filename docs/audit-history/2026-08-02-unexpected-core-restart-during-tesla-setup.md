@@ -103,6 +103,6 @@ documented certificate-validation false positive after the earlier TLS EOFs.
 - The recurring external fresh-HTTP/websocket monitor remains the best way to
   timestamp future failures independently of Home Assistant itself.
 
-Possible optimization directions are preserved separately in
-`docs/home-assistant-reliability-optimization-ideas.md`. That document is an
-idea bank, not an action list or authorization to make changes.
+Possible optimization directions are integrated into the living
+`docs/home-assistant-availability-investigation.md`. Its optimization section is
+an idea bank, not an action list or authorization to make changes.

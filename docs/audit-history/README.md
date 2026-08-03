@@ -31,6 +31,48 @@ Do not commit secrets, bearer tokens, raw private URLs, unredacted logs, or
 sensitive account identifiers. Redact Nabu Casa hosts and local network details
 unless the exact value is necessary and safe to store.
 
+## Recurring Availability Investigation
+
+Home Assistant stalling, fresh-HTTP failures, unexpected offline periods, and
+Remote UI disconnects are a continuing longitudinal investigation. Do not treat
+each recurrence as a new dashboard problem or assume that every visible
+disconnect has the same cause.
+
+The living synthesis is
+[Home Assistant Availability Investigation](../home-assistant-availability-investigation.md).
+It combines the dated incident record, current failure model, evidence gaps,
+active hypotheses, and the reliability optimization idea bank. The idea bank is
+not a to-do list or authorization to make changes.
+
+The accumulated evidence currently distinguishes at least three failure
+families:
+
+- Home Assistant Core/app-layer stalls or unexpected Core termination;
+- Nabu Casa Remote UI/tunnel or TLS-path outages while local Core may remain
+  healthy;
+- client authentication, session, or local/remote URL handoff failures while
+  the underlying Remote UI route remains reachable.
+
+Start with these entries when investigating another recurrence:
+
+- [Unexpected Core restart during Tesla setup, 2026-08-02](2026-08-02-unexpected-core-restart-during-tesla-setup.md)
+- [Recorder health gate after cleanup, 2026-07-13](2026-07-13-recorder-health-gate.md)
+- [Recorder pressure follow-up, 2026-07-13](2026-07-13-recorder-pressure-follow-up.md)
+- [Mobile disconnected with Nabu route reachable, 2026-06-22](2026-06-22-mobile-disconnected-nabu-session.md)
+- [Remote UI overnight flapping, 2026-06-16](2026-06-16-remote-ui-overnight-flapping.md)
+- [Backend availability audit, 2026-06-06](2026-06-06-backend-availability-audit.md)
+- [Home Assistant transient app-layer stall, 2026-06-04](2026-06-04-home-assistant-transient-app-layer-stall.md)
+- [Remote UI and fresh HTTP stall, 2026-06-04](2026-06-04-remote-ui-http-stall.md)
+- [Home Assistant availability, UI hardening, and Casey closet recovery,
+  2026-06-04](2026-06-04-home-assistant-availability-ui-and-casey-closet.md)
+- [Legacy mobile disconnect audit, 2026-05-26](../home-assistant-mobile-disconnect-audit-2026-05-26.md)
+
+Supporting material:
+
+- [Home Assistant remote-access runbook](../home-assistant-remote-access-runbook.md)
+- [Home Assistant UI-hardening runbook](../home-assistant-ui-hardening-runbook.md)
+- [Recorder inventory](../recorder-inventory.md)
+
 ## Entries
 
 | Date | Entry | Scope |
