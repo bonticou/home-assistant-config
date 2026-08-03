@@ -255,7 +255,7 @@ common_areas_transition_toggle:
 
 lights_evening_scene:
   alias: Lights Evening Scene
-  description: Set the common evening lights and Mudroom interior lights to a calm 10 percent level, keep the kitchen island bright, leave Wynn's room and exterior utility lights alone, turn on the great room uplights, and softly bring the chandelier up to 10 percent only if it happens to be off.
+  description: Set the common evening lights and Mudroom interior lights to a calm 10 percent level, keep the kitchen island bright, leave Wynn's room, the great room uplights, and exterior utility lights alone, and softly bring the chandelier up to 10 percent only if it happens to be off.
   icon: mdi:weather-sunset
   mode: single
   sequence:
@@ -316,9 +316,6 @@ lights_evening_scene:
           - light.back_patio_light
         brightness_pct: 10
         transition: 3
-    - action: switch.turn_on
-      data:
-        entity_id: switch.great_room_uplights
     - if:
         - condition: template
           value_template: "{{ front_stairs_target_pct > 0 and front_stairs_current_pct < front_stairs_target_pct }}"

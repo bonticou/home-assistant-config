@@ -5,15 +5,15 @@ A human-readable map of the Home Assistant device model. The full audit dump is 
 ## At A Glance
 
 - Snapshot: `2026-07-29T14:29:24.057042+00:00`
-- Scale: 228 devices, 2470 entities, 151 network clients
+- Scale: 229 devices, 2512 entities, 151 network clients
 - Lighting: 36 light entities, 33 Lutron Caséta entities
 
 | Thing | Count |
 | --- | --- |
-| Devices | 228 |
-| Entities | 2470 |
-| Control entities | 868 |
-| Telemetry entities | 1097 |
+| Devices | 229 |
+| Entities | 2512 |
+| Control entities | 882 |
+| Telemetry entities | 1125 |
 | Network clients | 151 |
 | Areas | 32 |
 
@@ -45,7 +45,7 @@ A human-readable map of the Home Assistant device model. The full audit dump is 
 | Mudroom | 9 | 46 | 2 | 65 | 3 |
 | Office | 3 | 7 | 0 | 14 | 1 |
 | Stairs | 1 | 1 | 1 | 0 | 0 |
-| Unassigned | 144 | 334 | 11 | 487 | 57 |
+| Unassigned | 145 | 348 | 11 | 515 | 57 |
 | Unnamed Room | 8 | 90 | 0 | 8 | 8 |
 | Upstairs Hallway | 1 | 1 | 1 | 0 | 0 |
 | Vestibule | 1 | 1 | 1 | 0 | 0 |
@@ -264,6 +264,7 @@ A human-readable map of the Home Assistant device model. The full audit dump is 
 | Family Room TV | cast | `media_player.family_room_tv` |  |
 | File editor | hassio | `switch.file_editor` |  |
 | Fios-VHTx3 | unifi | Regenerate password (`button.fios_vhtx3_regenerate_password`); Enabled (`switch.fios_vhtx3`) |  |
+| Flower Lamp | tplink, unifi | Restart (`button.flower_lamp_restart`); Power protection (`number.flower_lamp_power_protection`); Turn off in (`number.flower_lamp_turn_off_in`); `switch.flower_lamp`; Auto-off enabled (`switch.flower_lamp_auto_off_enabled`); +2 more |  |
 | Front Yard | unifi, unifiprotect | Restart (`button.g6_instant_restart_2`); Unadopt device (`button.g6_instant_unadopt_device_2`); Speaker (`media_player.back_yard_speaker`); Infrared custom lux trigger (`number.back_yard_infrared_custom_lux_trigger`); Microphone level (`number.back_yard_microphone_level`); +28 more |  |
 | Front door (incl. planters)  | hydrawise | Automatic watering (`switch.zone_1_automatic_watering`); Manual watering (`switch.zone_1_manual_watering`); `valve.zone_1` |  |
 | Garage | unifi, unifiprotect | Restart (`button.g6_instant_restart_3`); Unadopt device (`button.g6_instant_unadopt_device_3`); Speaker (`media_player.garage_speaker`); Wide dynamic range (`number.g6_instant_wide_dynamic_range_3`); Infrared custom lux trigger (`number.garage_infrared_custom_lux_trigger`); +28 more |  |
@@ -283,6 +284,7 @@ A human-readable map of the Home Assistant device model. The full audit dump is 
 | Sonos Card | hacs | Pre-release (`switch.sonos_card_pre_release`) |  |
 | Spotify | spotify | `media_player.spotify` | Spotify Trevor Kiv |
 | Terminal & SSH | hassio | `switch.terminal_ssh` |  |
+| Uplight 2 | tplink, unifi | Restart (`button.uplight_2_restart`); Power protection (`number.uplight_2_power_protection`); Turn off in (`number.uplight_2_turn_off_in`); `switch.uplight_2`; Auto-off enabled (`switch.uplight_2_auto_off_enabled`); +2 more |  |
 | U7 Pro (Family Room) | unifi | Restart (`button.u7_pro_family_room_restart`); LED (`light.u7_pro_family_room_led`) |  |
 | U7 Pro (Mesh) | unifi | Restart (`button.u7_pro_mesh_restart`); LED (`light.u7_pro_mesh_led`) |  |
 | U7 Pro (Mud Room) | unifi | Restart (`button.u7_pro_mud_room_restart`); LED (`light.u7_pro_mud_room_led`) |  |

@@ -7519,17 +7519,9 @@ views:
             use_light_color: false
             card_mod:
               style: *lights_button_style
-
-      - type: custom:mushroom-title-card
-        title: Great Room
-
-      - type: grid
-        columns: 2
-        square: false
-        cards:
           - type: custom:button-card
-            entity: switch.great_room_uplights
-            name: Uplight
+            entity: switch.flower_lamp
+            name: Flower Lamp
             label: |
               [[[
                 if (!entity) return 'Unavailable';
@@ -7589,6 +7581,31 @@ views:
                 - font-weight: 500
                 - line-height: 1.12
                 - text-align: left
+
+      - type: custom:mushroom-title-card
+        title: Great Room
+
+      - type: grid
+        columns: 2
+        square: false
+        cards:
+          - type: custom:button-card
+            entity: switch.great_room_uplights
+            name: Uplight
+            label: |
+              [[[
+                if (!entity) return 'Unavailable';
+                if (entity.state === 'on') return 'On';
+                if (entity.state === 'off') return 'Off';
+                return entity.state;
+              ]]]
+            show_icon: false
+            show_label: true
+            tap_action:
+              action: toggle
+            hold_action:
+              action: more-info
+            styles: *lights_switch_button_styles
 
       - type: custom:mushroom-title-card
         title: Wynn's Room

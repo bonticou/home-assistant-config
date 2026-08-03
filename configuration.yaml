@@ -7,6 +7,8 @@ homeassistant:
       friendly_name: Casey's closet
     switch.uplight:
       friendly_name: Great Room Uplight 1
+    switch.uplight_2:
+      friendly_name: Great Room Uplight 2
     switch.great_room_uplights:
       friendly_name: Great Room uplights
     cover.ratgdo32disco_c26634_door:
@@ -1378,7 +1380,7 @@ template:
                or 'restart' in entity
                or 'power_protection' in entity
                or 'turn_off_in' in entity %}
-            {% set member = item.entity_id == 'switch.uplight'
+            {% set member = item.entity_id in ['switch.uplight', 'switch.uplight_2']
                or ('great room uplight' in label and not excluded)
                or ('uplight 2' in label and not excluded)
                or ('uplight_2' in entity and not excluded) %}
@@ -1399,7 +1401,7 @@ template:
                or 'restart' in entity
                or 'power_protection' in entity
                or 'turn_off_in' in entity %}
-            {% set member = item.entity_id == 'switch.uplight'
+            {% set member = item.entity_id in ['switch.uplight', 'switch.uplight_2']
                or ('great room uplight' in label and not excluded)
                or ('uplight 2' in label and not excluded)
                or ('uplight_2' in entity and not excluded) %}
@@ -1422,7 +1424,7 @@ template:
                      or 'restart' in entity
                      or 'power_protection' in entity
                      or 'turn_off_in' in entity %}
-                  {% set member = item.entity_id == 'switch.uplight'
+                  {% set member = item.entity_id in ['switch.uplight', 'switch.uplight_2']
                      or ('great room uplight' in label and not excluded)
                      or ('uplight 2' in label and not excluded)
                      or ('uplight_2' in entity and not excluded) %}
@@ -1451,7 +1453,7 @@ template:
                      or 'restart' in entity
                      or 'power_protection' in entity
                      or 'turn_off_in' in entity %}
-                  {% set member = item.entity_id == 'switch.uplight'
+                  {% set member = item.entity_id in ['switch.uplight', 'switch.uplight_2']
                      or ('great room uplight' in label and not excluded)
                      or ('uplight 2' in label and not excluded)
                      or ('uplight_2' in entity and not excluded) %}
