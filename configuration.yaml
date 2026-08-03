@@ -2834,6 +2834,7 @@ template:
           ] %}
           {% set switch_lights = [
             'switch.great_room_uplights',
+            'switch.flower_lamp',
             'switch.garage_garage_lights',
             'switch.exterior_mud_room_stairs'
           ] %}
@@ -2866,6 +2867,7 @@ template:
             ] %}
             {% set switch_lights = {
               'switch.great_room_uplights': 'Great Room uplights',
+              'switch.flower_lamp': 'Flower Lamp',
               'switch.garage_garage_lights': 'Garage light',
               'switch.exterior_mud_room_stairs': 'Mudroom exterior stairs'
             } %}
@@ -2893,6 +2895,7 @@ template:
             ] %}
             {% set switch_lights = [
               'switch.great_room_uplights',
+              'switch.flower_lamp',
               'switch.garage_garage_lights',
               'switch.exterior_mud_room_stairs'
             ] %}

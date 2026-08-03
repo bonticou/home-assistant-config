@@ -570,6 +570,7 @@ lights_all_off_scene:
       data:
         entity_id:
           - switch.great_room_uplights
+          - switch.flower_lamp
           - switch.garage_garage_lights
           - switch.exterior_mud_room_stairs
     - action: script.turn_on
@@ -662,6 +663,7 @@ lights_bedtime_scene:
       data:
         entity_id:
           - switch.great_room_uplights
+          - switch.flower_lamp
           - switch.garage_garage_lights
           - switch.exterior_mud_room_stairs
     - choose:
@@ -970,6 +972,7 @@ vacation_mode_end:
       data:
         entity_id:
           - switch.great_room_uplights
+          - switch.flower_lamp
           - switch.exterior_mud_room_stairs
     - choose:
         - conditions:
@@ -1063,7 +1066,9 @@ vacation_activity_apply:
                         transition: 8
                     - action: switch.turn_on
                       data:
-                        entity_id: switch.great_room_uplights
+                        entity_id:
+                          - switch.great_room_uplights
+                          - switch.flower_lamp
                 - sequence:
                     - action: light.turn_on
                       data:
@@ -1126,7 +1131,9 @@ vacation_activity_apply:
                         transition: 240
                     - action: switch.turn_on
                       data:
-                        entity_id: switch.great_room_uplights
+                        entity_id:
+                          - switch.great_room_uplights
+                          - switch.flower_lamp
                 - sequence:
                     - action: light.turn_on
                       data:
@@ -1189,7 +1196,9 @@ vacation_activity_apply:
                         transition: 10
                     - action: switch.turn_on
                       data:
-                        entity_id: switch.great_room_uplights
+                        entity_id:
+                          - switch.great_room_uplights
+                          - switch.flower_lamp
                 - sequence:
                     - action: light.turn_off
                       data:
@@ -1248,7 +1257,9 @@ vacation_activity_apply:
             transition: 8
         - action: switch.turn_off
           data:
-            entity_id: switch.great_room_uplights
+            entity_id:
+              - switch.great_room_uplights
+              - switch.flower_lamp
         - if:
             - condition: state
               entity_id: binary_sensor.door_lights_schedule_active
