@@ -287,6 +287,7 @@
           {% set start = today_at('22:00') %}
           {{ as_timestamp(start if now() >= start else start - timedelta(days=1), 0) }}
         last_notified_ts: "{{ as_timestamp(states('input_datetime.tesla_charge_reminder_last_notified_at'), 0) }}"
+        setup_issue_last_notified_ts: "{{ as_timestamp(states('input_datetime.tesla_charge_reminder_setup_issue_last_notified_at'), 0) }}"
         tesla_home: >-
           {% set ns = namespace(home=false) %}
           {% for tracker in states.device_tracker %}
@@ -326,29 +327,58 @@
           {% endfor %}
           {{ ns.entity }}
         charge_cable_state: "{{ states(charge_cable_entity | trim) if charge_cable_entity | trim else 'unknown' }}"
+        telemetry_ready: >-
+          {{ (battery_pct | trim) not in ['', 'unknown', 'unavailable', 'none']
+             and charge_cable_state in ['on', 'off'] }}
         should_notify: >-
           {{ tesla_home | bool
              and charge_cable_state == 'off'
-             and (battery_pct | trim) not in ['', 'unknown', 'unavailable', 'none']
+             and telemetry_ready | bool
              and (last_notified_ts | float(0)) < (cycle_start_ts | float(0)) }}
-    - condition: template
-      value_template: "{{ should_notify | bool }}"
-    - action: script.notify_trevor_phone
-      data:
-        title: "🚗🔌 Tesla not plugged in"
-        message: >-
-          Your Tesla is home and not plugged in. Battery is at {{ battery_pct | trim }}%.
-          Want to plug it in overnight?
-        data:
-          group: vehicle
-          tag: tesla-overnight-plug
-          sticky: true
-          url: /calm-mobile/home
-    - action: input_datetime.set_datetime
-      target:
-        entity_id: input_datetime.tesla_charge_reminder_last_notified_at
-      data:
-        datetime: "{{ now().strftime('%Y-%m-%d %H:%M:%S') }}"
+        setup_issue_due: >-
+          {{ not (telemetry_ready | bool)
+             and (setup_issue_last_notified_ts | float(0)) < (cycle_start_ts | float(0)) }}
+    - choose:
+        - conditions:
+            - condition: template
+              value_template: "{{ should_notify | bool }}"
+          sequence:
+            - action: script.notify_trevor_phone
+              data:
+                title: "🚗🔌 Tesla not plugged in"
+                message: >-
+                  Your Tesla is home and not plugged in. Battery is at {{ battery_pct | trim }}%.
+                  Want to plug it in overnight?
+                data:
+                  group: vehicle
+                  tag: tesla-overnight-plug
+                  sticky: true
+                  url: /calm-mobile/home
+            - action: input_datetime.set_datetime
+              target:
+                entity_id: input_datetime.tesla_charge_reminder_last_notified_at
+              data:
+                datetime: "{{ now().strftime('%Y-%m-%d %H:%M:%S') }}"
+        - conditions:
+            - condition: template
+              value_template: "{{ setup_issue_due | bool }}"
+          sequence:
+            - action: script.notify_trevor_phone
+              data:
+                title: "🚗 Tesla reminder needs setup"
+                message: >-
+                  I can't see the Tesla battery or plug status in Home Assistant yet,
+                  so I couldn't check whether it needs to be plugged in tonight.
+                data:
+                  group: vehicle
+                  tag: tesla-reminder-setup
+                  sticky: true
+                  url: /config/integrations
+            - action: input_datetime.set_datetime
+              target:
+                entity_id: input_datetime.tesla_charge_reminder_setup_issue_last_notified_at
+              data:
+                datetime: "{{ now().strftime('%Y-%m-%d %H:%M:%S') }}"
   mode: single
 
 - id: washer_notification_actions

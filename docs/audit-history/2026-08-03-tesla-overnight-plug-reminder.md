@@ -43,6 +43,9 @@ finished credential storage.
 
 - Added `input_datetime.tesla_charge_reminder_last_notified_at` as the durable
   once-per-overnight-cycle send guard.
+- Added `input_datetime.tesla_charge_reminder_setup_issue_last_notified_at` so
+  missing Tesla telemetry produces one explicit setup-blocked notice per
+  overnight cycle instead of failing silently.
 - Added `input_boolean.tesla_charge_reminder_notifications_enabled` for a clean
   enable/disable control.
 - Added `Vehicle — Tesla Overnight Plug Reminder` with time, reload, startup,
@@ -54,6 +57,9 @@ finished credential storage.
   - a Tesla Battery level sensor is available;
   - a Tesla Charge cable binary sensor is explicitly `off`;
   - the current overnight cycle has not already been notified.
+- If Trevor is home after 10 PM but Tesla battery/charge-cable telemetry is
+  missing, the automation sends `Tesla reminder needs setup` once for that
+  overnight cycle instead of silently doing nothing.
 
 ## Checks And Deployment Status
 
@@ -70,6 +76,17 @@ finished credential storage.
 - Live template probe at 10:18 PM showed Trevor home, but no Tesla home tracker,
   no Tesla Battery level sensor, and no Tesla Charge cable binary sensor, so
   the automation correctly evaluated `would_notify: false`.
+- Follow-up after the missed user-visible reminder added the setup-blocked
+  fallback. A second live deployment wrote/read back `configuration.yaml` and
+  `automations/30-maintenance-environment.yaml`, config check returned `valid`,
+  and `input_datetime.reload` plus `automation.reload` returned HTTP 200.
+- Trace `b3070167aaa32316be6a9ae4c4086962` showed the fallback branch selected
+  at 10:34:25 PM, called `script.notify_trevor_phone` with title
+  `Tesla reminder needs setup`, and stamped
+  `input_datetime.tesla_charge_reminder_setup_issue_last_notified_at` to
+  `2026-08-03 22:34:25`.
+- Child script trace `9e0df0358bc7577c7e0a0b6430d56f19` finished cleanly and
+  called `notify.mobile_app_tk_iphone_16_pro` with the same Tesla setup message.
 
 Deployed live on 2026-08-03 through the authenticated File Editor ingress path.
 

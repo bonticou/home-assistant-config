@@ -612,6 +612,10 @@ input_datetime:
     name: Tesla Charge Reminder Last Notified At
     has_date: true
     has_time: true
+  tesla_charge_reminder_setup_issue_last_notified_at:
+    name: Tesla Charge Reminder Setup Issue Last Notified At
+    has_date: true
+    has_time: true
   washer_last_completed_at:
     name: Washer Last Completed At
     has_date: true
