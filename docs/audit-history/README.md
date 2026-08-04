@@ -77,6 +77,7 @@ Supporting material:
 
 | Date | Entry | Scope |
 | --- | --- | --- |
+| 2026-08-03 | [Tesla overnight plug reminder](2026-08-03-tesla-overnight-plug-reminder.md) | Adds a durable after-10 PM Tesla plug-in reminder gated on Trevor home, Tesla home, charge-cable disconnected, and battery-level telemetry while documenting the remaining Tesla Fleet setup dependency |
 | 2026-08-03 | [Evening mode catch-up and scene resilience](2026-08-03-evening-mode-catchup.md) | Diagnoses an Evening scene that triggered but only partially applied before later Core restarts, then adds guarded startup/reload/refresh catch-up and parallel fault-tolerant scene chunks |
 | 2026-08-02 | [Unexpected Core restart during Tesla setup](2026-08-02-unexpected-core-restart-during-tesla-setup.md) | Confirms the visible outage coincided with an unclean Home Assistant Core restart, rules out repo-owned restart actions, and preserves the Supervisor/previous-Core log follow-up needed to identify the trigger |
 | 2026-07-31 | [Wynn daylight light timeout](2026-07-31-wynn-daylight-light-timeout.md) | Shortens Wynn's daylight camera-quiet light timeout from 30 to 20 minutes while retaining the five-minute watchdog and vacation safeguard |

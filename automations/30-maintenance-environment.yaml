@@ -234,6 +234,123 @@
     - action: script.dehumidifier_air_filter_send_notification
   mode: single
 
+- id: tesla_overnight_plug_reminder
+  alias: "Vehicle — Tesla Overnight Plug Reminder"
+  description: Reminds Trevor after 10 PM if he and the Tesla are home, the charge cable is disconnected, and battery telemetry is available.
+  triggers:
+    - trigger: time
+      at: "22:00:00"
+      id: nightly
+    - trigger: time_pattern
+      minutes: "/15"
+      id: evening_watchdog
+    - trigger: homeassistant
+      event: start
+      id: startup
+    - trigger: event
+      event_type: automation_reloaded
+      id: automation_reloaded
+    - trigger: state
+      entity_id: person.bonticou
+      to: "home"
+      for: "00:05:00"
+      id: trevor_home
+    - trigger: state
+      entity_id: device_tracker.tesla
+      to: "home"
+      for: "00:05:00"
+      id: tesla_home
+  conditions:
+    - condition: state
+      entity_id: input_boolean.tesla_charge_reminder_notifications_enabled
+      state: "on"
+    - condition: state
+      entity_id: person.bonticou
+      state: "home"
+    - condition: template
+      value_template: "{{ now().hour >= 22 or now().hour < 2 }}"
+  actions:
+    - if:
+        - condition: trigger
+          id: startup
+      then:
+        - delay:
+            minutes: 2
+    - if:
+        - condition: trigger
+          id: automation_reloaded
+      then:
+        - delay:
+            minutes: 1
+    - variables:
+        cycle_start_ts: >-
+          {% set start = today_at('22:00') %}
+          {{ as_timestamp(start if now() >= start else start - timedelta(days=1), 0) }}
+        last_notified_ts: "{{ as_timestamp(states('input_datetime.tesla_charge_reminder_last_notified_at'), 0) }}"
+        tesla_home: >-
+          {% set ns = namespace(home=false) %}
+          {% for tracker in states.device_tracker %}
+            {% set haystack = (tracker.entity_id ~ ' ' ~ (tracker.attributes.friendly_name | default('', true))) | lower %}
+            {% if 'tesla' in haystack and tracker.state == 'home' %}
+              {% set ns.home = true %}
+            {% endif %}
+          {% endfor %}
+          {{ ns.home }}
+        battery_entity: >-
+          {% set ns = namespace(entity='') %}
+          {% for sensor in states.sensor %}
+            {% set haystack = (sensor.entity_id ~ ' ' ~ (sensor.attributes.friendly_name | default('', true))) | lower %}
+            {% if ns.entity == ''
+               and 'tesla' in haystack
+               and 'battery level' in haystack
+               and sensor.state not in ['unknown', 'unavailable', 'none', '']
+               and (sensor.state | float(-1)) >= 0 %}
+              {% set ns.entity = sensor.entity_id %}
+            {% endif %}
+          {% endfor %}
+          {{ ns.entity }}
+        battery_pct: >-
+          {% if battery_entity | trim %}
+            {{ states(battery_entity | trim) | float(0) | round(0) | int }}
+          {% endif %}
+        charge_cable_entity: >-
+          {% set ns = namespace(entity='') %}
+          {% for sensor in states.binary_sensor %}
+            {% set haystack = (sensor.entity_id ~ ' ' ~ (sensor.attributes.friendly_name | default('', true))) | lower %}
+            {% if ns.entity == ''
+               and 'tesla' in haystack
+               and 'charge cable' in haystack
+               and sensor.state in ['on', 'off'] %}
+              {% set ns.entity = sensor.entity_id %}
+            {% endif %}
+          {% endfor %}
+          {{ ns.entity }}
+        charge_cable_state: "{{ states(charge_cable_entity | trim) if charge_cable_entity | trim else 'unknown' }}"
+        should_notify: >-
+          {{ tesla_home | bool
+             and charge_cable_state == 'off'
+             and (battery_pct | trim) not in ['', 'unknown', 'unavailable', 'none']
+             and (last_notified_ts | float(0)) < (cycle_start_ts | float(0)) }}
+    - condition: template
+      value_template: "{{ should_notify | bool }}"
+    - action: script.notify_trevor_phone
+      data:
+        title: "🚗🔌 Tesla not plugged in"
+        message: >-
+          Your Tesla is home and not plugged in. Battery is at {{ battery_pct | trim }}%.
+          Want to plug it in overnight?
+        data:
+          group: vehicle
+          tag: tesla-overnight-plug
+          sticky: true
+          url: /calm-mobile/home
+    - action: input_datetime.set_datetime
+      target:
+        entity_id: input_datetime.tesla_charge_reminder_last_notified_at
+      data:
+        datetime: "{{ now().strftime('%Y-%m-%d %H:%M:%S') }}"
+  mode: single
+
 - id: washer_notification_actions
   alias: "Laundry — Washer Notification Actions"
   description: Handles completion, snooze, and error acknowledgement actions from washer pushes.

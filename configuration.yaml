@@ -608,6 +608,10 @@ input_datetime:
     name: Dehumidifier Air Filter Snooze Until
     has_date: true
     has_time: true
+  tesla_charge_reminder_last_notified_at:
+    name: Tesla Charge Reminder Last Notified At
+    has_date: true
+    has_time: true
   washer_last_completed_at:
     name: Washer Last Completed At
     has_date: true
@@ -1054,6 +1058,10 @@ input_boolean:
   dehumidifier_air_filter_notifications_enabled:
     name: Dehumidifier Air Filter Notifications Enabled
     icon: mdi:air-filter
+    initial: true
+  tesla_charge_reminder_notifications_enabled:
+    name: Tesla Charge Reminder Notifications Enabled
+    icon: mdi:ev-plug-tesla
     initial: true
   washer_notifications_enabled:
     name: Washer Notifications Enabled
