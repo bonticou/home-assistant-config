@@ -257,7 +257,7 @@ lights_evening_scene:
   alias: Lights Evening Scene
   description: Set the common evening lights and Mudroom interior lights to a calm 10 percent level, keep the kitchen island bright, leave Wynn's room, the great room uplights, and exterior utility lights alone, and softly bring the chandelier up to 10 percent only if it happens to be off.
   icon: mdi:weather-sunset
-  mode: single
+  mode: restart
   sequence:
     - action: input_select.select_option
       target:
@@ -277,54 +277,79 @@ lights_evening_scene:
           {% else %}
             0
           {% endif %}
-    - if:
-        - condition: state
-          entity_id: light.front_foyer_chandelier
-          state: "off"
-      then:
-        - action: light.turn_on
-          data:
-            entity_id: light.front_foyer_chandelier
-            brightness_pct: 10
-            transition: 8
-    - action: light.turn_on
-      data:
-        entity_id:
-          - light.family_room_main_lights_1
-          - light.family_room_main_lights_2
-          - light.family_room_main_lights_3
-        brightness_pct: 10
-        transition: 1
-    - action: light.turn_on
-      data:
-        entity_id: light.kitchen_island
-        brightness_pct: 100
-        transition: 3
-    - action: light.turn_on
-      data:
-        entity_id:
-          - light.front_foyer_ceiling_lights
-          - light.back_stairs_back_stairs
-          - light.upstairs_hallway_main_lights
-          - light.vestibule_main_lights
-          - light.kitchen_main
-          - light.kitchen_table_lights
-          - light.kitchen_sink_light
-          - light.kitchen_coffee_bar
-          - light.mudroom_main_lights
-          - light.mudroom_nook_lights
-          - light.back_patio_light
-        brightness_pct: 10
-        transition: 3
-    - if:
-        - condition: template
-          value_template: "{{ front_stairs_target_pct > 0 and front_stairs_current_pct < front_stairs_target_pct }}"
-      then:
-        - action: light.turn_on
-          data:
-            entity_id: light.stairs_front_stairs
-            brightness_pct: "{{ front_stairs_target_pct }}"
-            transition: 10
+    - parallel:
+        - sequence:
+            - if:
+                - condition: state
+                  entity_id: light.front_foyer_chandelier
+                  state: "off"
+              then:
+                - continue_on_error: true
+                  action: light.turn_on
+                  data:
+                    entity_id: light.front_foyer_chandelier
+                    brightness_pct: 10
+                    transition: 8
+        - sequence:
+            - continue_on_error: true
+              action: light.turn_on
+              data:
+                entity_id:
+                  - light.family_room_main_lights_1
+                  - light.family_room_main_lights_2
+                  - light.family_room_main_lights_3
+                brightness_pct: 10
+                transition: 1
+        - sequence:
+            - continue_on_error: true
+              action: light.turn_on
+              data:
+                entity_id: light.kitchen_island
+                brightness_pct: 100
+                transition: 3
+        - sequence:
+            - continue_on_error: true
+              action: light.turn_on
+              data:
+                entity_id:
+                  - light.front_foyer_ceiling_lights
+                  - light.back_stairs_back_stairs
+                  - light.upstairs_hallway_main_lights
+                  - light.vestibule_main_lights
+                brightness_pct: 10
+                transition: 3
+        - sequence:
+            - continue_on_error: true
+              action: light.turn_on
+              data:
+                entity_id:
+                  - light.kitchen_main
+                  - light.kitchen_table_lights
+                  - light.kitchen_sink_light
+                  - light.kitchen_coffee_bar
+                brightness_pct: 10
+                transition: 3
+        - sequence:
+            - continue_on_error: true
+              action: light.turn_on
+              data:
+                entity_id:
+                  - light.mudroom_main_lights
+                  - light.mudroom_nook_lights
+                  - light.back_patio_light
+                brightness_pct: 10
+                transition: 3
+        - sequence:
+            - if:
+                - condition: template
+                  value_template: "{{ front_stairs_target_pct > 0 and front_stairs_current_pct < front_stairs_target_pct }}"
+              then:
+                - continue_on_error: true
+                  action: light.turn_on
+                  data:
+                    entity_id: light.stairs_front_stairs
+                    brightness_pct: "{{ front_stairs_target_pct }}"
+                    transition: 10
 
 family_room_tv_mode_on:
   alias: Family Room TV Mode On

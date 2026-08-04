@@ -432,8 +432,17 @@
 
 - id: interior_evening_mode_schedule_sync
   alias: "Lights — Interior Evening Mode Schedule Sync"
-  description: Starts the calm interior evening scene when the adjusted evening threshold is reached and Casey or Trevor is home.
+  description: Starts or repairs the calm interior evening scene when the adjusted evening window is active and Casey or Trevor is home.
   triggers:
+    - trigger: homeassistant
+      event: start
+      id: startup
+    - trigger: event
+      event_type: automation_reloaded
+      id: automation_reloaded
+    - trigger: time_pattern
+      minutes: "/5"
+      id: refresh
     - trigger: state
       entity_id: binary_sensor.front_stairs_schedule_active
       to: "on"
@@ -448,6 +457,9 @@
     - condition: state
       entity_id: binary_sensor.front_stairs_schedule_active
       state: "on"
+    - condition: state
+      entity_id: binary_sensor.foyer_chandelier_schedule_active
+      state: "on"
     - condition: template
       value_template: "{{ not is_state_attr('sun.sun', 'rising', true) }}"
     - condition: template
@@ -460,7 +472,7 @@
       state: "off"
     - condition: template
       value_template: >
-        {% if trigger.id != 'arrival' %}
+        {% if trigger.id | default('') != 'arrival' %}
           true
         {% else %}
           {% set other_person = 'person.casey' if trigger.entity_id == 'person.bonticou' else 'person.bonticou' %}
@@ -469,7 +481,32 @@
              and states(other_person) != 'home' }}
         {% endif %}
     - condition: template
-      value_template: "{{ states('input_select.lighting_active_scene') not in ['Evening', 'TV', 'Bedtime'] }}"
+      value_template: >-
+        {% set scene = states('input_select.lighting_active_scene') %}
+        {% set trigger_id = trigger.id | default('') %}
+        {% set last_evening_ts = as_timestamp(state_attr('script.lights_evening_scene', 'last_triggered'), 0) %}
+        {% set evening_recent = last_evening_ts > 0 and (as_timestamp(now()) - last_evening_ts) < 1200 %}
+        {% set expected = [
+          'light.family_room_main_lights_1',
+          'light.family_room_main_lights_2',
+          'light.family_room_main_lights_3',
+          'light.kitchen_island',
+          'light.front_foyer_ceiling_lights',
+          'light.kitchen_main'
+        ] %}
+        {% set ns = namespace(missing=false) %}
+        {% for entity_id in expected %}
+          {% if states(entity_id) in ['off', 'unknown', 'unavailable'] %}
+            {% set ns.missing = true %}
+          {% endif %}
+        {% endfor %}
+        {% if trigger_id in ['startup', 'automation_reloaded'] %}
+          {{ scene == 'None' or (scene == 'Evening' and ns.missing) }}
+        {% elif trigger_id == 'refresh' %}
+          {{ scene == 'None' or (scene == 'Evening' and evening_recent and ns.missing) }}
+        {% else %}
+          {{ scene not in ['Evening', 'TV', 'Bedtime'] }}
+        {% endif %}
   actions:
     - action: script.lights_evening_scene
   mode: single
