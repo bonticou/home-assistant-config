@@ -77,6 +77,7 @@ Supporting material:
 
 | Date | Entry | Scope |
 | --- | --- | --- |
+| 2026-08-05 | [Ring realtime notifications stopped](2026-08-05-ring-realtime-notifications.md) | Isolates missing Front Door and Mudroom Ring motion/doorbell pushes to the upstream Ring realtime event feed while confirming the shared Trevor phone notification path continued working and recording a concurrent Remote UI tunnel outage |
 | 2026-08-03 | [Tesla overnight plug reminder](2026-08-03-tesla-overnight-plug-reminder.md) | Adds a durable after-10 PM Tesla plug-in reminder gated on Trevor home, Tesla home, charge-cable disconnected, and battery-level telemetry while documenting the remaining Tesla Fleet setup dependency |
 | 2026-08-03 | [Evening mode catch-up and scene resilience](2026-08-03-evening-mode-catchup.md) | Diagnoses an Evening scene that triggered but only partially applied before later Core restarts, then adds guarded startup/reload/refresh catch-up and parallel fault-tolerant scene chunks |
 | 2026-08-02 | [Unexpected Core restart during Tesla setup](2026-08-02-unexpected-core-restart-during-tesla-setup.md) | Confirms the visible outage coincided with an unclean Home Assistant Core restart, rules out repo-owned restart actions, and preserves the Supervisor/previous-Core log follow-up needed to identify the trigger |
