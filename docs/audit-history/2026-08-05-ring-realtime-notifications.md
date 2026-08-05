@@ -64,6 +64,12 @@ separately.
 - The same startup log showed Ring among integrations still completing setup
   shortly before the FCM failure. A fresh Core startup therefore did not restore
   durable Ring realtime delivery; the push receiver failed again immediately.
+- Ring Control Center showed exactly one active Home Assistant client,
+  `ring-doorbell:HomeAssistant/ring-integration`, last accessed at 2:25 PM
+  Eastern on August 5. There was no accumulation of obsolete Home Assistant or
+  Python clients to clean up. The fresh access time further confirms that the
+  ordinary Ring account/API session remained active while realtime delivery was
+  broken.
 - The event entities still existed with the expected Ring event metadata, so an
   entity rename or deleted entity is not the leading explanation.
 - Home Assistant's current Ring documentation states that realtime events
@@ -96,15 +102,17 @@ separately.
    entities, and it affects the whole Ring account rather than one automation
    or doorbell.
 
-3. **Medium-high confidence: regenerating the Ring integration's realtime client
-   identity/credentials is more promising than a simple reload or Core
-   restart.**
+3. **High confidence: regenerating the Ring integration's realtime client
+   identity/credentials is more promising than client cleanup, a simple reload,
+   or a Core restart.**
 
    The push client failed again immediately after startup, so a plain restart is
    not a durable fix. Home Assistant's current troubleshooting guidance directs
    users to clean obsolete Ring Authorized Client Devices before reconfiguring
-   the integration to generate a new unique ID. The account-device list was not
-   changed in this read-only pass.
+   the integration to generate a new unique ID. The account has only one current
+   Home Assistant client, so excess-client cleanup is not applicable here. The
+   current client should not be removed unless HA reconfiguration is performed
+   immediately afterward.
 
 4. **High confidence: the current Nabu Casa Remote UI outage is real but is not
    the primary August 1 Ring cutoff.**
@@ -148,12 +156,13 @@ and doorbell test at each entry.
 
 1. Download the Ring diagnostics and preserve the 10:32:04 AM Core traceback
    before changing the integration.
-2. Review Ring `Authorized Client Devices` and remove only obsolete entries
-   beginning with `ring-doorbell:HomeAssistant` or `Python`, following the
-   official warning not to remove phone/app clients.
-3. Reconfigure the Ring integration to generate a new unique ID and realtime
+2. Reconfigure the Ring integration to generate a new unique ID and realtime
    client identity. A simple reload or Core restart is unlikely to be durable
    because the client already failed again after startup.
+3. If reconfiguration does not replace the Ring Authorized Client Devices
+   entry, remove the single `ring-doorbell:HomeAssistant/ring-integration`
+   client and immediately complete HA Ring reconfiguration and 2FA. Do not
+   remove phone or ordinary Ring-app clients.
 4. Verify outbound TCP 5228 from the HA host/network is allowed, although the
    decoded-message traceback proves the client connected far enough to receive
    a realtime message.
