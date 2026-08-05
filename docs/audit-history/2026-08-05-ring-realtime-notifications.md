@@ -70,6 +70,12 @@ separately.
   Python clients to clean up. The fresh access time further confirms that the
   ordinary Ring account/API session remained active while realtime delivery was
   broken.
+- HA reported that Ring reconfiguration completed successfully during the
+  afternoon recovery attempt, but the Core log recorded the identical
+  `Incorrect padding, shutting down FcmPushClient` failure at 2:25:54 PM
+  Eastern. The Front Door `Ding` and `Motion` entities remained `unknown`
+  afterward. Reconfiguration without first revoking the existing authorized
+  client therefore did not rotate enough realtime state to restore service.
 - The event entities still existed with the expected Ring event metadata, so an
   entity rename or deleted entity is not the leading explanation.
 - Home Assistant's current Ring documentation states that realtime events
@@ -113,6 +119,12 @@ separately.
    Home Assistant client, so excess-client cleanup is not applicable here. The
    current client should not be removed unless HA reconfiguration is performed
    immediately afterward.
+
+   The first reconfiguration attempt completed in HA but the realtime client
+   crashed immediately. The next bounded recovery attempt should therefore
+   revoke the sole Ring-authorized Home Assistant client first and then
+   immediately reconfigure HA Ring again, forcing a genuinely fresh client
+   registration.
 
 4. **High confidence: the current Nabu Casa Remote UI outage is real but is not
    the primary August 1 Ring cutoff.**
@@ -177,6 +189,10 @@ and doorbell test at each entry.
 - A Ring integration reload may restore service only until the next incompatible
   message; capture diagnostics first and prefer the documented client-identity
   reset sequence.
+- If a revoke-then-reconfigure cycle produces the same traceback, stop repeating
+  account resets. Treat the failure as an upstream `firebase-messaging` / Ring
+  integration defect, preserve native Ring-app alerts as the temporary safety
+  path, and escalate with sanitized diagnostics and the exact traceback.
 - Reconfiguring Ring can invalidate the current integration identity and should
   follow Authorized Client Devices cleanup in the documented order.
 - The concurrent Remote UI tunnel outage needs separate follow-up if it persists,
