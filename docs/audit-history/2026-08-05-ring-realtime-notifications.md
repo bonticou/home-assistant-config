@@ -71,11 +71,21 @@ separately.
   ordinary Ring account/API session remained active while realtime delivery was
   broken.
 - HA reported that Ring reconfiguration completed successfully during the
-  afternoon recovery attempt, but the Core log recorded the identical
-  `Incorrect padding, shutting down FcmPushClient` failure at 2:25:54 PM
-  Eastern. The Front Door `Ding` and `Motion` entities remained `unknown`
-  afterward. Reconfiguration without first revoking the existing authorized
-  client therefore did not rotate enough realtime state to restore service.
+  afternoon recovery attempt. The Core log recorded the identical `Incorrect
+  padding, shutting down FcmPushClient` failure at 2:25:54 PM Eastern during
+  the transition, but that error did not represent the final post-
+  reconfiguration state.
+- Trevor performed a physical Front Door doorbell test at 2:48 PM Eastern and
+  received the expected HA notification. Live HA evidence independently
+  confirmed the entire chain:
+  - `event.front_door_ding`: fresh 2:48 PM event timestamp;
+  - `automation.security_entry_ring_notifications`: last triggered at
+    2:48:55 PM;
+  - `script.entry_camera_send_alert`: last triggered at 2:48:55 PM;
+  - the mobile push was received by Trevor.
+- Front Door `Motion` remained `unknown` at final verification, so the recovered
+  realtime connection is proven for doorbell events but a separate physical
+  motion test remains outstanding.
 - The event entities still existed with the expected Ring event metadata, so an
   entity rename or deleted entity is not the leading explanation.
 - Home Assistant's current Ring documentation states that realtime events
@@ -108,9 +118,8 @@ separately.
    entities, and it affects the whole Ring account rather than one automation
    or doorbell.
 
-3. **High confidence: regenerating the Ring integration's realtime client
-   identity/credentials is more promising than client cleanup, a simple reload,
-   or a Core restart.**
+3. **High confidence: Ring reconfiguration restored the realtime client without
+   deleting the sole authorized Ring client.**
 
    The push client failed again immediately after startup, so a plain restart is
    not a durable fix. Home Assistant's current troubleshooting guidance directs
@@ -120,11 +129,11 @@ separately.
    current client should not be removed unless HA reconfiguration is performed
    immediately afterward.
 
-   The first reconfiguration attempt completed in HA but the realtime client
-   crashed immediately. The next bounded recovery attempt should therefore
-   revoke the sole Ring-authorized Home Assistant client first and then
-   immediately reconfigure HA Ring again, forcing a genuinely fresh client
-   registration.
+   Although one FCM decoding error appeared during the transition, the later
+   physical test produced a new event entity timestamp, automation run, alert-
+   script run, and received mobile push. That end-to-end evidence supersedes the
+   earlier interpretation that the 2:25:54 error proved reconfiguration had
+   failed.
 
 4. **High confidence: the current Nabu Casa Remote UI outage is real but is not
    the primary August 1 Ring cutoff.**
@@ -135,9 +144,11 @@ separately.
 
 ## Changes Made
 
-- No Home Assistant configuration or live state was changed.
-- No integration reload, Core restart, test notification, or Ring account
-  change was performed.
+- No YAML configuration was changed or deployed.
+- Trevor successfully reconfigured the live Ring integration through Home
+  Assistant and completed the required Ring authentication.
+- No Ring Authorized Client Device was removed and no additional Core restart
+  was initiated as part of the final recovery.
 - Added this diagnostic record and linked it from the audit-history index.
 
 ## Checks Run
@@ -152,6 +163,8 @@ separately.
   automation after Trevor confirmed physical misses.
 - Inspected and filtered the live Home Assistant Core log to the terminating
   `FcmPushClient` traceback.
+- Verified the physical Front Door doorbell test against the fresh Ring event,
+  automation, alert-script, and received-push evidence at 2:48 PM Eastern.
 - Probed local HA DNS, ICMP, TCP 8123, and HTTP.
 - Probed the Nabu Casa root, stock dashboard, calm dashboard, and websocket
   paths without authentication.
@@ -160,21 +173,19 @@ separately.
 
 ## Deployment Status
 
-No deployment was performed. The Ring notification failure remains active
-until realtime event delivery is restored and verified with a physical motion
-and doorbell test at each entry.
+No YAML deployment was required. Live Ring reconfiguration restored and
+physically verified Front Door doorbell notifications. Motion and the Mudroom
+Door paths remain to be physically verified before the incident is considered
+fully closed.
 
 ## Recommended Recovery Order
 
 1. Download the Ring diagnostics and preserve the 10:32:04 AM Core traceback
    before changing the integration.
 2. Reconfigure the Ring integration to generate a new unique ID and realtime
-   client identity. A simple reload or Core restart is unlikely to be durable
-   because the client already failed again after startup.
-3. If reconfiguration does not replace the Ring Authorized Client Devices
-   entry, remove the single `ring-doorbell:HomeAssistant/ring-integration`
-   client and immediately complete HA Ring reconfiguration and 2FA. Do not
-   remove phone or ordinary Ring-app clients.
+   client identity. Completed successfully on August 5.
+3. Do not remove the sole `ring-doorbell:HomeAssistant/ring-integration`
+   authorized client while the recovered connection remains healthy.
 4. Verify outbound TCP 5228 from the HA host/network is allowed, although the
    decoded-message traceback proves the client connected far enough to receive
    a realtime message.
@@ -189,10 +200,11 @@ and doorbell test at each entry.
 - A Ring integration reload may restore service only until the next incompatible
   message; capture diagnostics first and prefer the documented client-identity
   reset sequence.
-- If a revoke-then-reconfigure cycle produces the same traceback, stop repeating
-  account resets. Treat the failure as an upstream `firebase-messaging` / Ring
-  integration defect, preserve native Ring-app alerts as the temporary safety
-  path, and escalate with sanitized diagnostics and the exact traceback.
+- If the realtime entities become silent again and the same traceback recurs,
+  stop repeating account resets. Treat the failure as an upstream
+  `firebase-messaging` / Ring integration defect, preserve native Ring-app
+  alerts as the temporary safety path, and escalate with sanitized diagnostics
+  and the exact traceback.
 - Reconfiguring Ring can invalidate the current integration identity and should
   follow Authorized Client Devices cleanup in the documented order.
 - The concurrent Remote UI tunnel outage needs separate follow-up if it persists,
