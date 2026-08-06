@@ -459,6 +459,43 @@ storage freed by this specific slice is therefore expected to be essentially
 zero; the benefit is reduced future Recorder write volume and lower ongoing DB
 churn.
 
+
+## Exact Recorder Purge And Supported Repack Attempt
+
+Annotation-driven maintenance was run after the widened Recorder exclusions were
+live. The goal was to reclaim safe low-stakes history without changing rules,
+notifications, dashboards, helpers, or physical trend data.
+
+Actions performed through the authenticated Home Assistant frontend:
+
+- called `recorder.purge_entities` with the exact `152` entity IDs currently in
+  `recorder.exclude.entities`;
+- called HA-supported `recorder.purge` with `keep_days: 30`, `apply_filter:
+  true`, and `repack: true`;
+- did not call a broad domain purge;
+- did not reduce global retention;
+- did not manually delete SQLite rows;
+- did not run direct SQLite `VACUUM` against the live database.
+
+Health after the service calls:
+
+- HA frontend connected: `true`
+- Remote UI: `on`
+- remote access status: `online`
+- Recorder: recording `true`, thread running `true`, migration not in progress
+- Recorder backlog: `200` against a `65,000` max backlog
+- Core memory: about `989 MB` of a `4.11 GB` limit (`24.06%`)
+- Host disk: about `808.2 GB` free, `71.4 GB` used, `916.8 GB` total
+
+Storage result: the supported purge/repack path did not visibly reduce host disk
+usage during the observation window. This is consistent with earlier Recorder
+maintenance: HA can remove rows and create reclaimable SQLite free pages without
+immediately shrinking the physical DB file. A direct SQLite vacuum may reclaim
+more space, but it is a separate higher-risk maintenance operation because it
+can lock or rewrite the live database. It should only be considered with a fresh
+off-device backup, a quiet window, and a plan to stop HA or otherwise guarantee
+Recorder is not writing.
+
 ## Residual Risks And Follow-Ups
 
 - Add-on stats and Supervisor/Core metadata endpoints were not available from
