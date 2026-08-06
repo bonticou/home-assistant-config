@@ -329,6 +329,93 @@ not improve because the database file was not repacked/vacuumed, and the purge
 service only cleared a small fraction of historical rows during the safe
 observation window. Manual SQLite deletion was deliberately not attempted.
 
+## Second Prevention-Only Recorder Slice
+
+A follow-up prevention-only slice added exact Recorder exclusions for additional
+current-only summary sensors and unused UniFi diagnostics:
+
+- `sensor.away_security_entry_point_issues`
+- `sensor.downstairs_climate_insight`
+- `sensor.environment_attic_status`
+- `sensor.environment_basement_status`
+- `sensor.environment_dining_room_status`
+- `sensor.environment_garage_status`
+- `sensor.environment_house_status`
+- `sensor.environment_kitchen_status`
+- `sensor.environment_main_floor_status`
+- `sensor.environment_office_status`
+- `sensor.environment_primary_bedroom_status`
+- `sensor.environment_second_floor_status`
+- `sensor.irrigation_dashboard_status`
+- `sensor.irrigation_focus_zone_detail`
+- `sensor.irrigation_running_context`
+- `sensor.irrigation_zone_attention_summary`
+- `sensor.u7_pro_family_room_cpu_utilization`
+- `sensor.usw_flex_2_5g_5_cpu_utilization`
+
+Rationale:
+
+- The environment, irrigation, climate, and away-security entities are
+  template-derived summary/current-context sensors used by dashboards,
+  notification copy, startup refreshes, and live alert decisions.
+- The durable state for notifications remains in the explicit
+  `input_datetime`, `input_boolean`, and action-helper entities, not in the raw
+  Recorder history of these summary sensors.
+- The UniFi AP/switch CPU sensors are diagnostics with no repo automation,
+  script, dashboard, or custom-card consumer found.
+- Wine humidity/dew-point entities and `sensor.irrigation_flow_rate` were
+  deliberately kept recorded because they represent physical/trend data used by
+  wine or water/flow behavior.
+
+The measured top-writer subset of this slice accounts for at least roughly
+`16,600` additional rows/day avoided. The true future-write reduction is higher
+because several related environment summary sensors were excluded even though
+they were below the top-20 printout.
+
+This slice is prevention-only. No historical purge was attempted for these
+entities because the first exact purge had only partially progressed and the
+safe maintenance rule is to avoid stacking heavy database work during an
+availability recovery.
+
+## Widened Low-Stakes No-Reference Recorder Slice
+
+The scope was then widened using a stricter user-facing rule: exclude only data
+that is not incorporated in rule sets, calculations, dashboards, custom cards,
+or notice-building code. A repository reference scan was run across
+`configuration.yaml`, `scripts.yaml`, `scenes.yaml`, `sensors.yaml`,
+`lights.yaml`, `automations/`, `dashboards/`, and `www/`.
+
+This identified `113` additional exact low-stakes Recorder candidates. They
+fall into three classes:
+
+- infrastructure diagnostics, such as UniFi CPU/memory/uptime, Protect camera
+  disk-write/storage, gateway storage, and router/upload/client diagnostics;
+- signal-quality diagnostics, such as Wi-Fi or lamp signal levels;
+- integration configuration toggles, such as Sonos autoplay/loudness settings,
+  Ring/Protect "motion detection enabled" settings, HomeKit audio settings, and
+  device LED/auto-update toggles.
+
+These are useful as live Home Assistant states, but the repo has no automation,
+script, calculation, dashboard, custom-card, or notice consumer that needs their
+30-day Recorder history.
+
+Deliberately not excluded in this widened slice:
+
+- automations, scripts, and helpers, because their history supports "when did
+  this last fire" debugging and durable notification state;
+- Ring/Protect motion, ding, person, vehicle, and camera event entities,
+  because they can be meaningful security or incident history;
+- water, irrigation flow, leak, valve, climate, radon, wine, and other physical
+  time-series entities;
+- notification ledgers and action-stamp history, including
+  `sensor.house_notice_history` and `sensor.house_action_stamp_ledger`;
+- derived calculation outputs where the state itself is part of a household
+  decision model rather than pure infrastructure/config noise.
+
+After regenerating the inventory, Recorder candidates fell from `1680` to
+`1567`, excluded-by-config entities rose from `464` to `577`, and low
+stateful-need candidates fell from `286` to `173`.
+
 ## Deployment Status
 
 Initial audit: no Home Assistant deployment was performed. No restart, reload,
@@ -352,6 +439,25 @@ Remote UI recovered. Core was restarted after a valid config check. Exact
 purge was attempted through HA's Recorder service and partially progressed. No
 manual SQLite deletes, repack, vacuum, broad purge, or retention change was
 performed.
+
+Widened low-stakes no-reference slice: live deployment completed through the
+authenticated Nabu Casa/File Editor route. `/homeassistant/configuration.yaml`
+was written and read back successfully, Home Assistant reported a valid config,
+and Core was restarted so Recorder would load the new exclusions. Post-restart
+health showed:
+
+- Core state: `RUNNING`
+- Core version: `2026.7.1`
+- Remote UI: `on`
+- remote access status: `online`
+- Recorder: recording `true`, thread running `true`, backlog `0`, migration
+  not in progress
+
+No historical purge, SQLite repack, vacuum, broad purge, retention change, or
+manual database edit was performed for this widened slice. The immediate
+storage freed by this specific slice is therefore expected to be essentially
+zero; the benefit is reduced future Recorder write volume and lower ongoing DB
+churn.
 
 ## Residual Risks And Follow-Ups
 
