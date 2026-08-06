@@ -79,6 +79,7 @@ Supporting material:
 
 | Date | Entry | Scope |
 | --- | --- | --- |
+| 2026-08-06 | [Irrigation history and August commute cleanup](2026-08-06-irrigation-history-and-august-commute-cleanup.md) | Adds exact cleanup for demoted irrigation flow notification history and makes Metro-North commute quiet in August without push, dashboard, API, or Recorder churn |
 | 2026-08-06 | [Irrigation anomaly notification triage](2026-08-06-irrigation-anomaly-notification-triage.md) | Demotes sparse derived Hunter-flow anomaly pushes to diagnostic history, preserves real pressure/Hydrawise alerts, and hardens recovery-pressure sanity checks |
 | 2026-08-06 | [Irrigation start notification miss](2026-08-06-irrigation-start-notification-miss.md) | Diagnoses a missed sprinkler-start push as stale irrigation session helpers suppressing the start gate, then hardens the gate while preserving duplicate protection |
 | 2026-08-05 | [Core watchdog restarts and memory pressure](2026-08-05-core-watchdog-restarts.md) | Confirms repeated Supervisor watchdog restarts after missed Core API responses, captures Recorder health and frontend route evidence, and ranks safe optimization follow-ups without changing rules or displays |

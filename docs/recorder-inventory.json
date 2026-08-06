@@ -39,9 +39,9 @@
       "entities": 206,
       "high_stateful_need": 0,
       "live_attr_bytes": null,
-      "low_stateful_need": 152,
+      "low_stateful_need": 151,
       "medium_stateful_need": 0,
-      "recorded_candidates": 152,
+      "recorded_candidates": 151,
       "unknown_stateful_need": 0
     },
     {
@@ -129,9 +129,9 @@
       "entities": 315,
       "high_stateful_need": 147,
       "live_attr_bytes": null,
-      "low_stateful_need": 5,
+      "low_stateful_need": 4,
       "medium_stateful_need": 49,
-      "recorded_candidates": 294,
+      "recorded_candidates": 293,
       "unknown_stateful_need": 93
     },
     {
@@ -9109,7 +9109,7 @@
       "domain": "binary_sensor",
       "entity_category": "",
       "entity_id": "binary_sensor.metro_north_commute_card_active",
-      "exclude_match": "",
+      "exclude_match": "entity:binary_sensor.metro_north_commute_card_active",
       "friendly_name": "metro_north_commute_card_active",
       "hidden_by": "",
       "live_age_seconds": null,
@@ -9118,7 +9118,7 @@
       "platform": "template",
       "reason": "Derived summary/status data is usually regenerated or shown as current state.",
       "recommendation": "review_current_only",
-      "recorder_status": "recorded_candidate",
+      "recorder_status": "excluded_by_config",
       "retention_days": 30,
       "role": "telemetry",
       "stateful_need": "low",
@@ -63300,7 +63300,7 @@
       "unit": ""
     }
   ],
-  "generated_at": "2026-08-06T03:07:23+00:00",
+  "generated_at": "2026-08-06T20:11:03+00:00",
   "integrations": [
     {
       "db_rows": null,
@@ -63329,10 +63329,10 @@
       "entities": 206,
       "high_stateful_need": 36,
       "live_attr_bytes": null,
-      "low_stateful_need": 97,
+      "low_stateful_need": 96,
       "medium_stateful_need": 0,
       "platform": "template",
-      "recorded_candidates": 186,
+      "recorded_candidates": 185,
       "unknown_stateful_need": 53
     },
     {
@@ -63843,6 +63843,7 @@
         "sensor.irrigation_zone_attention_summary",
         "sensor.mechanical_room_disk_write_rate",
         "sensor.mechanical_room_storage_used",
+        "binary_sensor.metro_north_commute_card_active",
         "sensor.metro_north_nwp_to_grand_central",
         "sensor.mud_room_disk_write_rate",
         "sensor.mud_room_storage_used",
@@ -63999,7 +64000,7 @@
   "summary": {
     "category_counts": {
       "camera_or_event_state": 17,
-      "derived_summary_or_dashboard_state": 152,
+      "derived_summary_or_dashboard_state": 151,
       "event_or_safety_history": 417,
       "infrastructure_health_diagnostic": 2,
       "infrastructure_or_camera_misc": 72,
@@ -64013,20 +64014,20 @@
     },
     "disabled_count": 368,
     "entity_count": 2512,
-    "excluded_by_config_count": 577,
+    "excluded_by_config_count": 578,
     "recommendation_counts": {
       "keep": 417,
       "keep_or_shorten_by_dashboard_need": 89,
       "review": 384,
-      "review_current_only": 156,
+      "review_current_only": 155,
       "review_selectively": 504,
       "review_short_or_current_only": 17
     },
-    "recorded_candidate_count": 1567,
+    "recorded_candidate_count": 1566,
     "retention_days": 30,
     "stateful_need_counts": {
       "high": 506,
-      "low": 173,
+      "low": 172,
       "medium": 504,
       "unknown": 384
     }

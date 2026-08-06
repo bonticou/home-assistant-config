@@ -140,6 +140,8 @@ command_line:
         --route-name "Harlem Line"
         --min-departure-minutes 20
         --limit 3
+        --quiet-month 8
+        --quiet-message "No commute schedule in August."
       command_timeout: 45
       scan_interval: 120
       value_template: >
@@ -461,6 +463,11 @@ shell_command:
     --data-file /config/.irrigation_history.json
     --status-file /config/.irrigation_history_status.json
     purge-flo-derived
+  irrigation_history_purge_demoted_flow_alerts: >-
+    python3 /config/tools/irrigation_history.py
+    --data-file /config/.irrigation_history.json
+    --status-file /config/.irrigation_history_status.json
+    purge-demoted-flow-alerts
 
 input_datetime:
   away_security_snooze_until:
@@ -1398,6 +1405,7 @@ recorder:
       - sensor.irrigation_zone_attention_summary
       - sensor.mechanical_room_disk_write_rate
       - sensor.mechanical_room_storage_used
+      - binary_sensor.metro_north_commute_card_active
       - sensor.metro_north_nwp_to_grand_central
       - sensor.mud_room_disk_write_rate
       - sensor.mud_room_storage_used
@@ -5982,6 +5990,9 @@ template:
         unique_id: metro_north_commute_card_active
         icon: mdi:train
         state: >
+          {% if now().month == 8 %}
+            false
+          {% else %}
           {% set last_notified = states('input_datetime.metro_north_commute_last_notified_at') %}
           {% set dismissed = states('input_datetime.metro_north_commute_card_dismissed_at') %}
           {% set message = states('input_text.metro_north_commute_card_message') %}
@@ -5989,7 +6000,9 @@ template:
           {% set notified_at = as_timestamp(last_notified, 0) %}
           {% set dismissed_at = as_timestamp(dismissed, 0) %}
           {{ has_message and notified_at > 0 and dismissed_at < notified_at }}
+          {% endif %}
         attributes:
+          commute_season_active: "{{ now().month != 8 }}"
           message: "{{ states('input_text.metro_north_commute_card_message') }}"
           last_notified_at: "{{ states('input_datetime.metro_north_commute_last_notified_at') }}"
           dismissed_at: "{{ states('input_datetime.metro_north_commute_card_dismissed_at') }}"

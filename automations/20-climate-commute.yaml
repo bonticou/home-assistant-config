@@ -1131,6 +1131,8 @@
       entity_id: device_tracker.tk_iphone_16_pro
       from: "home"
   conditions:
+    - condition: template
+      value_template: "{{ now().month != 8 }}"
     - condition: time
       weekday:
         - mon

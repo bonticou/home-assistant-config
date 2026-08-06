@@ -24,6 +24,21 @@ FLO_DERIVED_EVENT_KINDS = {
     "irrigation_blind_watering",
 }
 
+DEMOTED_FLOW_EVENT_KINDS = {
+    "irrigation_flow_after_stop",
+    "irrigation_flow_meter_stale",
+    "irrigation_high_flow",
+    "irrigation_low_flow",
+    "irrigation_no_flow",
+    "irrigation_unscheduled_flow",
+    "diagnostic_irrigation_flow_after_stop",
+    "diagnostic_irrigation_flow_meter_stale",
+    "diagnostic_irrigation_high_flow",
+    "diagnostic_irrigation_low_flow",
+    "diagnostic_irrigation_no_flow",
+    "diagnostic_irrigation_unscheduled_flow",
+}
+
 FLO_DERIVED_NOTE_RE = re.compile(
     r"\b("
     r"flo|flow|gpm|gal/min|gallons?|"
@@ -415,6 +430,16 @@ def purge_flo_derived(data: dict[str, Any]) -> None:
     data["events"] = retained_events[:MAX_EVENTS]
 
 
+def purge_demoted_flow_alerts(data: dict[str, Any]) -> None:
+    retained_events = []
+    for event in data.get("events", []):
+        kind = clean_text(event.get("kind"))
+        if kind in DEMOTED_FLOW_EVENT_KINDS or base_event_kind(kind) in DEMOTED_FLOW_EVENT_KINDS:
+            continue
+        retained_events.append(event)
+    data["events"] = retained_events[:MAX_EVENTS]
+
+
 def summarize(data: dict[str, Any]) -> dict[str, Any]:
     sessions = data.get("sessions", [])
     zone_runs = data.get("zone_runs", [])
@@ -525,6 +550,7 @@ def build_parser() -> argparse.ArgumentParser:
     zone_finish_parser.add_argument("--note", default="")
 
     subparsers.add_parser("purge-flo-derived")
+    subparsers.add_parser("purge-demoted-flow-alerts")
 
     return parser
 
@@ -550,6 +576,8 @@ def main() -> int:
         zone_finish(args, data)
     elif args.command == "purge-flo-derived":
         purge_flo_derived(data)
+    elif args.command == "purge-demoted-flow-alerts":
+        purge_demoted_flow_alerts(data)
     elif args.status:
         pass
     else:

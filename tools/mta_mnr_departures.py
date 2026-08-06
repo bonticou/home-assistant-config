@@ -64,6 +64,8 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--api-key")
     parser.add_argument("--api-key-file")
     parser.add_argument("--static-cache-hours", type=int, default=12)
+    parser.add_argument("--quiet-month", type=int, action="append", default=[])
+    parser.add_argument("--quiet-message", default="No commute schedule during off-season.")
     return parser.parse_args()
 
 
@@ -622,6 +624,13 @@ def main() -> None:
     tz = ZoneInfo(args.timezone)
     now = datetime.now(tz)
     payload = base_payload(args, "static_schedule")
+
+    if now.month in set(args.quiet_month):
+        payload["summary"] = "Off-season"
+        payload["message"] = args.quiet_message
+        payload["source"] = "off_season"
+        output(payload)
+        return
 
     try:
         candidates = load_static_candidates(args, now)

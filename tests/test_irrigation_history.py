@@ -246,6 +246,49 @@ class IrrigationHistoryTests(unittest.TestCase):
         self.assertEqual([run["zone"] for run in data["zone_runs"]], ["Zone 2"])
         self.assertEqual([event["title"] for event in data["events"]], ["Zone 2 finished"])
 
+    def test_purge_demoted_flow_alerts_removes_only_retired_notice_kinds(self):
+        data = history.initial_data()
+        data["events"] = [
+            history.event_payload(
+                kind="alert_irrigation_no_flow",
+                at="2026-08-06T10:00:00+00:00",
+                title="No irrigation flow",
+                flow_source="hunter",
+            ),
+            history.event_payload(
+                kind="diagnostic_irrigation_flow_meter_stale",
+                at="2026-08-06T10:05:00+00:00",
+                title="Flow meter stale",
+                flow_source="hunter",
+            ),
+            history.event_payload(
+                kind="alert_irrigation_controller_offline_during_watering",
+                at="2026-08-06T10:10:00+00:00",
+                title="Controller offline during watering",
+            ),
+            history.event_payload(
+                kind="alert_irrigation_pressure_collapse",
+                at="2026-08-06T10:15:00+00:00",
+                title="Pressure collapse",
+            ),
+            history.event_payload(
+                kind="session_started",
+                at="2026-08-06T10:20:00+00:00",
+                title="Sprinklers started",
+            ),
+        ]
+
+        history.purge_demoted_flow_alerts(data)
+
+        self.assertEqual(
+            [event["kind"] for event in data["events"]],
+            [
+                "alert_irrigation_controller_offline_during_watering",
+                "alert_irrigation_pressure_collapse",
+                "session_started",
+            ],
+        )
+
 
 if __name__ == "__main__":
     unittest.main()
