@@ -19,7 +19,9 @@ families:
 
 1. **Core/app-layer stall or unexpected termination.** Fresh HTTP and websocket
    sessions may stop responding even when the host still answers ping or TCP.
-   The 2026-08-02 incident directly confirmed an unclean Core termination.
+   The 2026-08-02 incident directly confirmed an unclean Core termination, and
+   the 2026-08-05 incident confirmed repeated Supervisor watchdog restarts after
+   missed Core API responses.
 2. **Nabu Casa Remote UI/tunnel or TLS-path failure.** Remote access can fail
    while local Core remains healthy. The existing HA-internal watchdog can call
    `cloud.remote_connect`, but prior long outages prove that this is not a full
@@ -37,6 +39,10 @@ Remote UI state, local access, and restart evidence.
 - On 2026-08-02, Recorder found an unfinished session and reported that the
   SQLite database had not shut down cleanly. Core started around 8:35 PM and
   terminated around 9:13 PM, approximately 38 minutes later.
+- On 2026-08-05, Supervisor logged three watchdog restarts after missing two
+  Core API responses in a row. Each restart took roughly six to seven minutes to
+  return Core to `RUNNING`, and host logs showed Core container memory peaks
+  around `1G` without a captured OOM-kill marker.
 - No repo-owned automation or script intentionally restarts Core, reboots the
   host, shuts it down, or installs updates.
 - Prior incidents captured local ping/TCP success while fresh HTTP returned no
@@ -58,11 +64,11 @@ Remote UI state, local access, and restart evidence.
 
 These are ranked investigation hypotheses, not conclusions:
 
-1. A Core process crash or Supervisor watchdog restart is the leading
-   explanation for the confirmed unclean 2026-08-02 termination.
-2. Recorder/database pressure, integration retry load, or another app-layer
-   stall may make Core unresponsive enough to be killed, but no outage-window
-   Supervisor log has yet proven this chain.
+1. Core app-layer stalls leading to Supervisor watchdog restarts are now the
+   leading explanation for the recurring restart-class outages.
+2. Recorder/database pressure, integration retry load, template/state storms, or
+   another app-layer stall may make Core unresponsive enough to trip the
+   watchdog; OOM is plausible but not proven without an OOM-kill marker.
 3. A host/container restart remains possible until host boot time, Supervisor
    uptime, and Core start time are compared for the same incident.
 4. Remote UI instability is a real parallel problem and may occur independently
@@ -147,6 +153,7 @@ These are ranked investigation hypotheses, not conclusions:
 
 ## Investigation Record
 
+- `docs/audit-history/2026-08-05-core-watchdog-restarts.md`
 - `docs/audit-history/2026-08-02-unexpected-core-restart-during-tesla-setup.md`
 - `docs/audit-history/2026-07-13-recorder-health-gate.md`
 - `docs/audit-history/2026-07-13-recorder-pressure-follow-up.md`

@@ -48,6 +48,7 @@ The accumulated evidence currently distinguishes at least three failure
 families:
 
 - Home Assistant Core/app-layer stalls or unexpected Core termination;
+- Supervisor watchdog restarts after Core stops answering the Core API;
 - Nabu Casa Remote UI/tunnel or TLS-path outages while local Core may remain
   healthy;
 - client authentication, session, or local/remote URL handoff failures while
@@ -55,6 +56,7 @@ families:
 
 Start with these entries when investigating another recurrence:
 
+- [Core watchdog restarts and memory pressure, 2026-08-05](2026-08-05-core-watchdog-restarts.md)
 - [Unexpected Core restart during Tesla setup, 2026-08-02](2026-08-02-unexpected-core-restart-during-tesla-setup.md)
 - [Recorder health gate after cleanup, 2026-07-13](2026-07-13-recorder-health-gate.md)
 - [Recorder pressure follow-up, 2026-07-13](2026-07-13-recorder-pressure-follow-up.md)
@@ -77,6 +79,7 @@ Supporting material:
 
 | Date | Entry | Scope |
 | --- | --- | --- |
+| 2026-08-05 | [Core watchdog restarts and memory pressure](2026-08-05-core-watchdog-restarts.md) | Confirms repeated Supervisor watchdog restarts after missed Core API responses, captures Recorder health and frontend route evidence, and ranks safe optimization follow-ups without changing rules or displays |
 | 2026-08-05 | [Ring realtime notifications stopped](2026-08-05-ring-realtime-notifications.md) | Isolates missing Front Door and Mudroom Ring motion/doorbell pushes to the upstream Ring realtime event feed while confirming the shared Trevor phone notification path continued working and recording a concurrent Remote UI tunnel outage |
 | 2026-08-03 | [Tesla overnight plug reminder](2026-08-03-tesla-overnight-plug-reminder.md) | Adds a durable after-10 PM Tesla plug-in reminder gated on Trevor home, Tesla home, charge-cable disconnected, and battery-level telemetry while documenting the remaining Tesla Fleet setup dependency |
 | 2026-08-03 | [Evening mode catch-up and scene resilience](2026-08-03-evening-mode-catchup.md) | Diagnoses an Evening scene that triggered but only partially applied before later Core restarts, then adds guarded startup/reload/refresh catch-up and parallel fault-tolerant scene chunks |
