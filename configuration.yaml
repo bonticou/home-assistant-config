@@ -8196,11 +8196,29 @@ template:
                 {% set kept.items = kept.items + [item] %}
               {% endif %}
             {% endfor %}
+            {% set compacted = namespace(items=[]) %}
+            {% for item in kept.items %}
+              {% set compacted.items = compacted.items + [{
+                'at': (item.at | default('', true) | string)[:32],
+                'kind': (item.kind | default('sent', true) | string)[:16],
+                'title': (item.title | default('House notice', true) | string)[:96],
+                'message': (item.message | default('', true) | string)[:160],
+                'group': (item.group | default('general', true) | string)[:40],
+                'tag': (item.tag | default('', true) | string)[:80],
+                'url': (item.url | default('', true) | string)[:160],
+                'severity': (item.severity | default('info', true) | string)[:16],
+                'action': (item.action | default('', true) | string)[:96],
+                'source': (item.source | default('', true) | string)[:48],
+                'recent': item.recent | default(false, true),
+                'keep_recent': item.keep_recent | default(false, true),
+                'history': (item.history | default('', true) | string)[:16]
+              }] %}
+            {% endfor %}
             {% if dismissing %}
-              {{ kept.items[:80] | to_json }}
+              {{ compacted.items[:24] | to_json }}
             {% else %}
               {% set open_sent_tags = namespace(items=[]) %}
-              {% for item in kept.items | reverse %}
+              {% for item in compacted.items | reverse %}
                 {% set item_kind = item.kind | default('sent', true) %}
                 {% set item_tag = item.tag | default('', true) %}
                 {% if item_kind == 'sent' and item_tag | length > 0 and item_tag not in open_sent_tags.items %}
@@ -8212,23 +8230,27 @@ template:
               {% set event_kind = trigger.event.data.kind | default('sent', true) %}
               {% set event_tag = trigger.event.data.tag | default('', true) %}
               {% set event = {
-                'at': trigger.event.data.at | default(now().strftime('%Y-%m-%d %H:%M:%S'), true),
-                'kind': event_kind,
-                'title': trigger.event.data.title | default('House notice', true),
-                'message': trigger.event.data.message | default('', true),
-                'group': trigger.event.data.group | default('general', true),
-                'tag': event_tag,
-                'url': trigger.event.data.url | default('', true),
-                'severity': trigger.event.data.severity | default('info', true),
-                'action': trigger.event.data.action | default('', true),
-                'source': trigger.event.data.source | default('', true),
+                'at': (trigger.event.data.at | default(now().strftime('%Y-%m-%d %H:%M:%S'), true) | string)[:32],
+                'kind': (event_kind | string)[:16],
+                'title': (trigger.event.data.title | default('House notice', true) | string)[:96],
+                'message': (trigger.event.data.message | default('', true) | string)[:160],
+                'group': (trigger.event.data.group | default('general', true) | string)[:40],
+                'tag': (event_tag | string)[:80],
+                'url': (trigger.event.data.url | default('', true) | string)[:160],
+                'severity': (trigger.event.data.severity | default('info', true) | string)[:16],
+                'action': (trigger.event.data.action | default('', true) | string)[:96],
+                'source': (trigger.event.data.source | default('', true) | string)[:48],
                 'recent': trigger.event.data.recent | default(false, true),
                 'keep_recent': trigger.event.data.keep_recent | default(false, true),
-                'history': trigger.event.data.history | default('', true)
+                'history': (trigger.event.data.history | default('', true) | string)[:16]
               } %}
               {% set orphan_clear = event_kind == 'clear' and (event_tag | length == 0 or event_tag not in open_sent_tags.items) %}
-              {{ (kept.items if orphan_clear else [event] + kept.items)[:80] | to_json }}
+              {{ (compacted.items if orphan_clear else [event] + compacted.items)[:24] | to_json }}
             {% endif %}
+          event_count: >
+            {% set raw = this.attributes.get('events_json', '[]') if this is defined and this.attributes is defined else '[]' %}
+            {{ (raw | from_json | count) if raw is string else (raw | count) }}
+          storage_note: "Compact 14-day recent-notice slice for the Notification Center; durable notification guards remain in helpers."
 
   - trigger:
       - platform: event

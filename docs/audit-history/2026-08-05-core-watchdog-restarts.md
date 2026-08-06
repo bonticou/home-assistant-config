@@ -496,6 +496,47 @@ can lock or rewrite the live database. It should only be considered with a fresh
 off-device backup, a quiet window, and a plan to stop HA or otherwise guarantee
 Recorder is not writing.
 
+## House Notice History Attribute Compaction
+
+`sensor.house_notice_history` was compacted as a low-risk first fix for the
+Recorder oversized-attribute warnings. The entity, event type, Notification
+Center card contract, and durable notification helpers were preserved.
+
+Change made:
+
+- kept `house_notice_event_recorded` as the event ingestion path;
+- kept `sensor.house_notice_history.attributes.events_json` as the card-facing
+  field;
+- reduced retained history from up to `80` full events to up to `24` compact
+  recent events;
+- bounded string fields such as title, message, URL, tag, action, and source so
+  the attribute stays small enough for Recorder;
+- added small diagnostic attributes for event count and storage note.
+
+This does not remove notification memory helpers, completion stamps, snooze
+state, "last sent" timestamps, or the current Notification Center timeline.
+Routine action receipts may still be represented in the compact history slice,
+but the long-term durable state remains in explicit helpers and scripts rather
+than in one large template attribute.
+
+This is deliberately not the full sidecar-ledger redesign. If the warning
+persists or deeper long-term history is needed later, the next step is a small
+file-backed notice ledger with the dashboard sensor exposing only the recent
+view.
+
+Deployment validation:
+
+- deployed `configuration.yaml` through the authenticated Nabu Casa/File Editor
+  route with byte-for-byte read-back;
+- Home Assistant config check returned valid;
+- Core was restarted because the change lives in the main `template:` block;
+- after restart, a hidden maintenance event was fired to force the restored
+  history into the compact shape;
+- `sensor.house_notice_history` then reported `24` events and approximately
+  `9.1 KB` of attributes, below the `16 KB` Recorder attribute limit;
+- Core state was `RUNNING`, Remote UI was `on`, remote access status was
+  `online`, and Recorder was recording with backlog `0`.
+
 ## Residual Risks And Follow-Ups
 
 - Add-on stats and Supervisor/Core metadata endpoints were not available from
