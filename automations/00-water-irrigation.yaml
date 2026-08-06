@@ -722,10 +722,12 @@
       value_template: >-
         {% set started = states('input_datetime.irrigation_session_started_at') %}
         {% set expected_until = states('input_datetime.irrigation_expected_water_use_until') %}
+        {% set started_ts = as_timestamp(started, 0) %}
         {% set no_prior_start = started in ['unknown', 'unavailable', 'none', ''] %}
+        {% set prior_start_stale = started_ts > 0 and started_ts < as_timestamp(now()) - 21600 %}
         {% set expected_expired = expected_until in ['unknown', 'unavailable', 'none', '']
            or as_timestamp(expected_until, 0) <= as_timestamp(now()) %}
-        {{ no_prior_start or expected_expired }}
+        {{ no_prior_start or prior_start_stale or expected_expired }}
   actions:
     - variables:
         session_id: "{{ now().strftime('%Y%m%d%H%M%S') }}"

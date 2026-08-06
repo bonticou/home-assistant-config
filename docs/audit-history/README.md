@@ -79,6 +79,7 @@ Supporting material:
 
 | Date | Entry | Scope |
 | --- | --- | --- |
+| 2026-08-06 | [Irrigation start notification miss](2026-08-06-irrigation-start-notification-miss.md) | Diagnoses a missed sprinkler-start push as stale irrigation session helpers suppressing the start gate, then hardens the gate while preserving duplicate protection |
 | 2026-08-05 | [Core watchdog restarts and memory pressure](2026-08-05-core-watchdog-restarts.md) | Confirms repeated Supervisor watchdog restarts after missed Core API responses, captures Recorder health and frontend route evidence, and ranks safe optimization follow-ups without changing rules or displays |
 | 2026-08-05 | [Ring realtime notifications stopped](2026-08-05-ring-realtime-notifications.md) | Isolates missing Front Door and Mudroom Ring motion/doorbell pushes to the upstream Ring realtime event feed while confirming the shared Trevor phone notification path continued working and recording a concurrent Remote UI tunnel outage |
 | 2026-08-03 | [Tesla overnight plug reminder](2026-08-03-tesla-overnight-plug-reminder.md) | Adds a durable after-10 PM Tesla plug-in reminder gated on Trevor home, Tesla home, charge-cable disconnected, and battery-level telemetry while documenting the remaining Tesla Fleet setup dependency |
