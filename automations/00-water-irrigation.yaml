@@ -1344,6 +1344,10 @@
       value_template: "{{ states('input_text.irrigation_active_alert_kind') not in ['irrigation_recovery_slow', 'irrigation_recovery_failed'] }}"
     - condition: template
       value_template: >-
+        {% set pressure = states('sensor.flo_shutoff_water_pressure') %}
+        {{ is_number(pressure) and pressure | float(0) > 5 }}
+    - condition: template
+      value_template: >-
         {% set recovery_target = ([35, states('input_number.irrigation_session_start_pressure') | float(0) - 12]) | max %}
         {{ states('sensor.flo_shutoff_water_pressure') | float(0) < recovery_target }}
   actions:
@@ -1382,6 +1386,10 @@
         {{ check_ts > 0 and now_ts >= check_ts and now_ts <= check_ts + 1800 }}
     - condition: template
       value_template: "{{ states('input_text.irrigation_active_alert_kind') != 'irrigation_recovery_failed' }}"
+    - condition: template
+      value_template: >-
+        {% set pressure = states('sensor.flo_shutoff_water_pressure') %}
+        {{ is_number(pressure) and pressure | float(0) > 5 }}
     - condition: template
       value_template: >-
         {{ states('sensor.flo_shutoff_water_pressure') | float(0) < 30 }}
@@ -1578,11 +1586,13 @@
           {% set min_seen = states('input_number.irrigation_session_min_pressure') | float(start) %}
           {% set current = states('sensor.flo_shutoff_water_pressure') | float(start) %}
           {{ ([0, start - ([min_seen, current] | min)] | max) | round(1) }}
-    - action: script.water_send_alert
+    - action: shell_command.irrigation_history_event
       data:
-        alert_kind: irrigation_no_flow
+        kind: diagnostic_irrigation_no_flow
+        at: "{{ now().isoformat() }}"
         severity: warning
-        message: >-
+        title: "Irrigation flow not confirmed"
+        note: >-
           {{ states('sensor.irrigation_active_zone') }} has been reported watering for about
           {{ zone_age_minutes }} minutes, but Hunter has not reported measurable irrigation gallons yet
           and shared-well pressure has not dropped like a normal run.
@@ -1590,6 +1600,10 @@
           zone gallons are {{ states('input_number.irrigation_zone_gallons') | float(0) | round(1) }} gal;
           shared-well pressure is {{ states('sensor.flo_shutoff_water_pressure') | float(0) | round(1) }} psi
           with a {{ pressure_drop }} psi zone drop and {{ session_pressure_drop }} psi session drop.
+        session_id: "{{ states('input_text.irrigation_session_id') }}"
+        zone: "{{ states('sensor.irrigation_active_zone') }}"
+        zone_name: "{{ states('sensor.irrigation_active_zone') }}"
+        flow_source: hunter
     - action: input_text.set_value
       target:
         entity_id: input_text.irrigation_last_no_flow_alert_key
@@ -1620,15 +1634,21 @@
   actions:
     - variables:
         alert_key: "{{ states('input_text.irrigation_session_id') ~ ':' ~ states('sensor.irrigation_active_zone') }}"
-    - action: script.water_send_alert
+    - action: shell_command.irrigation_history_event
       data:
-        alert_kind: irrigation_high_flow
+        kind: diagnostic_irrigation_high_flow
+        at: "{{ now().isoformat() }}"
         severity: critical
-        message: >-
+        title: "Irrigation flow high"
+        note: >-
           {{ states('sensor.irrigation_active_zone') }} is above its learned Hunter flow baseline at
           {{ states('sensor.irrigation_flow_rate') | float(0) | round(1) }} gal/min.
           Session total is {{ states('sensor.irrigation_session_gallons') | float(0) | round(1) }} gal and
           shared well pressure is {{ states('sensor.flo_shutoff_water_pressure') | float(0) | round(1) }} psi.
+        session_id: "{{ states('input_text.irrigation_session_id') }}"
+        zone: "{{ states('sensor.irrigation_active_zone') }}"
+        zone_name: "{{ states('sensor.irrigation_active_zone') }}"
+        flow_source: hunter
     - action: input_text.set_value
       target:
         entity_id: input_text.irrigation_last_high_flow_alert_key
@@ -1659,15 +1679,21 @@
   actions:
     - variables:
         alert_key: "{{ states('input_text.irrigation_session_id') ~ ':' ~ states('sensor.irrigation_active_zone') }}"
-    - action: script.water_send_alert
+    - action: shell_command.irrigation_history_event
       data:
-        alert_kind: irrigation_low_flow
+        kind: diagnostic_irrigation_low_flow
+        at: "{{ now().isoformat() }}"
         severity: warning
-        message: >-
+        title: "Irrigation flow low"
+        note: >-
           {{ states('sensor.irrigation_active_zone') }} is below its learned Hunter flow baseline at
           {{ states('sensor.irrigation_flow_rate') | float(0) | round(1) }} gal/min.
           This can mean a partially closed valve, clogged head, or meter lag.
           Session total is {{ states('sensor.irrigation_session_gallons') | float(0) | round(1) }} gal.
+        session_id: "{{ states('input_text.irrigation_session_id') }}"
+        zone: "{{ states('sensor.irrigation_active_zone') }}"
+        zone_name: "{{ states('sensor.irrigation_active_zone') }}"
+        flow_source: hunter
     - action: input_text.set_value
       target:
         entity_id: input_text.irrigation_last_low_flow_alert_key
@@ -1697,14 +1723,20 @@
     - condition: template
       value_template: "{{ states('input_text.irrigation_last_flow_after_stop_alert_key') != states('input_text.irrigation_session_id') }}"
   actions:
-    - action: script.water_send_alert
+    - action: shell_command.irrigation_history_event
       data:
-        alert_kind: irrigation_flow_after_stop
+        kind: diagnostic_irrigation_flow_after_stop
+        at: "{{ now().isoformat() }}"
         severity: warning
-        message: >-
+        title: "Irrigation flow after stop"
+        note: >-
           Hydrawise is no longer reporting an active zone, but the Hunter irrigation meter is still
           showing {{ states('sensor.irrigation_flow_rate') | float(0) | round(1) }} gal/min.
           Session total is {{ states('sensor.irrigation_session_gallons') | float(0) | round(1) }} gal.
+        session_id: "{{ states('input_text.irrigation_session_id') }}"
+        zone: "{{ states('sensor.irrigation_active_zone') }}"
+        zone_name: "{{ states('sensor.irrigation_active_zone') }}"
+        flow_source: hunter
     - action: input_text.set_value
       target:
         entity_id: input_text.irrigation_last_flow_after_stop_alert_key
@@ -1738,14 +1770,20 @@
   actions:
     - variables:
         alert_key: "{{ now().strftime('%Y%m%d%H') }}"
-    - action: script.water_send_alert
+    - action: shell_command.irrigation_history_event
       data:
-        alert_kind: irrigation_unscheduled_flow
+        kind: diagnostic_irrigation_unscheduled_flow
+        at: "{{ now().isoformat() }}"
         severity: warning
-        message: >-
+        title: "Unscheduled irrigation flow"
+        note: >-
           Hunter irrigation flow is {{ states('sensor.irrigation_flow_rate') | float(0) | round(1) }} gal/min,
           but Hydrawise is quiet and the post-run grace window is closed.
           Check for manual watering or a stuck irrigation valve.
+        session_id: "{{ states('input_text.irrigation_session_id') }}"
+        zone: "{{ states('sensor.irrigation_active_zone') }}"
+        zone_name: "{{ states('sensor.irrigation_active_zone') }}"
+        flow_source: hunter
     - action: input_text.set_value
       target:
         entity_id: input_text.irrigation_last_unscheduled_flow_alert_key
@@ -1782,14 +1820,20 @@
   actions:
     - variables:
         alert_key: "{{ states('input_text.irrigation_session_id') ~ ':' ~ now().strftime('%Y%m%d') }}"
-    - action: script.water_send_alert
+    - action: shell_command.irrigation_history_event
       data:
-        alert_kind: irrigation_flow_meter_stale
+        kind: diagnostic_irrigation_flow_meter_stale
+        at: "{{ now().isoformat() }}"
         severity: warning
-        message: >-
+        title: "Irrigation flow meter stale"
+        note: >-
           Hunter/Hydrawise irrigation meter data is stale or unavailable while irrigation is active
           or still in the recovery watch window. Hydrawise controller status is
           {{ states('binary_sensor.hydrawise_controller_online') }}.
+        session_id: "{{ states('input_text.irrigation_session_id') }}"
+        zone: "{{ states('sensor.irrigation_active_zone') }}"
+        zone_name: "{{ states('sensor.irrigation_active_zone') }}"
+        flow_source: hunter
     - action: input_text.set_value
       target:
         entity_id: input_text.irrigation_last_flow_meter_stale_alert_key
