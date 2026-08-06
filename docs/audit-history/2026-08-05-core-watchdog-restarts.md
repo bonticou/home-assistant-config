@@ -243,7 +243,7 @@ recomputed Ting status/attribute change for 30 days is therefore the wrong
 storage shape. If short Ting history becomes useful later, it should be a
 compact deliberate event ledger, not millions of raw Recorder rows.
 
-Prepared config change:
+Prepared and deployed config change:
 
 - added exact Recorder exclusions for the three entities above;
 - did not exclude `sensor.house_notice_history`, because it is still tied to
@@ -273,13 +273,69 @@ The large freelist means prior purges already created reclaimable empty pages
 inside the database file. Vacuum/repack may recover disk space, but it remains
 separate maintenance work requiring a quiet window and a verified backup.
 
+## Live Deployment And Purge Attempt
+
+On 2026-08-05 at roughly 10:49 PM EDT, after the Remote UI recovered, the
+prepared Recorder exclusion slice was deployed through the authenticated
+Safari/Nabu Casa tab using a fresh Supervisor File Editor ingress session.
+
+Deployment evidence:
+
+- `/homeassistant/configuration.yaml` was written and read back with SHA-256
+  `ca3619bf313c5e6aff2fcea990a8bdb1c41549d494ee00e8009d9756f46bd3df`.
+- Home Assistant config check returned `valid` with no warnings or errors.
+- Core restart was accepted at 10:50 PM EDT.
+- Fresh local HTTP returned around 10:51:55 PM EDT.
+- Post-restart authenticated HA check showed Core `RUNNING`, HA version
+  `2026.7.1`, Recorder recording, and Recorder thread running.
+- Live file verification showed the exact exclusions present at
+  `/homeassistant/configuration.yaml` lines 1363, 1364, and 1374.
+
+Exact pre-purge counts after restart:
+
+| Entity | Rows |
+| --- | ---: |
+| `sensor.ting_notification_status` | 12,084,988 |
+| `sensor.bonticou_gateway_cpu_utilization_2` | 330,091 |
+| `sensor.bonticou_gateway_memory_utilization_2` | 298,921 |
+| **Total** | **12,714,000** |
+
+`recorder.purge_entities` was then called using only those exact entities and
+`keep_days: 0`. Calls were accepted using both entity-list and target-style
+service invocation. The safe service path did not clear the full history during
+the observed window, but it did make partial progress.
+
+Final observed counts at roughly 11:00 PM EDT:
+
+| Entity | Rows After | Rows Cleared |
+| --- | ---: | ---: |
+| `sensor.ting_notification_status` | 12,060,988 | 24,000 |
+| `sensor.bonticou_gateway_cpu_utilization_2` | 226,091 | 104,000 |
+| `sensor.bonticou_gateway_memory_utilization_2` | 298,921 | 0 |
+| **Total** | **12,586,000** | **128,000** |
+
+Storage impact from the observed purge window:
+
+| Metric | Before Purge | After Observed Purge | Change |
+| --- | ---: | ---: | ---: |
+| DB file | 20,462,624,768 bytes | 20,462,624,768 bytes | 0 bytes |
+| WAL file | 20,876,072 bytes | 76,516,672 bytes | +55,640,600 bytes |
+| SQLite freelist | 9,932,804,096 bytes | 9,938,292,736 bytes | +5,488,640 bytes |
+| Estimated used bytes | 10,529,820,672 bytes | 10,524,332,032 bytes | -5,488,640 bytes |
+
+Interpretation: the important reliability win is future-write prevention,
+expected at roughly `408,800` fewer state rows/day. Immediate disk capacity did
+not improve because the database file was not repacked/vacuumed, and the purge
+service only cleared a small fraction of historical rows during the safe
+observation window. Manual SQLite deletion was deliberately not attempted.
+
 ## Deployment Status
 
 Initial audit: no Home Assistant deployment was performed. No restart, reload,
 purge, repack, vacuum, update, or config write was initiated.
 
-Follow-up Recorder slice: repo files were updated, but live deployment was
-deferred because the deploy surface was unhealthy:
+Follow-up Recorder slice, first attempt: repo files were updated, but live
+deployment was deferred because the deploy surface was unhealthy:
 
 - Nabu Casa Remote UI probe reached TCP, but TLS handshakes timed out for `/`,
   `/ha-safe/home`, `/calm-mobile/home`, and `/api/websocket`.
@@ -290,6 +346,12 @@ deferred because the deploy surface was unhealthy:
 
 No live config write, restart, purge, repack, or vacuum was performed during
 that bad connectivity window.
+
+Follow-up Recorder slice, second attempt: live deployment completed after the
+Remote UI recovered. Core was restarted after a valid config check. Exact
+purge was attempted through HA's Recorder service and partially progressed. No
+manual SQLite deletes, repack, vacuum, broad purge, or retention change was
+performed.
 
 ## Residual Risks And Follow-Ups
 
@@ -302,5 +364,8 @@ that bad connectivity window.
   host logs, previous Core logs, and DB/WAL status before they age out.
 - Memory peak near `1G` may indicate a container limit, normal peak reporting,
   or true pressure. It should not be treated as OOM without OOM-kill evidence.
-- The prepared Recorder exclusions will not take effect until deployed to HA
-  and Core is restarted or otherwise reloads the Recorder configuration.
+- The Recorder exclusions are now live, but historical rows for the three target
+  entities mostly remain. Future cleanup should use HA service behavior,
+  backups, and a quiet maintenance window; do not hand-edit SQLite rows.
+- Final Recorder health showed HA connected and `RUNNING`; Recorder was
+  recording with thread running, migration not in progress, and backlog `167`.

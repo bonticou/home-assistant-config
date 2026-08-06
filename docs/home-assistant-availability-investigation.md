@@ -60,7 +60,7 @@ Remote UI state, local access, and restart evidence.
   that `sensor.ting_notification_status` alone had roughly 12.1 million rows
   and about 388,600 rows/day over its observed span. That sensor is live alert
   context, while durable Ting alert memory lives in timestamp/boolean helpers.
-  The first prepared Recorder optimization excludes that exact sensor plus two
+  The first deployed Recorder optimization excludes that exact sensor plus two
   unused UniFi gateway diagnostic sensors from future recording.
 - `configuration.yaml` and the primary dashboard are both large, which raises
   deployment, recovery, and first-render risk. File size alone is not evidence
@@ -105,12 +105,14 @@ These are ranked investigation hypotheses, not conclusions:
   writers by rows and frequency.
 - Use DB-backed evidence to exclude additional high-churn, low-history-value
   entities conservatively rather than applying broad domain exclusions.
-- The first DB-backed prepared exclusion set is exact-only:
+- The first DB-backed deployed exclusion set is exact-only:
   `sensor.ting_notification_status`,
   `sensor.bonticou_gateway_cpu_utilization_2`, and
   `sensor.bonticou_gateway_memory_utilization_2`. This should reduce future
-  Recorder writes by roughly 408,800 rows/day once deployed and Core reloads the
-  Recorder config.
+  Recorder writes by roughly 408,800 rows/day after the 2026-08-05 deployment
+  and Core restart. HA's safe `recorder.purge_entities` service only partially
+  cleared historical rows during the observed window, so most old rows remain
+  until a separate maintenance cleanup.
 - Treat purge, repack, and vacuum as separate maintenance work requiring a
   verified backup, quiet operating window, and post-operation health check.
 - Avoid broad analytical queries against the live Recorder database through
