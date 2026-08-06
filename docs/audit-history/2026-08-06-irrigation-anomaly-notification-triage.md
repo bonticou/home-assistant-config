@@ -86,13 +86,23 @@ measurements and should either be improved with Hunter Flow data or stopped.
 
 ## Deployment Status
 
-- Not deployed yet.
-- The Nabu Casa dashboard tab became disconnected and then loaded the Remote UI
-  error page during deployment.
-- Direct local checks to `homeassistant.local:8123` and `homeassistant:8123`
-  timed out from the Mac, and the Nabu Casa URL timed out during TLS setup.
-- Live deployment should be retried when HA is reachable, using the normal
-  read-back/config-check/automation-reload path.
+- Deployed to live Home Assistant on 2026-08-06 after the Nabu route recovered.
+- The normal File Editor tab was stale/disconnected, so deployment used the
+  established direct browser pattern from a connected Nabu dashboard tab:
+  authenticated HA websocket, fresh File Editor ingress session, file write,
+  byte-for-byte read-back, config check, and automation reload.
+- Live deployment wrote `/homeassistant/automations/00-water-irrigation.yaml`;
+  read-back hash matched the repo file.
+- Home Assistant config check returned `valid` with no warnings or errors.
+- `automation.reload` returned 200.
+- Live automation config verification confirmed:
+  - `irrigation_no_flow`, `irrigation_high_flow`, `irrigation_low_flow`,
+    `irrigation_flow_after_stop`, `irrigation_unscheduled_flow`, and
+    `irrigation_flow_meter_stale` no longer call `script.water_send_alert`;
+  - those six automations now write `diagnostic_irrigation_*` history events;
+  - `irrigation_recovery_slow_followup` and
+    `irrigation_recovery_failed_followup` still use the push path but include
+    the pressure sanity guard.
 
 ## Residual Risks And Follow-Ups
 
