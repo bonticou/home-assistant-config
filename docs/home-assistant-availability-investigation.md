@@ -56,6 +56,12 @@ Remote UI state, local access, and restart evidence.
   retention. A July health gate showed backlog zero and ample SSD capacity, so
   database scope is a plausible load factor rather than a proven universal
   cause.
+- A 2026-08-05 targeted DB scan of low-stateful-need Recorder candidates found
+  that `sensor.ting_notification_status` alone had roughly 12.1 million rows
+  and about 388,600 rows/day over its observed span. That sensor is live alert
+  context, while durable Ting alert memory lives in timestamp/boolean helpers.
+  The first prepared Recorder optimization excludes that exact sensor plus two
+  unused UniFi gateway diagnostic sensors from future recording.
 - `configuration.yaml` and the primary dashboard are both large, which raises
   deployment, recovery, and first-render risk. File size alone is not evidence
   that either is crashing Core.
@@ -99,6 +105,12 @@ These are ranked investigation hypotheses, not conclusions:
   writers by rows and frequency.
 - Use DB-backed evidence to exclude additional high-churn, low-history-value
   entities conservatively rather than applying broad domain exclusions.
+- The first DB-backed prepared exclusion set is exact-only:
+  `sensor.ting_notification_status`,
+  `sensor.bonticou_gateway_cpu_utilization_2`, and
+  `sensor.bonticou_gateway_memory_utilization_2`. This should reduce future
+  Recorder writes by roughly 408,800 rows/day once deployed and Core reloads the
+  Recorder config.
 - Treat purge, repack, and vacuum as separate maintenance work requiring a
   verified backup, quiet operating window, and post-operation health check.
 - Avoid broad analytical queries against the live Recorder database through

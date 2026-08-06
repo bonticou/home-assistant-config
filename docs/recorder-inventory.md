@@ -7,13 +7,13 @@ A recording-focused inventory for Home Assistant Recorder. This sits next to the
 | Thing | Count |
 | --- | --- |
 | Configured retention | 30 days |
-| Entities reviewed | 2356 |
-| Recorder candidates | 1583 |
-| Excluded by Recorder config | 424 |
-| Disabled in registry | 349 |
-| Low stateful-need candidates | 266 |
-| Medium stateful-need candidates | 483 |
-| High stateful-need candidates | 488 |
+| Entities reviewed | 2512 |
+| Recorder candidates | 1698 |
+| Excluded by Recorder config | 446 |
+| Disabled in registry | 368 |
+| Low stateful-need candidates | 304 |
+| Medium stateful-need candidates | 504 |
+| High stateful-need candidates | 506 |
 
 ## Data Quality
 
@@ -28,41 +28,41 @@ A recording-focused inventory for Home Assistant Recorder. This sits next to the
 | purge_keep_days | 30 |
 | excluded domains | button, camera, number, select, update |
 | excluded entity globs | sensor.*_signal_strength, sensor.*_rssi, sensor.*_lqi, sensor.*_linkquality, switch.*_analytics_enabled, switch.*_animal_detection, switch.*_baby_cry_detection, switch.*_car_alarm_detection, switch.*_car_horn_detection, switch.*_co_alarm_detection, switch.*_crossfade, switch.*_glass_break_detection, switch.*_humidity_sensor, switch.*_insights_enabled, switch.*_license_plate_detection, switch.*_light_sensor, switch.*_loudness, switch.*_night_sound, switch.*_none, switch.*_overlay_show_*, switch.*_person_detection, switch.*_privacy_mode, switch.*_siren_detection, switch.*_smoke_detection, switch.*_speaking_detection, switch.*_speech_enhancement, switch.*_status_light*, switch.*_subwoofer_enabled, switch.*_surround_enabled, switch.*_surround_music_full_volume, switch.*_system_sounds, switch.*_temperature_sensor, switch.*_vehicle_detection |
-| excluded entities | sun.sun, weather.forecast_home, switch.g6_instant_motion, switch.g6_instant_motion_2, switch.g6_instant_motion_3, switch.mechanical_room_motion, switch.mud_room_motion, switch.wynn_s_room_motion, sensor.device_inventory_pending_digest, sensor.device_inventory_status, sensor.garbage_recycling_schedule, sensor.house_notice_timeline, sensor.irrigation_7_day_ledger, sensor.irrigation_flow_baseline_status, sensor.irrigation_history_status, sensor.irrigation_schedule_summary, sensor.metro_north_nwp_to_grand_central, sensor.wine_collection_snapshot |
+| excluded entities | sun.sun, weather.forecast_home, switch.g6_instant_motion, switch.g6_instant_motion_2, switch.g6_instant_motion_3, switch.mechanical_room_motion, switch.mud_room_motion, switch.wynn_s_room_motion, sensor.bonticou_gateway_cpu_utilization_2, sensor.bonticou_gateway_memory_utilization_2, sensor.device_inventory_pending_digest, sensor.device_inventory_status, sensor.garbage_recycling_schedule, sensor.house_notice_timeline, sensor.irrigation_7_day_ledger, sensor.irrigation_flow_baseline_status, sensor.irrigation_history_status, sensor.irrigation_schedule_summary, sensor.metro_north_nwp_to_grand_central, sensor.ting_notification_status, sensor.wine_collection_snapshot |
 
 ## Largest Low-Stateful-Need Review Sets
 
 | Category | Entities | Low | Medium | High | DB rows | Live attr bytes |
 | --- | --- | --- | --- | --- | --- | --- |
-| derived_summary_or_dashboard_state | 167 | 167 | 0 | 0 |  |  |
-| integration_config_or_update_state | 46 | 46 | 0 | 0 |  |  |
-| infrastructure_health_diagnostic | 35 | 35 | 0 | 0 |  |  |
-| camera_or_event_state | 15 | 15 | 0 | 0 |  |  |
-| signal_quality_diagnostic | 3 | 3 | 0 | 0 |  |  |
-| event_or_safety_history | 416 | 0 | 0 | 416 |  |  |
-| operational_state_history | 412 | 0 | 412 | 0 |  |  |
-| uncategorized | 346 | 0 | 0 | 0 |  |  |
-| physical_timeseries | 72 | 0 | 0 | 72 |  |  |
-| infrastructure_or_camera_misc | 71 | 0 | 71 | 0 |  |  |
+| derived_summary_or_dashboard_state | 168 | 168 | 0 | 0 |  |  |
+| integration_config_or_update_state | 80 | 80 | 0 | 0 |  |  |
+| infrastructure_health_diagnostic | 34 | 34 | 0 | 0 |  |  |
+| camera_or_event_state | 17 | 17 | 0 | 0 |  |  |
+| signal_quality_diagnostic | 5 | 5 | 0 | 0 |  |  |
+| operational_state_history | 432 | 0 | 432 | 0 |  |  |
+| event_or_safety_history | 417 | 0 | 0 | 417 |  |  |
+| uncategorized | 384 | 0 | 0 | 0 |  |  |
+| physical_timeseries | 89 | 0 | 0 | 89 |  |  |
+| infrastructure_or_camera_misc | 72 | 0 | 72 | 0 |  |  |
 
 ## Domain Review
 
 | Domain | Recorder candidates | Low | Medium | High | Unknown | DB rows |
 | --- | --- | --- | --- | --- | --- | --- |
-| sensor | 472 | 165 | 19 | 206 | 82 |  |
-| binary_sensor | 282 | 5 | 49 | 144 | 84 |  |
-| automation | 183 | 13 | 170 | 0 | 0 |  |
-| script | 144 | 10 | 134 | 0 | 0 |  |
-| switch | 115 | 47 | 0 | 63 | 5 |  |
-| device_tracker | 84 | 0 | 84 | 0 | 0 |  |
-| input_datetime | 82 | 5 | 0 | 13 | 64 |  |
-| input_boolean | 42 | 2 | 0 | 8 | 32 |  |
+| sensor | 495 | 166 | 20 | 220 | 89 |  |
+| binary_sensor | 294 | 5 | 49 | 147 | 93 |  |
+| automation | 189 | 14 | 175 | 0 | 0 |  |
+| switch | 152 | 81 | 0 | 63 | 8 |  |
+| script | 151 | 10 | 141 | 0 | 0 |  |
+| input_datetime | 90 | 5 | 0 | 13 | 72 |  |
+| device_tracker | 89 | 0 | 89 | 0 | 0 |  |
+| input_boolean | 46 | 2 | 0 | 8 | 36 |  |
 | light | 36 | 0 | 3 | 2 | 31 |  |
 | valve | 30 | 0 | 0 | 30 | 0 |  |
-| media_player | 24 | 0 | 24 | 0 | 0 |  |
-| input_text | 23 | 4 | 0 | 5 | 14 |  |
+| input_text | 28 | 4 | 0 | 5 | 19 |  |
+| media_player | 27 | 0 | 27 | 0 | 0 |  |
 | input_number | 22 | 0 | 0 | 4 | 18 |  |
-| event | 15 | 15 | 0 | 0 | 0 |  |
+| event | 17 | 17 | 0 | 0 | 0 |  |
 | lock | 4 | 0 | 0 | 4 | 0 |  |
 | climate | 3 | 0 | 0 | 3 | 0 |  |
 | input_select | 3 | 0 | 0 | 0 | 3 |  |
@@ -71,8 +71,8 @@ A recording-focused inventory for Home Assistant Recorder. This sits next to the
 | ai_task | 2 | 0 | 0 | 0 | 2 |  |
 | conversation | 2 | 0 | 0 | 0 | 2 |  |
 | cover | 2 | 0 | 0 | 2 | 0 |  |
+| notify | 2 | 0 | 0 | 0 | 2 |  |
 | person | 2 | 0 | 0 | 2 | 0 |  |
-| siren | 2 | 0 | 0 | 0 | 2 |  |
 
 ## High-Impact Entities To Review First
 
@@ -86,6 +86,7 @@ A recording-focused inventory for Home Assistant Recorder. This sits next to the
 | `automation.irrigation_hunter_unscheduled_flow` | derived_summary_or_dashboard_state | automation | Derived summary/status data is usually regenerated or shown as current state. |  |  |  |
 | `automation.irrigation_record_alert_history_events` | derived_summary_or_dashboard_state | automation | Derived summary/status data is usually regenerated or shown as current state. |  |  |  |
 | `automation.irrigation_scheduled_cycle_did_not_start_watch` | derived_summary_or_dashboard_state | automation | Derived summary/status data is usually regenerated or shown as current state. |  |  |  |
+| `automation.laundry_washer_pending_notice_when_trevor_is_home` | derived_summary_or_dashboard_state | automation | Derived summary/status data is usually regenerated or shown as current state. |  |  |  |
 | `automation.lights_door_lights_schedule_sync` | derived_summary_or_dashboard_state | automation | Derived summary/status data is usually regenerated or shown as current state. |  |  |  |
 | `automation.lights_foyer_chandelier_schedule_sync` | derived_summary_or_dashboard_state | automation | Derived summary/status data is usually regenerated or shown as current state. |  |  |  |
 | `automation.lights_front_stairs_schedule_sync` | derived_summary_or_dashboard_state | automation | Derived summary/status data is usually regenerated or shown as current state. |  |  |  |
@@ -100,14 +101,13 @@ A recording-focused inventory for Home Assistant Recorder. This sits next to the
 | `event.back_stairs_motion` | camera_or_event_state | ring | Camera/event entity state is often high churn; keep only if specific automations need history. |  |  |  |
 | `event.back_yard_vehicle` | camera_or_event_state | unifiprotect | Camera/event entity state is often high churn; keep only if specific automations need history. |  |  |  |
 | `event.backup_automatic_backup` | camera_or_event_state | backup | Camera/event entity state is often high churn; keep only if specific automations need history. |  |  |  |
+| `event.dryer_error` | camera_or_event_state | lg_thinq | Camera/event entity state is often high churn; keep only if specific automations need history. |  |  |  |
+| `event.dryer_notification` | camera_or_event_state | lg_thinq | Camera/event entity state is often high churn; keep only if specific automations need history. |  |  |  |
 | `event.front_door_ding` | camera_or_event_state | ring | Camera/event entity state is often high churn; keep only if specific automations need history. |  |  |  |
 | `event.front_door_motion` | camera_or_event_state | ring | Camera/event entity state is often high churn; keep only if specific automations need history. |  |  |  |
 | `event.garage_vehicle` | camera_or_event_state | unifiprotect | Camera/event entity state is often high churn; keep only if specific automations need history. |  |  |  |
 | `event.mechanical_room_vehicle` | camera_or_event_state | unifiprotect | Camera/event entity state is often high churn; keep only if specific automations need history. |  |  |  |
 | `event.mud_room_vehicle` | camera_or_event_state | unifiprotect | Camera/event entity state is often high churn; keep only if specific automations need history. |  |  |  |
-| `event.mudroom_door_ding` | camera_or_event_state | ring | Camera/event entity state is often high churn; keep only if specific automations need history. |  |  |  |
-| `event.mudroom_door_motion` | camera_or_event_state | ring | Camera/event entity state is often high churn; keep only if specific automations need history. |  |  |  |
-| `event.play_room_vehicle` | camera_or_event_state | unifiprotect | Camera/event entity state is often high churn; keep only if specific automations need history. |  |  |  |
 
 ## Largest Live Attribute Payloads
 

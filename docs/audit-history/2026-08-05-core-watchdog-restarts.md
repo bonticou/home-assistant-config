@@ -182,7 +182,9 @@ repo/backups/Downloads paths, so exact DB-backed row counts remain missing.
 
 ## Safe Optimization Plan
 
-No optimization changes were made in this audit. Recommended next slices:
+The initial audit made no live optimization changes. A follow-up DB-backed
+slice was run later the same evening and identified one safe Recorder
+optimization to prepare first. Recommended next slices:
 
 1. **Capture DB-backed Recorder writer stats before purging.** Obtain an
    off-device DB copy or a small HA-host DB stats JSON and run
@@ -206,28 +208,99 @@ No optimization changes were made in this audit. Recommended next slices:
 5. **Only after DB evidence, purge exact low-value entities.** Candidate classes
    remain generated dashboard summaries, config/update diagnostics, event
    entities that do not drive automations, and stale removed entities. Do not
-   use broad domain purges.
+   use broad domain purges. The first DB-backed exact candidates are recorded
+   below.
 
 6. **Review add-on/integration memory after privileged stats are available.**
    Matter Server, Browser Mod, HACS resources, UniFi Protect/Ring camera event
    surfaces, Spotify, and File Editor should be reviewed from stats/logs, not by
    disabling them speculatively.
 
+## Follow-Up Recorder Evidence And First Config Slice
+
+After the initial watchdog audit, a bounded Recorder database investigation was
+run from the live HA host.
+
+Broad all-entity grouping against the full database was intentionally aborted
+after roughly 211 seconds. That reinforced the existing rule: do not run broad
+live SQLite scans through File Editor during an availability incident.
+
+A narrower targeted scan of 313 low-stateful-need/current-only candidates
+completed in roughly 52 seconds and found `14,113,858` rows. The largest
+writers in that targeted set were:
+
+| Entity | Existing rows | Last 24h rows | Last 7d rows | Approx rows/day | Assessment |
+| --- | ---: | ---: | ---: | ---: | --- |
+| `sensor.ting_notification_status` | 12,079,671 | 361,679 | 2,681,884 | 388,600 | Template-derived live alert context, not durable alert memory |
+| `sensor.bonticou_gateway_cpu_utilization_2` | 330,013 | 10,817 | 74,722 | 10,617 | UniFi diagnostic telemetry; no repo automations/scripts/dashboards consume it |
+| `sensor.bonticou_gateway_memory_utilization_2` | 298,850 | 9,733 | 67,339 | 9,614 | UniFi diagnostic telemetry; no repo automations/scripts/dashboards consume it |
+
+`sensor.ting_notification_status` remains important live state. It feeds Ting
+notification copy and Notification Center context. Its durable notification
+memory, however, is stored in explicit `input_datetime` and `input_boolean`
+helpers such as the Ting last-sent timestamps and active flags. Recording every
+recomputed Ting status/attribute change for 30 days is therefore the wrong
+storage shape. If short Ting history becomes useful later, it should be a
+compact deliberate event ledger, not millions of raw Recorder rows.
+
+Prepared config change:
+
+- added exact Recorder exclusions for the three entities above;
+- did not exclude `sensor.house_notice_history`, because it is still tied to
+  stateful notification memory and needs a more careful sidecar-ledger
+  redesign before Recorder history is changed;
+- did not change global `purge_keep_days`;
+- did not add broad domain or glob exclusions;
+- regenerated `docs/recorder-inventory.json` and
+  `docs/recorder-inventory.md`.
+
+Expected future write reduction after the change is deployed and HA restarts:
+roughly `408,800` rows/day based on the targeted seven-day rates above. Existing
+database size will not materially shrink until an exact purge and any later
+SQLite repack/vacuum are performed.
+
+Additional DB size evidence captured before this slice:
+
+| Item | Value |
+| --- | ---: |
+| Recorder DB file | 20,462,624,768 bytes |
+| WAL file | 20,830,752 bytes |
+| SQLite freelist | 2,426,698 pages |
+| Estimated freelist bytes | 9,939,755,008 bytes |
+| Estimated used bytes | 10,522,869,760 bytes |
+
+The large freelist means prior purges already created reclaimable empty pages
+inside the database file. Vacuum/repack may recover disk space, but it remains
+separate maintenance work requiring a quiet window and a verified backup.
+
 ## Deployment Status
 
-No Home Assistant deployment was performed. No restart, reload, purge, repack,
-vacuum, update, or config write was initiated.
+Initial audit: no Home Assistant deployment was performed. No restart, reload,
+purge, repack, vacuum, update, or config write was initiated.
 
-This audit entry is the only intended repo change from this pass.
+Follow-up Recorder slice: repo files were updated, but live deployment was
+deferred because the deploy surface was unhealthy:
+
+- Nabu Casa Remote UI probe reached TCP, but TLS handshakes timed out for `/`,
+  `/ha-safe/home`, `/calm-mobile/home`, and `/api/websocket`.
+- Local `homeassistant.local:8123` probe reached TCP, but fresh HTTP and
+  websocket requests timed out.
+- The browser/File Editor route showed the HA shell but did not reach a
+  connected File Editor ingress surface suitable for write/read-back.
+
+No live config write, restart, purge, repack, or vacuum was performed during
+that bad connectivity window.
 
 ## Residual Risks And Follow-Ups
 
 - Add-on stats and Supervisor/Core metadata endpoints were not available from
   the current authenticated session.
-- No exact DB row counts were captured because no current copied Recorder DB was
-  available locally.
+- Exact row counts were captured only for the targeted low-stateful-need
+  candidate set, not for every entity in the full database.
 - The current Core log is post-restart; previous-Core causal logs may already
   have rotated. Future recurrence capture should prioritize Supervisor logs,
   host logs, previous Core logs, and DB/WAL status before they age out.
 - Memory peak near `1G` may indicate a container limit, normal peak reporting,
   or true pressure. It should not be treated as OOM without OOM-kill evidence.
+- The prepared Recorder exclusions will not take effect until deployed to HA
+  and Core is restarted or otherwise reloads the Recorder configuration.
