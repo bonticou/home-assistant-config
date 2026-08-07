@@ -427,23 +427,48 @@
 
 - id: washer_cycle_complete_notification
   alias: "Laundry — Washer Cycle Complete Notification"
-  description: Records every ThinQ completion, treats housekeeper-window loads as handled, and otherwise pushes only while Trevor is home.
+  description: Records every ThinQ completion, with a current-status fallback when the ThinQ event feed misses the completion event.
   triggers:
     - trigger: state
       entity_id: event.washer_notification
+      id: completion_event
+    - trigger: state
+      entity_id: sensor.washer_current_status
+      to: "end"
+      for: "00:02:00"
+      id: status_end_fallback
   conditions:
     - condition: template
       value_template: >-
-        {{ trigger.to_state is not none
-           and trigger.to_state.attributes.event_type | default('', true) == 'washing_is_complete' }}
+        {% set event_type = trigger.to_state.attributes.event_type | default('', true) if trigger.to_state is not none else '' %}
+        {% set clean_status_transition =
+          trigger.from_state is not none
+          and trigger.from_state.state not in ['unknown', 'unavailable', 'none', ''] %}
+        {{ (trigger.id == 'completion_event' and event_type == 'washing_is_complete')
+           or (trigger.id == 'status_end_fallback' and clean_status_transition) }}
     - condition: template
       value_template: >-
+        {% set fallback_key = 'status:' ~ trigger.to_state.state ~ ':' ~ trigger.to_state.last_changed %}
+        {% set event_key = trigger.to_state.state if trigger.id == 'completion_event' else fallback_key %}
+        {% set recently_recorded =
+          as_timestamp(now()) - as_timestamp(states('input_datetime.washer_last_completed_at'), 0) < 900 %}
         {{ trigger.to_state.state not in ['unknown', 'unavailable', 'none', '']
-           and states('input_text.washer_last_completion_event_key') != trigger.to_state.state }}
+           and states('input_text.washer_last_completion_event_key') != event_key
+           and (trigger.id == 'completion_event' or not recently_recorded) }}
   actions:
     - variables:
-        event_key: "{{ trigger.to_state.state | string | truncate(120, true, '') }}"
-        completion_ts: "{{ as_timestamp(trigger.to_state.state, as_timestamp(now())) }}"
+        event_key: >-
+          {%- if trigger.id == 'completion_event' -%}
+            {{ trigger.to_state.state | string | truncate(120, true, '') }}
+          {%- else -%}
+            {{ ('status:' ~ trigger.to_state.state ~ ':' ~ trigger.to_state.last_changed) | truncate(120, true, '') }}
+          {%- endif -%}
+        completion_ts: >-
+          {%- if trigger.id == 'completion_event' -%}
+            {{ as_timestamp(trigger.to_state.state, as_timestamp(now())) }}
+          {%- else -%}
+            {{ as_timestamp(trigger.to_state.last_changed, as_timestamp(now())) }}
+          {%- endif -%}
         completed_value: "{{ completion_ts | float(0) | timestamp_custom('%Y-%m-%d %H:%M:%S', true) }}"
         cycle_raw: "{{ states('sensor.washer_cycles') | trim }}"
         cycle_label: >-
@@ -698,23 +723,53 @@
 
 - id: dryer_cycle_complete_notification
   alias: "Laundry — Dryer Cycle Complete Notification"
-  description: Records every ThinQ completion, treats housekeeper-window loads as handled, and otherwise applies presence and quiet-hour delivery.
+  description: Records every ThinQ completion, with a current-status fallback when the ThinQ event feed misses the completion event.
   triggers:
     - trigger: state
       entity_id: event.dryer_notification
+      id: completion_event
+    - trigger: state
+      entity_id: sensor.dryer_current_status
+      to: "end"
+      for: "00:02:00"
+      id: status_done_fallback
+    - trigger: state
+      entity_id: sensor.dryer_current_status
+      to: "wrinkle_care"
+      for: "00:02:00"
+      id: status_done_fallback
   conditions:
     - condition: template
       value_template: >-
-        {{ trigger.to_state is not none
-           and trigger.to_state.attributes.event_type | default('', true) == 'drying_is_complete' }}
+        {% set event_type = trigger.to_state.attributes.event_type | default('', true) if trigger.to_state is not none else '' %}
+        {% set clean_status_transition =
+          trigger.from_state is not none
+          and trigger.from_state.state not in ['unknown', 'unavailable', 'none', ''] %}
+        {{ (trigger.id == 'completion_event' and event_type == 'drying_is_complete')
+           or (trigger.id == 'status_done_fallback' and clean_status_transition) }}
     - condition: template
       value_template: >-
+        {% set fallback_key = 'status:' ~ trigger.to_state.state ~ ':' ~ trigger.to_state.last_changed %}
+        {% set event_key = trigger.to_state.state if trigger.id == 'completion_event' else fallback_key %}
+        {% set recently_recorded =
+          as_timestamp(now()) - as_timestamp(states('input_datetime.dryer_last_completed_at'), 0) < 900 %}
         {{ trigger.to_state.state not in ['unknown', 'unavailable', 'none', '']
-           and states('input_text.dryer_last_completion_event_key') != trigger.to_state.state }}
+           and states('input_text.dryer_last_completion_event_key') != event_key
+           and (trigger.id == 'completion_event' or not recently_recorded) }}
   actions:
     - variables:
-        event_key: "{{ trigger.to_state.state | string | truncate(120, true, '') }}"
-        completion_ts: "{{ as_timestamp(trigger.to_state.state, as_timestamp(now())) }}"
+        event_key: >-
+          {%- if trigger.id == 'completion_event' -%}
+            {{ trigger.to_state.state | string | truncate(120, true, '') }}
+          {%- else -%}
+            {{ ('status:' ~ trigger.to_state.state ~ ':' ~ trigger.to_state.last_changed) | truncate(120, true, '') }}
+          {%- endif -%}
+        completion_ts: >-
+          {%- if trigger.id == 'completion_event' -%}
+            {{ as_timestamp(trigger.to_state.state, as_timestamp(now())) }}
+          {%- else -%}
+            {{ as_timestamp(trigger.to_state.last_changed, as_timestamp(now())) }}
+          {%- endif -%}
         completed_value: "{{ completion_ts | float(0) | timestamp_custom('%Y-%m-%d %H:%M:%S', true) }}"
         quiet_hours: "{{ now().hour >= 22 or now().hour < 7 }}"
     - action: input_datetime.set_datetime
