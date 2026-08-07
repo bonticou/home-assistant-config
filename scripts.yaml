@@ -5451,6 +5451,8 @@ entry_camera_send_alert:
           {% set kind = event_kind | default('motion') %}
           {% if kind == 'doorbell' %}
             🔔 {{ zone }} doorbell
+          {% elif kind == 'activity' %}
+            👀 {{ zone }} activity
           {% else %}
             👀 {{ zone }} motion
           {% endif %}
@@ -5459,6 +5461,8 @@ entry_camera_send_alert:
           {% set kind = event_kind | default('motion') %}
           {% if kind == 'doorbell' %}
             Someone rang the {{ zone }} doorbell.
+          {% elif kind == 'activity' %}
+            Ring saw activity at the {{ zone }}, but the realtime event feed did not classify it.
           {% else %}
             Motion detected at the {{ zone }}.
           {% endif %}

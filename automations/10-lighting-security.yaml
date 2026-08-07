@@ -2377,3 +2377,38 @@
         event_kind: "{{ event_kind }}"
   mode: parallel
   max: 10
+
+- id: security_entry_ring_last_activity_fallback_notifications
+  alias: "Security — Entry Ring Last Activity Fallback Notifications"
+  description: Sends a fallback entry-camera alert when Ring realtime events do not reach HA but Ring last-activity metadata updates.
+  triggers:
+    - trigger: state
+      entity_id: sensor.front_door_last_activity
+      id: front_door
+    - trigger: state
+      entity_id: sensor.mudroom_door_last_activity
+      id: mudroom_door
+  conditions:
+    - condition: template
+      value_template: >
+        {% set activity_ts = as_timestamp(trigger.to_state.state, 0) %}
+        {{ trigger.to_state is not none
+           and trigger.to_state.state not in ['unknown', 'unavailable', '', none]
+           and trigger.from_state is not none
+           and trigger.to_state.state != trigger.from_state.state
+           and activity_ts > as_timestamp(now()) - 180 }}
+  actions:
+    - variables:
+        fallback_observed_ts: "{{ as_timestamp(now()) }}"
+        zone_name: "{{ 'Mud room' if trigger.id == 'mudroom_door' else 'Front door' }}"
+    - delay: "00:00:08"
+    - condition: template
+      value_template: >
+        {% set primary_ts = as_timestamp(state_attr('automation.security_entry_ring_notifications', 'last_triggered'), 0) %}
+        {{ primary_ts < (fallback_observed_ts | float(0) - 15) }}
+    - action: script.entry_camera_send_alert
+      data:
+        zone_name: "{{ zone_name }}"
+        event_kind: activity
+  mode: parallel
+  max: 4
