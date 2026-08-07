@@ -79,7 +79,7 @@ Supporting material:
 
 | Date | Entry | Scope |
 | --- | --- | --- |
-| 2026-08-07 | [Ring last-activity fallback recovery](2026-08-07-ring-last-activity-fallback.md) | Adds a conservative Ring `last_activity` fallback alert path that waits for the normal realtime-event automation before sending an explicit activity alert; live deploy was blocked by an active HA access stall |
+| 2026-08-07 | [Ring last-activity fallback recovery](2026-08-07-ring-last-activity-fallback.md) | Adds and deploys a conservative Ring `last_activity` fallback alert path that waits for the normal realtime-event automation before sending an explicit activity alert; records File Editor ingress recovery and confirms Ring realtime events remain degraded |
 | 2026-08-07 | [Notification reliability audit](2026-08-07-notification-reliability-audit.md) | Audits missed Ring, irrigation, and laundry notifications end-to-end; finds Ring failing at the upstream realtime event-feed layer, confirms the HA-side notify wrapper is callable, and flags live-deploy drift for laundry hardening |
 | 2026-08-07 | [Laundry notification miss and ThinQ fallback](2026-08-07-laundry-notification-miss.md) | Investigates a missed laundry-finished notification, records stale Remote UI/API evidence, and adds washer/dryer current-status fallback completion detection while preserving existing notification behavior |
 | 2026-08-06 | [Irrigation history and August commute cleanup](2026-08-06-irrigation-history-and-august-commute-cleanup.md) | Adds exact cleanup for demoted irrigation flow notification history and makes Metro-North commute quiet in August without push, dashboard, API, or Recorder churn |

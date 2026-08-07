@@ -1,7 +1,7 @@
 # Ring Last-Activity Fallback Recovery
 
 Date: 2026-08-07
-Status: repo fix prepared; live HA deploy blocked by active access stall
+Status: deployed after File Editor ingress recovery
 
 ## Symptom And User Impact
 
@@ -63,21 +63,52 @@ activity`, with copy that makes the uncertainty explicit.
 
 ## Deployment Status
 
-Not deployed at the time of this entry.
+Deployed after the initial access stall cleared.
 
-Live deploy was blocked because the active Safari HA frontend reported
+Initial live deploy was blocked because the active Safari HA frontend reported
 `hass.connected: false`, fresh local HTTP/API requests timed out, the Nabu route
 failed fresh TLS probing from the Mac, and the File Editor panel would not
 mount. No HA restart, reload, or config mutation was performed while HA was in
 that state.
 
-The generated deploy payload is `.tmp-ha-utf8-browser-deploy.js`, but it must be
-run only from a mounted File Editor ingress page with read-back and config-check
-success.
+After local HA recovered:
+
+- File Editor was confirmed started through Supervisor websocket info.
+- File Editor direct ingress initially returned `401: Unauthorized`.
+- A fresh ingress session was minted through the authenticated HA frontend and
+  set for the local ingress path.
+- The generated `.tmp-ha-utf8-browser-deploy.js` payload wrote and read back:
+  - `/homeassistant/automations/10-lighting-security.yaml`;
+  - `/homeassistant/scripts.yaml`;
+  - `/homeassistant/automations/30-maintenance-environment.yaml`.
+- HA config check returned `valid` with no errors or warnings.
+- The helper's short reload calls timed out, then direct `script.reload` and
+  `automation.reload` calls both returned HTTP 200.
+- Live HA state confirmed
+  `automation.security_entry_ring_last_activity_fallback_notifications` exists
+  and is `on`.
+- Live config read-back confirmed:
+  - Ring fallback contains the `last_activity` source and `activity` event kind;
+  - washer fallback contains `sensor.washer_current_status` and
+    `status_end_fallback`;
+  - dryer fallback contains `sensor.dryer_current_status` and
+    `status_done_fallback`;
+  - washer/dryer notification scripts contain rounded "Finished around" copy.
+
+## Post-Deploy Ring Status
+
+Reloading the Ring config entry did not fully recover the realtime event feed.
+After reload, the Ring/Firebase push receiver still logged shutdown after
+callback errors, and Ring `event.*_motion` / `event.*_ding` entities remained
+`unknown`.
+
+However, forcing an update of the Ring last-activity sensors repopulated
+metadata timestamps while realtime events stayed `unknown`. That validates the
+fallback source as useful for the current failure mode, though the normal Ring
+event integration still needs follow-up.
 
 ## Residual Risk
 
-Until this is deployed and read back from live HA, it is only a repo-backed fix.
-After deployment, the fallback still depends on Ring `last_activity` metadata;
-if Ring stops updating both realtime events and last-activity metadata, native
-Ring app notifications remain the only independent backup.
+The fallback still depends on Ring `last_activity` metadata. If Ring stops
+updating both realtime events and last-activity metadata, native Ring app
+notifications remain the only independent backup.
