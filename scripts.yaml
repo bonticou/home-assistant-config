@@ -2105,7 +2105,8 @@ washer_send_completion_notification:
   sequence:
     - variables:
         completed_ts: "{{ as_timestamp(states('input_datetime.washer_last_completed_at'), 0) }}"
-        completed_label: "{{ completed_ts | float(0) | timestamp_custom('%-I:%M %p', true) }}"
+        completed_rounded_ts: "{{ ((completed_ts | float(0) / 300) | round(0) | int) * 300 }}"
+        completed_label: "{{ completed_rounded_ts | float(0) | timestamp_custom('%-I:%M %p', true) }}"
         cycle_name: "{{ states('input_text.washer_last_cycle_name') | default('Wash', true) }}"
         deferred: "{{ deferred_until_home | default(false) | bool }}"
         notified_now: "{{ now().strftime('%Y-%m-%d %H:%M:%S') }}"
@@ -2114,9 +2115,9 @@ washer_send_completion_notification:
         title: "{{ '🧺 Laundry is waiting' if deferred else '🧺 Washer is done' }}"
         message: >-
           {% if deferred %}
-            The {{ cycle_name }} cycle finished while you were out. Move it over when you get a minute.
+            The {{ cycle_name }} cycle finished around {{ completed_label }} while you were out. Move it over when you get a minute.
           {% else %}
-            Finished at {{ completed_label }}. Move it over when you get a minute.
+            Finished around {{ completed_label }}. Move it over when you get a minute.
           {% endif %}
         data:
           group: home-care
@@ -2303,7 +2304,8 @@ dryer_send_completion_notification:
   sequence:
     - variables:
         completed_ts: "{{ as_timestamp(states('input_datetime.dryer_last_completed_at'), 0) }}"
-        completed_label: "{{ completed_ts | float(0) | timestamp_custom('%-I:%M %p', true) }}"
+        completed_rounded_ts: "{{ ((completed_ts | float(0) / 300) | round(0) | int) * 300 }}"
+        completed_label: "{{ completed_rounded_ts | float(0) | timestamp_custom('%-I:%M %p', true) }}"
         deferred: "{{ deferred_until_home | default(false) | bool }}"
         notified_now: "{{ now().strftime('%Y-%m-%d %H:%M:%S') }}"
     - action: script.notify_trevor_phone
@@ -2311,9 +2313,9 @@ dryer_send_completion_notification:
         title: "{{ '🧺 Dry laundry is waiting' if deferred else '🧺 Dryer is done' }}"
         message: >-
           {% if deferred %}
-            The dryer finished at {{ completed_label }}. Unload it when you get a minute.
+            The dryer finished around {{ completed_label }}. Unload it when you get a minute.
           {% else %}
-            Finished at {{ completed_label }}. Unload it when you get a minute.
+            Finished around {{ completed_label }}. Unload it when you get a minute.
           {% endif %}
         data:
           group: home-care
