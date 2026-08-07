@@ -437,7 +437,7 @@ family_room_tv_mode_on:
 
 lights_tv_scene:
   alias: Lights TV Scene
-  description: Set the foyer ceiling and family room main lights for TV time, route the family room TV to Apple TV, then settle the chandelier to a soft 5 percent glow.
+  description: Set the foyer ceiling and family room main lights for TV time, then settle the chandelier to a soft 5 percent glow without controlling the Frame TV.
   icon: mdi:television
   mode: single
   sequence:
@@ -472,9 +472,6 @@ lights_tv_scene:
                   - light.family_room_main_lights_2
                   - light.family_room_main_lights_3
                 transition: 1
-        - sequence:
-            - alias: Wake the family room TV and route it to Apple TV
-              action: script.family_room_tv_mode_on
     - if:
         - condition: template
           value_template: "{{ front_stairs_target_pct > 0 and front_stairs_current_pct < front_stairs_target_pct }}"
