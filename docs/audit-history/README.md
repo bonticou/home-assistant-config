@@ -79,6 +79,7 @@ Supporting material:
 
 | Date | Entry | Scope |
 | --- | --- | --- |
+| 2026-08-07 | [Notification reliability audit](2026-08-07-notification-reliability-audit.md) | Audits missed Ring, irrigation, and laundry notifications end-to-end; finds Ring failing at the upstream realtime event-feed layer, confirms the HA-side notify wrapper is callable, and flags live-deploy drift for laundry hardening |
 | 2026-08-07 | [Laundry notification miss and ThinQ fallback](2026-08-07-laundry-notification-miss.md) | Investigates a missed laundry-finished notification, records stale Remote UI/API evidence, and adds washer/dryer current-status fallback completion detection while preserving existing notification behavior |
 | 2026-08-06 | [Irrigation history and August commute cleanup](2026-08-06-irrigation-history-and-august-commute-cleanup.md) | Adds exact cleanup for demoted irrigation flow notification history and makes Metro-North commute quiet in August without push, dashboard, API, or Recorder churn |
 | 2026-08-06 | [Irrigation anomaly notification triage](2026-08-06-irrigation-anomaly-notification-triage.md) | Demotes sparse derived Hunter-flow anomaly pushes to diagnostic history, preserves real pressure/Hydrawise alerts, and hardens recovery-pressure sanity checks |
