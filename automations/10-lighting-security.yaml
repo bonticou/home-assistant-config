@@ -454,6 +454,11 @@
       to: "home"
       id: arrival
   conditions:
+    - condition: template
+      value_template: "{{ states('input_select.lighting_active_scene') not in ['TV', 'Bedtime'] }}"
+    - condition: state
+      entity_id: input_boolean.tv_lighting_scene_hold
+      state: "off"
     - condition: state
       entity_id: binary_sensor.front_stairs_schedule_active
       state: "on"

@@ -992,6 +992,9 @@ input_boolean:
   front_stairs_sleep_override:
     name: Front Stairs Sleep Override
     icon: mdi:stairs
+  tv_lighting_scene_hold:
+    name: TV Lighting Scene Hold
+    icon: mdi:television-ambient-light
   away_motion_security_guest_stay:
     name: Motion Watch Guest Stay
     icon: mdi:home-account

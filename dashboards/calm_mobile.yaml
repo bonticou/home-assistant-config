@@ -1296,7 +1296,7 @@ views:
                           - color: rgba(254, 243, 199, 0.9)
                 - type: custom:button-card
                   name: TV
-                  label: Frame TV
+                  label: TV lighting
                   icon: mdi:television
                   entity: input_select.lighting_active_scene
                   show_state: false
@@ -6082,7 +6082,7 @@ views:
                     - color: rgba(254, 243, 199, 0.9)
           - type: custom:button-card
             name: TV
-            label: Frame TV
+            label: TV lighting
             icon: mdi:television
             entity: input_select.lighting_active_scene
             show_state: false

@@ -269,6 +269,7 @@ lights_evening_scene:
         entity_id:
           - input_boolean.foyer_chandelier_sleep_hold
           - input_boolean.front_stairs_sleep_override
+          - input_boolean.tv_lighting_scene_hold
     - variables:
         front_stairs_target_pct: "{{ [10, states('sensor.front_stairs_schedule_brightness') | int(0)] | max }}"
         front_stairs_current_pct: >-
@@ -437,7 +438,7 @@ family_room_tv_mode_on:
 
 lights_tv_scene:
   alias: Lights TV Scene
-  description: Set the foyer ceiling and family room main lights for TV time, then settle the chandelier to a soft 5 percent glow without controlling the Frame TV.
+  description: Set the foyer ceiling and family room main lights for TV time, then settle the chandelier to a soft 5 percent glow.
   icon: mdi:television
   mode: single
   sequence:
@@ -451,6 +452,9 @@ lights_tv_scene:
         entity_id:
           - input_boolean.foyer_chandelier_sleep_hold
           - input_boolean.front_stairs_sleep_override
+    - action: input_boolean.turn_on
+      target:
+        entity_id: input_boolean.tv_lighting_scene_hold
     - variables:
         front_stairs_target_pct: "{{ states('sensor.front_stairs_schedule_brightness') | int(0) }}"
         front_stairs_current_pct: >-
@@ -524,12 +528,14 @@ lights_all_off_scene:
                 entity_id:
                   - input_boolean.foyer_chandelier_sleep_hold
                   - input_boolean.front_stairs_sleep_override
+                  - input_boolean.tv_lighting_scene_hold
       default:
         - action: input_boolean.turn_off
           target:
             entity_id:
               - input_boolean.foyer_chandelier_sleep_hold
               - input_boolean.front_stairs_sleep_override
+              - input_boolean.tv_lighting_scene_hold
     - action: light.turn_off
       data:
         entity_id:
@@ -629,6 +635,9 @@ lights_bedtime_scene:
     - action: input_boolean.turn_on
       target:
         entity_id: input_boolean.foyer_chandelier_sleep_hold
+    - action: input_boolean.turn_off
+      target:
+        entity_id: input_boolean.tv_lighting_scene_hold
     - if:
         - condition: template
           value_template: >
@@ -921,6 +930,7 @@ vacation_mode_start:
           - input_boolean.interior_lights_guest_override_confirm
           - input_boolean.foyer_chandelier_sleep_hold
           - input_boolean.front_stairs_sleep_override
+          - input_boolean.tv_lighting_scene_hold
     - action: light.turn_off
       data:
         entity_id:
