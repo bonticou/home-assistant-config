@@ -1,7 +1,7 @@
 # Ring Realtime Upstream Follow-Up
 
 Date: 2026-08-10
-Status: HA-side reload attempted; upstream Ring realtime path still not proven healthy
+Status: Ring account cleanup and reauth completed; realtime path confirmed by user; temporary fallback retired
 
 ## Symptom And User Impact
 
@@ -137,3 +137,33 @@ This fixes the known expired/stale Ring auth-client state and restores the Ring
 metadata path. The remaining acceptance test is a real Ring motion and doorbell
 event, because Home Assistant event entities remain `unknown` until Ring emits a
 new realtime event.
+
+## Temporary Fallback Retired
+
+Trevor later confirmed the Ring realtime notification path works again after the
+account cleanup and reauth. The temporary `last_activity` fallback notification
+was removed so entry-camera notifications are once again driven only by actual
+Ring motion and doorbell event entities.
+
+Changes:
+
+- Removed `automation.security_entry_ring_last_activity_fallback_notifications`.
+- Removed the fallback-only `activity` message branch from
+  `script.entry_camera_send_alert`.
+- Kept `automation.security_entry_ring_notifications` and the Time Sensitive
+  Ring push format intact.
+
+This avoids duplicate or ambiguous alerts now that the primary Ring event path
+is healthy.
+
+Deployment:
+
+- Wrote and read back `/homeassistant/automations/10-lighting-security.yaml`.
+- Wrote and read back `/homeassistant/scripts.yaml`.
+- Home Assistant config check returned `valid`.
+- `script.reload` and `automation.reload` both returned HTTP 200.
+- Live state showed `automation.security_entry_ring_notifications` still `on`
+  with a fresh 2026-08-10 trigger timestamp.
+- Live state showed the retired fallback automation as `unavailable` after
+  reload. That means the fallback logic is no longer active; the stale entity
+  state may disappear fully after a future Core restart.
