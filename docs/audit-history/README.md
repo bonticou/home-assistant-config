@@ -79,6 +79,7 @@ Supporting material:
 
 | Date | Entry | Scope |
 | --- | --- | --- |
+| 2026-08-10 | [Notification delivery hardening](2026-08-10-notification-delivery-hardening.md) | Finds Ring realtime events still degraded while fallback and HA-side push calls run, then hardens entry-camera and irrigation operational alerts with Time Sensitive iOS presentation |
 | 2026-08-07 | [Ring last-activity fallback recovery](2026-08-07-ring-last-activity-fallback.md) | Adds and deploys a conservative Ring `last_activity` fallback alert path that waits for the normal realtime-event automation before sending an explicit activity alert; records File Editor ingress recovery and confirms Ring realtime events remain degraded |
 | 2026-08-07 | [Notification reliability audit](2026-08-07-notification-reliability-audit.md) | Audits missed Ring, irrigation, and laundry notifications end-to-end; finds Ring failing at the upstream realtime event-feed layer, confirms the HA-side notify wrapper is callable, and flags live-deploy drift for laundry hardening |
 | 2026-08-07 | [Laundry notification miss and ThinQ fallback](2026-08-07-laundry-notification-miss.md) | Investigates a missed laundry-finished notification, records stale Remote UI/API evidence, and adds washer/dryer current-status fallback completion detection while preserving existing notification behavior |

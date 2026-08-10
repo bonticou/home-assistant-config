@@ -4089,6 +4089,33 @@ water_send_alert:
                   sticky: true
                   ttl: 0
                   priority: high
+        - conditions:
+            - condition: template
+              value_template: >-
+                {{ kind in [
+                  'irrigation_started',
+                  'irrigation_finished',
+                  'irrigation_scheduled_not_started',
+                  'irrigation_controller_offline',
+                  'irrigation_controller_offline_during_watering'
+                ] }}
+          sequence:
+            - action: script.notify_trevor_phone
+              data:
+                title: "{{ notification_title }}"
+                message: "{{ notification_message }}"
+                data:
+                  group: water
+                  tag: "water-{{ kind }}"
+                  url: "{{ notification_url }}"
+                  sticky: false
+                  ttl: 0
+                  priority: high
+                  push:
+                    interruption-level: time-sensitive
+                  presentation_options:
+                    - alert
+                    - sound
       default:
         - choose:
             - conditions:
@@ -5473,6 +5500,13 @@ entry_camera_send_alert:
             {% set kind = event_kind | default('motion') %}
             entry-{{ zone }}-{{ kind }}
           url: /calm-mobile/home
+          ttl: 0
+          priority: high
+          push:
+            interruption-level: time-sensitive
+          presentation_options:
+            - alert
+            - sound
           actions:
             - action: URI
               title: Open Protect
