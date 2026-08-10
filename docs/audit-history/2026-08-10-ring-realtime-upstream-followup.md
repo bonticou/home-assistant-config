@@ -113,9 +113,27 @@ Do not delete Ring phone/app authorized clients. Do not remove and re-add the HA
 Ring integration unless reconfigure fails, because that has higher entity-ID and
 automation-blast-radius risk.
 
-## Current Blocker
+## Account Cleanup And Reauth Follow-Up
 
-Attempted to open the Ring authorized-client page from Safari. The page landed
-on the Ring login screen, so the account-client cleanup and any 2FA-backed
-reconfigure cannot be completed by the repo agent alone without Trevor's Ring
-account session.
+The official recovery sequence was completed from Safari with Trevor providing
+the Ring account login and two-factor code directly in the browser:
+
+- Opened the current Ring Control Center authorized-devices page.
+- Removed two stale `ring-doorbell:HomeAssistant/ring-integration` authorized
+  clients.
+- Left normal browser and phone Ring clients alone.
+- Ran Home Assistant Ring `Reconfigure`.
+- Home Assistant reported `Re-authentication was successful`.
+- The Ring account authorized-devices page then showed one
+  `ring-doorbell:HomeAssistant/ring-integration` client, which is the desired
+  post-reauth shape.
+- After one polling interval, Ring metadata polling repopulated:
+  - `sensor.front_door_last_activity`;
+  - `sensor.mudroom_door_last_activity`.
+- A clearly labeled HA-side phone notification test through
+  `script.notify_trevor_phone` executed at 2026-08-10 10:20 AM EDT.
+
+This fixes the known expired/stale Ring auth-client state and restores the Ring
+metadata path. The remaining acceptance test is a real Ring motion and doorbell
+event, because Home Assistant event entities remain `unknown` until Ring emits a
+new realtime event.
