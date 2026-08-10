@@ -79,6 +79,7 @@ Supporting material:
 
 | Date | Entry | Scope |
 | --- | --- | --- |
+| 2026-08-10 | [Ring realtime upstream follow-up](2026-08-10-ring-realtime-upstream-followup.md) | Verifies Ring reload restores metadata polling but not realtime event proof, checks official Ring realtime recovery guidance, and records the account-client cleanup plus Ring reconfigure path |
 | 2026-08-10 | [Notification delivery hardening](2026-08-10-notification-delivery-hardening.md) | Finds Ring realtime events still degraded while fallback and HA-side push calls run, then hardens entry-camera and irrigation operational alerts with Time Sensitive iOS presentation |
 | 2026-08-07 | [Ring last-activity fallback recovery](2026-08-07-ring-last-activity-fallback.md) | Adds and deploys a conservative Ring `last_activity` fallback alert path that waits for the normal realtime-event automation before sending an explicit activity alert; records File Editor ingress recovery and confirms Ring realtime events remain degraded |
 | 2026-08-07 | [Notification reliability audit](2026-08-07-notification-reliability-audit.md) | Audits missed Ring, irrigation, and laundry notifications end-to-end; finds Ring failing at the upstream realtime event-feed layer, confirms the HA-side notify wrapper is callable, and flags live-deploy drift for laundry hardening |
