@@ -472,10 +472,14 @@
         completed_value: "{{ completion_ts | float(0) | timestamp_custom('%Y-%m-%d %H:%M:%S', true) }}"
         cycle_raw: "{{ states('sensor.washer_cycles') | trim }}"
         cycle_label: >-
-          {% if cycle_raw not in ['unknown', 'unavailable', 'none', ''] %}
-            {{ cycle_raw | replace('_', ' ') | title }}
-          {% else %}
+          {% set normalized = cycle_raw | lower | replace('_', ' ') | replace('-', ' ') | trim %}
+          {% set compact = normalized | replace(' ', '') %}
+          {% if cycle_raw in ['unknown', 'unavailable', 'none', '']
+             or compact.startswith('load')
+             or cycle_raw | int(-1) >= 0 %}
             Wash
+          {% else %}
+            {{ cycle_raw | replace('_', ' ') | title }}
           {% endif %}
     - action: input_datetime.set_datetime
       target:
