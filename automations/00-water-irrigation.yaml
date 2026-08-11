@@ -38,6 +38,8 @@
           'binary_sensor.play_room_person_detected': 'Play Room',
           'binary_sensor.g6_instant_motion_3': 'Garage',
           'binary_sensor.garage_person_detected': 'Garage',
+          'event.front_door_motion': 'Front Door',
+          'event.mudroom_door_motion': 'Mud Room Door',
           'binary_sensor.wynn_s_room_motion': "Wynn's Room",
           'binary_sensor.wynn_s_room_person_detected': "Wynn's Room",
           'binary_sensor.mud_room_motion': 'Mud Room',
@@ -45,11 +47,13 @@
           'binary_sensor.mechanical_room_motion': 'Mechanical Room',
           'binary_sensor.mechanical_room_person_detected': 'Mechanical Room'
         } %}
-        {% if entity.startswith('binary_sensor.') and new is not none and new.state == 'on' and (old is none or old.state != 'on') %}
-          {{ entity in motion_sources }}
-        {% else %}
-          false
-        {% endif %}
+        {{ entity in motion_sources
+           and new is not none
+           and new.state not in ['unknown', 'unavailable', 'none', '']
+           and (
+             (entity.startswith('binary_sensor.') and new.state == 'on' and (old is none or old.state != 'on'))
+             or (entity.startswith('event.') and (old is none or new.state != old.state))
+           ) }}
   actions:
     - variables:
         entity: "{{ trigger.event.data.entity_id }}"
@@ -59,6 +63,8 @@
             'binary_sensor.play_room_person_detected': 'Play Room',
             'binary_sensor.g6_instant_motion_3': 'Garage',
             'binary_sensor.garage_person_detected': 'Garage',
+            'event.front_door_motion': 'Front Door',
+            'event.mudroom_door_motion': 'Mud Room Door',
             'binary_sensor.wynn_s_room_motion': "Wynn's Room",
             'binary_sensor.wynn_s_room_person_detected': "Wynn's Room",
             'binary_sensor.mud_room_motion': 'Mud Room',

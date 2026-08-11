@@ -2555,6 +2555,8 @@ views:
             'binary_sensor.play_room_person_detected': 'Play Room',
             'binary_sensor.g6_instant_motion_3': 'Garage',
             'binary_sensor.garage_person_detected': 'Garage',
+            'event.front_door_motion': 'Front Door',
+            'event.mudroom_door_motion': 'Mud Room Door',
             'binary_sensor.wynn_s_room_motion': "Wynn's Room",
             'binary_sensor.wynn_s_room_person_detected': "Wynn's Room",
             'binary_sensor.mud_room_motion': 'Mud Room',
