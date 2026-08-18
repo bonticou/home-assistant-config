@@ -4036,6 +4036,17 @@ _No registered entities._
 | --- | --- | --- | --- | --- | --- |
 | `light.wynn_s_room_chandelier` | light.wynn_s_room_chandelier | control | lutron_caseta |  | not_enriched |
 
+#### Wynn's Room Closet Light
+
+- Device ID: `4283795211c944f143f7788b2f17e6a6`
+- Integration: lutron_caseta
+- Model: Lutron Electronics Co., Inc DVRF-6L (DivaSmartDimmer)
+- Capability mix: 0 telemetry, 1 control, 0 network, 0 other
+
+| Entity | Name | Role | Integration | Detail | Availability |
+| --- | --- | --- | --- | --- | --- |
+| `light.wynn_s_room_wynn_s_room_closet_light` | Wynn's Room Closet Light | control | lutron_caseta |  | not_enriched |
+
 ## Orphan Entities
 
 | Entity | Name | Role | Integration | Availability |

@@ -7661,6 +7661,20 @@ views:
             use_light_color: false
             card_mod:
               style: *lights_button_style
+          - type: custom:mushroom-light-card
+            entity: light.wynn_s_room_wynn_s_room_closet_light
+            name: Closet
+            icon: mdi:circle
+            tap_action:
+              <<: *lights_transition_tap_action
+              data:
+                light_entity: light.wynn_s_room_wynn_s_room_closet_light
+                transition_seconds: 3
+            show_brightness_control: true
+            collapsible_controls: true
+            use_light_color: false
+            card_mod:
+              style: *lights_button_style
 
       - type: custom:mushroom-title-card
         title: Master Bedroom

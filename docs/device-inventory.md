@@ -5,14 +5,14 @@ A human-readable map of the Home Assistant device model. The full audit dump is 
 ## At A Glance
 
 - Snapshot: `2026-07-29T14:29:24.057042+00:00`
-- Scale: 229 devices, 2512 entities, 151 network clients
-- Lighting: 36 light entities, 33 Lutron Caséta entities
+- Scale: 230 devices, 2513 entities, 151 network clients
+- Lighting: 37 light entities, 34 Lutron Caséta entities
 
 | Thing | Count |
 | --- | --- |
-| Devices | 229 |
-| Entities | 2512 |
-| Control entities | 882 |
+| Devices | 230 |
+| Entities | 2513 |
+| Control entities | 883 |
 | Telemetry entities | 1125 |
 | Network clients | 151 |
 | Areas | 32 |
@@ -49,7 +49,7 @@ A human-readable map of the Home Assistant device model. The full audit dump is 
 | Unnamed Room | 8 | 90 | 0 | 8 | 8 |
 | Upstairs Hallway | 1 | 1 | 1 | 0 | 0 |
 | Vestibule | 1 | 1 | 1 | 0 | 0 |
-| Wynn's Room | 4 | 13 | 2 | 5 | 1 |
+| Wynn's Room | 5 | 14 | 3 | 5 | 1 |
 
 ## Lighting Controls
 
@@ -91,6 +91,7 @@ A human-readable map of the Home Assistant device model. The full audit dump is 
 | Vestibule | light.vestibule_main_lights | `light.vestibule_main_lights` | lutron_caseta |  |
 | Wynn's Room | light.wynn_s_room_ceiling_lights | `light.wynn_s_room_ceiling_lights` | lutron_caseta |  |
 | Wynn's Room | light.wynn_s_room_chandelier | `light.wynn_s_room_chandelier` | lutron_caseta |  |
+| Wynn's Room | Wynn's Room Closet Light | `light.wynn_s_room_wynn_s_room_closet_light` | lutron_caseta |  |
 
 ## Control Devices By Area
 
@@ -358,6 +359,7 @@ A human-readable map of the Home Assistant device model. The full audit dump is 
 | Wynn Sonos | sonos, unifi | `media_player.wynn_s_room`; Balance (`number.wynn_s_room_balance`); Bass (`number.wynn_s_room_bass`); Treble (`number.wynn_s_room_treble`); Crossfade (`switch.wynn_s_room_crossfade`); +5 more |  |
 | Wynn's Room Ceiling Lights | lutron_caseta | `light.wynn_s_room_ceiling_lights` |  |
 | Wynn's Room Chandelier | lutron_caseta | `light.wynn_s_room_chandelier` |  |
+| Wynn's Room Closet Light | lutron_caseta | `light.wynn_s_room_wynn_s_room_closet_light` |  |
 
 ## Files
 

@@ -6069,6 +6069,26 @@
       "network_count": 0,
       "other_count": 0,
       "telemetry_count": 0
+    },
+    {
+      "area": "Wynn's Room",
+      "control_count": 1,
+      "device_id": "4283795211c944f143f7788b2f17e6a6",
+      "disabled_by": "",
+      "entities": [
+        "light.wynn_s_room_wynn_s_room_closet_light"
+      ],
+      "entity_count": 1,
+      "entry_type": "",
+      "integrations": [
+        "lutron_caseta"
+      ],
+      "manufacturer": "Lutron Electronics Co., Inc",
+      "model": "DVRF-6L (DivaSmartDimmer)",
+      "name": "Wynn's Room Closet Light",
+      "network_count": 0,
+      "other_count": 0,
+      "telemetry_count": 0
     }
   ],
   "entities": [
@@ -21718,6 +21738,22 @@
       "entity_id": "light.wynn_s_room_chandelier",
       "hidden_by": "",
       "name": "light.wynn_s_room_chandelier",
+      "platform": "lutron_caseta",
+      "role": "control",
+      "unit": ""
+    },
+    {
+      "area": "Wynn's Room",
+      "availability": "not_enriched",
+      "capability_keys": [],
+      "device_class": "",
+      "device_id": "4283795211c944f143f7788b2f17e6a6",
+      "disabled_by": "",
+      "domain": "light",
+      "entity_category": "",
+      "entity_id": "light.wynn_s_room_wynn_s_room_closet_light",
+      "hidden_by": "",
+      "name": "Wynn's Room Closet Light",
       "platform": "lutron_caseta",
       "role": "control",
       "unit": ""
@@ -62000,7 +62036,7 @@
   "schema_version": 3,
   "summary": {
     "area_count": 32,
-    "device_count": 229,
+    "device_count": 230,
     "domain_counts": {
       "ai_task": 2,
       "alarm_control_panel": 1,
@@ -62019,7 +62055,7 @@
       "input_number": 22,
       "input_select": 3,
       "input_text": 28,
-      "light": 36,
+      "light": 37,
       "lock": 5,
       "media_player": 27,
       "notify": 2,
@@ -62038,7 +62074,7 @@
       "valve": 30,
       "weather": 1
     },
-    "entity_count": 2512,
+    "entity_count": 2513,
     "integration_count": 44,
     "integration_counts": {
       "airthings": 4,
@@ -62064,7 +62100,7 @@
       "input_select": 3,
       "input_text": 28,
       "lg_thinq": 27,
-      "lutron_caseta": 33,
+      "lutron_caseta": 34,
       "matter": 25,
       "met": 1,
       "mobile_app": 31,
@@ -62089,7 +62125,7 @@
     "network_client_count": 151,
     "orphan_entity_count": 832,
     "role_counts": {
-      "control": 882,
+      "control": 883,
       "network": 151,
       "other": 354,
       "telemetry": 1125
