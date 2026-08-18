@@ -2881,7 +2881,8 @@ template:
           names: >
             {% set light_labels = {
               'light.ratgdo32_4536e8_light': 'your garage door light',
-              'light.ratgdo32disco_c26634_light': "Casey's garage door light"
+              'light.ratgdo32disco_c26634_light': "Casey's garage door light",
+              'light.wynn_s_room_wynn_s_room_closet_light': "Wynn's closet"
             } %}
             {% set exempt = namespace(entity_ids=[]) %}
             {% set exempt.entity_ids = exempt.entity_ids + ['light.wynn_s_room_chandelier'] %}
@@ -3014,7 +3015,8 @@ template:
           names: >
             {% set light_labels = {
               'light.ratgdo32_4536e8_light': 'your garage door light',
-              'light.ratgdo32disco_c26634_light': "Casey's garage door light"
+              'light.ratgdo32disco_c26634_light': "Casey's garage door light",
+              'light.wynn_s_room_wynn_s_room_closet_light': "Wynn's closet"
             } %}
             {% set exempt = [
               'light.stairs_front_stairs',

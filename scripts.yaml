@@ -560,6 +560,7 @@ lights_all_off_scene:
           - light.ratgdo32_4536e8_light
           - light.ratgdo32disco_c26634_light
           - light.master_casey_s_closet
+          - light.wynn_s_room_wynn_s_room_closet_light
         transition: 3
     - variables:
         master_sconces_sleep_fade_down: >-
@@ -672,6 +673,7 @@ lights_bedtime_scene:
           - light.ratgdo32_4536e8_light
           - light.ratgdo32disco_c26634_light
           - light.master_casey_s_closet
+          - light.wynn_s_room_wynn_s_room_closet_light
         transition: 8
     - action: light.turn_on
       target:
