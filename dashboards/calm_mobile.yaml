@@ -7155,6 +7155,50 @@ views:
               card_mod:
                 style: *lights_compact_card_style
             - type: custom:mushroom-template-card
+              entity: automation.lights_wynn_s_closet_camera_quiet_auto_off
+              primary: Wynn's closet auto-off
+              secondary: >-
+                {% set camera_entities = [
+                  'binary_sensor.wynn_s_room_motion',
+                  'binary_sensor.wynn_s_room_person_detected'
+                ] %}
+                {% set ns = namespace(recent=false, known=false) %}
+                {% for entity_id in camera_entities %}
+                  {% set sensor = states[entity_id] %}
+                  {% if sensor is not none and sensor.state == 'on' %}
+                    {% set ns.recent = true %}
+                    {% set ns.known = true %}
+                  {% elif sensor is not none and sensor.state == 'off' %}
+                    {% set ns.known = true %}
+                    {% if (as_timestamp(now()) - as_timestamp(sensor.last_changed, 0)) < 300 %}
+                      {% set ns.recent = true %}
+                    {% endif %}
+                  {% endif %}
+                {% endfor %}
+                {% if is_state('light.wynn_s_room_wynn_s_room_closet_light', 'on') and ns.recent %}
+                  Closet light is on - holding because the room camera saw recent motion.
+                {% elif is_state('light.wynn_s_room_wynn_s_room_closet_light', 'on') and ns.known %}
+                  Closet light is on - auto-off after 5 quiet minutes.
+                {% elif is_state('automation.lights_wynn_s_closet_camera_quiet_auto_off', 'on') %}
+                  If it gets left on, it shuts itself off after 5 quiet minutes.
+                {% else %}
+                  Automation is disabled.
+                {% endif %}
+              multiline_secondary: true
+              icon: mdi:timer-off-outline
+              icon_color: >-
+                {% if is_state('light.wynn_s_room_wynn_s_room_closet_light', 'on') %}
+                  amber
+                {% else %}
+                  grey
+                {% endif %}
+              tap_action:
+                action: none
+              hold_action:
+                action: none
+              card_mod:
+                style: *lights_compact_card_style
+            - type: custom:mushroom-template-card
               entity: automation.lights_garage_light_auto_off
               primary: Garage light auto-off
               secondary: >-
