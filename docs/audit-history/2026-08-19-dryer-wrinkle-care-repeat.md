@@ -54,14 +54,25 @@ notification-logic defect.
 
 ## Checks
 
-- Local YAML parsing and repository checks are recorded after the code change.
-- Live read-back, configuration validation, automation reload, and next-cycle
-  observation remain required before this incident is considered fully closed.
+- Parsed the changed automation file locally as YAML.
+- Ran `python3 tools/check_device_inventory_coverage.py`; all 173 active
+  references were covered.
+- Saved the complete automation chunk through File Editor and verified the live
+  read-back byte-for-byte against the repository copy. Both files were 107,149
+  bytes with SHA-256
+  `25568fb50cb59a238cca1ffa51c7391bcbc2b085a4f3438ec9d1d41124eef414`.
+- Confirmed the File Editor syntax indicator remained green and performed a
+  targeted automation reload without restarting Home Assistant Core.
+- Live helper inspection showed the restored handled timestamp still predates
+  the false 2026-08-19 completion. That stale cycle was left in history rather
+  than rewriting Recorder state; the transition fix prevents it from being
+  refreshed into additional false cycles.
 
 ## Deployment Status
 
-Prepared locally on 2026-08-19. Live deployment is pending completion of the
-new Beelink's persistent SSH administration path.
+Deployed live to the Beelink on 2026-08-19 through the authenticated File
+Editor ingress path. The live file matched the committed repository copy and
+automations were reloaded without a Core restart.
 
 ## Residual Risks And Follow-Up
 
@@ -70,6 +81,6 @@ new Beelink's persistent SSH administration path.
 - Capture the observed `current_status` sequence so the accepted drying-phase
   list can be refined from evidence if LG reports a legitimate additional
   predecessor state.
-- Clear or mark handled any already-active stale dryer notification after live
-  deployment; the code change prevents future false completions but does not
-  mutate restored helper history by itself.
+- Dismiss any already-visible notification from the restored/false current
+  cycle. The fix stops later wrinkle-care transitions from creating another
+  completion, but intentionally does not rewrite Recorder history.
