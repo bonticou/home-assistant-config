@@ -28,8 +28,8 @@ integrations, and large Recorder history.
 
 ## Evidence Collected
 
-All live checks were read-only. No restart, reload, integration change, or
-configuration deployment was performed.
+The initial diagnostic checks were read-only. The later, user-authorized
+Recorder maintenance is documented separately under **Changes Made**.
 
 ### Confirmed Restart Evidence
 
@@ -125,7 +125,34 @@ the lost connections or the confirmed restart.
 
 ## Changes Made
 
-None. This pass was diagnostic only.
+After the diagnostic pass, the user authorized a targeted purge of all Whisker
+Ting Recorder history. The following entity families were added to
+`recorder.exclude.entity_globs` so current Ting safety state remains available
+without retaining future history:
+
+- `binary_sensor.ting_*`
+- `binary_sensor.resident_residence_*`
+- `sensor.ting_*`
+- `sensor.resident_residence_*`
+
+The live `configuration.yaml` was written through File Editor and read back
+byte-for-byte. The local and live files matched at 432,090 characters with
+SHA-256 `0bee126b32d740320623027ee4b1f628078a9e750d26a0ec171ca8689c957ab2`.
+Home Assistant's configuration check completed without an error.
+
+The `recorder.purge_entities` action was then called with `keep_days: 0` and the
+same four entity globs. Home Assistant returned HTTP 200. Representative raw
+voltage, fire-hazard, and residence-derived entities subsequently returned zero
+historical rows. Core was restarted once to activate the exclusions. The
+restart request timed out at the HTTP proxy with 504, but this was an expected
+response-path interruption: Observer stayed available and Core returned HTTP
+200 about one minute later. After startup, 38 current Ting-family entities were
+present and the representative fire-hazard entity remained available while its
+history stayed empty.
+
+The Recorder inventory was regenerated from the current repository
+configuration. It now classifies all 48 inventoried `whisker_ting` entities as
+excluded by configuration and shows zero Whisker Ting Recorder candidates.
 
 ## Recommended Next Actions
 
@@ -136,9 +163,8 @@ None. This pass was diagnostic only.
    messages, and client disconnects cease.
 3. Review or update the custom Whisker Ting integration before re-enabling it;
    report the reconnect loop upstream if the current release reproduces it.
-4. Preserve useful Ting safety state, but reduce unnecessary Recorder writes
-   from high-frequency raw/derived entities using exact entity exclusions or
-   lower-frequency statistics rather than a broad domain exclusion.
+4. Completed: preserve current Ting safety state while excluding all Whisker
+   Ting entity families from Recorder and purge their prior history.
 5. Fix the water/irrigation JSON templates and duplicate dashboard key as
    separate, minimal reliability slices.
 6. Add durable restart breadcrumbs or external uptime monitoring so future
@@ -146,7 +172,10 @@ None. This pass was diagnostic only.
 
 ## Residual Risk
 
-Until the Ting reconnect loop is stopped, Home Assistant may continue to shed
-websocket clients even when average CPU and memory look normal. Until
-Supervisor/host evidence is captured, another unclean restart could recur
-without a definitive classification.
+The Recorder purge and exclusions remove Ting's database-write and history-query
+pressure, but they do not stop the integration's websocket reconnect loop or
+live state events. Home Assistant may therefore still shed websocket clients if
+that loop continues. Until Supervisor/host evidence is captured, another
+unclean restart could recur without a definitive classification. No Recorder
+repack was requested or performed, so the SQLite file may not immediately
+shrink even though the Ting rows are gone.

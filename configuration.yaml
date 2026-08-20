@@ -1328,6 +1328,12 @@ recorder:
       - select
       - update
     entity_globs:
+      # Whisker Ting can emit high-frequency voltage updates and reconnect
+      # storms. Keep current safety state available, but do not retain history.
+      - binary_sensor.ting_*
+      - binary_sensor.resident_residence_*
+      - sensor.ting_*
+      - sensor.resident_residence_*
       - sensor.*_signal_strength
       - sensor.*_rssi
       - sensor.*_lqi
