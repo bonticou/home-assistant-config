@@ -79,6 +79,7 @@ Supporting material:
 
 | Date | Entry | Scope |
 | --- | --- | --- |
+| 2026-08-19 | [Dryer wrinkle-care repeat notifications](2026-08-19-dryer-wrinkle-care-repeat.md) | Prevents recurring ThinQ wrinkle-care transitions from being recorded as brand-new dryer completions while preserving official completion events and durable notification guards |
 | 2026-08-10 | [Washer notification copy cleanup](2026-08-10-washer-notification-copy.md) | Prevents ThinQ numeric load/cycle counters from leaking into user-facing washer completion notifications while preserving durable laundry guards |
 | 2026-08-10 | [Ring realtime upstream follow-up](2026-08-10-ring-realtime-upstream-followup.md) | Verifies Ring reload restores metadata polling but not realtime event proof, completes the official account-client cleanup and Ring reconfigure path, and retires the temporary fallback after realtime notifications recover |
 | 2026-08-10 | [Notification delivery hardening](2026-08-10-notification-delivery-hardening.md) | Finds Ring realtime events still degraded while fallback and HA-side push calls run, then hardens entry-camera and irrigation operational alerts with Time Sensitive iOS presentation |

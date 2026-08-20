@@ -727,7 +727,7 @@
 
 - id: dryer_cycle_complete_notification
   alias: "Laundry — Dryer Cycle Complete Notification"
-  description: Records every ThinQ completion, with a current-status fallback when the ThinQ event feed misses the completion event.
+  description: Records every ThinQ completion, with a current-status fallback that accepts only a real drying-phase transition when the ThinQ event feed misses the completion event.
   triggers:
     - trigger: state
       entity_id: event.dryer_notification
@@ -746,11 +746,11 @@
     - condition: template
       value_template: >-
         {% set event_type = trigger.to_state.attributes.event_type | default('', true) if trigger.to_state is not none else '' %}
-        {% set clean_status_transition =
+        {% set drying_phase_transition =
           trigger.from_state is not none
-          and trigger.from_state.state not in ['unknown', 'unavailable', 'none', ''] %}
+          and trigger.from_state.state in ['running', 'cooling', 'detecting'] %}
         {{ (trigger.id == 'completion_event' and event_type == 'drying_is_complete')
-           or (trigger.id == 'status_done_fallback' and clean_status_transition) }}
+           or (trigger.id == 'status_done_fallback' and drying_phase_transition) }}
     - condition: template
       value_template: >-
         {% set fallback_key = 'status:' ~ trigger.to_state.state ~ ':' ~ trigger.to_state.last_changed %}
