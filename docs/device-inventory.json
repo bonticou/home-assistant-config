@@ -924,7 +924,7 @@
       "telemetry_count": 3
     },
     {
-      "area": "",
+      "area": "Network Room",
       "control_count": 0,
       "device_id": "device_d557496dfd6d",
       "disabled_by": "",
@@ -940,9 +940,11 @@
       "integrations": [
         "hassio"
       ],
-      "manufacturer": "Home Assistant",
-      "model": "Home Assistant Host",
-      "name": "Home Assistant Host",
+      "hardware_notes": "Intel N100; 16 GB RAM; 512 GB SSD; wired 2.5 GbE; headless",
+      "infrastructure_role": "Primary Home Assistant host and home controller",
+      "manufacturer": "Beelink",
+      "model": "Mini S12 Pro",
+      "name": "Headless Horseman",
       "network_count": 0,
       "other_count": 0,
       "telemetry_count": 5
@@ -31263,7 +31265,7 @@
       "unit": ""
     },
     {
-      "area": "",
+      "area": "Network Room",
       "availability": "disabled",
       "capability_keys": [],
       "device_class": "",
@@ -31279,7 +31281,7 @@
       "unit": ""
     },
     {
-      "area": "",
+      "area": "Network Room",
       "availability": "disabled",
       "capability_keys": [],
       "device_class": "",
@@ -31295,7 +31297,7 @@
       "unit": ""
     },
     {
-      "area": "",
+      "area": "Network Room",
       "availability": "disabled",
       "capability_keys": [],
       "device_class": "",
@@ -31311,7 +31313,7 @@
       "unit": ""
     },
     {
-      "area": "",
+      "area": "Network Room",
       "availability": "disabled",
       "capability_keys": [],
       "device_class": "",
@@ -31327,7 +31329,7 @@
       "unit": ""
     },
     {
-      "area": "",
+      "area": "Network Room",
       "availability": "disabled",
       "capability_keys": [],
       "device_class": "",

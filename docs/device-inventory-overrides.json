@@ -1,0 +1,15 @@
+{
+  "device_overrides": [
+    {
+      "match_entity": "sensor.home_assistant_host_disk_total",
+      "set": {
+        "area": "Network Room",
+        "hardware_notes": "Intel N100; 16 GB RAM; 512 GB SSD; wired 2.5 GbE; headless",
+        "infrastructure_role": "Primary Home Assistant host and home controller",
+        "manufacturer": "Beelink",
+        "model": "Mini S12 Pro",
+        "name": "Headless Horseman"
+      }
+    }
+  ]
+}

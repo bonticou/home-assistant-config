@@ -1445,6 +1445,25 @@ _No registered entities._
 | --- | --- | --- | --- | --- | --- |
 | `light.stairs_front_stairs` | light.stairs_front_stairs | control | lutron_caseta |  | not_enriched |
 
+### Network Room
+
+#### Headless Horseman
+
+- Device ID: `device_d557496dfd6d`
+- Integration: hassio
+- Model: Beelink Mini S12 Pro
+- Capability mix: 5 telemetry, 0 control, 0 network, 0 other
+- Infrastructure role: Primary Home Assistant host and home controller
+- Hardware: Intel N100; 16 GB RAM; 512 GB SSD; wired 2.5 GbE; headless
+
+| Entity | Name | Role | Integration | Detail | Availability |
+| --- | --- | --- | --- | --- | --- |
+| `sensor.home_assistant_host_apparmor_version` | AppArmor version | telemetry | hassio | diagnostic | disabled |
+| `sensor.home_assistant_host_disk_free` | Disk free | telemetry | hassio | diagnostic | disabled |
+| `sensor.home_assistant_host_disk_total` | Disk total | telemetry | hassio | diagnostic | disabled |
+| `sensor.home_assistant_host_disk_used` | Disk used | telemetry | hassio | diagnostic | disabled |
+| `sensor.home_assistant_host_os_agent_version` | OS Agent version | telemetry | hassio | diagnostic | disabled |
+
 ### Unassigned
 
 #### 45  CRR
@@ -2041,21 +2060,6 @@ _No registered entities._
 | `sensor.home_assistant_core_cpu_percent` | CPU percent | telemetry | hassio |  | disabled |
 | `sensor.home_assistant_core_memory_percent` | Memory percent | telemetry | hassio |  | disabled |
 | `update.home_assistant_core_update` | Update | telemetry | hassio | config | not_enriched |
-
-#### Home Assistant Host
-
-- Device ID: `device_d557496dfd6d`
-- Integration: hassio
-- Model: Home Assistant Home Assistant Host
-- Capability mix: 5 telemetry, 0 control, 0 network, 0 other
-
-| Entity | Name | Role | Integration | Detail | Availability |
-| --- | --- | --- | --- | --- | --- |
-| `sensor.home_assistant_host_apparmor_version` | AppArmor version | telemetry | hassio | diagnostic | disabled |
-| `sensor.home_assistant_host_disk_free` | Disk free | telemetry | hassio | diagnostic | disabled |
-| `sensor.home_assistant_host_disk_total` | Disk total | telemetry | hassio | diagnostic | disabled |
-| `sensor.home_assistant_host_disk_used` | Disk used | telemetry | hassio | diagnostic | disabled |
-| `sensor.home_assistant_host_os_agent_version` | OS Agent version | telemetry | hassio | diagnostic | disabled |
 
 #### Home Assistant Operating System
 

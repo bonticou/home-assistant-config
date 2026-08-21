@@ -43,13 +43,20 @@ A human-readable map of the Home Assistant device model. The full audit dump is 
 | Master Bedroom | 2 | 2 | 2 | 0 | 0 |
 | Mechanical Room | 4 | 33 | 0 | 46 | 3 |
 | Mudroom | 9 | 46 | 2 | 65 | 3 |
+| Network Room | 1 | 0 | 0 | 5 | 0 |
 | Office | 3 | 7 | 0 | 14 | 1 |
 | Stairs | 1 | 1 | 1 | 0 | 0 |
-| Unassigned | 145 | 348 | 11 | 515 | 57 |
+| Unassigned | 144 | 348 | 11 | 510 | 57 |
 | Unnamed Room | 8 | 90 | 0 | 8 | 8 |
 | Upstairs Hallway | 1 | 1 | 1 | 0 | 0 |
 | Vestibule | 1 | 1 | 1 | 0 | 0 |
 | Wynn's Room | 5 | 14 | 3 | 5 | 1 |
+
+## Infrastructure Hosts
+
+| Host | Role | Hardware | Location | Integration |
+| --- | --- | --- | --- | --- |
+| Headless Horseman | Primary Home Assistant host and home controller | Beelink · Mini S12 Pro · Intel N100; 16 GB RAM; 512 GB SSD; wired 2.5 GbE; headless | Network Room | hassio |
 
 ## Lighting Controls
 

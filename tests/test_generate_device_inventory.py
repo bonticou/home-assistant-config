@@ -67,6 +67,35 @@ class DeviceInventoryTests(unittest.TestCase):
             self.assertEqual(first_mtime, path.stat().st_mtime_ns)
             self.assertTrue(inventory.write_if_changed(path, "{\"changed\": true}\n"))
 
+    def test_device_override_enriches_host_by_durable_entity(self):
+        result = self.build_fixture_inventory()
+        target = result["devices"][0]
+        match_entity = target["entities"][0]
+        inventory.apply_device_overrides(
+            result,
+            [
+                {
+                    "match_entity": match_entity,
+                    "set": {
+                        "name": "Headless Horseman",
+                        "manufacturer": "Beelink",
+                        "model": "Mini S12 Pro",
+                        "infrastructure_role": "Primary Home Assistant host",
+                        "hardware_notes": "Intel N100; headless",
+                        "ignored_field": "not copied",
+                    },
+                }
+            ],
+        )
+
+        self.assertEqual(target["name"], "Headless Horseman")
+        self.assertEqual(target["manufacturer"], "Beelink")
+        self.assertEqual(target["model"], "Mini S12 Pro")
+        self.assertNotIn("ignored_field", target)
+        rendered = inventory.render_markdown(result)
+        self.assertIn("## Infrastructure Hosts", rendered)
+        self.assertIn("Headless Horseman", rendered)
+
     def test_first_run_is_silent_baseline(self):
         current = self.build_fixture_inventory()
         report = inventory.build_change_report(None, current, "2026-04-30T12:00:00+00:00", "missing")

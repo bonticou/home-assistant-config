@@ -569,6 +569,46 @@ def build_inventory(
     }
 
 
+def load_device_overrides(path: Path) -> list[dict[str, Any]]:
+    """Load optional, non-sensitive hardware metadata for generated devices."""
+    if not path.exists():
+        return []
+    payload = json.loads(path.read_text(encoding="utf-8"))
+    overrides = payload.get("device_overrides", []) if isinstance(payload, dict) else []
+    return [item for item in overrides if isinstance(item, dict)]
+
+
+def apply_device_overrides(inventory: dict[str, Any], overrides: list[dict[str, Any]]) -> None:
+    """Enrich devices by matching a durable registered entity instead of an IP."""
+    allowed_fields = {
+        "area",
+        "hardware_notes",
+        "infrastructure_role",
+        "manufacturer",
+        "model",
+        "name",
+    }
+    for override in overrides:
+        match_entity = override.get("match_entity")
+        values = override.get("set")
+        if not isinstance(match_entity, str) or not isinstance(values, dict):
+            continue
+        device = next(
+            (item for item in inventory.get("devices", []) if match_entity in item.get("entities", [])),
+            None,
+        )
+        if device is None:
+            continue
+        for field, value in values.items():
+            if field in allowed_fields and isinstance(value, str):
+                device[field] = value
+        if isinstance(values.get("area"), str):
+            entity_ids = set(device.get("entities", []))
+            for entity in inventory.get("entities", []):
+                if entity.get("entity_id") in entity_ids:
+                    entity["area"] = values["area"]
+
+
 def markdown_table(headers: list[str], rows: list[list[Any]]) -> str:
     lines = [
         "| " + " | ".join(headers) + " |",
@@ -668,6 +708,31 @@ def render_markdown(inventory: dict[str, Any]) -> str:
                         counts.get("network", 0),
                     ]
                     for area, counts in sorted(area_rollup.items())
+                ],
+            ),
+            "",
+            "## Infrastructure Hosts",
+            "",
+            markdown_table(
+                ["Host", "Role", "Hardware", "Location", "Integration"],
+                [
+                    [
+                        device.get("name") or "",
+                        device.get("infrastructure_role") or "",
+                        " · ".join(
+                            part
+                            for part in [
+                                device.get("manufacturer") or "",
+                                device.get("model") or "",
+                                device.get("hardware_notes") or "",
+                            ]
+                            if part
+                        ),
+                        device.get("area") or "Unassigned",
+                        ", ".join(device.get("integrations") or []),
+                    ]
+                    for device in inventory["devices"]
+                    if device.get("infrastructure_role")
                 ],
             ),
             "",
@@ -811,6 +876,10 @@ def render_detail_markdown(inventory: dict[str, Any]) -> str:
             )
             if device.get("original_name"):
                 lines.append(f"- Original name: {device['original_name']}")
+            if device.get("infrastructure_role"):
+                lines.append(f"- Infrastructure role: {device['infrastructure_role']}")
+            if device.get("hardware_notes"):
+                lines.append(f"- Hardware: {device['hardware_notes']}")
             lines.append("")
             rows = []
             for entity_id in device["entities"]:
@@ -1376,6 +1445,7 @@ def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
     parser.add_argument("--status-file", type=Path)
     parser.add_argument("--changes-file", type=Path)
     parser.add_argument("--digest-file", type=Path)
+    parser.add_argument("--overrides-file", type=Path)
     parser.add_argument("--api-url", default="http://127.0.0.1:8123")
     parser.add_argument("--api-timeout", type=float, default=10.0)
     parser.add_argument("--no-api", action="store_true")
@@ -1394,6 +1464,7 @@ def main(argv: list[str] | None = None) -> int:
     status_file = (args.status_file or config_dir / ".device_inventory_status.json").resolve()
     changes_file = (args.changes_file or config_dir / ".device_inventory_changes.json").resolve()
     digest_file = (args.digest_file or config_dir / ".device_inventory_digest.json").resolve()
+    overrides_file = (args.overrides_file or config_dir / "docs" / "device-inventory-overrides.json").resolve()
 
     if args.print_status:
         print(json.dumps(read_json_or_none(status_file) or default_status(), sort_keys=True))
@@ -1415,6 +1486,7 @@ def main(argv: list[str] | None = None) -> int:
 
     registries = load_registries(config_dir, args.backup.resolve() if args.backup else None)
     inventory = build_inventory(registries, states, services, salt)
+    apply_device_overrides(inventory, load_device_overrides(overrides_file))
     generated_at = dt.datetime.now(dt.timezone.utc).isoformat()
     inventory["generated_at"] = generated_at
     previous_inventory, baseline_warning = load_previous_inventory(output_dir / "device-inventory.json")
