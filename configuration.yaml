@@ -1334,6 +1334,9 @@ recorder:
       - binary_sensor.resident_residence_*
       - sensor.ting_*
       - sensor.resident_residence_*
+      # Fixed Sonos speakers do not provide meaningful presence history.
+      # Keep their live tracker state and media_player history available.
+      - device_tracker.sonos*
       - sensor.*_signal_strength
       - sensor.*_rssi
       - sensor.*_lqi
