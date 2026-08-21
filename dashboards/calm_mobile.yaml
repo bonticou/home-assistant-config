@@ -7629,6 +7629,28 @@ views:
                 - text-align: left
 
       - type: custom:mushroom-title-card
+        title: Office
+
+      - type: grid
+        columns: 2
+        square: false
+        cards:
+          - type: custom:mushroom-light-card
+            entity: light.office_office_main_lights
+            name: Main
+            icon: mdi:circle
+            tap_action:
+              <<: *lights_transition_tap_action
+              data:
+                light_entity: light.office_office_main_lights
+                transition_seconds: 3
+            show_brightness_control: true
+            collapsible_controls: true
+            use_light_color: false
+            card_mod:
+              style: *lights_button_style
+
+      - type: custom:mushroom-title-card
         title: Great Room
 
       - type: grid

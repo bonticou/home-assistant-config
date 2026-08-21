@@ -551,6 +551,7 @@ lights_all_off_scene:
           - light.kitchen_table_lights
           - light.kitchen_sink_light
           - light.kitchen_coffee_bar
+          - light.office_office_main_lights
           - light.mudroom_main_lights
           - light.mudroom_nook_lights
           - light.back_patio_light

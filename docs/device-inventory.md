@@ -5,14 +5,14 @@ A human-readable map of the Home Assistant device model. The full audit dump is 
 ## At A Glance
 
 - Snapshot: `2026-07-29T14:29:24.057042+00:00`
-- Scale: 230 devices, 2513 entities, 151 network clients
-- Lighting: 37 light entities, 34 Lutron Caséta entities
+- Scale: 231 devices, 2514 entities, 151 network clients
+- Lighting: 38 light entities, 35 Lutron Caséta entities
 
 | Thing | Count |
 | --- | --- |
-| Devices | 230 |
-| Entities | 2513 |
-| Control entities | 883 |
+| Devices | 231 |
+| Entities | 2514 |
+| Control entities | 884 |
 | Telemetry entities | 1125 |
 | Network clients | 151 |
 | Areas | 32 |
@@ -44,7 +44,7 @@ A human-readable map of the Home Assistant device model. The full audit dump is 
 | Mechanical Room | 4 | 33 | 0 | 46 | 3 |
 | Mudroom | 9 | 46 | 2 | 65 | 3 |
 | Network Room | 1 | 0 | 0 | 5 | 0 |
-| Office | 3 | 7 | 0 | 14 | 1 |
+| Office | 4 | 8 | 1 | 14 | 1 |
 | Stairs | 1 | 1 | 1 | 0 | 0 |
 | Unassigned | 144 | 348 | 11 | 510 | 57 |
 | Unnamed Room | 8 | 90 | 0 | 8 | 8 |
@@ -93,6 +93,7 @@ A human-readable map of the Home Assistant device model. The full audit dump is 
 | Master Bedroom | light.master_bedroom_sconce_r | `light.master_bedroom_sconce_r` | lutron_caseta |  |
 | Mudroom | light.mudroom_main_lights | `light.mudroom_main_lights` | lutron_caseta |  |
 | Mudroom | light.mudroom_nook_lights | `light.mudroom_nook_lights` | lutron_caseta |  |
+| Office | Office Main Lights | `light.office_office_main_lights` | lutron_caseta |  |
 | Stairs | light.stairs_front_stairs | `light.stairs_front_stairs` | lutron_caseta |  |
 | Upstairs Hallway | light.upstairs_hallway_main_lights | `light.upstairs_hallway_main_lights` | lutron_caseta |  |
 | Vestibule | light.vestibule_main_lights | `light.vestibule_main_lights` | lutron_caseta |  |
@@ -247,6 +248,7 @@ A human-readable map of the Home Assistant device model. The full audit dump is 
 | Device | Integration | Main controls | Original name |
 | --- | --- | --- | --- |
 | Office TV | apple_tv | `media_player.office_tv`; `remote.office_tv` |  |
+| Office Main Lights | lutron_caseta | `light.office_office_main_lights` |  |
 | Office Thermostat | homekit_controller | Office Clear Hold (`button.office_clear_hold`); Office Identify (`button.office_identify`); Office (`climate.office`); Office Current Mode (`select.office_current_mode`); Office Temperature Display Units (`select.office_temperature_display_units`) | Office |
 
 ### Stairs

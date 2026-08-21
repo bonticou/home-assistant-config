@@ -5620,6 +5620,26 @@
     },
     {
       "area": "Office",
+      "control_count": 1,
+      "device_id": "bfb3c74e9c743f23464ddb307a983424",
+      "disabled_by": "",
+      "entities": [
+        "light.office_office_main_lights"
+      ],
+      "entity_count": 1,
+      "entry_type": "",
+      "integrations": [
+        "lutron_caseta"
+      ],
+      "manufacturer": "Lutron Electronics Co., Inc",
+      "model": "DVRF-5NE-XX (DivaSmartDimmer)",
+      "name": "Office Main Lights",
+      "network_count": 0,
+      "other_count": 0,
+      "telemetry_count": 0
+    },
+    {
+      "area": "Office",
       "control_count": 5,
       "device_id": "device_d63cde62b102",
       "disabled_by": "",
@@ -21564,6 +21584,22 @@
       "entity_id": "light.mudroom_nook_lights",
       "hidden_by": "",
       "name": "light.mudroom_nook_lights",
+      "platform": "lutron_caseta",
+      "role": "control",
+      "unit": ""
+    },
+    {
+      "area": "Office",
+      "availability": "not_enriched",
+      "capability_keys": [],
+      "device_class": "",
+      "device_id": "bfb3c74e9c743f23464ddb307a983424",
+      "disabled_by": "",
+      "domain": "light",
+      "entity_category": "",
+      "entity_id": "light.office_office_main_lights",
+      "hidden_by": "",
+      "name": "Office Main Lights",
       "platform": "lutron_caseta",
       "role": "control",
       "unit": ""
@@ -62038,7 +62074,7 @@
   "schema_version": 3,
   "summary": {
     "area_count": 32,
-    "device_count": 230,
+    "device_count": 231,
     "domain_counts": {
       "ai_task": 2,
       "alarm_control_panel": 1,
@@ -62057,7 +62093,7 @@
       "input_number": 22,
       "input_select": 3,
       "input_text": 28,
-      "light": 37,
+      "light": 38,
       "lock": 5,
       "media_player": 27,
       "notify": 2,
@@ -62076,7 +62112,7 @@
       "valve": 30,
       "weather": 1
     },
-    "entity_count": 2513,
+    "entity_count": 2514,
     "integration_count": 44,
     "integration_counts": {
       "airthings": 4,
@@ -62102,7 +62138,7 @@
       "input_select": 3,
       "input_text": 28,
       "lg_thinq": 27,
-      "lutron_caseta": 34,
+      "lutron_caseta": 35,
       "matter": 25,
       "met": 1,
       "mobile_app": 31,
@@ -62127,7 +62163,7 @@
     "network_client_count": 151,
     "orphan_entity_count": 832,
     "role_counts": {
-      "control": 883,
+      "control": 884,
       "network": 151,
       "other": 354,
       "telemetry": 1125
