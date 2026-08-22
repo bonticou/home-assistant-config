@@ -2305,7 +2305,7 @@ dryer_send_completion_notification:
       example: true
   sequence:
     - variables:
-        completed_ts: "{{ as_timestamp(states('input_datetime.dryer_last_completed_at'), 0) }}"
+        completed_ts: "{{ state_attr('input_datetime.dryer_last_completed_at', 'timestamp') | float(0) }}"
         completed_rounded_ts: "{{ ((completed_ts | float(0) / 300) | round(0) | int) * 300 }}"
         completed_label: "{{ completed_rounded_ts | float(0) | timestamp_custom('%-I:%M %p', true) }}"
         deferred: "{{ deferred_until_home | default(false) | bool }}"
@@ -2344,7 +2344,7 @@ dryer_send_follow_up_notification:
   mode: restart
   sequence:
     - variables:
-        completed_ts: "{{ as_timestamp(states('input_datetime.dryer_last_completed_at'), 0) }}"
+        completed_ts: "{{ state_attr('input_datetime.dryer_last_completed_at', 'timestamp') | float(0) }}"
         age_minutes: "{{ ((as_timestamp(now()) - completed_ts) / 60) | round(0) | int }}"
         notified_now: "{{ now().strftime('%Y-%m-%d %H:%M:%S') }}"
     - action: script.notify_trevor_phone

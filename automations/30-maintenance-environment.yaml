@@ -702,8 +702,8 @@
               value_template: "{{ trigger.event.data.action == 'DRYER_LAUNDRY_HANDLED' }}"
             - condition: template
               value_template: >-
-                {{ as_timestamp(states('input_datetime.dryer_last_handled_at'), 0)
-                   < as_timestamp(states('input_datetime.dryer_last_completed_at'), 0) }}
+                {{ state_attr('input_datetime.dryer_last_handled_at', 'timestamp') | float(0)
+                   < state_attr('input_datetime.dryer_last_completed_at', 'timestamp') | float(0) }}
           sequence:
             - action: script.dryer_mark_laundry_handled
               data:
@@ -713,8 +713,8 @@
               value_template: "{{ trigger.event.data.action == 'DRYER_REMIND_30' }}"
             - condition: template
               value_template: >-
-                {{ as_timestamp(states('input_datetime.dryer_last_handled_at'), 0)
-                   < as_timestamp(states('input_datetime.dryer_last_completed_at'), 0) }}
+                {{ state_attr('input_datetime.dryer_last_handled_at', 'timestamp') | float(0)
+                   < state_attr('input_datetime.dryer_last_completed_at', 'timestamp') | float(0) }}
           sequence:
             - action: script.dryer_snooze_reminder
         - conditions:
@@ -756,7 +756,7 @@
         {% set fallback_key = 'status:' ~ trigger.to_state.state ~ ':' ~ trigger.to_state.last_changed %}
         {% set event_key = trigger.to_state.state if trigger.id == 'completion_event' else fallback_key %}
         {% set recently_recorded =
-          as_timestamp(now()) - as_timestamp(states('input_datetime.dryer_last_completed_at'), 0) < 900 %}
+          as_timestamp(now()) - (state_attr('input_datetime.dryer_last_completed_at', 'timestamp') | float(0)) < 900 %}
         {{ trigger.to_state.state not in ['unknown', 'unavailable', 'none', '']
            and states('input_text.dryer_last_completion_event_key') != event_key
            and (trigger.id == 'completion_event' or not recently_recorded) }}
@@ -840,15 +840,15 @@
             - as_timestamp(states.device_tracker.tk_iphone_16_pro.last_changed, 0)) >= 300 }}
   actions:
     - variables:
-        completed_ts: "{{ as_timestamp(states('input_datetime.dryer_last_completed_at'), 0) }}"
-        completion_notified_ts: "{{ as_timestamp(states('input_datetime.dryer_last_completion_notified_at'), 0) }}"
+        completed_ts: "{{ state_attr('input_datetime.dryer_last_completed_at', 'timestamp') | float(0) }}"
+        completion_notified_ts: "{{ state_attr('input_datetime.dryer_last_completion_notified_at', 'timestamp') | float(0) }}"
         completion_notified_known: >-
           {{ states('input_datetime.dryer_last_completion_notified_at')
              not in ['unknown', 'unavailable', 'none', ''] }}
-        handled_ts: "{{ as_timestamp(states('input_datetime.dryer_last_handled_at'), 0) }}"
-        error_detected_ts: "{{ as_timestamp(states('input_datetime.dryer_last_error_detected_at'), 0) }}"
-        error_notified_ts: "{{ as_timestamp(states('input_datetime.dryer_last_error_notified_at'), 0) }}"
-        error_handled_ts: "{{ as_timestamp(states('input_datetime.dryer_last_error_handled_at'), 0) }}"
+        handled_ts: "{{ state_attr('input_datetime.dryer_last_handled_at', 'timestamp') | float(0) }}"
+        error_detected_ts: "{{ state_attr('input_datetime.dryer_last_error_detected_at', 'timestamp') | float(0) }}"
+        error_notified_ts: "{{ state_attr('input_datetime.dryer_last_error_notified_at', 'timestamp') | float(0) }}"
+        error_handled_ts: "{{ state_attr('input_datetime.dryer_last_error_handled_at', 'timestamp') | float(0) }}"
         quiet_hours: "{{ now().hour >= 22 or now().hour < 7 }}"
         housekeeper_active: "{{ is_state('binary_sensor.away_motion_security_housekeeper_window', 'on') }}"
         pending_completion: >-
@@ -903,20 +903,25 @@
             - as_timestamp(states.device_tracker.tk_iphone_16_pro.last_changed, 0)) >= 300 }}
   actions:
     - variables:
-        completed_ts: "{{ as_timestamp(states('input_datetime.dryer_last_completed_at'), 0) }}"
-        notified_ts: "{{ as_timestamp(states('input_datetime.dryer_last_completion_notified_at'), 0) }}"
-        handled_ts: "{{ as_timestamp(states('input_datetime.dryer_last_handled_at'), 0) }}"
-        snooze_ts: "{{ as_timestamp(states('input_datetime.dryer_reminder_snooze_until'), 0) }}"
-        follow_up_ts: "{{ as_timestamp(states('input_datetime.dryer_last_follow_up_at'), 0) }}"
-        next_due_ts: >-
-          {{ snooze_ts if snooze_ts > notified_ts and snooze_ts > follow_up_ts
-             else notified_ts + 5400 }}
+        completed_ts: "{{ state_attr('input_datetime.dryer_last_completed_at', 'timestamp') | float(0) }}"
+        notified_ts: "{{ state_attr('input_datetime.dryer_last_completion_notified_at', 'timestamp') | float(0) }}"
+        handled_ts: "{{ state_attr('input_datetime.dryer_last_handled_at', 'timestamp') | float(0) }}"
+        snooze_ts: "{{ state_attr('input_datetime.dryer_reminder_snooze_until', 'timestamp') | float(0) }}"
+        follow_up_ts: "{{ state_attr('input_datetime.dryer_last_follow_up_at', 'timestamp') | float(0) }}"
+        normal_due_ts: "{{ notified_ts | float(0) + 5400 }}"
         should_notify: >-
+          {% set now_ts = as_timestamp(now()) %}
+          {% set normal_due =
+            follow_up_ts | float(0) < notified_ts | float(0)
+            and now_ts >= normal_due_ts | float(0) %}
+          {% set snooze_due =
+            snooze_ts | float(0) > notified_ts | float(0)
+            and snooze_ts | float(0) > follow_up_ts | float(0)
+            and now_ts >= snooze_ts | float(0) %}
           {{ completed_ts > 0
              and notified_ts >= completed_ts
              and handled_ts < completed_ts
-             and as_timestamp(now()) >= next_due_ts | float(0)
-             and follow_up_ts < next_due_ts | float(0) }}
+             and (normal_due or snooze_due) }}
     - condition: template
       value_template: "{{ should_notify | bool }}"
     - action: script.dryer_send_follow_up_notification
@@ -945,7 +950,7 @@
         {{ trigger.to_state.state not in ['unknown', 'unavailable', 'none', '']
            and states('input_text.dryer_last_error_event_key') != event_key
            and (as_timestamp(now())
-                - as_timestamp(states('input_datetime.dryer_last_error_detected_at'), 0)) >= 60 }}
+                - (state_attr('input_datetime.dryer_last_error_detected_at', 'timestamp') | float(0))) >= 60 }}
   actions:
     - variables:
         error_type: "{{ trigger.to_state.attributes.event_type | default('dryer_error', true) }}"
@@ -1028,10 +1033,10 @@
   actions:
     - variables:
         now_ts: "{{ as_timestamp(now()) }}"
-        dryer_completed_ts: "{{ as_timestamp(states('input_datetime.dryer_last_completed_at'), 0) }}"
-        dryer_handled_ts: "{{ as_timestamp(states('input_datetime.dryer_last_handled_at'), 0) }}"
-        washer_completed_ts: "{{ as_timestamp(states('input_datetime.washer_last_completed_at'), 0) }}"
-        washer_handled_ts: "{{ as_timestamp(states('input_datetime.washer_last_handled_at'), 0) }}"
+        dryer_completed_ts: "{{ state_attr('input_datetime.dryer_last_completed_at', 'timestamp') | float(0) }}"
+        dryer_handled_ts: "{{ state_attr('input_datetime.dryer_last_handled_at', 'timestamp') | float(0) }}"
+        washer_completed_ts: "{{ state_attr('input_datetime.washer_last_completed_at', 'timestamp') | float(0) }}"
+        washer_handled_ts: "{{ state_attr('input_datetime.washer_last_handled_at', 'timestamp') | float(0) }}"
     - if:
         - condition: template
           value_template: "{{ dryer_completed_ts > 0 and dryer_handled_ts < dryer_completed_ts }}"
@@ -1065,10 +1070,10 @@
   actions:
     - variables:
         handled_now: "{{ now().strftime('%Y-%m-%d %H:%M:%S') }}"
-        dryer_completed_ts: "{{ as_timestamp(states('input_datetime.dryer_last_completed_at'), 0) }}"
-        dryer_handled_ts: "{{ as_timestamp(states('input_datetime.dryer_last_handled_at'), 0) }}"
-        dryer_error_detected_ts: "{{ as_timestamp(states('input_datetime.dryer_last_error_detected_at'), 0) }}"
-        dryer_error_handled_ts: "{{ as_timestamp(states('input_datetime.dryer_last_error_handled_at'), 0) }}"
+        dryer_completed_ts: "{{ state_attr('input_datetime.dryer_last_completed_at', 'timestamp') | float(0) }}"
+        dryer_handled_ts: "{{ state_attr('input_datetime.dryer_last_handled_at', 'timestamp') | float(0) }}"
+        dryer_error_detected_ts: "{{ state_attr('input_datetime.dryer_last_error_detected_at', 'timestamp') | float(0) }}"
+        dryer_error_handled_ts: "{{ state_attr('input_datetime.dryer_last_error_handled_at', 'timestamp') | float(0) }}"
     - action: script.washer_clear_cycle_notification
     - if:
         - condition: template
