@@ -1206,19 +1206,27 @@
 
 - id: overnight_lights_one_am_auto_off
   alias: "Lights — Overnight Left-On Auto-Off"
-  description: Turns off non-exempt lights at 1 AM if the midnight reminder was not snoozed and no late-night guard is active.
+  description: Turns off non-exempt lights after 1 AM if the reminder was not snoozed and no late-night guard is active.
   triggers:
     - trigger: time
       at: "01:00:00"
+      id: one_am
+    - trigger: time_pattern
+      minutes: "/15"
+      id: watchdog
+    - trigger: homeassistant
+      event: start
+      id: watchdog
+    - trigger: event
+      event_type: automation_reloaded
+      id: watchdog
   conditions:
     - condition: template
-      value_template: "{{ states('sensor.overnight_lights_left_on') | int(0) > 0 }}"
-    - condition: template
       value_template: >
-        {% set last = states('input_datetime.overnight_lights_last_notified_at') %}
-        {% set last_ts = as_timestamp(last, 0) %}
-        {{ last_ts >= as_timestamp(today_at('00:00:00'))
-           and last_ts < as_timestamp(today_at('01:00:00')) }}
+        {% set minutes_now = now().hour * 60 + now().minute %}
+        {{ minutes_now >= 60 and minutes_now < 360 }}
+    - condition: template
+      value_template: "{{ states('sensor.overnight_lights_left_on') | int(0) > 0 }}"
     - condition: template
       value_template: >
         {% set snooze = states('input_datetime.overnight_lights_snooze_until') %}
