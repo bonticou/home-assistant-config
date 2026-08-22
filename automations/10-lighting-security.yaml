@@ -632,7 +632,7 @@
       minutes: "/5"
       id: watchdog
     - trigger: time
-      at: "20:30:00"
+      at: "21:00:00"
       id: bedtime_window_end
     - trigger: state
       entity_id:
@@ -691,7 +691,7 @@
           {{ ns.known and not ns.active and ns.last > 0 and (as_timestamp(now()) - ns.last) >= 5 * 60 }}
         in_bedtime_window: >-
           {% set start = today_at('18:45:00') %}
-          {% set end = today_at('20:30:00') %}
+          {% set end = today_at('21:00:00') %}
           {{ now() >= start and now() < end }}
         closet_stale: >-
           {% set light = states.light.wynn_s_room_wynn_s_room_closet_light %}
@@ -763,7 +763,7 @@
                   entity_id: input_boolean.vacation_mode
                   state: "off"
                 - condition: template
-                  value_template: "{{ now() >= today_at('20:30:00') }}"
+                  value_template: "{{ now() >= today_at('21:00:00') }}"
                 - condition: state
                   entity_id: light.wynn_s_room_chandelier
                   state: "on"
