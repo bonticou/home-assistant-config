@@ -79,6 +79,7 @@ Supporting material:
 
 | Date | Entry | Scope |
 | --- | --- | --- |
+| 2026-08-24 | [Casey closet motion stale](2026-08-24-casey-closet-motion-stale.md) | Diagnoses Casey closet auto-on misses as a stale UniFi motion feed, restarts the sensor once, and adds guarded stale-motion recovery/notification pending live deploy |
 | 2026-08-24 | [Wynn chandelier dawn off](2026-08-24-wynn-chandelier-dawn-off.md) | Adds a sun-aware dawn cleanup for Wynn's 1 percent chandelier nightlight while preserving bedtime protection, brighter manual use, and vacation lighting |
 | 2026-08-22 | [Dryer follow-up timestamp loop](2026-08-22-dryer-follow-up-timestamp-loop.md) | Fixes dryer follow-up reminders firing every minute by using input_datetime timestamp attributes and tightening one-follow-up/snooze idempotency |
 | 2026-08-22 | [Overnight lights timestamp guard](2026-08-22-overnight-lights-timestamp-guard.md) | Hardens the 1 AM whole-house light sweep after a timestamp guard blocked auto-off even though the midnight reminder fired and non-exempt lights were still on |
