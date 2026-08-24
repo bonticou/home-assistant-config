@@ -673,8 +673,7 @@
             'binary_sensor.wynn_s_room_motion',
             'binary_sensor.wynn_s_room_person_detected'
           ] %}
-          {% set last_activity_raw = states('input_datetime.wynn_room_camera_last_activity_at') %}
-          {% set helper_last = as_timestamp(last_activity_raw, 0) %}
+          {% set helper_last = state_attr('input_datetime.wynn_room_camera_last_activity_at', 'timestamp') | float(0) %}
           {% set ns = namespace(active=false, known=false, last=helper_last) %}
           {% for entity_id in camera_entities %}
             {% set sensor = states[entity_id] %}
@@ -783,6 +782,58 @@
                   data:
                     brightness_pct: 1
                     transition: 8
+  mode: single
+
+- id: wynn_chandelier_dawn_nightlight_off
+  alias: "Lights — Wynn's Chandelier Dawn Nightlight Off"
+  description: Turn Wynn's 1 percent chandelier nightlight off around dawn while preserving brighter manual use and vacation lighting.
+  initial_state: true
+  triggers:
+    - trigger: numeric_state
+      entity_id: sun.sun
+      attribute: elevation
+      above: -4
+      id: dawn
+    - trigger: state
+      entity_id: sun.sun
+      to: "above_horizon"
+      id: sunrise_backup
+    - trigger: time_pattern
+      minutes: "/10"
+      id: watchdog
+    - trigger: homeassistant
+      event: start
+      id: watchdog
+    - trigger: event
+      event_type: automation_reloaded
+      id: watchdog
+  conditions:
+    - condition: state
+      entity_id: input_boolean.vacation_mode
+      state: "off"
+    - condition: state
+      entity_id: light.wynn_s_room_chandelier
+      state: "on"
+    - condition: template
+      value_template: >-
+        {% set minutes_now = now().hour * 60 + now().minute %}
+        {{ minutes_now >= 240 and minutes_now < 600 }}
+    - condition: template
+      value_template: >-
+        {{ is_state('sun.sun', 'above_horizon')
+           or (is_state_attr('sun.sun', 'rising', true)
+               and state_attr('sun.sun', 'elevation') | float(-90) >= -4) }}
+    - condition: template
+      value_template: >-
+        {% set brightness = state_attr('light.wynn_s_room_chandelier', 'brightness') | int(255) %}
+        {{ brightness <= 4 }}
+  actions:
+    - action: light.turn_off
+      continue_on_error: true
+      target:
+        entity_id: light.wynn_s_room_chandelier
+      data:
+        transition: 4
   mode: single
 
 - id: garage_light_auto_off
