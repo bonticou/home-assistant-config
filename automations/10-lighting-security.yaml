@@ -619,7 +619,7 @@
 
 - id: casey_closet_motion_stale_recovery
   alias: "Lights — Casey's Closet Motion Stale Recovery"
-  description: Restart and flag Casey's closet UniFi motion sensor when its motion feed has gone stale long enough to break auto-on lighting.
+  description: Cycle and flag Casey's closet UniFi motion detection when its motion feed has gone stale long enough to break auto-on lighting.
   initial_state: true
   triggers:
     - trigger: homeassistant
@@ -628,8 +628,10 @@
     - trigger: event
       event_type: automation_reloaded
       id: watchdog
-    - trigger: time_pattern
-      hours: "/2"
+    - trigger: time
+      at:
+        - "09:05:00"
+        - "15:05:00"
       id: watchdog
     - trigger: state
       entity_id: binary_sensor.casey_s_closet_motion
@@ -651,7 +653,6 @@
             motion_last_changed_ts: >-
               {% set sensor = states.binary_sensor.casey_s_closet_motion %}
               {{ as_timestamp(sensor.last_changed, 0) if sensor is not none else 0 }}
-            last_recovery_ts: "{{ state_attr('input_datetime.casey_closet_motion_last_recovery_at', 'timestamp') | float(0) }}"
             stale_hours: "{{ ((as_timestamp(now()) - (motion_last_changed_ts | float(0))) / 3600) | round(1) }}"
             last_seen_label: >-
               {% if motion_last_changed_ts | float(0) > 0 %}
@@ -671,26 +672,23 @@
             {{ states('binary_sensor.casey_s_closet_motion') in ['off', 'unknown', 'unavailable']
                and motion_last_changed_ts | float(0) > 0
                and (as_timestamp(now()) - (motion_last_changed_ts | float(0))) >= 18 * 60 * 60 }}
-        - condition: template
-          value_template: >-
-            {{ last_recovery_ts | float(0) == 0
-               or (as_timestamp(now()) - (last_recovery_ts | float(0))) >= 12 * 60 * 60 }}
-        - action: button.press
+        - action: switch.turn_off
           continue_on_error: true
           target:
-            entity_id: button.casey_s_closet_restart
-        - action: input_datetime.set_datetime
+            entity_id: switch.casey_s_closet_motion_detection
+        - delay:
+            seconds: 5
+        - action: switch.turn_on
+          continue_on_error: true
           target:
-            entity_id: input_datetime.casey_closet_motion_last_recovery_at
-          data:
-            datetime: "{{ now().strftime('%Y-%m-%d %H:%M:%S') }}"
+            entity_id: switch.casey_s_closet_motion_detection
         - action: script.notify_trevor_phone
           data:
             title: "⚠️ Casey's closet motion stale"
             message: >-
               Casey's closet motion sensor has not reported movement since
-              {{ last_seen_label | trim }}. I restarted the sensor; if the
-              closet still stays dark, check the UniFi sensor.
+              {{ last_seen_label | trim }}. I cycled motion detection; if the
+              closet still stays dark, the UniFi sensor needs a physical check.
             data:
               tag: casey-closet-motion-stale
               group: lighting

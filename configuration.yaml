@@ -883,11 +883,6 @@ input_datetime:
     name: Wynn Room Camera Last Activity At
     has_date: true
     has_time: true
-  casey_closet_motion_last_recovery_at:
-    name: Casey Closet Motion Last Recovery At
-    has_date: true
-    has_time: true
-
 input_text:
   nwp_parking_pass_replaced_expiration_date:
     name: NWP Parking Pass Replaced Expiration Date

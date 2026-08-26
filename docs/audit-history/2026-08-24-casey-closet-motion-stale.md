@@ -52,29 +52,49 @@ prior day or so.
 
 ## Changes Made
 
-- Added `input_datetime.casey_closet_motion_last_recovery_at` as a durable
-  throttle.
 - Added `automation.lights_casey_s_closet_motion_stale_recovery`.
-- The recovery automation runs on startup, automation reload, and every two
-  hours. During 7:00 AM to 10:00 PM, if the Casey closet motion sensor has not
-  changed for at least 18 hours while motion detection is enabled, it presses
-  the sensor restart button, stamps the recovery helper, and sends one lighting
-  notification.
+- The recovery automation runs on startup, automation reload, and at 9:05 AM
+  and 3:05 PM. During 7:00 AM to 10:00 PM, if the Casey closet motion sensor
+  has not changed for at least 18 hours while motion detection is enabled, it
+  cycles `switch.casey_s_closet_motion_detection` off and back on, then sends
+  one lighting notification.
 - The notification clears when motion is next detected.
+- A first draft used `button.casey_s_closet_restart`, but live HA no longer has
+  that entity. The deployed version uses the motion-detection switch that is
+  present live.
 
 ## Checks And Deployment Status
 
 - Local Ruby YAML parse passed for `configuration.yaml` and
   `automations/10-lighting-security.yaml`.
-- Live deploy was not completed during this pass because the Nabu Casa Remote
-  UI tab lost its Home Assistant session and returned to the login screen.
+- The initial 2026-08-24 live deploy was not completed because the Nabu Casa
+  Remote UI tab lost its Home Assistant session and returned to the login
+  screen.
+- Follow-up on 2026-08-26 used the authenticated local Home Assistant route:
+  `/homeassistant/automations/10-lighting-security.yaml` was written through
+  File Editor, read back byte-for-byte, Home Assistant config check returned
+  `valid`, and `automation.reload` returned HTTP 200.
+- Live state confirmed
+  `automation.lights_casey_s_closet_motion_stale_recovery` is `on`.
+- The recovery automation was manually triggered once after deploy.
+- Reloading the UniFi Protect and Lutron config entries for
+  `binary_sensor.casey_s_closet_motion` and `light.master_casey_s_closet`
+  succeeded.
+- After reload, the UniFi motion entity refreshed to `off`, battery refreshed
+  to `92`, and motion detection remained `on`, but no actual motion event could
+  be verified without someone physically entering the closet.
+- A direct `light.turn_on` test against `light.master_casey_s_closet` did not
+  produce an `on` state in Home Assistant. The Lutron config entry still
+  reported `loaded`, and no duplicate/new Casey closet Lutron entity was found.
 
 ## Residual Risks And Next Follow-Ups
 
-- After Remote UI auth is restored, deploy `configuration.yaml` and
-  `automations/10-lighting-security.yaml`, run HA config check, reload
-  automations, and verify the new helper and automation are loaded.
 - After someone can physically walk into the closet, confirm that
   `binary_sensor.casey_s_closet_motion` changes to `on` and the light turns on.
-- If the sensor feed remains stale after restart, inspect or replace the UniFi
-  motion sensor rather than further changing the lighting automation.
+- If the sensor feed remains stale after the motion-detection cycle, inspect or
+  replace the UniFi motion sensor rather than further changing the lighting
+  automation.
+- Because a direct Lutron command did not move `light.master_casey_s_closet` to
+  `on`, also physically check the Casey closet Caseta switch/load. If the
+  switch responds physically but HA still cannot command it, re-pair or replace
+  the Lutron device entry.
