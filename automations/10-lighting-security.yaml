@@ -490,6 +490,7 @@
         {% set scene = states('input_select.lighting_active_scene') %}
         {% set trigger_id = trigger.id | default('') %}
         {% set last_evening_ts = as_timestamp(state_attr('script.lights_evening_scene', 'last_triggered'), 0) %}
+        {% set evening_today = last_evening_ts >= as_timestamp(today_at('12:00')) %}
         {% set evening_recent = last_evening_ts > 0 and (as_timestamp(now()) - last_evening_ts) < 1200 %}
         {% set expected = [
           'light.family_room_main_lights_1',
@@ -506,11 +507,14 @@
           {% endif %}
         {% endfor %}
         {% if trigger_id in ['startup', 'automation_reloaded'] %}
-          {{ scene == 'None' or (scene == 'Evening' and ns.missing) }}
+          {{ scene == 'None' or (scene == 'Evening' and (not evening_today or ns.missing)) }}
         {% elif trigger_id == 'refresh' %}
-          {{ scene == 'None' or (scene == 'Evening' and evening_recent and ns.missing) }}
+          {{ scene == 'None'
+             or (scene == 'Evening' and not evening_today)
+             or (scene == 'Evening' and evening_recent and ns.missing) }}
         {% else %}
-          {{ scene not in ['Evening', 'TV', 'Bedtime'] }}
+          {{ scene not in ['Evening', 'TV', 'Bedtime']
+             or (scene == 'Evening' and not evening_today) }}
         {% endif %}
   actions:
     - action: script.lights_evening_scene
