@@ -52,6 +52,14 @@ day's stale `input_select.lighting_active_scene` value.
   - dusk/arrival can start Evening if the helper says `Evening` but the script
     has not run today.
 - Current-day `Evening`, `TV`, and `Bedtime` protections remain intact.
+- Added `automation.lights_active_scene_auto_reset` as a metadata cleanup rule.
+  It resets `input_select.lighting_active_scene` to `None` and clears the
+  scene-hold booleans only when the relevant dark/evening schedule is clearly
+  over. This lets Apple Home buttons, manual scene scripts, or other scene
+  entry points leave the helper in a harmless state without blocking the next
+  day's scheduled Evening scene.
+- The reset rule does not turn any lights on or off. It only clears scene
+  metadata and holds.
 
 ## Checks And Deployment Status
 
@@ -63,9 +71,17 @@ day's stale `input_select.lighting_active_scene` value.
 - `automation.reload` returned HTTP 200.
 - Live state confirmed
   `automation.lights_interior_evening_mode_schedule_sync` is `on`.
+- Follow-up live deploy added the scene auto-reset automation, with read-back,
+  valid config check, and `automation.reload` success.
+- Live state confirmed `automation.lights_active_scene_auto_reset` is `on`.
+- A manual safety trigger during the active evening window left
+  `input_select.lighting_active_scene` as `Evening`, confirming the reset does
+  not clear the scene while the dark schedule is active.
 
 ## Residual Risk
 
-This fix does not explain why `input_select.lighting_active_scene` remained
-`Evening` across days. If that helper continues to drift, consider adding a
-separate morning scene-state cleanup after the dawn lighting release.
+The exact path that left `input_select.lighting_active_scene` on stale
+`Evening` was not proven. Apple Home buttons or shortcuts remain a plausible
+source if they call HA scene scripts. The auto-reset rule is intended to make
+that source irrelevant rather than requiring every entry point to clear the
+helper perfectly.

@@ -520,6 +520,76 @@
     - action: script.lights_evening_scene
   mode: single
 
+- id: lighting_active_scene_auto_reset
+  alias: "Lights — Active Scene Auto-Reset"
+  description: Reset stale lighting scene metadata and holds after the relevant scene window is clearly over.
+  triggers:
+    - trigger: homeassistant
+      event: start
+      id: startup
+    - trigger: event
+      event_type: automation_reloaded
+      id: automation_reloaded
+    - trigger: time
+      at:
+        - "06:45:00"
+        - "12:00:00"
+      id: daytime_check
+    - trigger: state
+      entity_id: binary_sensor.front_stairs_schedule_active
+      to: "off"
+      for:
+        minutes: 10
+      id: schedule_off
+    - trigger: state
+      entity_id: binary_sensor.foyer_chandelier_schedule_active
+      to: "off"
+      for:
+        minutes: 10
+      id: schedule_off
+    - trigger: state
+      entity_id: input_select.lighting_active_scene
+      to: "All off"
+      for:
+        minutes: 45
+      id: all_off_expired
+  conditions:
+    - condition: template
+      value_template: "{{ states('input_select.lighting_active_scene') != 'None' }}"
+  actions:
+    - variables:
+        scene: "{{ states('input_select.lighting_active_scene') }}"
+        dark_schedule_active: >-
+          {{ is_state('binary_sensor.front_stairs_schedule_active', 'on')
+             or is_state('binary_sensor.foyer_chandelier_schedule_active', 'on')
+             or is_state('binary_sensor.door_lights_schedule_active', 'on') }}
+        daytime_reset_window: >-
+          {{ is_state_attr('sun.sun', 'rising', true)
+             or (now().hour >= 6 and now().hour < 18) }}
+        should_reset: >-
+          {% if scene in ['Evening', 'All off', 'Bedtime'] %}
+            {{ not (dark_schedule_active | bool) and (daytime_reset_window | bool) }}
+          {% elif scene == 'TV' %}
+            {{ not (dark_schedule_active | bool)
+               and states('media_player.family_room_tv_2') in ['unknown', 'unavailable', 'off', 'idle', 'standby'] }}
+          {% else %}
+            false
+          {% endif %}
+    - condition: template
+      value_template: "{{ should_reset | bool }}"
+    - action: input_select.select_option
+      target:
+        entity_id: input_select.lighting_active_scene
+      data:
+        option: "None"
+    - action: input_boolean.turn_off
+      target:
+        entity_id:
+          - input_boolean.foyer_chandelier_sleep_hold
+          - input_boolean.front_stairs_sleep_override
+          - input_boolean.tv_lighting_scene_hold
+  mode: single
+
 - id: casey_closet_auto_off
   alias: "Lights — Casey's Closet Auto-Off"
   description: Turn Casey's closet on with closet motion, off after three quiet minutes, and off after a hard twelve-minute stale-on cap.
