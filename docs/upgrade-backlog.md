@@ -43,8 +43,18 @@ Grounding from `docs/device-inventory.md`: 114 devices, 962 entities, 469 teleme
   - Before enabling it, confirm Casey is comfortable with the app permissions: Location Always, precise location, and background refresh.
   - Leave the UniFi detection timeout alone for now unless the normal departure lag becomes a recurring problem.
 
+## Lighting Reliability Upgrade Candidate
+
+- Build a direct UniFi Protect motion-event bridge for closet-style lighting.
+  - Current deployed state is the best HA-native version: binary motion plus Protect's durable last-motion timestamp, dedupe helper, and a one-minute watchdog.
+  - The upgrade target is a small local bridge that subscribes directly to UniFi Protect's real-time event stream and publishes fresh motion events into Home Assistant through MQTT, webhook, or the HA API.
+  - Keep the HA-native timestamp fallback in place so the bridge improves speed and independence without becoming the only path.
+  - Acceptance goal: Casey's closet and similar motion-driven lights should turn on consistently with no missed pulses and lower latency than the current roughly 1-2 second timestamp fallback.
+  - Build requirements: reconnect/backoff, health sensor, event dedupe, startup bootstrap, latency metric, clear failure notification, and no exposed Protect credentials.
+
 ## Suggested Order
 
 1. House Health / Reliability Center
 2. Critical Device Staleness Watch
-3. Morning / Evening House Brief
+3. Direct UniFi Protect motion-event bridge
+4. Morning / Evening House Brief
