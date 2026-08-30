@@ -79,6 +79,7 @@ Supporting material:
 
 | Date | Entry | Scope |
 | --- | --- | --- |
+| 2026-08-30 | [Lighting reliability regression](2026-08-30-lighting-reliability-regression.md) | Fixes an overbroad paused-TV overnight shutoff guard, hardens the overnight sweep with retry/failure alerting, and escalates Casey closet motion-on failures when the Lutron command path does not respond |
 | 2026-08-26 | [Evening scene stale helper](2026-08-26-evening-scene-stale-helper.md) | Fixes normal Evening schedule misses caused by `lighting_active_scene` staying on stale `Evening` from a prior day |
 | 2026-08-24 | [Casey closet motion stale](2026-08-24-casey-closet-motion-stale.md) | Diagnoses Casey closet auto-on misses as stale UniFi motion plus a nonresponsive Lutron command path, deploys guarded stale-motion recovery, and records physical follow-up |
 | 2026-08-24 | [Wynn chandelier dawn off](2026-08-24-wynn-chandelier-dawn-off.md) | Adds a sun-aware dawn cleanup for Wynn's 1 percent chandelier nightlight while preserving bedtime protection, brighter manual use, and vacation lighting |

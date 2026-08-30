@@ -3086,7 +3086,8 @@ template:
             {% if is_state('input_boolean.interior_lights_guest_override', 'on') %}
               guest_override
             {% elif is_state('input_select.lighting_active_scene', 'TV')
-               or states('media_player.family_room_tv_2') not in ['unknown', 'unavailable', 'off', 'idle', 'standby'] %}
+               or is_state('input_boolean.tv_lighting_scene_hold', 'on')
+               or is_state('media_player.family_room_tv_2', 'playing') %}
               up_late_media
             {% elif is_state('input_boolean.vacation_mode', 'on') %}
               vacation

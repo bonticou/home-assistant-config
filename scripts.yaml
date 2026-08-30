@@ -813,8 +813,45 @@ lights_overnight_sweep_off:
         for_each: "{{ active_lights }}"
         sequence:
           - action: homeassistant.turn_off
+            continue_on_error: true
             target:
               entity_id: "{{ repeat.item }}"
+    - delay:
+        seconds: 3
+    - variables:
+        remaining_lights: >
+          {% set entity_ids = state_attr('sensor.overnight_lights_left_on', 'entity_ids') | default('', true) %}
+          {{ (entity_ids.split('||') if entity_ids else []) | reject('eq', '') | list }}
+        remaining_light_text: >-
+          {% set names = state_attr('sensor.overnight_lights_left_on', 'names') | default('', true) %}
+          {{ names.replace('||', ', ') if names else 'Some house lights' }}
+    - repeat:
+        for_each: "{{ remaining_lights }}"
+        sequence:
+          - action: homeassistant.turn_off
+            continue_on_error: true
+            target:
+              entity_id: "{{ repeat.item }}"
+    - delay:
+        seconds: 5
+    - if:
+        - condition: template
+          value_template: "{{ states('sensor.overnight_lights_left_on') | int(0) > 0 }}"
+      then:
+        - variables:
+            failed_light_text: >-
+              {% set names = state_attr('sensor.overnight_lights_left_on', 'names') | default('', true) %}
+              {{ names.replace('||', ', ') if names else remaining_light_text }}
+        - action: script.notify_trevor_phone
+          data:
+            title: "⚠️ Lights still on"
+            message: "I tried the overnight shutoff twice, but {{ failed_light_text }} still did not turn off."
+            data:
+              tag: overnight-lights-sweep-failed
+              group: lighting
+              url: /calm-mobile/lights
+              push:
+                interruption-level: time-sensitive
 
 door_lights_schedule_on:
   alias: Door Lights Schedule On

@@ -611,6 +611,10 @@
     - trigger: state
       entity_id: light.master_casey_s_closet
       to: "on"
+      id: light_recovered
+    - trigger: state
+      entity_id: light.master_casey_s_closet
+      to: "on"
       for:
         minutes: 12
       id: hard_cap
@@ -639,6 +643,15 @@
     - choose:
         - conditions:
             - condition: trigger
+              id: light_recovered
+          sequence:
+            - action: script.notify_trevor_phone
+              data:
+                message: clear_notification
+                data:
+                  tag: casey-closet-light-command-failed
+        - conditions:
+            - condition: trigger
               id: motion
             - condition: state
               entity_id: light.master_casey_s_closet
@@ -657,6 +670,43 @@
                       brightness_pct: "{{ closet_brightness_pct }}"
                   - delay:
                       seconds: 2
+            - if:
+                - condition: template
+                  value_template: "{{ not is_state('light.master_casey_s_closet', 'on') }}"
+              then:
+                - action: homeassistant.reload_config_entry
+                  continue_on_error: true
+                  target:
+                    entity_id: light.master_casey_s_closet
+                - delay:
+                    seconds: 8
+                - repeat:
+                    count: 3
+                    sequence:
+                      - condition: template
+                        value_template: "{{ not is_state('light.master_casey_s_closet', 'on') }}"
+                      - action: light.turn_on
+                        continue_on_error: true
+                        target:
+                          entity_id: light.master_casey_s_closet
+                        data:
+                          brightness_pct: "{{ closet_brightness_pct }}"
+                      - delay:
+                          seconds: 2
+            - if:
+                - condition: template
+                  value_template: "{{ not is_state('light.master_casey_s_closet', 'on') }}"
+              then:
+                - action: script.notify_trevor_phone
+                  data:
+                    title: "⚠️ Casey's closet light didn't turn on"
+                    message: "Motion was detected, but Home Assistant could not get the Lutron closet light to turn on. The switch/device path needs attention."
+                    data:
+                      tag: casey-closet-light-command-failed
+                      group: lighting
+                      url: /calm-mobile/lights
+                      push:
+                        interruption-level: time-sensitive
         - conditions:
             - condition: trigger
               id: quiet
@@ -1407,6 +1457,11 @@
         message: clear_notification
         data:
           tag: overnight-lights-left-on
+    - action: script.notify_trevor_phone
+      data:
+        message: clear_notification
+        data:
+          tag: overnight-lights-sweep-failed
   mode: single
 
 - id: overnight_lights_one_am_auto_off
