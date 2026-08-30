@@ -1169,6 +1169,49 @@
           - light.ratgdo32disco_c26634_light
   mode: single
 
+- id: garage_opener_lights_follow_main_off
+  alias: "Lights — Garage Opener Lights Follow Main Off"
+  description: Keep the garage door opener lights off whenever the main garage lights are off.
+  initial_state: true
+  triggers:
+    - trigger: homeassistant
+      event: start
+      id: startup
+    - trigger: event
+      event_type: automation_reloaded
+      id: automation_reloaded
+    - trigger: time_pattern
+      minutes: "/1"
+      id: watchdog
+    - trigger: state
+      entity_id: switch.garage_garage_lights
+      to: "off"
+      id: main_off
+    - trigger: state
+      entity_id:
+        - light.ratgdo32_4536e8_light
+        - light.ratgdo32disco_c26634_light
+      to: "on"
+      for:
+        seconds: 15
+      id: opener_on
+  conditions:
+    - condition: state
+      entity_id: switch.garage_garage_lights
+      state: "off"
+    - condition: template
+      value_template: >-
+        {{ is_state('light.ratgdo32_4536e8_light', 'on')
+           or is_state('light.ratgdo32disco_c26634_light', 'on') }}
+  actions:
+    - action: light.turn_off
+      continue_on_error: true
+      target:
+        entity_id:
+          - light.ratgdo32_4536e8_light
+          - light.ratgdo32disco_c26634_light
+  mode: restart
+
 - id: garage_door_open_dark_lutron_light
   alias: "Lights — Garage Door Open Dark Assist"
   description: Turn on the Lutron garage switch when either garage door opens during the dark-hours lighting schedule.
