@@ -27,6 +27,9 @@ The impact is trust erosion in the lighting layer: motion lights can miss, and l
 - Direct HA `light.turn_on` tests against `light.master_casey_s_closet` did not change the light state, even after reloading the light's config entry. This indicates that the closet miss is not only an automation trigger problem; the Lutron device/control path is also failing to respond.
 - During a live walk test, Trevor stepped into Casey's closet and HA still did not receive a motion event. A subsequent reload/cycle made the Lutron light respond to direct HA commands again, but the UniFi motion entity remained `off`.
 - Reloading the UniFi motion entity can refresh the binary sensor to `off` and update `last_changed`, so using the binary sensor's `last_changed` as "last real motion" is unreliable.
+- Trevor confirmed the UniFi Protect app itself had full motion history, including same-morning motion. That shifted the active fault from hardware/sensor detection to the Protect-to-HA connective tissue.
+- The disabled-by-default `sensor.casey_s_closet_last_motion_detected` entity was enabled live. It surfaced the Protect timestamp `2026-08-30T14:19:42Z`, matching the class of history visible in the Protect app even while the HA binary motion entity stayed `off`.
+- A follow-up live walk test after enabling the timestamp entity succeeded: at `2026-08-30T14:40:51Z`, `sensor.casey_s_closet_last_motion_detected` updated, `input_datetime.casey_closet_last_motion_at` stamped the same moment, `light.master_casey_s_closet` turned `on`, and the binary motion sensor followed a few seconds later.
 
 ## Findings
 
@@ -50,6 +53,10 @@ The impact is trust erosion in the lighting layer: motion lights can miss, and l
 
    A physical closet entry did not change `binary_sensor.casey_s_closet_motion` to `on`. After integration recovery, direct HA control of the Lutron light succeeded, leaving the UniFi motion path as the active blocker.
 
+6. High confidence after Protect-app confirmation: the binary motion entity alone is too brittle for this job.
+
+   Protect records the event promptly, but HA may not expose that promptly through the binary sensor. The stronger HA contract is to consume both the binary motion pulse and Protect's durable last-motion timestamp, with a short watchdog that processes a newly advanced timestamp if the state-change trigger itself is missed.
+
 ## Changes Made
 
 - Narrowed `sensor.overnight_lights_left_on.attributes.auto_off_guard` so only explicit guest override, vacation mode, TV scene/hold, or actively `playing` Family Room TV blocks the 1 AM shutoff. A paused/stale media state no longer blocks.
@@ -69,6 +76,12 @@ The impact is trust erosion in the lighting layer: motion lights can miss, and l
 - Follow-up everyday-lighting audit found that the passive `overnight_lights_clear_when_off` path cleared the original reminder but not the newer sweep-failed notification. The clear path now clears both tags once the watched light count reaches zero.
 - Added `input_datetime.casey_closet_last_motion_at` and changed stale-motion recovery to use that durable last-real-motion stamp instead of the motion binary sensor's `last_changed`.
 - Stale-motion recovery now reloads the UniFi motion config entry before cycling the motion-detection switch, then notifies if the sensor still needs physical attention.
+- Enabled `sensor.casey_s_closet_last_motion_detected` in the live HA entity registry.
+- Updated Casey closet auto-on to use three motion inputs:
+  - direct binary motion `on`;
+  - `sensor.casey_s_closet_last_motion_detected` state changes;
+  - a one-minute watchdog that compares the Protect last-motion timestamp to `input_datetime.casey_closet_last_motion_at` and processes any fresh unhandled Protect event.
+- Timestamp-based triggers are deduped by requiring the Protect timestamp to be newer than the last processed helper and less than five minutes old.
 
 ## Checks And Live Validation
 
@@ -94,6 +107,9 @@ The impact is trust erosion in the lighting layer: motion lights can miss, and l
   - `automation.lights_casey_s_closet_motion_stale_recovery: on`
 - Follow-up deploy loaded `input_datetime.casey_closet_last_motion_at` without a full Core restart using `input_datetime.reload`, reloaded automations, and seeded the helper to the last known real motion timestamp from 2026-08-29.
 - Live direct light-control retest succeeded after the UniFi/Lutron recovery work: `light.master_casey_s_closet` turned on from HA and then back off.
+- Live registry update enabled `sensor.casey_s_closet_last_motion_detected`, reloaded the UniFi Protect config entry, and confirmed the timestamp entity became available.
+- Live deploy of the fallback automation passed HA config check and `automation.reload`.
+- Live walk validation succeeded through the timestamp path, with the light turning on when the Protect last-motion timestamp advanced.
 
 ## Deployment Status
 
@@ -101,7 +117,7 @@ Deployed live through the authenticated local Home Assistant route and reloaded 
 
 ## Residual Risks And Follow-Ups
 
-- Casey's closet currently needs UniFi-side physical/app troubleshooting because a live walk test did not produce a motion event in HA. Check whether the UniFi Protect app itself sees Casey closet motion; if not, the sensor, its battery/contact, placement, or Protect device state is the issue.
+- Casey's closet should be watched for latency. The fallback test worked but appeared roughly 1-2 seconds slower than ideal, likely reflecting Protect-to-HA timestamp propagation. The binary motion path remains present for instant events when HA receives them.
 - The next real 1 AM window should be checked to confirm the auto-off automation now triggers with `auto_off_guard: clear`.
 - If another non-exempt light is found on overnight, inspect whether the failure is guard suppression, service-call failure, entity omission from `sensor.overnight_lights_left_on`, or HA availability during the 1 AM to 6 AM watchdog window.
 - The next best hardening slice is to bring garage auto-off, late-night exterior off, Bedtime, and All Off closer to the overnight sweep pattern: fault-tolerant first pass, short convergence delay, second pass, and explicit failure visibility for lights that still report on.

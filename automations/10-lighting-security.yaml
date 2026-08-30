@@ -604,10 +604,16 @@
     - trigger: time_pattern
       minutes: "/5"
       id: watchdog
+    - trigger: time_pattern
+      minutes: "/1"
+      id: motion_timestamp_watchdog
     - trigger: state
       entity_id: binary_sensor.casey_s_closet_motion
       to: "on"
       id: motion
+    - trigger: state
+      entity_id: sensor.casey_s_closet_last_motion_detected
+      id: motion_timestamp
     - trigger: state
       entity_id: light.master_casey_s_closet
       to: "on"
@@ -652,13 +658,30 @@
                   tag: casey-closet-light-command-failed
         - conditions:
             - condition: trigger
-              id: motion
+              id:
+                - motion
+                - motion_timestamp
+                - motion_timestamp_watchdog
+            - condition: template
+              value_template: >-
+                {% if trigger.id in ['motion_timestamp', 'motion_timestamp_watchdog'] %}
+                  {% set last_motion_ts = as_timestamp(states('sensor.casey_s_closet_last_motion_detected'), 0) %}
+                  {% set helper_motion_ts = state_attr('input_datetime.casey_closet_last_motion_at', 'timestamp') | float(0) %}
+                  {{ last_motion_ts > helper_motion_ts and (as_timestamp(now()) - last_motion_ts) < 300 }}
+                {% else %}
+                  true
+                {% endif %}
           sequence:
             - action: input_datetime.set_datetime
               target:
                 entity_id: input_datetime.casey_closet_last_motion_at
               data:
-                datetime: "{{ now().strftime('%Y-%m-%d %H:%M:%S') }}"
+                datetime: >-
+                  {% if trigger.id in ['motion_timestamp', 'motion_timestamp_watchdog'] and as_timestamp(states('sensor.casey_s_closet_last_motion_detected'), 0) > 0 %}
+                    {{ as_datetime(as_timestamp(states('sensor.casey_s_closet_last_motion_detected'))).astimezone().strftime('%Y-%m-%d %H:%M:%S') }}
+                  {% else %}
+                    {{ now().strftime('%Y-%m-%d %H:%M:%S') }}
+                  {% endif %}
             - if:
                 - condition: state
                   entity_id: light.master_casey_s_closet
@@ -786,7 +809,9 @@
                   tag: casey-closet-motion-stale
       default:
         - variables:
-            motion_last_activity_ts: "{{ state_attr('input_datetime.casey_closet_last_motion_at', 'timestamp') | float(0) }}"
+            helper_motion_ts: "{{ state_attr('input_datetime.casey_closet_last_motion_at', 'timestamp') | float(0) }}"
+            protect_last_motion_ts: "{{ as_timestamp(states('sensor.casey_s_closet_last_motion_detected'), 0) }}"
+            motion_last_activity_ts: "{{ [helper_motion_ts | float(0), protect_last_motion_ts | float(0)] | max }}"
             stale_hours: "{{ ((as_timestamp(now()) - (motion_last_activity_ts | float(0))) / 3600) | round(1) }}"
             last_seen_label: >-
               {% if motion_last_activity_ts | float(0) > 0 %}
