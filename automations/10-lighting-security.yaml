@@ -653,35 +653,19 @@
         - conditions:
             - condition: trigger
               id: motion
-            - condition: state
-              entity_id: light.master_casey_s_closet
-              state: "off"
           sequence:
-            - repeat:
-                count: 4
-                sequence:
-                  - condition: template
-                    value_template: "{{ not is_state('light.master_casey_s_closet', 'on') }}"
-                  - action: light.turn_on
-                    continue_on_error: true
-                    target:
-                      entity_id: light.master_casey_s_closet
-                    data:
-                      brightness_pct: "{{ closet_brightness_pct }}"
-                  - delay:
-                      seconds: 2
+            - action: input_datetime.set_datetime
+              target:
+                entity_id: input_datetime.casey_closet_last_motion_at
+              data:
+                datetime: "{{ now().strftime('%Y-%m-%d %H:%M:%S') }}"
             - if:
-                - condition: template
-                  value_template: "{{ not is_state('light.master_casey_s_closet', 'on') }}"
+                - condition: state
+                  entity_id: light.master_casey_s_closet
+                  state: "off"
               then:
-                - action: homeassistant.reload_config_entry
-                  continue_on_error: true
-                  target:
-                    entity_id: light.master_casey_s_closet
-                - delay:
-                    seconds: 8
                 - repeat:
-                    count: 3
+                    count: 4
                     sequence:
                       - condition: template
                         value_template: "{{ not is_state('light.master_casey_s_closet', 'on') }}"
@@ -693,20 +677,43 @@
                           brightness_pct: "{{ closet_brightness_pct }}"
                       - delay:
                           seconds: 2
-            - if:
-                - condition: template
-                  value_template: "{{ not is_state('light.master_casey_s_closet', 'on') }}"
-              then:
-                - action: script.notify_trevor_phone
-                  data:
-                    title: "⚠️ Casey's closet light didn't turn on"
-                    message: "Motion was detected, but Home Assistant could not get the Lutron closet light to turn on. The switch/device path needs attention."
-                    data:
-                      tag: casey-closet-light-command-failed
-                      group: lighting
-                      url: /calm-mobile/lights
-                      push:
-                        interruption-level: time-sensitive
+                - if:
+                    - condition: template
+                      value_template: "{{ not is_state('light.master_casey_s_closet', 'on') }}"
+                  then:
+                    - action: homeassistant.reload_config_entry
+                      continue_on_error: true
+                      target:
+                        entity_id: light.master_casey_s_closet
+                    - delay:
+                        seconds: 8
+                    - repeat:
+                        count: 3
+                        sequence:
+                          - condition: template
+                            value_template: "{{ not is_state('light.master_casey_s_closet', 'on') }}"
+                          - action: light.turn_on
+                            continue_on_error: true
+                            target:
+                              entity_id: light.master_casey_s_closet
+                            data:
+                              brightness_pct: "{{ closet_brightness_pct }}"
+                          - delay:
+                              seconds: 2
+                - if:
+                    - condition: template
+                      value_template: "{{ not is_state('light.master_casey_s_closet', 'on') }}"
+                  then:
+                    - action: script.notify_trevor_phone
+                      data:
+                        title: "⚠️ Casey's closet light didn't turn on"
+                        message: "Motion was detected, but Home Assistant could not get the Lutron closet light to turn on. The switch/device path needs attention."
+                        data:
+                          tag: casey-closet-light-command-failed
+                          group: lighting
+                          url: /calm-mobile/lights
+                          push:
+                            interruption-level: time-sensitive
         - conditions:
             - condition: trigger
               id: quiet
@@ -767,6 +774,11 @@
             - condition: trigger
               id: motion_recovered
           sequence:
+            - action: input_datetime.set_datetime
+              target:
+                entity_id: input_datetime.casey_closet_last_motion_at
+              data:
+                datetime: "{{ now().strftime('%Y-%m-%d %H:%M:%S') }}"
             - action: script.notify_trevor_phone
               data:
                 message: clear_notification
@@ -774,13 +786,11 @@
                   tag: casey-closet-motion-stale
       default:
         - variables:
-            motion_last_changed_ts: >-
-              {% set sensor = states.binary_sensor.casey_s_closet_motion %}
-              {{ as_timestamp(sensor.last_changed, 0) if sensor is not none else 0 }}
-            stale_hours: "{{ ((as_timestamp(now()) - (motion_last_changed_ts | float(0))) / 3600) | round(1) }}"
+            motion_last_activity_ts: "{{ state_attr('input_datetime.casey_closet_last_motion_at', 'timestamp') | float(0) }}"
+            stale_hours: "{{ ((as_timestamp(now()) - (motion_last_activity_ts | float(0))) / 3600) | round(1) }}"
             last_seen_label: >-
-              {% if motion_last_changed_ts | float(0) > 0 %}
-                {{ as_datetime(motion_last_changed_ts | float(0)).astimezone().strftime('%a %-I:%M %p') }}
+              {% if motion_last_activity_ts | float(0) > 0 %}
+                {{ as_datetime(motion_last_activity_ts | float(0)).astimezone().strftime('%a %-I:%M %p') }}
               {% else %}
                 unknown
               {% endif %}
@@ -794,8 +804,14 @@
         - condition: template
           value_template: >-
             {{ states('binary_sensor.casey_s_closet_motion') in ['off', 'unknown', 'unavailable']
-               and motion_last_changed_ts | float(0) > 0
-               and (as_timestamp(now()) - (motion_last_changed_ts | float(0))) >= 18 * 60 * 60 }}
+               and motion_last_activity_ts | float(0) > 0
+               and (as_timestamp(now()) - (motion_last_activity_ts | float(0))) >= 18 * 60 * 60 }}
+        - action: homeassistant.reload_config_entry
+          continue_on_error: true
+          target:
+            entity_id: binary_sensor.casey_s_closet_motion
+        - delay:
+            seconds: 6
         - action: switch.turn_off
           continue_on_error: true
           target:

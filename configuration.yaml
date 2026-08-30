@@ -486,6 +486,11 @@ input_datetime:
     name: Late Night Exterior Lights Last Notified At
     has_date: true
     has_time: true
+  casey_closet_last_motion_at:
+    name: Casey Closet Last Motion At
+    has_date: true
+    has_time: true
+    initial: "1970-01-01 00:00:00"
   overnight_lights_last_notified_at:
     name: Overnight Lights Last Notified At
     has_date: true
