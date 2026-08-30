@@ -1518,6 +1518,11 @@
         message: clear_notification
         data:
           tag: overnight-lights-left-on
+    - action: script.notify_trevor_phone
+      data:
+        message: clear_notification
+        data:
+          tag: overnight-lights-sweep-failed
   mode: single
 
 - id: vacation_activity_schedule_sync

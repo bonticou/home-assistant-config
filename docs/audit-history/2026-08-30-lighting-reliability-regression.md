@@ -59,6 +59,7 @@ The impact is trust erosion in the lighting layer: motion lights can miss, and l
   - retries after reload;
   - sends a time-sensitive diagnostic push if HA still cannot get the Lutron light to turn on.
 - Added automatic clearing for the Casey closet command-failed notification once the light reports on.
+- Follow-up everyday-lighting audit found that the passive `overnight_lights_clear_when_off` path cleared the original reminder but not the newer sweep-failed notification. The clear path now clears both tags once the watched light count reaches zero.
 
 ## Checks And Live Validation
 
@@ -92,3 +93,4 @@ Deployed live through the authenticated local Home Assistant route and reloaded 
 - Casey's closet may still require physical Lutron troubleshooting or re-pairing because direct HA light commands did not change the light state after a config-entry reload.
 - The next real 1 AM window should be checked to confirm the auto-off automation now triggers with `auto_off_guard: clear`.
 - If another non-exempt light is found on overnight, inspect whether the failure is guard suppression, service-call failure, entity omission from `sensor.overnight_lights_left_on`, or HA availability during the 1 AM to 6 AM watchdog window.
+- The next best hardening slice is to bring garage auto-off, late-night exterior off, Bedtime, and All Off closer to the overnight sweep pattern: fault-tolerant first pass, short convergence delay, second pass, and explicit failure visibility for lights that still report on.
