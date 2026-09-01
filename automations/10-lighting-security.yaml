@@ -1210,6 +1210,49 @@
         entity_id:
           - light.ratgdo32_4536e8_light
           - light.ratgdo32disco_c26634_light
+    - delay:
+        seconds: 3
+    - if:
+        - condition: template
+          value_template: >-
+            {{ is_state('light.ratgdo32_4536e8_light', 'on')
+               or is_state('light.ratgdo32disco_c26634_light', 'on') }}
+      then:
+        - action: light.turn_off
+          continue_on_error: true
+          target:
+            entity_id:
+              - light.ratgdo32_4536e8_light
+              - light.ratgdo32disco_c26634_light
+        - delay:
+            seconds: 5
+        - if:
+            - condition: template
+              value_template: >-
+                {{ is_state('light.ratgdo32_4536e8_light', 'on')
+                   or is_state('light.ratgdo32disco_c26634_light', 'on') }}
+          then:
+            - variables:
+                failed_opener_light_names: >-
+                  {% set labels = {
+                    'light.ratgdo32_4536e8_light': 'your garage door light',
+                    'light.ratgdo32disco_c26634_light': "Casey's garage door light"
+                  } %}
+                  {% set ns = namespace(names=[]) %}
+                  {% for entity_id in ['light.ratgdo32_4536e8_light', 'light.ratgdo32disco_c26634_light'] %}
+                    {% if is_state(entity_id, 'on') %}
+                      {% set ns.names = ns.names + [labels.get(entity_id, state_attr(entity_id, 'friendly_name') or entity_id)] %}
+                    {% endif %}
+                  {% endfor %}
+                  {{ ns.names | join(', ') if ns.names else 'a garage door light' }}
+            - action: script.notify_trevor_phone
+              data:
+                title: "⚠️ Garage opener lights still on"
+                message: "The main garage lights are off, but {{ failed_opener_light_names }} did not turn off after two tries."
+                data:
+                  tag: garage-opener-lights-follow-main-failed
+                  push:
+                    interruption-level: time-sensitive
   mode: restart
 
 - id: garage_door_open_dark_lutron_light
