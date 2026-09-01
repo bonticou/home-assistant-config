@@ -465,7 +465,7 @@
 
 - id: water_very_low_pressure
   alias: "Water — Very Low Pressure"
-  description: Stronger warning when pressure is very low, with urgency only for active flow or overnight context.
+  description: Non-critical warning when shared-well pressure is very low outside expected irrigation use.
   triggers:
     - trigger: numeric_state
       entity_id: sensor.flo_shutoff_water_pressure
@@ -483,27 +483,20 @@
     - variables:
         current_pressure: "{{ states('sensor.flo_shutoff_water_pressure') | float(0) | round(0) }}"
         current_flow: "{{ states('sensor.flo_shutoff_water_flow_rate') | float(0) | round(2) }}"
-        overnight_context: "{{ now().hour < 6 }}"
-        pressure_severity: >-
-          {{ 'critical' if (current_flow | float(0) > 1.5) or (overnight_context | bool) else 'warning' }}
     - action: script.water_send_alert
       data:
         alert_kind: low_pressure_very_low
-        severity: "{{ pressure_severity }}"
+        severity: warning
         message: >-
           Pressure is very low at {{ current_pressure }} psi for 10+ minutes,
           with flow at {{ current_flow }} gal/min.
-          {% if pressure_severity == 'critical' %}
-            This is more concerning because {% if current_flow | float(0) > 1.5 %}flow is active above 1.5 gal/min{% else %}it is overnight{% endif %}.
-          {% else %}
-            This may still be normal fixture use, but it is low enough to review.
-          {% endif %}
+          This may reflect normal shared-well cycling or fixture use, but it is low enough to review.
           Check the Water tab and obvious fixtures.
   mode: single
 
 - id: water_very_low_pressure_persistent
   alias: "Water — Very Low Pressure Persistent"
-  description: Urgent pressure alert when very low pressure persists without recovering.
+  description: Non-critical follow-up when shared-well pressure remains very low.
   triggers:
     - trigger: numeric_state
       entity_id: sensor.flo_shutoff_water_pressure
@@ -524,7 +517,7 @@
     - action: script.water_send_alert
       data:
         alert_kind: low_pressure_urgent
-        severity: critical
+        severity: warning
         message: >-
           Pressure has stayed very low at {{ current_pressure }} psi for 20+ minutes,
           with flow at {{ current_flow }} gal/min. Check the Water tab, fixtures,
@@ -1329,7 +1322,7 @@
 
 - id: irrigation_recovery_slow_followup
   alias: "Irrigation — Well Recovery Slow Follow-Up"
-  description: Timestamp-based slow-recovery warning so a Home Assistant restart does not lose the check.
+  description: Records slow shared-well recovery as diagnostic context without sending a sprinkler alert.
   triggers:
     - trigger: time_pattern
       minutes: "/1"
@@ -1361,19 +1354,31 @@
         recovery_target: "{{ ([35, states('input_number.irrigation_session_start_pressure') | float(0) - 12]) | max | round(1) }}"
         start_pressure: "{{ states('input_number.irrigation_session_start_pressure') | float(0) | round(1) }}"
         pressure_now: "{{ states('sensor.flo_shutoff_water_pressure') | float(0) | round(1) }}"
-    - action: script.water_send_alert
+    - action: shell_command.irrigation_history_event
       data:
-        alert_kind: irrigation_recovery_slow
+        kind: diagnostic_irrigation_recovery_slow
+        at: "{{ now().isoformat() }}"
         severity: warning
-        message: >-
+        title: "Shared well recovery slow after irrigation"
+        note: >-
           Ten minutes after sprinklers stopped, shared well pressure is only
           {{ pressure_now }} psi. Expected recovery target is about {{ recovery_target }} psi
-          based on the session start pressure of {{ start_pressure }} psi.
+          based on the session start pressure of {{ start_pressure }} psi. This is diagnostic
+          context only because Flo pressure represents the shared house/well system.
+        session_id: "{{ states('input_text.irrigation_session_id') }}"
+        zone: ""
+        zone_name: ""
+        flow_source: hunter
+    - action: input_datetime.set_datetime
+      target:
+        entity_id: input_datetime.irrigation_recovery_slow_check_at
+      data:
+        datetime: "{{ (now() - timedelta(hours=1)).strftime('%Y-%m-%d %H:%M:%S') }}"
   mode: single
 
 - id: irrigation_recovery_failed_followup
   alias: "Irrigation — Well Recovery Failed Follow-Up"
-  description: Timestamp-based failed-recovery alert so a Home Assistant restart does not lose the check.
+  description: Records prolonged low shared-well pressure after irrigation without treating it as a confirmed failure.
   triggers:
     - trigger: time_pattern
       minutes: "/1"
@@ -1400,14 +1405,25 @@
       value_template: >-
         {{ states('sensor.flo_shutoff_water_pressure') | float(0) < 30 }}
   actions:
-    - action: script.water_send_alert
+    - action: shell_command.irrigation_history_event
       data:
-        alert_kind: irrigation_recovery_failed
-        severity: critical
-        message: >-
+        kind: diagnostic_irrigation_recovery_low
+        at: "{{ now().isoformat() }}"
+        severity: warning
+        title: "Shared well pressure remained low after irrigation"
+        note: >-
           Twenty minutes after sprinklers stopped, shared well pressure is still
           {{ states('sensor.flo_shutoff_water_pressure') | float(0) | round(1) }} psi.
-          The well system has not recovered to the 30 psi floor.
+          This is retained as diagnostic context rather than proof of a well or irrigation failure.
+        session_id: "{{ states('input_text.irrigation_session_id') }}"
+        zone: ""
+        zone_name: ""
+        flow_source: hunter
+    - action: input_datetime.set_datetime
+      target:
+        entity_id: input_datetime.irrigation_recovery_failed_check_at
+      data:
+        datetime: "{{ (now() - timedelta(hours=1)).strftime('%Y-%m-%d %H:%M:%S') }}"
   mode: single
 
 - id: irrigation_pressure_collapse
@@ -1495,7 +1511,7 @@
 
 - id: irrigation_valve_state_mismatch
   alias: "Irrigation — Valve State Mismatch"
-  description: Critical alert when Hydrawise watering sensors and valve entities disagree for more than a short lag window.
+  description: Records disagreement between cloud-polled Hydrawise entities without treating it as a physical valve failure.
   triggers:
     - trigger: state
       entity_id: binary_sensor.irrigation_valve_state_mismatch
@@ -1509,19 +1525,25 @@
     - condition: template
       value_template: "{{ states('input_text.irrigation_active_alert_kind') != 'irrigation_valve_mismatch' }}"
   actions:
-    - action: script.water_send_alert
+    - action: shell_command.irrigation_history_event
       data:
-        alert_kind: irrigation_valve_mismatch
-        severity: critical
-        message: >-
+        kind: diagnostic_irrigation_valve_state_mismatch
+        at: "{{ now().isoformat() }}"
+        severity: warning
+        title: "Hydrawise valve state mismatch"
+        note: >-
           Hydrawise watering sensors and valve states disagree:
           {{ state_attr('binary_sensor.irrigation_valve_state_mismatch', 'mismatches') }}.
-          Shared well pressure is {{ states('sensor.flo_shutoff_water_pressure') | float(0) | round(1) }} psi.
+          Both states come from the same cloud integration, so this is diagnostic evidence only.
+        session_id: "{{ states('input_text.irrigation_session_id') }}"
+        zone: "{{ states('sensor.irrigation_active_zone') }}"
+        zone_name: "{{ states('sensor.irrigation_active_zone') }}"
+        flow_source: hunter
   mode: single
 
 - id: irrigation_multiple_zones_active
   alias: "Irrigation — Multiple Zones Active"
-  description: Critical alert when Hydrawise reports multiple zones running together.
+  description: Records overlapping cloud-polled Hydrawise zone states without paging on transition lag.
   triggers:
     - trigger: numeric_state
       entity_id: sensor.irrigation_active_zone_count
@@ -1535,14 +1557,20 @@
     - condition: template
       value_template: "{{ states('input_text.irrigation_active_alert_kind') != 'irrigation_multiple_zones' }}"
   actions:
-    - action: script.water_send_alert
+    - action: shell_command.irrigation_history_event
       data:
-        alert_kind: irrigation_multiple_zones
-        severity: critical
-        message: >-
+        kind: diagnostic_irrigation_multiple_zone_states
+        at: "{{ now().isoformat() }}"
+        severity: warning
+        title: "Hydrawise reports multiple active zones"
+        note: >-
           Hydrawise reports {{ states('sensor.irrigation_active_zone_count') }} zones watering at once:
           {{ state_attr('sensor.irrigation_active_zone', 'active_zones') }}.
-          Shared well pressure is {{ states('sensor.flo_shutoff_water_pressure') | float(0) | round(1) }} psi.
+          Cloud transition lag can produce this state, so it is diagnostic evidence only.
+        session_id: "{{ states('input_text.irrigation_session_id') }}"
+        zone: "{{ states('sensor.irrigation_active_zone') }}"
+        zone_name: "{{ states('sensor.irrigation_active_zone') }}"
+        flow_source: hunter
   mode: single
 
 - id: irrigation_no_flow
@@ -1634,7 +1662,7 @@
 
 - id: irrigation_high_flow
   alias: "Irrigation — Hunter Flow High"
-  description: Critical alert when a learned zone is flowing far above its Hunter baseline.
+  description: Records a derived high-flow estimate as diagnostic context without sending a sprinkler alert.
   triggers:
     - trigger: state
       entity_id: binary_sensor.irrigation_flow_baseline_high_alert
@@ -1659,7 +1687,7 @@
       data:
         kind: diagnostic_irrigation_high_flow
         at: "{{ now().isoformat() }}"
-        severity: critical
+        severity: warning
         title: "Irrigation flow high"
         note: >-
           {{ states('sensor.irrigation_active_zone') }} is above its learned Hunter flow baseline at
@@ -2038,7 +2066,7 @@
 
 - id: irrigation_history_alert_events
   alias: "Irrigation — Record Alert History Events"
-  description: Adds irrigation warning/critical notices to the dashboard history ledger.
+  description: Adds non-routine irrigation notices to the dashboard history ledger.
   triggers:
     - trigger: event
       event_type: water_alert_recorded
@@ -2137,6 +2165,62 @@
       value_template: >-
         {{ states('sensor.irrigation_flow_rate') | float(0) < 0.5
            or states('input_text.irrigation_active_alert_kind') == 'irrigation_flow_meter_stale' }}
+    - condition: template
+      value_template: >-
+        {{ states('input_text.irrigation_active_alert_kind') in [
+          'irrigation_pressure_collapse',
+          'irrigation_recovery_slow',
+          'irrigation_recovery_failed',
+          'irrigation_zone_ran_too_long',
+          'irrigation_valve_mismatch',
+          'irrigation_multiple_zones',
+          'irrigation_no_flow',
+          'irrigation_high_flow',
+          'irrigation_low_flow',
+          'irrigation_flow_after_stop',
+          'irrigation_unscheduled_flow',
+          'irrigation_flow_meter_stale'
+        ] }}
+  actions:
+    - action: input_boolean.turn_off
+      target:
+        entity_id: input_boolean.water_irrigation_alert_active
+    - action: input_text.set_value
+      target:
+        entity_id: input_text.irrigation_active_alert_kind
+      data:
+        value: ""
+    - repeat:
+        for_each:
+          - water-irrigation_pressure_collapse
+          - water-irrigation_recovery_slow
+          - water-irrigation_recovery_failed
+          - water-irrigation_zone_ran_too_long
+          - water-irrigation_valve_mismatch
+          - water-irrigation_multiple_zones
+          - water-irrigation_no_flow
+          - water-irrigation_high_flow
+          - water-irrigation_low_flow
+          - water-irrigation_flow_after_stop
+          - water-irrigation_unscheduled_flow
+          - water-irrigation_flow_meter_stale
+        sequence:
+          - action: script.notify_trevor_phone
+            data:
+              message: clear_notification
+              data:
+                tag: "{{ repeat.item }}"
+  mode: single
+
+- id: irrigation_retired_anomaly_alert_cleanup
+  alias: "Irrigation — Clear Retired Anomaly Alerts"
+  description: Clears legacy irrigation anomaly state and phone tags even when Hydrawise remains stale or active.
+  triggers:
+    - trigger: homeassistant
+      event: start
+    - trigger: time_pattern
+      minutes: "/1"
+  conditions:
     - condition: template
       value_template: >-
         {{ states('input_text.irrigation_active_alert_kind') in [

@@ -3827,18 +3827,15 @@ water_send_alert:
              if kind == 'overnight_flow'
              else 'WATER_SUSTAINED_FLOW_EXPECTED' }}
         resolved_severity: >-
-          {% if severity is defined and severity | default('', true) != '' %}
+          {% if kind[:11] == 'irrigation_' %}
+            {{ 'info' if kind in ['irrigation_started', 'irrigation_finished'] else 'warning' }}
+          {% elif severity is defined and severity | default('', true) != '' %}
             {{ severity }}
           {% elif kind in [
             'burst_day',
             'burst_night',
             'leak',
-            'valve_closed',
-            'low_pressure_urgent',
-            'irrigation_recovery_failed',
-            'irrigation_valve_mismatch',
-            'irrigation_multiple_zones',
-            'irrigation_high_flow'
+            'valve_closed'
           ] %}
             critical
           {% elif kind in ['irrigation_started', 'irrigation_finished'] %}
@@ -3864,7 +3861,7 @@ water_send_alert:
           {% elif kind == 'low_pressure_very_low' %}
             ⚠️ Very low water pressure
           {% elif kind == 'low_pressure_urgent' %}
-            🚨 Very low pressure still active
+            ⚠️ Very low pressure still active
           {% elif kind == 'high_pressure' %}
             📈 High water pressure
           {% elif kind == 'usage_high' %}
@@ -4036,18 +4033,6 @@ water_send_alert:
             - condition: template
               value_template: >-
                 {{ kind in [
-                  'irrigation_pressure_collapse',
-                  'irrigation_recovery_slow',
-                  'irrigation_recovery_failed',
-                  'irrigation_zone_ran_too_long',
-                  'irrigation_valve_mismatch',
-                  'irrigation_multiple_zones',
-                  'irrigation_no_flow',
-                  'irrigation_high_flow',
-                  'irrigation_low_flow',
-                  'irrigation_flow_after_stop',
-                  'irrigation_unscheduled_flow',
-                  'irrigation_flow_meter_stale',
                   'irrigation_controller_offline',
                   'irrigation_controller_offline_during_watering'
                 ] }}
@@ -4064,33 +4049,6 @@ water_send_alert:
         - conditions:
             - condition: template
               value_template: "{{ kind == 'leak' }}"
-          sequence:
-            - action: script.notify_trevor_phone
-              data:
-                title: "{{ notification_title }}"
-                message: "{{ notification_message }}"
-                data:
-                  group: water
-                  tag: "water-{{ kind }}"
-                  url: "{{ notification_url }}"
-                  sticky: true
-                  ttl: 0
-                  priority: high
-                  critical: true
-                  push:
-                    sound:
-                      name: default
-                      critical: 1
-                      volume: 1.0
-        - conditions:
-            - condition: template
-              value_template: >-
-                {{ kind in [
-                  'irrigation_recovery_failed',
-                  'irrigation_valve_mismatch',
-                  'irrigation_multiple_zones',
-                  'irrigation_high_flow'
-                ] }}
           sequence:
             - action: script.notify_trevor_phone
               data:

@@ -61,26 +61,54 @@ the water safety system and can hide alerts that genuinely require action.
   and session context so the anomalies remain auditable.
 - Removed both alert kinds from the shared notification script's default
   critical classification and hardcoded critical iOS push branch.
+- Following confirmation that the broader integration should be rolled back,
+  converted the remaining inference-based irrigation anomalies to diagnostic
+  history only:
+  - slow and failed shared-well pressure recovery;
+  - disagreement between Hydrawise watering and valve entities;
+  - multiple simultaneously reported Hydrawise zone states;
+  - derived Hunter high-flow estimates.
+- Made the shared notification script enforce a non-critical ceiling for every
+  irrigation alert kind, including future accidental callers.
+- Limited active irrigation guardrail state to controller-offline warnings;
+  diagnostic anomaly kinds can no longer turn the dashboard guardrail red.
+- Added minute-based cleanup for retired irrigation anomaly helper state and
+  old phone notification tags even when Hydrawise remains stuck in an active
+  state.
+- Demoted whole-house very-low and persistent-low pressure pushes from critical
+  to warning. Flo pressure measures the shared house/well system, and an
+  unreliable irrigation-expected gate must not turn normal sprinkler-related
+  pressure behavior into critical audio.
 - Did not change leak, burst-flow, valve-closed, routine sprinkler start/finish,
   controller-offline, or other water safety behavior.
 
 ## Checks
 
-- Ruby YAML parsing passed for the changed automation and script files, plus
-  `configuration.yaml` and the calm mobile dashboard.
-- All 11 irrigation unit tests passed.
-- `git diff --check` passed.
+- The initial two-alert correction passed Ruby YAML parsing, all 11 irrigation
+  unit tests, and `git diff --check` before commit.
+- The expanded rollback passed Ruby YAML parsing for the automation, script,
+  main configuration, and dashboard files; all 11 irrigation unit tests; and
+  `git diff --check`.
+- A caller audit confirmed that the only remaining irrigation phone notices are
+  routine start/finish messages and controller-offline or missed-cycle warnings.
+- A severity audit confirmed that the only remaining explicit critical water
+  paths are daytime burst flow, overnight burst flow, a physical leak sensor,
+  and confirmed Flo valve closure.
 - Live deployment, read-back, Home Assistant config validation, automation
   reload, and stale-notification cleanup are not yet performed.
 
 ## Deployment Status
 
-- Repository change only; not yet deployed to live Home Assistant.
+- The initial two-alert correction and expanded rollback are committed or
+  staged locally as separate logical slices; neither is yet deployed live.
 
 ## Residual Risks And Follow-Ups
 
 - The currently active stale irrigation guardrail and old phone notification
   will remain until live deployment and explicit cleanup.
+- After deployment and cleanup, run an HA-supported Recorder purge using the
+  configured 30-day retention, then verify Recorder returns to a healthy idle
+  state.
 - Audit the Hydrawise zone-transition source and reconcile stale zone/session
   helpers before relying on durations for push alerts again.
 - Review the irrigation ledger's unit handling and impossible multi-hour runs;
