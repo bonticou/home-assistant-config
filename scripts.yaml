@@ -3835,9 +3835,7 @@ water_send_alert:
             'leak',
             'valve_closed',
             'low_pressure_urgent',
-            'irrigation_pressure_collapse',
             'irrigation_recovery_failed',
-            'irrigation_zone_ran_too_long',
             'irrigation_valve_mismatch',
             'irrigation_multiple_zones',
             'irrigation_high_flow'
@@ -4088,9 +4086,7 @@ water_send_alert:
             - condition: template
               value_template: >-
                 {{ kind in [
-                  'irrigation_pressure_collapse',
                   'irrigation_recovery_failed',
-                  'irrigation_zone_ran_too_long',
                   'irrigation_valve_mismatch',
                   'irrigation_multiple_zones',
                   'irrigation_high_flow'

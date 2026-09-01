@@ -1412,7 +1412,7 @@
 
 - id: irrigation_pressure_collapse
   alias: "Irrigation — Shared Well Pressure Low"
-  description: Critical well-pressure alert during active irrigation.
+  description: Records low shared-well pressure during irrigation for diagnosis without paging on pressure alone.
   triggers:
     - trigger: numeric_state
       entity_id: sensor.flo_shutoff_water_pressure
@@ -1436,18 +1436,26 @@
     - condition: template
       value_template: "{{ states('input_text.irrigation_active_alert_kind') != 'irrigation_pressure_collapse' }}"
   actions:
-    - action: script.water_send_alert
+    - action: shell_command.irrigation_history_event
       data:
-        alert_kind: irrigation_pressure_collapse
-        severity: critical
-        message: >-
+        kind: diagnostic_irrigation_pressure_low
+        at: "{{ now().isoformat() }}"
+        severity: warning
+        title: "Shared well pressure low during irrigation"
+        note: >-
           Shared well pressure is {{ states('sensor.flo_shutoff_water_pressure') | float(0) | round(1) }} psi
-          while {{ states('sensor.irrigation_active_zone') }} is watering.
+          while Hydrawise reports {{ states('sensor.irrigation_active_zone') }} watering.
+          This is diagnostic context only because pressure is shared with the house and a low reading
+          does not by itself prove an irrigation fault.
+        session_id: "{{ states('input_text.irrigation_session_id') }}"
+        zone: "{{ states('sensor.irrigation_active_zone') }}"
+        zone_name: "{{ states('sensor.irrigation_active_zone') }}"
+        flow_source: hunter
   mode: single
 
 - id: irrigation_zone_ran_too_long
   alias: "Irrigation — Zone Ran Too Long"
-  description: Critical alert when one Hydrawise zone stays active longer than a normal fixed run should.
+  description: Records a possibly stale Hydrawise zone state without paging when the reported run exceeds 45 minutes.
   triggers:
     - trigger: state
       entity_id: binary_sensor.irrigation_zone_running_too_long
@@ -1467,15 +1475,22 @@
     - variables:
         started: "{{ states('input_datetime.irrigation_zone_started_at') }}"
         runtime_minutes: "{{ ((as_timestamp(now()) - as_timestamp(started, as_timestamp(now()))) / 60) | round(0) }}"
-    - action: script.water_send_alert
+    - action: shell_command.irrigation_history_event
       data:
-        alert_kind: irrigation_zone_ran_too_long
-        severity: critical
-        message: >-
+        kind: diagnostic_irrigation_zone_state_stale
+        at: "{{ now().isoformat() }}"
+        severity: warning
+        title: "Irrigation zone state may be stale"
+        note: >-
           {{ states('sensor.irrigation_active_zone') }} has reported watering for about
           {{ runtime_minutes }} minutes. Shared well pressure is
           {{ states('sensor.flo_shutoff_water_pressure') | float(0) | round(1) }} psi.
-          Check Hydrawise and the valve; the zone may not have advanced or may be stuck open.
+          Hydrawise zone state has previously remained stale for hours, so this is retained as
+          diagnostic evidence rather than treated as proof that a valve is stuck open.
+        session_id: "{{ states('input_text.irrigation_session_id') }}"
+        zone: "{{ states('sensor.irrigation_active_zone') }}"
+        zone_name: "{{ states('sensor.irrigation_active_zone') }}"
+        flow_source: hunter
   mode: single
 
 - id: irrigation_valve_state_mismatch

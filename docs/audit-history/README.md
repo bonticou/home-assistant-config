@@ -79,6 +79,7 @@ Supporting material:
 
 | Date | Entry | Scope |
 | --- | --- | --- |
+| 2026-09-01 | [Irrigation false critical alerts](2026-09-01-irrigation-false-critical-alerts.md) | Confirms stale Hydrawise zone state and shared-well pressure inference were creating false critical sprinkler alerts, then demotes zone-too-long and irrigation-pressure-low signals to diagnostic history |
 | 2026-08-30 | [Lighting reliability regression](2026-08-30-lighting-reliability-regression.md) | Fixes an overbroad paused-TV overnight shutoff guard, hardens the overnight sweep with retry/failure alerting, and escalates Casey closet motion-on failures when the Lutron command path does not respond |
 | 2026-08-26 | [Evening scene stale helper](2026-08-26-evening-scene-stale-helper.md) | Fixes normal Evening schedule misses caused by `lighting_active_scene` staying on stale `Evening` from a prior day |
 | 2026-08-24 | [Casey closet motion stale](2026-08-24-casey-closet-motion-stale.md) | Diagnoses Casey closet auto-on misses as stale UniFi motion plus a nonresponsive Lutron command path, deploys guarded stale-motion recovery, and records physical follow-up |
