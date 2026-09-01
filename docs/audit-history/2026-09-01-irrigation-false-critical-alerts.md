@@ -81,6 +81,13 @@ the water safety system and can hide alerts that genuinely require action.
   pressure behavior into critical audio.
 - Did not change leak, burst-flow, valve-closed, routine sprinkler start/finish,
   controller-offline, or other water safety behavior.
+- Simplified the Irrigation dashboard after the rollback by removing the
+  unreliable status hero and the redundant Next run, 7-day actuals, and Last
+  irrigation bubble strip. The seven-day irrigation/rainfall timeline remains
+  the primary summary, and the live-only flow/pressure chart remains available
+  while irrigation is active.
+- Removed the two now-orphaned irrigation detail popups that were opened only
+  by the deleted status and schedule cards.
 
 ## Checks
 
@@ -110,6 +117,12 @@ the water safety system and can hide alerts that genuinely require action.
 - The temporary one-shot purge helper was removed from both the repository and
   live `scripts.yaml`; clean live read-back confirmed it was absent before the
   final script and automation reloads.
+- The simplified dashboard passed local YAML parsing and `git diff --check`.
+  Live File Editor read-back confirmed the duplicate bubble labels were absent
+  and the irrigation/rainfall timeline remained present.
+- A rendered `/calm-mobile/irrigation` check showed the page leading directly
+  from its title into the timeline, with no Weather skip or Last irrigation
+  bubble visible.
 
 ## Deployment Status
 
@@ -122,6 +135,8 @@ the water safety system and can hide alerts that genuinely require action.
   was already clear, so no stale irrigation critical alert remained active.
 - The authorized 30-day Recorder purge was submitted without repacking; final
   log and frontend checks remained healthy.
+- The irrigation dashboard simplification is deployed live and rendered from
+  the updated YAML source.
 
 ## Residual Risks And Follow-Ups
 
