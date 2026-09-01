@@ -32,6 +32,10 @@ the opener lights should not remain on once the main garage lights are off.
 - Safari initially had no open tabs. After opening the Nabu File Editor route,
   the Safari deploy helper still could not find Home Assistant auth in local
   storage.
+- After Trevor logged into Safari, the Home Assistant auth data was available
+  through the live `home-assistant` element rather than `localStorage`, so the
+  Safari deploy helper was adapted locally to use the current frontend auth
+  object.
 
 ## Findings
 
@@ -70,16 +74,24 @@ the opener lights should not remain on once the main garage lights are off.
 
 ## Deployment Status
 
-Not deployed live during this pass. The repo change is ready, but the available
-browser/File Editor/Safari paths did not provide an authenticated live write
-surface.
+Deployed live on 2026-09-01 through the authenticated Safari/Nabu File Editor
+ingress path after Trevor logged into Home Assistant.
+
+Live deploy checks passed:
+
+- `/homeassistant/automations/10-lighting-security.yaml` written and read back
+  with SHA-256 `332a25cb97b9fe3f8975dcd97d71be21134b578da28d0b4d3c2feac8ad7822ef`.
+- Home Assistant `check_config` returned `valid` with no errors or warnings.
+- `automation.reload` returned HTTP 200.
+- Live state check showed
+  `automation.lights_garage_opener_lights_follow_main_off` was `on`.
+- Live state check showed `switch.garage_garage_lights`,
+  `light.ratgdo32_4536e8_light`, and
+  `light.ratgdo32disco_c26634_light` were all `off`.
 
 ## Residual Risks And Follow-Ups
 
-- Deploy `automations/10-lighting-security.yaml` through an authenticated File
-  Editor or API route, then run `automation.reload`.
-- After deployment, verify:
-  - `automation.lights_garage_opener_lights_follow_main_off` exists and is on;
-  - with `switch.garage_garage_lights` off, either opener light turning on is
-    shut off within 15 seconds plus command convergence time;
-  - the one-minute watchdog clears any missed transition.
+- During the next real garage use, verify that turning off
+  `switch.garage_garage_lights` turns off both opener lights immediately.
+- If either opener light still stays on, inspect whether the opener firmware is
+  reasserting its own light state after HA turns it off.
