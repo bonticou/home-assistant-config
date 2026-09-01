@@ -94,21 +94,40 @@ the water safety system and can hide alerts that genuinely require action.
 - A severity audit confirmed that the only remaining explicit critical water
   paths are daytime burst flow, overnight burst flow, a physical leak sensor,
   and confirmed Flo valve closure.
-- Live deployment, read-back, Home Assistant config validation, automation
-  reload, and stale-notification cleanup are not yet performed.
+- Live File Editor read-back confirmed the revised irrigation automation and
+  shared water-alert script were present with intact UTF-8 content.
+- Home Assistant's YAML check completed without a visible error, then scripts
+  and automations were reloaded from Developer Tools.
+- Live automation-editor read-back confirmed that zone-too-long and pressure-
+  collapse now write diagnostic history rather than call the phone-alert
+  script.
+- Live helper state showed no active irrigation alert kind and the irrigation
+  alert-active boolean was off.
+- An authorized Recorder purge was submitted with 30 days retained,
+  configuration filters applied, and repacking disabled. Home Assistant
+  remained responsive and the live log showed no Recorder, service-call, or
+  scripts-file error afterward.
+- The temporary one-shot purge helper was removed from both the repository and
+  live `scripts.yaml`; clean live read-back confirmed it was absent before the
+  final script and automation reloads.
 
 ## Deployment Status
 
-- The initial two-alert correction and expanded rollback are committed or
-  staged locally as separate logical slices; neither is yet deployed live.
+- The initial two-alert correction and expanded rollback are committed as
+  separate logical slices and deployed to the live Home Assistant instance.
+- A clipboard-based File Editor write briefly produced mojibake during
+  deployment. It was detected by read-back and replaced with the File Editor's
+  byte-preserving upload flow before any Home Assistant reload.
+- The deployed configuration was reloaded and the retired alert helper state
+  was already clear, so no stale irrigation critical alert remained active.
+- The authorized 30-day Recorder purge was submitted without repacking; final
+  log and frontend checks remained healthy.
 
 ## Residual Risks And Follow-Ups
 
-- The currently active stale irrigation guardrail and old phone notification
-  will remain until live deployment and explicit cleanup.
-- After deployment and cleanup, run an HA-supported Recorder purge using the
-  configured 30-day retention, then verify Recorder returns to a healthy idle
-  state.
+- Recorder purges run as background work and `repack: false` does not shrink the
+  database file immediately. Continue watching normal Recorder health rather
+  than treating unchanged file size as a purge failure.
 - Audit the Hydrawise zone-transition source and reconcile stale zone/session
   helpers before relying on durations for push alerts again.
 - Review the irrigation ledger's unit handling and impossible multi-hour runs;
