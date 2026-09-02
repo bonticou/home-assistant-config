@@ -4,16 +4,16 @@ A human-readable map of the Home Assistant device model. The full audit dump is 
 
 ## At A Glance
 
-- Snapshot: `2026-07-29T14:29:24.057042+00:00`
-- Scale: 231 devices, 2514 entities, 151 network clients
+- Base live snapshot: `2026-07-29T14:29:24.057042+00:00`; repository-defined entities reconciled through `2026-09-02`
+- Scale: 231 devices, 2525 entities, 151 network clients
 - Lighting: 38 light entities, 35 Lutron Caséta entities
 
 | Thing | Count |
 | --- | --- |
 | Devices | 231 |
-| Entities | 2514 |
-| Control entities | 884 |
-| Telemetry entities | 1125 |
+| Entities | 2525 |
+| Control entities | 887 |
+| Telemetry entities | 1128 |
 | Network clients | 151 |
 | Areas | 32 |
 

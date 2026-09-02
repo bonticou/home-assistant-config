@@ -736,6 +736,14 @@ input_datetime:
     name: Bonticou LLC DE Franchise Tax Last Paid At
     has_date: true
     has_time: true
+  casey_winston_llc_wy_annual_report_last_paid_at:
+    name: Casey Winston LLC WY Annual Report Last Paid At
+    has_date: true
+    has_time: true
+  casey_winston_llc_wy_annual_report_last_notified_at:
+    name: Casey Winston LLC WY Annual Report Last Notified At
+    has_date: true
+    has_time: true
   garbage_recycling_last_taken_out_at:
     name: Garbage Recycling Last Taken Out At
     has_date: true
@@ -975,6 +983,9 @@ input_text:
     max: 10
   bonticou_llc_de_franchise_tax_paid_cycle:
     name: Bonticou LLC DE Franchise Tax Paid Cycle
+    max: 16
+  casey_winston_llc_wy_annual_report_paid_cycle:
+    name: Casey Winston LLC WY Annual Report Paid Cycle
     max: 16
 
 input_boolean:
@@ -2006,6 +2017,55 @@ template:
               Due today
             {% elif now().strftime('%Y-%m-%d') >= notice_start %}
               Pay by Jun 1
+            {% else %}
+              Opens {{ strptime(notice_start, '%Y-%m-%d').strftime('%b %d, %Y') }}
+            {% endif %}
+          {% endif %}
+
+      - name: "Casey Winston LLC WY Annual Report Due Date"
+        unique_id: casey_winston_llc_wy_annual_report_due_date
+        device_class: date
+        icon: mdi:file-document-check-outline
+        state: >
+          {# The 2026 report was confirmed paid before this reminder was added. #}
+          {% set paid_cycle = states('input_text.casey_winston_llc_wy_annual_report_paid_cycle') | int(0) %}
+          {% set due_year = (paid_cycle + 1) if paid_cycle >= 2027 else 2027 %}
+          {{ due_year ~ '-01-01' }}
+        attributes:
+          notice_start: >
+            {% set paid_cycle = states('input_text.casey_winston_llc_wy_annual_report_paid_cycle') | int(0) %}
+            {% set due_year = (paid_cycle + 1) if paid_cycle >= 2027 else 2027 %}
+            {{ (due_year - 1) ~ '-12-01' }}
+          paid_cycle: "{{ states('input_text.casey_winston_llc_wy_annual_report_paid_cycle') }}"
+          license_tax: "$60.00"
+          rule: "Wyoming LLC annual report and license tax due every January 1, starting 2027"
+
+      - name: "Casey Winston LLC WY Annual Report Status"
+        unique_id: casey_winston_llc_wy_annual_report_status
+        icon: >
+          {% if is_state('binary_sensor.casey_winston_llc_wy_annual_report_due', 'on') %}
+            mdi:calendar-alert
+          {% else %}
+            mdi:file-document-check-outline
+          {% endif %}
+        state: >
+          {% set due = states('sensor.casey_winston_llc_wy_annual_report_due_date') %}
+          {% set paid_cycle = states('input_text.casey_winston_llc_wy_annual_report_paid_cycle') %}
+          {% if not is_state('input_boolean.business_admin_reminders_enabled', 'on') %}
+            Off
+          {% elif due in ['unknown', 'unavailable', 'none', ''] %}
+            Missing due date
+          {% else %}
+            {% set today = now().strftime('%Y-%m-%d') %}
+            {% set notice_start = ((due[:4] | int) - 1) ~ '-12-01' %}
+            {% if today > due %}
+              Overdue
+            {% elif today == due %}
+              Due today
+            {% elif today >= notice_start %}
+              File and pay by Jan 1
+            {% elif paid_cycle | int(0) >= 2027 %}
+              Paid for {{ paid_cycle }}
             {% else %}
               Opens {{ strptime(notice_start, '%Y-%m-%d').strftime('%b %d, %Y') }}
             {% endif %}
@@ -4522,6 +4582,7 @@ template:
           {% set dryer_due = states('sensor.dryer_vent_next_cleaning_due') %}
           {% set nwp_due = states('input_datetime.nwp_parking_pass_expiration_date') %}
           {% set llc_due = states('sensor.bonticou_llc_de_franchise_tax_due_date') %}
+          {% set wy_llc_due = states('sensor.casey_winston_llc_wy_annual_report_due_date') %}
           {% set garbage_due = states('sensor.garbage_recycling_next_pickup') %}
           {% set wine_filter_due = states('sensor.wine_cave_next_charcoal_filter_due') %}
           {% set wine_cleaning_due = states('sensor.wine_cave_next_cleaning_due') %}
@@ -4544,6 +4605,7 @@ template:
             is_state('binary_sensor.casey_driver_license_renewal_due', 'on') and states('input_datetime.casey_driver_license_expiration_date') <= today,
             is_state('binary_sensor.nwp_parking_pass_due', 'on') and nwp_due not in ['unknown', 'unavailable', 'none', ''] and nwp_due <= today,
             is_state('binary_sensor.bonticou_llc_de_franchise_tax_due', 'on') and llc_due not in ['unknown', 'unavailable', 'none', ''] and llc_due <= today,
+            is_state('binary_sensor.casey_winston_llc_wy_annual_report_due', 'on') and wy_llc_due not in ['unknown', 'unavailable', 'none', ''] and wy_llc_due <= today,
             is_state('binary_sensor.garbage_recycling_takeout_due', 'on') and garbage_due not in ['unknown', 'unavailable', 'none', ''] and garbage_due <= today,
             (is_state('binary_sensor.wine_cave_charcoal_filter_due', 'on') and wine_filter_due not in ['unknown', 'unavailable', 'none', ''] and wine_filter_due <= today)
               or (is_state('binary_sensor.wine_cave_cabinet_cleaning_due', 'on') and wine_cleaning_due not in ['unknown', 'unavailable', 'none', ''] and wine_cleaning_due <= today),
@@ -4592,6 +4654,7 @@ template:
             {% set dryer_due = states('sensor.dryer_vent_next_cleaning_due') %}
             {% set nwp_due = states('input_datetime.nwp_parking_pass_expiration_date') %}
             {% set llc_due = states('sensor.bonticou_llc_de_franchise_tax_due_date') %}
+            {% set wy_llc_due = states('sensor.casey_winston_llc_wy_annual_report_due_date') %}
             {% set garbage_due = states('sensor.garbage_recycling_next_pickup') %}
             {% set wine_filter_due = states('sensor.wine_cave_next_charcoal_filter_due') %}
             {% set wine_cleaning_due = states('sensor.wine_cave_next_cleaning_due') %}
@@ -4614,6 +4677,7 @@ template:
               is_state('binary_sensor.casey_driver_license_renewal_due', 'on') and states('input_datetime.casey_driver_license_expiration_date') <= today,
               is_state('binary_sensor.nwp_parking_pass_due', 'on') and nwp_due not in ['unknown', 'unavailable', 'none', ''] and nwp_due <= today,
               is_state('binary_sensor.bonticou_llc_de_franchise_tax_due', 'on') and llc_due not in ['unknown', 'unavailable', 'none', ''] and llc_due <= today,
+              is_state('binary_sensor.casey_winston_llc_wy_annual_report_due', 'on') and wy_llc_due not in ['unknown', 'unavailable', 'none', ''] and wy_llc_due <= today,
               is_state('binary_sensor.garbage_recycling_takeout_due', 'on') and garbage_due not in ['unknown', 'unavailable', 'none', ''] and garbage_due <= today,
               (is_state('binary_sensor.wine_cave_charcoal_filter_due', 'on') and wine_filter_due not in ['unknown', 'unavailable', 'none', ''] and wine_filter_due <= today)
                 or (is_state('binary_sensor.wine_cave_cabinet_cleaning_due', 'on') and wine_cleaning_due not in ['unknown', 'unavailable', 'none', ''] and wine_cleaning_due <= today),
@@ -4662,6 +4726,7 @@ template:
               states('input_datetime.casey_driver_license_expiration_date'),
               states('input_datetime.nwp_parking_pass_expiration_date'),
               states('sensor.bonticou_llc_de_franchise_tax_due_date'),
+              states('sensor.casey_winston_llc_wy_annual_report_due_date'),
               states('sensor.garbage_recycling_next_pickup'),
               robison_tune if robison_tune >= today else (now().year + 1) ~ '-03-25',
               robison_price if robison_price >= today else (now().year + 1) ~ '-08-20',
@@ -4727,6 +4792,7 @@ template:
               states('input_datetime.casey_driver_license_expiration_date'),
               states('input_datetime.nwp_parking_pass_expiration_date'),
               states('sensor.bonticou_llc_de_franchise_tax_due_date'),
+              states('sensor.casey_winston_llc_wy_annual_report_due_date'),
               states('sensor.garbage_recycling_next_pickup'),
               robison_tune if robison_tune >= today else (now().year + 1) ~ '-03-25',
               robison_price if robison_price >= today else (now().year + 1) ~ '-08-20',
@@ -5274,6 +5340,7 @@ template:
             {% endif %}
             {% set north_castle_tax_url = 'https://northcastle.municipaltaxpayments.com/' %}
             {% set delaware_llc_tax_url = 'https://icis.corp.delaware.gov/ecorp/logintax.aspx?FilingType=FranchiseTax' %}
+            {% set wyoming_annual_report_url = 'https://wyobiz.wyo.gov/Business/AnnualReport.aspx' %}
             {% set tax_items = [
               {'id': 'school-tax-jan', 'title': 'School tax January', 'emoji': '📚', 'paid': states('input_datetime.school_tax_january_last_paid_at'), 'tax_type': 'school', 'bill_month': 1, 'url': north_castle_tax_url},
               {'id': 'town-tax-apr', 'title': 'Town tax April', 'emoji': '🏛️', 'paid': states('input_datetime.town_tax_last_paid_at'), 'tax_type': 'town', 'bill_month': 4, 'url': north_castle_tax_url},
@@ -5360,6 +5427,49 @@ template:
                   'actions': [
                     {'label': 'Paid', 'service': 'script.bonticou_llc_de_franchise_tax_mark_paid', 'confirm': true, 'inline': false}
                   ]
+                }] %}
+              {% endif %}
+            {% endif %}
+            {% set wy_llc_due = states('sensor.casey_winston_llc_wy_annual_report_due_date') %}
+            {% if is_state('input_boolean.business_admin_reminders_enabled', 'on')
+               and wy_llc_due not in ['unknown', 'unavailable', 'none', ''] %}
+              {% set wy_llc_due_year = wy_llc_due[:4] %}
+              {% set wy_llc_notice_start = ((wy_llc_due_year | int) - 1) ~ '-12-01' %}
+              {% set wy_llc_active = today >= wy_llc_notice_start %}
+              {% if wy_llc_active or (wy_llc_due >= today and wy_llc_due <= horizon) %}
+                {% set ns.items = ns.items + [{
+                  'id': 'casey-winston-wy-annual-report-' ~ wy_llc_due_year,
+                  'title': 'Casey Winston - WY annual report',
+                  'emoji': '🏔️',
+                  'icon': 'mdi:file-document-check-outline',
+                  'group': 'Business admin',
+                  'state': 'due' if wy_llc_active else 'upcoming',
+                  'severity': 'watch' if wy_llc_active else 'info',
+                  'date': wy_llc_due,
+                  'due_prefix': 'Due',
+                  'badge': 'due',
+                  'badge_class': 'due',
+                  'show_in_upcoming': true,
+                  'basis_date': wy_llc_notice_start,
+                  'basis_prefix': 'reminders start',
+                  'narrative': 'File the Wyoming annual report and pay the $60.00 license tax by January 1.',
+                  'url': wyoming_annual_report_url,
+                  'entity_id': 'sensor.casey_winston_llc_wy_annual_report_status',
+                  'details': {
+                    'summary': 'Casey Winston LLC has a Wyoming annual report and $60.00 license tax due every January 1, starting in 2027.',
+                    'facts': [
+                      'Entity: Casey Winston LLC',
+                      'Jurisdiction: Wyoming',
+                      'Deadline: January 1',
+                      'License tax: $60.00',
+                      'Current status: ' ~ states('sensor.casey_winston_llc_wy_annual_report_status')
+                    ],
+                    'after_action': 'After you mark it paid, Home Assistant stamps this exact annual cycle as handled, clears the push notification, and starts tracking the next January 1 deadline.',
+                    'tracking': 'This notice is a house reminder only; keep the filed annual report and payment confirmation with the LLC records.'
+                  },
+                  'actions': ([
+                    {'label': 'Paid', 'service': 'script.casey_winston_llc_wy_annual_report_mark_paid', 'confirm': true, 'inline': false}
+                  ] if wy_llc_active else [])
                 }] %}
               {% endif %}
             {% endif %}
@@ -6372,6 +6482,20 @@ template:
           {% endif %}
         icon: >
           {{ 'mdi:calendar-alert' if is_state('binary_sensor.bonticou_llc_de_franchise_tax_due', 'on') else 'mdi:briefcase-check-outline' }}
+
+      - name: "Casey Winston LLC WY Annual Report Due"
+        unique_id: casey_winston_llc_wy_annual_report_due
+        state: >
+          {% set due = states('sensor.casey_winston_llc_wy_annual_report_due_date') %}
+          {% if not is_state('input_boolean.business_admin_reminders_enabled', 'on')
+             or due in ['unknown', 'unavailable', 'none', ''] %}
+            false
+          {% else %}
+            {% set notice_start = ((due[:4] | int) - 1) ~ '-12-01' %}
+            {{ now().strftime('%Y-%m-%d') >= notice_start }}
+          {% endif %}
+        icon: >
+          {{ 'mdi:calendar-alert' if is_state('binary_sensor.casey_winston_llc_wy_annual_report_due', 'on') else 'mdi:file-document-check-outline' }}
 
       - name: "Garbage Recycling Takeout Due"
         unique_id: garbage_recycling_takeout_due

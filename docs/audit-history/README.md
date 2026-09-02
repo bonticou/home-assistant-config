@@ -79,6 +79,7 @@ Supporting material:
 
 | Date | Entry | Scope |
 | --- | --- | --- |
+| 2026-09-02 | [Casey Winston Wyoming annual report reminder](2026-09-02-casey-winston-wy-annual-report-reminder.md) | Adds a durable January 1 annual-report and $60 license-tax cycle for Casey Winston LLC, starting with the 2027 deadline |
 | 2026-09-01 | [Garage opener light follower](2026-09-01-garage-opener-light-follower.md) | Hardens the garage opener lights follower rule with retry and failure notification, and records that the prior repo rule likely was not live because deployment remained blocked |
 | 2026-09-01 | [Irrigation false critical alerts](2026-09-01-irrigation-false-critical-alerts.md) | Confirms stale Hydrawise zone state and shared-well pressure inference were creating false critical sprinkler alerts, then demotes zone-too-long and irrigation-pressure-low signals to diagnostic history |
 | 2026-08-30 | [Lighting reliability regression](2026-08-30-lighting-reliability-regression.md) | Fixes an overbroad paused-TV overnight shutoff guard, hardens the overnight sweep with retry/failure alerting, and escalates Casey closet motion-on failures when the Lutron command path does not respond |

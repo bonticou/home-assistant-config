@@ -3061,6 +3061,148 @@ bonticou_llc_de_franchise_tax_clear_notification:
         data:
           tag: bonticou-de-franchise-tax
 
+casey_winston_llc_wy_annual_report_send_reminder:
+  alias: Casey Winston - WY Annual Report Send Reminder
+  description: Sends bill-ready and due-week reminders for Casey Winston LLC's Wyoming annual report and license tax.
+  icon: mdi:file-document-check-outline
+  mode: restart
+  fields:
+    stage:
+      description: Reminder stage, either bill_ready or countdown
+      example: countdown
+    due_date:
+      description: Annual due date
+      example: "2027-01-01"
+  sequence:
+    - variables:
+        reminder_stage: "{{ stage | default('countdown', true) }}"
+        due: >-
+          {% set provided_due = due_date | default('', true) %}
+          {% if provided_due not in ['unknown', 'unavailable', 'none', ''] %}
+            {{ provided_due }}
+          {% else %}
+            {{ states('sensor.casey_winston_llc_wy_annual_report_due_date') }}
+          {% endif %}
+        due_label: "{{ strptime(due | trim, '%Y-%m-%d').strftime('%A, %B %-d') }}"
+        days_until: >-
+          {{ ((as_timestamp(strptime(due | trim, '%Y-%m-%d')) - as_timestamp(today_at('00:00:00'))) / 86400) | int }}
+        business_days_until: >-
+          {% set due_date = strptime(due | trim, '%Y-%m-%d') %}
+          {% set today_date = today_at('00:00:00').replace(tzinfo=None) %}
+          {% set days = ((as_timestamp(due_date) - as_timestamp(today_at('00:00:00'))) / 86400) | int %}
+          {% set ns = namespace(business_days=0) %}
+          {% for offset in range(1, days + 1) %}
+            {% set day = today_date + timedelta(days=offset) %}
+            {% if day.weekday() < 5 %}
+              {% set ns.business_days = ns.business_days + 1 %}
+            {% endif %}
+          {% endfor %}
+          {{ ns.business_days }}
+        notification_title: >-
+          {% if reminder_stage == 'bill_ready' %}
+            🏔️🧾 Casey Winston - WY annual report ready
+          {% elif (days_until | int) <= 0 %}
+            🏔️🧾 Casey Winston - WY annual report due today
+          {% else %}
+            🏔️🧾 Casey Winston - WY annual report due in {{ business_days_until }} business day{{ '' if (business_days_until | int) == 1 else 's' }}
+          {% endif %}
+        notification_message: >-
+          {% if reminder_stage == 'bill_ready' %}
+            Casey Winston LLC's Wyoming annual report and $60.00 license tax are due {{ due_label | trim }}.
+            File and pay by January 1, then tap Paid.
+          {% elif (days_until | int) <= 0 %}
+            Casey Winston LLC's Wyoming annual report and $60.00 license tax are due today.
+            File and pay, then tap Paid.
+          {% else %}
+            Casey Winston LLC's Wyoming annual report and $60.00 license tax are due in {{ business_days_until }} business day{{ '' if (business_days_until | int) == 1 else 's' }},
+            on {{ due_label | trim }}.
+            Tap Paid after filing and payment are complete.
+          {% endif %}
+        notified_today: >-
+          {% set last = states('input_datetime.casey_winston_llc_wy_annual_report_last_notified_at') %}
+          {{ last not in ['unknown', 'unavailable', 'none', ''] and last[:10] == now().strftime('%Y-%m-%d') }}
+    - condition: template
+      value_template: >-
+        {{ not (notified_today | bool)
+           and (
+             reminder_stage != 'countdown'
+             or (
+               ((days_until | int) <= 0 or now().weekday() < 5)
+               and (days_until | int) >= 0
+               and (days_until | int) <= 10
+               and (business_days_until | int) <= 5
+             )
+           ) }}
+    - action: script.notify_trevor_phone
+      data:
+        title: "{{ notification_title | trim }}"
+        message: "{{ notification_message | regex_replace('\\s+', ' ') | trim }}"
+        data:
+          group: business-admin
+          tag: casey-winston-wy-annual-report
+          url: https://wyobiz.wyo.gov/Business/AnnualReport.aspx
+          recent: true
+          actions:
+            - action: CASEY_WINSTON_WY_ANNUAL_REPORT_PAID
+              title: Paid
+    - action: input_datetime.set_datetime
+      target:
+        entity_id: input_datetime.casey_winston_llc_wy_annual_report_last_notified_at
+      data:
+        datetime: "{{ now().strftime('%Y-%m-%d %H:%M:%S') }}"
+
+casey_winston_llc_wy_annual_report_mark_paid:
+  alias: Casey Winston - WY Annual Report Mark Paid
+  description: Stamps the active Wyoming annual report cycle as paid and clears the reminder.
+  icon: mdi:cash-check
+  mode: restart
+  fields:
+    source:
+      description: Source that confirmed filing and payment.
+      example: codex_chat
+    note:
+      description: Optional ledger note.
+      example: Annual report filed through the Wyoming portal.
+  sequence:
+    - variables:
+        paid_now: "{{ now().strftime('%Y-%m-%d %H:%M:%S') }}"
+        due: "{{ states('sensor.casey_winston_llc_wy_annual_report_due_date') }}"
+        paid_cycle: >-
+          {{ due[:4] if due not in ['unknown', 'unavailable', 'none', ''] else ([now().year, 2027] | max) }}
+        action_source: "{{ source | default('home_assistant_dashboard_action', true) | regex_replace('[^A-Za-z0-9_.:-]', '') }}"
+        action_note: "{{ note | default('', true) | regex_replace('[^A-Za-z0-9 .,_:/@+-]', '') | truncate(500, true, '') }}"
+    - action: shell_command.log_house_action_stamp
+      data:
+        notice_id: casey-winston-wy-annual-report
+        cycle_id: "{{ paid_cycle }}"
+        action: paid
+        completed_at: "{{ paid_now }}"
+        source: "{{ action_source }}"
+        note: "{{ action_note }}"
+    - action: input_datetime.set_datetime
+      target:
+        entity_id: input_datetime.casey_winston_llc_wy_annual_report_last_paid_at
+      data:
+        datetime: "{{ paid_now }}"
+    - action: input_text.set_value
+      target:
+        entity_id: input_text.casey_winston_llc_wy_annual_report_paid_cycle
+      data:
+        value: "{{ paid_cycle }}"
+    - action: script.casey_winston_llc_wy_annual_report_clear_notification
+
+casey_winston_llc_wy_annual_report_clear_notification:
+  alias: Casey Winston - WY Annual Report Clear Notification
+  description: Clears the active Casey Winston LLC Wyoming annual report notification tag.
+  icon: mdi:calendar-check-outline
+  mode: restart
+  sequence:
+    - action: script.notify_trevor_phone
+      data:
+        message: clear_notification
+        data:
+          tag: casey-winston-wy-annual-report
+
 piano_send_tuning_reminder:
   alias: Piano Send Tuning Reminder
   description: Sends the annual Steinway tuning reminder with quick actions.
