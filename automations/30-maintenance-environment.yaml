@@ -402,8 +402,8 @@
               value_template: "{{ trigger.event.data.action == 'WASHER_LAUNDRY_HANDLED' }}"
             - condition: template
               value_template: >-
-                {{ as_timestamp(states('input_datetime.washer_last_handled_at'), 0)
-                   < as_timestamp(states('input_datetime.washer_last_completed_at'), 0) }}
+                {{ state_attr('input_datetime.washer_last_handled_at', 'timestamp') | float(0)
+                   < state_attr('input_datetime.washer_last_completed_at', 'timestamp') | float(0) }}
           sequence:
             - action: script.washer_mark_laundry_handled
               data:
@@ -413,8 +413,8 @@
               value_template: "{{ trigger.event.data.action == 'WASHER_REMIND_20' }}"
             - condition: template
               value_template: >-
-                {{ as_timestamp(states('input_datetime.washer_last_handled_at'), 0)
-                   < as_timestamp(states('input_datetime.washer_last_completed_at'), 0) }}
+                {{ state_attr('input_datetime.washer_last_handled_at', 'timestamp') | float(0)
+                   < state_attr('input_datetime.washer_last_completed_at', 'timestamp') | float(0) }}
           sequence:
             - action: script.washer_snooze_reminder
         - conditions:
@@ -451,7 +451,7 @@
         {% set fallback_key = 'status:' ~ trigger.to_state.state ~ ':' ~ trigger.to_state.last_changed %}
         {% set event_key = trigger.to_state.state if trigger.id == 'completion_event' else fallback_key %}
         {% set recently_recorded =
-          as_timestamp(now()) - as_timestamp(states('input_datetime.washer_last_completed_at'), 0) < 900 %}
+          as_timestamp(now()) - (state_attr('input_datetime.washer_last_completed_at', 'timestamp') | float(0)) < 900 %}
         {{ trigger.to_state.state not in ['unknown', 'unavailable', 'none', '']
            and states('input_text.washer_last_completion_event_key') != event_key
            and (trigger.id == 'completion_event' or not recently_recorded) }}
@@ -552,14 +552,14 @@
             - as_timestamp(states.device_tracker.tk_iphone_16_pro.last_changed, 0)) >= 300 }}
   actions:
     - variables:
-        completed_ts: "{{ as_timestamp(states('input_datetime.washer_last_completed_at'), 0) }}"
-        completion_notified_ts: "{{ as_timestamp(states('input_datetime.washer_last_completion_notified_at'), 0) }}"
+        completed_ts: "{{ state_attr('input_datetime.washer_last_completed_at', 'timestamp') | float(0) }}"
+        completion_notified_ts: "{{ state_attr('input_datetime.washer_last_completion_notified_at', 'timestamp') | float(0) }}"
         completion_notified_known: >-
           {{ states('input_datetime.washer_last_completion_notified_at')
              not in ['unknown', 'unavailable', 'none', ''] }}
-        handled_ts: "{{ as_timestamp(states('input_datetime.washer_last_handled_at'), 0) }}"
-        error_detected_ts: "{{ as_timestamp(states('input_datetime.washer_last_error_detected_at'), 0) }}"
-        error_notified_ts: "{{ as_timestamp(states('input_datetime.washer_last_error_notified_at'), 0) }}"
+        handled_ts: "{{ state_attr('input_datetime.washer_last_handled_at', 'timestamp') | float(0) }}"
+        error_detected_ts: "{{ state_attr('input_datetime.washer_last_error_detected_at', 'timestamp') | float(0) }}"
+        error_notified_ts: "{{ state_attr('input_datetime.washer_last_error_notified_at', 'timestamp') | float(0) }}"
         pending_completion: >-
           {{ is_state('input_boolean.washer_notifications_enabled', 'on')
              and completion_notified_known | bool
@@ -606,20 +606,25 @@
             - as_timestamp(states.device_tracker.tk_iphone_16_pro.last_changed, 0)) >= 300 }}
   actions:
     - variables:
-        completed_ts: "{{ as_timestamp(states('input_datetime.washer_last_completed_at'), 0) }}"
-        notified_ts: "{{ as_timestamp(states('input_datetime.washer_last_completion_notified_at'), 0) }}"
-        handled_ts: "{{ as_timestamp(states('input_datetime.washer_last_handled_at'), 0) }}"
-        snooze_ts: "{{ as_timestamp(states('input_datetime.washer_reminder_snooze_until'), 0) }}"
-        follow_up_ts: "{{ as_timestamp(states('input_datetime.washer_last_follow_up_at'), 0) }}"
-        next_due_ts: >-
-          {{ snooze_ts if snooze_ts > notified_ts and snooze_ts > follow_up_ts
-             else notified_ts + 2700 }}
+        completed_ts: "{{ state_attr('input_datetime.washer_last_completed_at', 'timestamp') | float(0) }}"
+        notified_ts: "{{ state_attr('input_datetime.washer_last_completion_notified_at', 'timestamp') | float(0) }}"
+        handled_ts: "{{ state_attr('input_datetime.washer_last_handled_at', 'timestamp') | float(0) }}"
+        snooze_ts: "{{ state_attr('input_datetime.washer_reminder_snooze_until', 'timestamp') | float(0) }}"
+        follow_up_ts: "{{ state_attr('input_datetime.washer_last_follow_up_at', 'timestamp') | float(0) }}"
+        normal_due_ts: "{{ notified_ts | float(0) + 2700 }}"
         should_notify: >-
+          {% set now_ts = as_timestamp(now()) %}
+          {% set normal_due =
+            follow_up_ts | float(0) < notified_ts | float(0)
+            and now_ts >= normal_due_ts | float(0) %}
+          {% set snooze_due =
+            snooze_ts | float(0) > notified_ts | float(0)
+            and snooze_ts | float(0) > follow_up_ts | float(0)
+            and now_ts >= snooze_ts | float(0) %}
           {{ completed_ts > 0
              and notified_ts >= completed_ts
              and handled_ts < completed_ts
-             and as_timestamp(now()) >= next_due_ts | float(0)
-             and follow_up_ts < next_due_ts | float(0) }}
+             and (normal_due or snooze_due) }}
     - condition: template
       value_template: "{{ should_notify | bool }}"
     - action: script.washer_send_follow_up_notification
@@ -648,7 +653,7 @@
         {{ trigger.to_state.state not in ['unknown', 'unavailable', 'none', '']
            and states('input_text.washer_last_error_event_key') != event_key
            and (as_timestamp(now())
-                - as_timestamp(states('input_datetime.washer_last_error_detected_at'), 0)) >= 60 }}
+                - (state_attr('input_datetime.washer_last_error_detected_at', 'timestamp') | float(0))) >= 60 }}
   actions:
     - variables:
         error_type: "{{ trigger.to_state.attributes.event_type | default('washer_error', true) }}"
@@ -1057,6 +1062,29 @@
         - action: script.washer_mark_laundry_handled
           data:
             source: dryer_started
+  mode: single
+
+- id: washer_cycle_started_laundry_cleanup
+  alias: "Laundry — Washer Started New Cycle Cleanup"
+  description: Treats an unresolved prior washer completion as handled when the washer begins a new load.
+  triggers:
+    - trigger: state
+      entity_id: sensor.washer_current_status
+      to: "running"
+  conditions:
+    - condition: template
+      value_template: >-
+        {{ trigger.from_state is not none
+           and trigger.from_state.state in ['power_off', 'end', 'initial', 'detecting', 'reserved'] }}
+    - condition: template
+      value_template: >-
+        {{ state_attr('input_datetime.washer_last_completed_at', 'timestamp') | float(0) > 0
+           and state_attr('input_datetime.washer_last_handled_at', 'timestamp') | float(0)
+             < state_attr('input_datetime.washer_last_completed_at', 'timestamp') | float(0) }}
+  actions:
+    - action: script.washer_mark_laundry_handled
+      data:
+        source: washer_started_new_cycle
   mode: single
 
 - id: laundry_housekeeper_window_started
