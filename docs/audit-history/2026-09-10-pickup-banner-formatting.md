@@ -13,3 +13,11 @@ Ruby YAML parsing passed for configuration.yaml, scripts.yaml, and the dashboard
 `git diff --check` passed. Python system runtime lacked PyYAML, so Ruby was used.
 Live deployment and visual verification remain pending; File Editor mounted after
 an initial disconnected dashboard. No live behavior claims are made yet.
+
+## Live write follow-up
+Files were written through the mounted Nabu Casa File Editor ingress after
+confirming `hass.connected`. Baseline and patched SHA-256 hashes matched the
+repo, and live read-back matched each patched file. Config-check/reload commands
+were attempted during intermittent disconnects, but completion was not confirmed.
+The Mac then locked and the computer-use tool could not unlock it.
+Do not treat activation or visual/physical verification as complete.
