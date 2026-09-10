@@ -1171,30 +1171,14 @@
 
 - id: garage_opener_lights_follow_main_off
   alias: "Lights — Garage Opener Lights Follow Main Off"
-  description: Keep the garage door opener lights off whenever the main garage lights are off.
+  description: Turn off opener lights when the main garage lights are switched off; the separate five-minute quiet rule handles later cleanup.
   initial_state: true
   triggers:
-    - trigger: homeassistant
-      event: start
-      id: startup
-    - trigger: event
-      event_type: automation_reloaded
-      id: automation_reloaded
-    - trigger: time_pattern
-      minutes: "/1"
-      id: watchdog
     - trigger: state
       entity_id: switch.garage_garage_lights
+      from: "on"
       to: "off"
       id: main_off
-    - trigger: state
-      entity_id:
-        - light.ratgdo32_4536e8_light
-        - light.ratgdo32disco_c26634_light
-      to: "on"
-      for:
-        seconds: 15
-      id: opener_on
   conditions:
     - condition: state
       entity_id: switch.garage_garage_lights
@@ -1212,6 +1196,10 @@
           - light.ratgdo32disco_c26634_light
     - delay:
         seconds: 3
+    # Do not retry if someone has turned the main lights back on.
+    - condition: state
+      entity_id: switch.garage_garage_lights
+      state: "off"
     - if:
         - condition: template
           value_template: >-
@@ -1224,35 +1212,7 @@
             entity_id:
               - light.ratgdo32_4536e8_light
               - light.ratgdo32disco_c26634_light
-        - delay:
-            seconds: 5
-        - if:
-            - condition: template
-              value_template: >-
-                {{ is_state('light.ratgdo32_4536e8_light', 'on')
-                   or is_state('light.ratgdo32disco_c26634_light', 'on') }}
-          then:
-            - variables:
-                failed_opener_light_names: >-
-                  {% set labels = {
-                    'light.ratgdo32_4536e8_light': 'your garage door light',
-                    'light.ratgdo32disco_c26634_light': "Casey's garage door light"
-                  } %}
-                  {% set ns = namespace(names=[]) %}
-                  {% for entity_id in ['light.ratgdo32_4536e8_light', 'light.ratgdo32disco_c26634_light'] %}
-                    {% if is_state(entity_id, 'on') %}
-                      {% set ns.names = ns.names + [labels.get(entity_id, state_attr(entity_id, 'friendly_name') or entity_id)] %}
-                    {% endif %}
-                  {% endfor %}
-                  {{ ns.names | join(', ') if ns.names else 'a garage door light' }}
-            - action: script.notify_trevor_phone
-              data:
-                title: "⚠️ Garage opener lights still on"
-                message: "The main garage lights are off, but {{ failed_opener_light_names }} did not turn off after two tries."
-                data:
-                  tag: garage-opener-lights-follow-main-failed
-                  push:
-                    interruption-level: time-sensitive
+    # Leave unsuccessful commands in the trace, without a routine phone alert.
   mode: restart
 
 - id: garage_door_open_dark_lutron_light
