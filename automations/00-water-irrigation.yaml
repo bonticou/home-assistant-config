@@ -593,7 +593,7 @@
 
 - id: water_shutoff_valve_closed
   alias: "Water — Shutoff Valve Closed"
-  description: Distinguishes short Flo self-test closures from real shutoff events.
+  description: Reports brief quiet valve checks separately from concerning shutoffs; HA does not expose a confirmed Flo test result.
   triggers:
     - trigger: state
       entity_id: switch.flo_shutoff_shutoff_valve
@@ -605,7 +605,13 @@
         valve_closed_label: "{{ now().strftime('%I:%M %p') }}"
         flow_at_close: "{{ states('sensor.flo_shutoff_water_flow_rate') | float(0) }}"
         pressure_at_close: "{{ states('sensor.flo_shutoff_water_pressure') | float(0) | round(0) }}"
-        pending_flo_alert_at_close: "{{ is_state('binary_sensor.flo_shutoff_pending_system_alerts', 'on') }}"
+        # The Flo problem sensor includes informational notices, not just faults.
+        concerning_flo_alert_at_close: >-
+          {% set sensor = 'binary_sensor.flo_shutoff_pending_system_alerts' %}
+          {{ not has_value(sensor)
+             or (is_state(sensor, 'on') and
+               (state_attr(sensor, 'warning') | int(1) > 0
+                or state_attr(sensor, 'critical') | int(1) > 0)) }}
         leak_active_at_close: >-
           {{ expand([
             'binary_sensor.kitchen_sink_leak_detection_water_detected',
@@ -623,7 +629,8 @@
             - condition: template
               value_template: >-
                 {{ leak_active_at_close | bool
-                   or pending_flo_alert_at_close | bool
+                   or concerning_flo_alert_at_close | bool
+                   or not has_value('sensor.flo_shutoff_water_flow_rate')
                    or flow_at_close | float(0) > 0.05 }}
           sequence:
             - action: script.water_send_alert
@@ -638,26 +645,49 @@
             minutes: 6
         - variables:
             valve_reopened: "{{ is_state('switch.flo_shutoff_shutoff_valve', 'on') }}"
-            flow_quiet: "{{ states('sensor.flo_shutoff_water_flow_rate') | float(0) < 0.05 }}"
+            flow_quiet: "{{ has_value('sensor.flo_shutoff_water_flow_rate') and states('sensor.flo_shutoff_water_flow_rate') | float(0) < 0.05 }}"
             pending_flo_alert_clear: "{{ is_state('binary_sensor.flo_shutoff_pending_system_alerts', 'off') }}"
             pressure_now: "{{ states('sensor.flo_shutoff_water_pressure') | float(0) | round(0) }}"
+            leaks_clear_now: >-
+              {{ expand([
+                'binary_sensor.kitchen_sink_leak_detection_water_detected',
+                'binary_sensor.island_sink_leak_detection_water_detected',
+                'binary_sensor.dishwasher_leak_detection_water_detected',
+                'binary_sensor.kitchen_fridge_leak_detection_water_detected',
+                'binary_sensor.washing_machine_leak_detection_water_detected',
+                'binary_sensor.laundry_sink_leak_detection_water_detected',
+                'binary_sensor.mechanical_room_leak_detection_water_detected',
+                'binary_sensor.electrical_room_leak_detection_water_detected',
+                'binary_sensor.basement_ejector_leak_detection_water_detected'
+              ]) | selectattr('state', 'eq', 'off') | list | count == 9 }}
             flo_mode: "{{ states('sensor.flo_shutoff_current_system_mode') }}"
         - choose:
             - conditions:
                 - condition: template
-                  value_template: "{{ valve_reopened | bool and flow_quiet | bool and pending_flo_alert_clear | bool }}"
+                  value_template: "{{ valve_reopened | bool and flow_quiet | bool and pending_flo_alert_clear | bool and leaks_clear_now | bool }}"
               sequence:
                 - event: water_alert_recorded
                   event_data:
                     at: "{{ valve_closed_at }}"
                     domain: valve
                     kind: valve_test
-                    label: Flo health test
+                    label: Brief valve check complete
                     severity: info
                     note: >-
-                      Valve closed briefly with quiet flow and reopened on its own.
-                      Treated as a Flo self-test artifact; pressure was {{ pressure_at_close }} psi at close
+                      Valve reopened after a brief quiet closure with no current alerts.
+                      Consistent with a routine Flo check; not a confirmed test result; pressure was {{ pressure_at_close }} psi at close
                       and {{ pressure_now }} psi after the check. Mode: {{ flo_mode }}.
+                - action: script.notify_trevor_phone
+                  data:
+                    title: "💧 Water check complete"
+                    message: >-
+                      The valve is open again and Flo reports no pending alerts.
+                      This looks like Flo's routine check.
+                    data:
+                      tag: flo-brief-valve-check
+                      url: /calm-mobile/water
+                      push:
+                        interruption-level: passive
           default:
             - action: script.water_send_alert
               data:
@@ -665,7 +695,7 @@
                 severity: critical
                 message: >
                   The Flo shutoff valve closed at {{ valve_closed_label }}
-                  and did not look like a short self-test. Check the Flo app and HA Water tab.
+                  and a normal recovery could not be confirmed. Check the Flo app and HA Water tab.
   mode: single
 
 - id: water_flo_system_alert
