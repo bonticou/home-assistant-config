@@ -667,7 +667,7 @@
                 {% if trigger.id in ['motion_timestamp', 'motion_timestamp_watchdog'] %}
                   {% set last_motion_ts = as_timestamp(states('sensor.casey_s_closet_last_motion_detected'), 0) %}
                   {% set helper_motion_ts = state_attr('input_datetime.casey_closet_last_motion_at', 'timestamp') | float(0) %}
-                  {{ last_motion_ts > helper_motion_ts and (as_timestamp(now()) - last_motion_ts) < 300 }}
+                  {{ last_motion_ts > helper_motion_ts and 0 <= (as_timestamp(now()) - last_motion_ts) < 300 }}
                 {% else %}
                   true
                 {% endif %}
@@ -676,11 +676,12 @@
               target:
                 entity_id: input_datetime.casey_closet_last_motion_at
               data:
-                datetime: >-
+                # Epoch seconds avoid interpreting the host's UTC clock as local time.
+                timestamp: >-
                   {% if trigger.id in ['motion_timestamp', 'motion_timestamp_watchdog'] and as_timestamp(states('sensor.casey_s_closet_last_motion_detected'), 0) > 0 %}
-                    {{ as_datetime(as_timestamp(states('sensor.casey_s_closet_last_motion_detected'))).astimezone().strftime('%Y-%m-%d %H:%M:%S') }}
+                    {{ as_timestamp(states('sensor.casey_s_closet_last_motion_detected')) }}
                   {% else %}
-                    {{ now().strftime('%Y-%m-%d %H:%M:%S') }}
+                    {{ as_timestamp(now()) }}
                   {% endif %}
             - if:
                 - condition: state
@@ -815,7 +816,7 @@
             stale_hours: "{{ ((as_timestamp(now()) - (motion_last_activity_ts | float(0))) / 3600) | round(1) }}"
             last_seen_label: >-
               {% if motion_last_activity_ts | float(0) > 0 %}
-                {{ as_datetime(motion_last_activity_ts | float(0)).astimezone().strftime('%a %-I:%M %p') }}
+                {{ (as_datetime(motion_last_activity_ts | float(0)) | as_local).strftime('%a %-I:%M %p') }}
               {% else %}
                 unknown
               {% endif %}
