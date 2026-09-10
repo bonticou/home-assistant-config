@@ -2639,7 +2639,6 @@ garbage_recycling_send_reminder:
         notification_message: >-
           {% if reminder_stage == 'delay_notice' %}
             {{ exception }}.
-            Do not put bins out tonight for the usual {{ scheduled_day | trim }} pickup.
             Actual pickup is {{ pickup_label }}.
             Put out household garbage plus {{ recycling_label }} after 4:00 PM the day before pickup.
           {% elif exception | length > 0 %}

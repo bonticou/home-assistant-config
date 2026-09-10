@@ -136,6 +136,7 @@ views:
             name:
               - align-self: end
               - justify-self: start
+              - text-align: left
               - min-width: 0
               - font-size: 14px
               - font-weight: 790
@@ -148,6 +149,7 @@ views:
             label:
               - align-self: start
               - justify-self: start
+              - text-align: left
               - min-width: 0
               - font-size: 12px
               - font-weight: 590

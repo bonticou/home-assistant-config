@@ -2335,7 +2335,7 @@ template:
             {% if pickup in ['unknown', 'unavailable', 'none', ''] %}
               No pickup is scheduled.
             {% elif holiday_notice %}
-              {{ exception }}. Actual pickup is {{ strptime(pickup | trim, '%Y-%m-%d').strftime('%A, %B %-d') }}. Do not put bins out for the usual pickup.
+              {{ exception }}. Actual pickup is {{ strptime(pickup | trim, '%Y-%m-%d').strftime('%A, %B %-d') }}.
             {% elif exception | length > 0 and pickup == today %}
               {{ exception }}. Put out household garbage plus {{ recycling_label }} before 7:00 AM.
             {% elif exception | length > 0 and pickup == tomorrow %}
