@@ -3955,9 +3955,9 @@ water_send_alert:
           {% elif kind == 'irrigation_scheduled_not_started' %}
             Scheduled irrigation did not start
           {% elif kind == 'irrigation_controller_offline' %}
-            Hydrawise offline
+            Hydrawise connection needs checking
           {% elif kind == 'irrigation_controller_offline_during_watering' %}
-            Hydrawise offline during watering
+            Hydrawise connection needs checking
           {% else %}
             Water update
           {% endif %}
@@ -4044,9 +4044,9 @@ water_send_alert:
           {% elif kind == 'irrigation_scheduled_not_started' %}
             ⚠️ Scheduled watering did not start
           {% elif kind == 'irrigation_controller_offline' %}
-            ⚠️ Hydrawise offline before watering
+            ⚠️ Check Hydrawise before watering
           {% elif kind == 'irrigation_controller_offline_during_watering' %}
-            ⚠️ Hydrawise offline during watering
+            ⚠️ Check Hydrawise connection
           {% else %}
             💧 Water update
           {% endif %}
@@ -4225,10 +4225,22 @@ water_send_alert:
                   priority: high
         - conditions:
             - condition: template
+              value_template: "{{ kind in ['irrigation_started', 'irrigation_finished'] }}"
+          sequence:
+            - action: script.notify_trevor_phone
+              data:
+                title: "{{ notification_title }}"
+                message: "{{ notification_message }}"
+                data:
+                  group: water
+                  tag: "water-{{ kind }}"
+                  url: "{{ notification_url }}"
+                  push:
+                    interruption-level: passive
+        - conditions:
+            - condition: template
               value_template: >-
                 {{ kind in [
-                  'irrigation_started',
-                  'irrigation_finished',
                   'irrigation_scheduled_not_started',
                   'irrigation_controller_offline',
                   'irrigation_controller_offline_during_watering'

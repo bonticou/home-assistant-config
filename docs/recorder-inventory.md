@@ -7,8 +7,8 @@ A recording-focused inventory for Home Assistant Recorder. This sits next to the
 | Thing | Count |
 | --- | --- |
 | Configured retention | 30 days |
-| Entities reviewed | 2525 |
-| Recorder candidates | 1527 |
+| Entities reviewed | 2526 |
+| Recorder candidates | 1528 |
 | Excluded by Recorder config | 651 |
 | Disabled in registry | 347 |
 | Low stateful-need candidates | 162 |
@@ -40,7 +40,7 @@ A recording-focused inventory for Home Assistant Recorder. This sits next to the
 | infrastructure_health_diagnostic | 2 | 2 | 0 | 0 |  |  |
 | operational_state_history | 422 | 0 | 422 | 0 |  |  |
 | event_or_safety_history | 417 | 0 | 0 | 417 |  |  |
-| uncategorized | 372 | 0 | 0 | 0 |  |  |
+| uncategorized | 373 | 0 | 0 | 0 |  |  |
 | physical_timeseries | 82 | 0 | 0 | 82 |  |  |
 | infrastructure_or_camera_misc | 72 | 0 | 72 | 0 |  |  |
 | signal_quality_diagnostic | 0 | 0 | 0 | 0 |  |  |
@@ -58,8 +58,8 @@ A recording-focused inventory for Home Assistant Recorder. This sits next to the
 | switch | 73 | 2 | 0 | 63 | 8 |  |
 | input_boolean | 46 | 2 | 0 | 8 | 36 |  |
 | light | 38 | 0 | 3 | 2 | 33 |  |
+| input_text | 30 | 4 | 0 | 5 | 21 |  |
 | valve | 30 | 0 | 0 | 30 | 0 |  |
-| input_text | 29 | 4 | 0 | 5 | 20 |  |
 | media_player | 27 | 0 | 27 | 0 | 0 |  |
 | input_number | 22 | 0 | 0 | 4 | 18 |  |
 | event | 17 | 17 | 0 | 0 | 0 |  |

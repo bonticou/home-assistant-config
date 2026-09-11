@@ -4,15 +4,15 @@ A human-readable map of the Home Assistant device model. The full audit dump is 
 
 ## At A Glance
 
-- Base live snapshot: `2026-07-29T14:29:24.057042+00:00`; repository-defined entities reconciled through `2026-09-02`
-- Scale: 231 devices, 2525 entities, 151 network clients
+- Base live snapshot: `2026-07-29T14:29:24.057042+00:00`; repository-defined entities reconciled through `2026-09-11`
+- Scale: 231 devices, 2526 entities, 151 network clients
 - Lighting: 38 light entities, 35 Lutron Caséta entities
 
 | Thing | Count |
 | --- | --- |
 | Devices | 231 |
-| Entities | 2525 |
-| Control entities | 887 |
+| Entities | 2526 |
+| Control entities | 888 |
 | Telemetry entities | 1128 |
 | Network clients | 151 |
 | Areas | 32 |
@@ -376,3 +376,7 @@ A human-readable map of the Home Assistant device model. The full audit dump is 
 | --- | --- |
 | [device-inventory-detail.md](device-inventory-detail.md) | Full per-device audit view |
 | [device-inventory.json](device-inventory.json) | Structured inventory for scripts and checks |
+
+## Irrigation notification helper
+
+`input_text.irrigation_last_connectivity_alert_key` stores the session or scheduled-cycle key after a connection warning, so reloads do not repeat the same warning. Added and loaded on 2026-09-11.

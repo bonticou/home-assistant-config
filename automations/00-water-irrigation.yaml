@@ -751,12 +751,10 @@
       value_template: >-
         {% set started = states('input_datetime.irrigation_session_started_at') %}
         {% set expected_until = states('input_datetime.irrigation_expected_water_use_until') %}
-        {% set started_ts = as_timestamp(started, 0) %}
         {% set no_prior_start = started in ['unknown', 'unavailable', 'none', ''] %}
-        {% set prior_start_stale = started_ts > 0 and started_ts < as_timestamp(now()) - 21600 %}
         {% set expected_expired = expected_until in ['unknown', 'unavailable', 'none', '']
            or as_timestamp(expected_until, 0) <= as_timestamp(now()) %}
-        {{ no_prior_start or prior_start_stale or expected_expired }}
+        {{ no_prior_start or expected_expired }}
   actions:
     - variables:
         session_id: "{{ now().strftime('%Y%m%d%H%M%S') }}"
@@ -1266,13 +1264,20 @@
   alias: "Irrigation — Session Finished Notification And Recovery Watch"
   description: Sends one sprinkler-finished notice, then watches well pressure recovery for the completed session.
   triggers:
-    - trigger: state
-      entity_id: binary_sensor.irrigation_active
-      from: "on"
-      to: "off"
+    # Lost cloud visibility must not masquerade as completed watering.
+    - trigger: template
+      value_template: >-
+        {{ is_state('binary_sensor.hydrawise_controller_online', 'on')
+           and is_state('binary_sensor.irrigation_active', 'off') }}
       for:
         minutes: 5
   conditions:
+    - condition: state
+      entity_id: binary_sensor.hydrawise_controller_online
+      state: "on"
+    - condition: state
+      entity_id: binary_sensor.irrigation_active
+      state: "off"
     - condition: template
       value_template: >-
         {% set started = states('input_datetime.irrigation_session_started_at') %}
@@ -1284,7 +1289,9 @@
     - variables:
         session_id: "{{ states('input_text.irrigation_session_id') }}"
         started_ts: "{{ as_timestamp(states('input_datetime.irrigation_session_started_at'), as_timestamp(now())) }}"
-        runtime_minutes: "{{ ((as_timestamp(now()) - (started_ts | float(0))) / 60) | round(0) }}"
+        # Keep observed elapsed time in diagnostics; it is not verified watering runtime.
+        runtime_minutes: "{{ ((as_timestamp(states.binary_sensor.irrigation_active.last_changed) - (started_ts | float(0))) / 60) | round(0) }}"
+        stopped_time: "{{ as_timestamp(states.binary_sensor.irrigation_active.last_changed) | timestamp_custom('%-I:%M %p', true) }}"
         min_pressure: "{{ states('input_number.irrigation_session_min_pressure') | float(0) | round(1) }}"
         current_pressure: "{{ states('sensor.flo_shutoff_water_pressure') | float(0) | round(1) }}"
         start_zone: "{{ states('input_text.irrigation_session_start_zone') }}"
@@ -1325,9 +1332,10 @@
         current_pressure: "{{ current_pressure }}"
         recovery_status: watching
         note: >-
-          Sprinklers finished after about {{ runtime_minutes }} minutes.
-          Hunter meter recorded {{ session_gallons }} gal with peak flow {{ session_peak_flow }} gal/min.
-          Lowest shared well pressure was {{ min_pressure }} psi; pressure is now {{ current_pressure }} psi.
+          Hydrawise reported watering stopped at {{ stopped_time }}.
+          Diagnostic estimates only: {{ runtime_minutes }} minutes observed elapsed,
+          {{ session_gallons }} gal allocated from delayed meter updates,
+          {{ session_peak_flow }} gal/min derived peak. Session attribution is unverified.
     - action: homeassistant.update_entity
       target:
         entity_id:
@@ -1343,11 +1351,7 @@
             alert_kind: irrigation_finished
             severity: info
             message: >-
-              Sprinklers finished after about {{ runtime_minutes }} minutes.
-              Hunter meter recorded {{ session_gallons }} gal with peak flow {{ session_peak_flow }} gal/min.
-              Lowest shared well pressure was {{ min_pressure }} psi,
-              and pressure is now {{ current_pressure }} psi.
-              Session started on {{ start_zone }}.
+              Hydrawise reports watering has finished.
   mode: single
 
 - id: irrigation_recovery_slow_followup
@@ -1928,7 +1932,7 @@
       entity_id: binary_sensor.hydrawise_controller_online
       to: "off"
       for:
-        minutes: 10
+        minutes: 15
       id: went_offline
     - trigger: time_pattern
       minutes: "/15"
@@ -1940,21 +1944,34 @@
     - condition: state
       entity_id: binary_sensor.hydrawise_controller_online
       state: "off"
+      for:
+        minutes: 15
     - condition: template
       value_template: >-
         {% set next_ts = as_timestamp(states('sensor.irrigation_next_cycle'), 0) %}
-        {{ next_ts > as_timestamp(now()) and next_ts <= as_timestamp(now() + timedelta(hours=2)) }}
+        {% set started = state_attr('input_datetime.irrigation_session_started_at', 'timestamp') | float(0) %}
+        {% set ended = state_attr('input_datetime.irrigation_session_ended_at', 'timestamp') | float(0) %}
+        {{ started <= ended and next_ts > as_timestamp(now())
+           and next_ts <= as_timestamp(now() + timedelta(hours=2)) }}
     - condition: template
-      value_template: "{{ states('input_text.irrigation_active_alert_kind') != 'irrigation_controller_offline' }}"
+      value_template: >-
+        {{ states('input_text.irrigation_last_connectivity_alert_key') !=
+           'scheduled:' ~ (as_timestamp(states('sensor.irrigation_next_cycle'), 0) | int | string) }}
   actions:
     - action: script.water_send_alert
       data:
         alert_kind: irrigation_controller_offline
         severity: warning
         message: >-
-          Hydrawise is offline and the next scheduled zone is within 2 hours
+          Home Assistant has not received Hydrawise connection confirmation for 15 minutes.
+          The next scheduled zone is within 2 hours
           ({{ as_timestamp(states('sensor.irrigation_next_cycle'), 0) | timestamp_custom('%a %-I:%M %p', true) }}).
-          If it stays offline, HA may be blind to a scheduled sprinkler run.
+          Check the Hydrawise app for current status; watering may still run normally.
+    - action: input_text.set_value
+      target:
+        entity_id: input_text.irrigation_last_connectivity_alert_key
+      data:
+        value: "{{ 'scheduled:' ~ (as_timestamp(states('sensor.irrigation_next_cycle'), 0) | int | string) }}"
   mode: single
 
 - id: irrigation_weather_skip_buffer_tracking
@@ -2125,32 +2142,47 @@
   max: 10
 
 - id: irrigation_controller_offline_during_watering
-  alias: "Irrigation — Hydrawise Offline During Watering"
-  description: Warns when Hydrawise connectivity drops while an irrigation session or grace window is active.
+  alias: "Irrigation — Hydrawise Connection Missing During Session"
+  description: Warns once per unfinished session after sustained loss of Hydrawise visibility, excluding post-watering grace periods.
   triggers:
     - trigger: state
       entity_id: binary_sensor.hydrawise_controller_online
       to: "off"
       for:
-        minutes: 2
+        minutes: 15
+    - trigger: time_pattern
+      minutes: "/5"
   conditions:
     - condition: state
       entity_id: input_boolean.irrigation_notifications_enabled
       state: "on"
     - condition: state
-      entity_id: binary_sensor.irrigation_expected_water_use
-      state: "on"
+      entity_id: binary_sensor.hydrawise_controller_online
+      state: "off"
+      for:
+        minutes: 15
     - condition: template
-      value_template: "{{ states('input_text.irrigation_active_alert_kind') != 'irrigation_controller_offline_during_watering' }}"
+      value_template: >-
+        {% set started = state_attr('input_datetime.irrigation_session_started_at', 'timestamp') | float(0) %}
+        {% set ended = state_attr('input_datetime.irrigation_session_ended_at', 'timestamp') | float(0) %}
+        {% set session = states('input_text.irrigation_session_id') %}
+        {{ started > ended and 0 <= as_timestamp(now()) - started < 86400
+           and session not in ['unknown', 'unavailable', 'none', '']
+           and states('input_text.irrigation_last_connectivity_alert_key') != session }}
   actions:
     - action: script.water_send_alert
       data:
         alert_kind: irrigation_controller_offline_during_watering
         severity: warning
         message: >-
-          Hydrawise went offline while irrigation was active or still inside the watering grace window.
-          HA may be blind to zone transitions until the controller reconnects.
-          Shared well pressure is {{ states('sensor.flo_shutoff_water_pressure') | float(0) | round(1) }} psi.
+          Home Assistant has not received Hydrawise connection confirmation for 15 minutes,
+          and the last watering session has no confirmed finish. Check the Hydrawise app
+          for current status; this does not confirm a sprinkler fault.
+    - action: input_text.set_value
+      target:
+        entity_id: input_text.irrigation_last_connectivity_alert_key
+      data:
+        value: "{{ states('input_text.irrigation_session_id') }}"
   mode: single
 
 - id: irrigation_transient_alert_clear

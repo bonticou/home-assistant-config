@@ -25,13 +25,13 @@
     {
       "category": "uncategorized",
       "db_rows": null,
-      "entities": 425,
+      "entities": 426,
       "high_stateful_need": 0,
       "live_attr_bytes": null,
       "low_stateful_need": 0,
       "medium_stateful_need": 0,
-      "recorded_candidates": 372,
-      "unknown_stateful_need": 372
+      "recorded_candidates": 373,
+      "unknown_stateful_need": 373
     },
     {
       "category": "derived_summary_or_dashboard_state",
@@ -213,6 +213,17 @@
     },
     {
       "db_rows": null,
+      "domain": "input_text",
+      "entities": 30,
+      "high_stateful_need": 5,
+      "live_attr_bytes": null,
+      "low_stateful_need": 4,
+      "medium_stateful_need": 0,
+      "recorded_candidates": 30,
+      "unknown_stateful_need": 21
+    },
+    {
+      "db_rows": null,
       "domain": "valve",
       "entities": 30,
       "high_stateful_need": 30,
@@ -221,17 +232,6 @@
       "medium_stateful_need": 0,
       "recorded_candidates": 30,
       "unknown_stateful_need": 0
-    },
-    {
-      "db_rows": null,
-      "domain": "input_text",
-      "entities": 29,
-      "high_stateful_need": 5,
-      "live_attr_bytes": null,
-      "low_stateful_need": 4,
-      "medium_stateful_need": 0,
-      "recorded_candidates": 29,
-      "unknown_stateful_need": 20
     },
     {
       "db_rows": null,
@@ -23711,6 +23711,31 @@
       "entity_id": "input_text.irrigation_current_zone",
       "exclude_match": "",
       "friendly_name": "Irrigation Current Zone",
+      "hidden_by": "",
+      "live_age_seconds": null,
+      "live_attr_bytes": null,
+      "live_last_reported": null,
+      "platform": "input_text",
+      "reason": "No specific Recorder policy has been assigned yet.",
+      "recommendation": "review",
+      "recorder_status": "recorded_candidate",
+      "retention_days": 30,
+      "role": "control",
+      "stateful_need": "unknown",
+      "unit": ""
+    },
+    {
+      "area": "",
+      "availability": "not_enriched",
+      "category": "uncategorized",
+      "db": null,
+      "device_class": "",
+      "disabled_by": "",
+      "domain": "input_text",
+      "entity_category": "",
+      "entity_id": "input_text.irrigation_last_connectivity_alert_key",
+      "exclude_match": "",
+      "friendly_name": "Irrigation Last Connectivity Alert Session",
       "hidden_by": "",
       "live_age_seconds": null,
       "live_attr_bytes": null,
@@ -63625,7 +63650,7 @@
       "unit": ""
     }
   ],
-  "generated_at": "2026-09-10T17:28:38+00:00",
+  "generated_at": "2026-09-11T15:44:26+00:00",
   "integrations": [
     {
       "db_rows": null,
@@ -63772,14 +63797,14 @@
     },
     {
       "db_rows": null,
-      "entities": 29,
+      "entities": 30,
       "high_stateful_need": 5,
       "live_attr_bytes": null,
       "low_stateful_need": 4,
       "medium_stateful_need": 0,
       "platform": "input_text",
-      "recorded_candidates": 29,
-      "unknown_stateful_need": 20
+      "recorded_candidates": 30,
+      "unknown_stateful_need": 21
     },
     {
       "db_rows": null,
@@ -64337,29 +64362,29 @@
       "integration_config_or_update_state": 2,
       "operational_state_history": 422,
       "physical_timeseries": 82,
-      "uncategorized": 372
+      "uncategorized": 373
     },
     "db": {
       "available": false
     },
     "disabled_count": 347,
-    "entity_count": 2525,
+    "entity_count": 2526,
     "excluded_by_config_count": 651,
     "recommendation_counts": {
       "keep": 417,
       "keep_or_shorten_by_dashboard_need": 82,
-      "review": 372,
+      "review": 373,
       "review_current_only": 145,
       "review_selectively": 494,
       "review_short_or_current_only": 17
     },
-    "recorded_candidate_count": 1527,
+    "recorded_candidate_count": 1528,
     "retention_days": 30,
     "stateful_need_counts": {
       "high": 499,
       "low": 162,
       "medium": 494,
-      "unknown": 372
+      "unknown": 373
     }
   }
 }

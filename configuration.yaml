@@ -910,6 +910,9 @@ input_text:
   irrigation_active_alert_kind:
     name: Irrigation Active Alert Kind
     max: 80
+  irrigation_last_connectivity_alert_key:
+    name: Irrigation Last Connectivity Alert Session
+    max: 40
   irrigation_last_schedule_miss_key:
     name: Irrigation Last Schedule Miss Key
     max: 80
