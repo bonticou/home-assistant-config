@@ -79,6 +79,7 @@ Supporting material:
 
 | Date | Entry | Scope |
 | --- | --- | --- |
+| 2026-09-11 | [Casey closet after the Core update](2026-09-11-casey-closet-after-core-update.md) | Confirms timely native motion again but retains uncertainty about quick light-off transitions and physical behavior |
 | 2026-09-11 | [Irrigation notification precision and connection warnings](2026-09-11-irrigation-notification-precision.md) | Removes unsupported volume/peak claims, makes routine pushes quiet, and gates connection warnings on sustained loss with durable session keys |
 | 2026-09-04 | [Washer premature follow-up and new-cycle cleanup](2026-09-04-washer-premature-follow-up.md) | Fixes washer timestamp comparisons that sent an early "still sitting" reminder and treats a new washer run as proof the prior load was handled |
 | 2026-09-02 | [Casey Winston Wyoming annual report reminder](2026-09-02-casey-winston-wy-annual-report-reminder.md) | Adds a durable January 1 annual-report and $60 license-tax cycle for Casey Winston LLC, starting with the 2027 deadline |
