@@ -534,7 +534,7 @@
       entity_id: binary_sensor.open_window_recommendation_active
       state: "on"
     - condition: state
-      entity_id: device_tracker.tk_iphone_16_pro
+      entity_id: device_tracker.trevor_iphone
       state: home
     - condition: state
       entity_id: input_boolean.environment_alerts_enabled
@@ -1020,7 +1020,7 @@
       at: "07:00:00"
       id: morning
     - trigger: state
-      entity_id: device_tracker.tk_iphone_16_pro
+      entity_id: device_tracker.trevor_iphone
       to: "home"
       id: homecoming
     - trigger: homeassistant
@@ -1108,7 +1108,7 @@
           data:
             datetime: "{{ now().strftime('%Y-%m-%d %H:%M:%S') }}"
     - condition: state
-      entity_id: device_tracker.tk_iphone_16_pro
+      entity_id: device_tracker.trevor_iphone
       state: "home"
     - condition: template
       value_template: "{{ trigger_allowed | bool }}"
@@ -1128,7 +1128,7 @@
     leaves home. Only includes trains departing more than 20 minutes later.
   triggers:
     - trigger: state
-      entity_id: device_tracker.tk_iphone_16_pro
+      entity_id: device_tracker.trevor_iphone
       from: "home"
   conditions:
     - condition: template

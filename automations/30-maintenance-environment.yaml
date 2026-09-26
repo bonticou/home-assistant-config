@@ -370,7 +370,7 @@
               entity_id: input_boolean.washer_notifications_enabled
               state: "on"
             - condition: state
-              entity_id: device_tracker.tk_iphone_16_pro
+              entity_id: device_tracker.trevor_iphone
               state: "home"
           then:
             - action: script.washer_send_completion_notification
@@ -384,7 +384,7 @@
   description: Sends completion or machine-error notices after Trevor has been home for five minutes.
   triggers:
     - trigger: state
-      entity_id: device_tracker.tk_iphone_16_pro
+      entity_id: device_tracker.trevor_iphone
       to: "home"
       for: "00:05:00"
     - trigger: state
@@ -394,7 +394,7 @@
       minutes: "/5"
   conditions:
     - condition: state
-      entity_id: device_tracker.tk_iphone_16_pro
+      entity_id: device_tracker.trevor_iphone
       state: "home"
     - condition: state
       entity_id: binary_sensor.away_motion_security_housekeeper_window
@@ -402,7 +402,7 @@
     - condition: template
       value_template: >-
         {{ (as_timestamp(now())
-            - as_timestamp(states.device_tracker.tk_iphone_16_pro.last_changed, 0)) >= 300 }}
+            - as_timestamp(states.device_tracker.trevor_iphone.last_changed, 0)) >= 300 }}
   actions:
     - variables:
         completed_ts: "{{ state_attr('input_datetime.washer_last_completed_at', 'timestamp') | float(0) }}"
@@ -448,7 +448,7 @@
       entity_id: input_boolean.washer_notifications_enabled
       state: "on"
     - condition: state
-      entity_id: device_tracker.tk_iphone_16_pro
+      entity_id: device_tracker.trevor_iphone
       state: "home"
     - condition: state
       entity_id: binary_sensor.away_motion_security_housekeeper_window
@@ -456,7 +456,7 @@
     - condition: template
       value_template: >-
         {{ (as_timestamp(now())
-            - as_timestamp(states.device_tracker.tk_iphone_16_pro.last_changed, 0)) >= 300 }}
+            - as_timestamp(states.device_tracker.trevor_iphone.last_changed, 0)) >= 300 }}
   actions:
     - variables:
         completed_ts: "{{ state_attr('input_datetime.washer_last_completed_at', 'timestamp') | float(0) }}"
@@ -530,7 +530,7 @@
         value: "{{ error_value }}"
     - if:
         - condition: state
-          entity_id: device_tracker.tk_iphone_16_pro
+          entity_id: device_tracker.trevor_iphone
           state: "home"
       then:
         - action: script.washer_send_error_notification
@@ -667,7 +667,7 @@
               entity_id: input_boolean.dryer_notifications_enabled
               state: "on"
             - condition: state
-              entity_id: device_tracker.tk_iphone_16_pro
+              entity_id: device_tracker.trevor_iphone
               state: "home"
             - condition: template
               value_template: "{{ not (quiet_hours | bool) }}"
@@ -683,19 +683,19 @@
   description: Delivers pending dryer completion or error notices after Trevor is home, while respecting quiet hours and housekeeper handling.
   triggers:
     - trigger: state
-      entity_id: device_tracker.tk_iphone_16_pro
+      entity_id: device_tracker.trevor_iphone
       to: "home"
       for: "00:05:00"
     - trigger: time_pattern
       minutes: "/5"
   conditions:
     - condition: state
-      entity_id: device_tracker.tk_iphone_16_pro
+      entity_id: device_tracker.trevor_iphone
       state: "home"
     - condition: template
       value_template: >-
         {{ (as_timestamp(now())
-            - as_timestamp(states.device_tracker.tk_iphone_16_pro.last_changed, 0)) >= 300 }}
+            - as_timestamp(states.device_tracker.trevor_iphone.last_changed, 0)) >= 300 }}
   actions:
     - variables:
         completed_ts: "{{ state_attr('input_datetime.dryer_last_completed_at', 'timestamp') | float(0) }}"
@@ -748,7 +748,7 @@
       entity_id: input_boolean.dryer_notifications_enabled
       state: "on"
     - condition: state
-      entity_id: device_tracker.tk_iphone_16_pro
+      entity_id: device_tracker.trevor_iphone
       state: "home"
     - condition: state
       entity_id: binary_sensor.away_motion_security_housekeeper_window
@@ -758,7 +758,7 @@
     - condition: template
       value_template: >-
         {{ (as_timestamp(now())
-            - as_timestamp(states.device_tracker.tk_iphone_16_pro.last_changed, 0)) >= 300 }}
+            - as_timestamp(states.device_tracker.trevor_iphone.last_changed, 0)) >= 300 }}
   actions:
     - variables:
         completed_ts: "{{ state_attr('input_datetime.dryer_last_completed_at', 'timestamp') | float(0) }}"
@@ -863,7 +863,7 @@
             - action: script.dryer_clear_error_notification
         - conditions:
             - condition: state
-              entity_id: device_tracker.tk_iphone_16_pro
+              entity_id: device_tracker.trevor_iphone
               state: "home"
           sequence:
             - action: script.dryer_send_error_notification

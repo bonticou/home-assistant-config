@@ -1391,7 +1391,9 @@ notify_trevor_phone:
         recent: "{{ notification_data.recent | default('', true) }}"
         keep_recent: "{{ notification_data.keep_recent | default('', true) }}"
         history: "{{ notification_data.history | default('', true) }}"
-    - action: notify.mobile_app_tk_iphone_16_pro
+    - action: notify.send_message
+      target:
+        entity_id: notify.trevor_iphone
       data:
         title: "{{ notification_title }}"
         message: "{{ notification_message }}"
@@ -4393,7 +4395,7 @@ away_security_close_garage_door:
               timeout: "00:01:00"
               continue_on_timeout: true
             - variables:
-                trevor_away: "{{ states('device_tracker.tk_iphone_16_pro') not in ['home', 'unknown', 'unavailable', ''] }}"
+                trevor_away: "{{ states('device_tracker.trevor_iphone') not in ['home', 'unknown', 'unavailable', ''] }}"
                 casey_away: "{{ states('device_tracker.unifi_default_42_15_78_4a_d9_f8') not in ['home', 'unknown', 'unavailable', ''] }}"
             - if:
                 - condition: template

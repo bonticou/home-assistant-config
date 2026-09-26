@@ -28,11 +28,14 @@ CONTROL_DOMAINS = {
 SERVICE_OR_TEMPLATE_SUFFIXES = {
     "close_cover",
     "entity_id",
+    # Jinja State-object attributes (for example, light.last_changed).
+    "last_changed",
     "lock",
     "media_pause",
     "name",
     "open_cover",
     "select_source",
+    "state",
     "send_command",
     "turn_off",
     "turn_on",

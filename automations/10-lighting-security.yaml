@@ -1797,7 +1797,7 @@
         - "unavailable"
       id: casey_departed
     - trigger: state
-      entity_id: device_tracker.tk_iphone_16_pro
+      entity_id: device_tracker.trevor_iphone
       not_from:
         - "unknown"
         - "unavailable"
@@ -1844,7 +1844,7 @@
         - action: script.casey_left_lights_clear_alert
         - stop: Expected housekeeper window suppresses routine away-security reminders.
     - variables:
-        trevor_state: "{{ states('device_tracker.tk_iphone_16_pro') }}"
+        trevor_state: "{{ states('device_tracker.trevor_iphone') }}"
         casey_state: "{{ states('device_tracker.unifi_default_42_15_78_4a_d9_f8') }}"
         trevor_away: "{{ trevor_state not in ['home', 'unknown', 'unavailable', ''] }}"
         casey_away: "{{ casey_state not in ['home', 'unknown', 'unavailable', ''] }}"
@@ -1941,7 +1941,7 @@
             - if:
                 - condition: template
                   value_template: >
-                    {% set trevor_state = states('device_tracker.tk_iphone_16_pro') %}
+                    {% set trevor_state = states('device_tracker.trevor_iphone') %}
                     {% set casey_state = states('device_tracker.unifi_default_42_15_78_4a_d9_f8') %}
                     {% set trevor_away = trevor_state not in ['home', 'unknown', 'unavailable', ''] %}
                     {% set casey_away = casey_state not in ['home', 'unknown', 'unavailable', ''] %}
@@ -1950,7 +1950,7 @@
                 - if:
                     - condition: template
                       value_template: >
-                        {% set trevor_state = states('device_tracker.tk_iphone_16_pro') %}
+                        {% set trevor_state = states('device_tracker.trevor_iphone') %}
                         {% set casey_state = states('device_tracker.unifi_default_42_15_78_4a_d9_f8') %}
                         {% set trevor_away = trevor_state not in ['home', 'unknown', 'unavailable', ''] %}
                         {% set casey_away = casey_state not in ['home', 'unknown', 'unavailable', ''] %}
@@ -1978,7 +1978,7 @@
             - if:
                 - condition: template
                   value_template: >
-                    {% set trevor_state = states('device_tracker.tk_iphone_16_pro') %}
+                    {% set trevor_state = states('device_tracker.trevor_iphone') %}
                     {% set casey_state = states('device_tracker.unifi_default_42_15_78_4a_d9_f8') %}
                     {% set trevor_away = trevor_state not in ['home', 'unknown', 'unavailable', ''] %}
                     {% set casey_away = casey_state not in ['home', 'unknown', 'unavailable', ''] %}
@@ -1987,7 +1987,7 @@
                 - if:
                     - condition: template
                       value_template: >
-                        {% set trevor_state = states('device_tracker.tk_iphone_16_pro') %}
+                        {% set trevor_state = states('device_tracker.trevor_iphone') %}
                         {% set casey_state = states('device_tracker.unifi_default_42_15_78_4a_d9_f8') %}
                         {% set trevor_away = trevor_state not in ['home', 'unknown', 'unavailable', ''] %}
                         {% set casey_away = casey_state not in ['home', 'unknown', 'unavailable', ''] %}
@@ -2011,7 +2011,7 @@
             - if:
                 - condition: template
                   value_template: >
-                    {% set trevor_state = states('device_tracker.tk_iphone_16_pro') %}
+                    {% set trevor_state = states('device_tracker.trevor_iphone') %}
                     {% set casey_state = states('device_tracker.unifi_default_42_15_78_4a_d9_f8') %}
                     {% set trevor_away = trevor_state not in ['home', 'unknown', 'unavailable', ''] %}
                     {% set casey_away = casey_state not in ['home', 'unknown', 'unavailable', ''] %}
@@ -2044,7 +2044,7 @@
             - if:
                 - condition: template
                   value_template: >
-                    {% set trevor_state = states('device_tracker.tk_iphone_16_pro') %}
+                    {% set trevor_state = states('device_tracker.trevor_iphone') %}
                     {% set casey_state = states('device_tracker.unifi_default_42_15_78_4a_d9_f8') %}
                     {% set trevor_away = trevor_state not in ['home', 'unknown', 'unavailable', ''] %}
                     {% set casey_away = casey_state not in ['home', 'unknown', 'unavailable', ''] %}
@@ -2224,7 +2224,7 @@
            and trigger.from_state.state not in ['on', 'unknown', 'unavailable', ''] }}
     - condition: template
       value_template: >
-        {% set trevor_away = states('device_tracker.tk_iphone_16_pro') not in ['home', 'unknown', 'unavailable', ''] %}
+        {% set trevor_away = states('device_tracker.trevor_iphone') not in ['home', 'unknown', 'unavailable', ''] %}
         {% set casey_away = states('device_tracker.unifi_default_42_15_78_4a_d9_f8') not in ['home', 'unknown', 'unavailable', ''] %}
         {{ trevor_away and casey_away }}
     - condition: template
@@ -2253,7 +2253,7 @@
   triggers:
     - trigger: state
       entity_id:
-        - device_tracker.tk_iphone_16_pro
+        - device_tracker.trevor_iphone
         - device_tracker.unifi_default_42_15_78_4a_d9_f8
       to: home
   conditions: []
@@ -2275,7 +2275,7 @@
         minutes: 5
       id: garage_opened
     - trigger: state
-      entity_id: device_tracker.tk_iphone_16_pro
+      entity_id: device_tracker.trevor_iphone
       not_from:
         - "unknown"
         - "unavailable"
@@ -2306,7 +2306,7 @@
            or as_timestamp(snooze, 0) <= as_timestamp(now()) }}
   actions:
     - variables:
-        trevor_state: "{{ states('device_tracker.tk_iphone_16_pro') }}"
+        trevor_state: "{{ states('device_tracker.trevor_iphone') }}"
         casey_state: "{{ states('device_tracker.unifi_default_42_15_78_4a_d9_f8') }}"
         trevor_away: "{{ trevor_state not in ['home', 'unknown', 'unavailable', ''] }}"
         casey_away: "{{ casey_state not in ['home', 'unknown', 'unavailable', ''] }}"
@@ -2366,7 +2366,7 @@
       state: "on"
     - condition: template
       value_template: >
-        {{ is_state('device_tracker.tk_iphone_16_pro', 'home')
+        {{ is_state('device_tracker.trevor_iphone', 'home')
            and is_state('device_tracker.unifi_default_42_15_78_4a_d9_f8', 'home') }}
     - condition: template
       value_template: >
@@ -2413,7 +2413,7 @@
         {{ minutes_now >= 1350 or minutes_now < 360 }}
     - condition: template
       value_template: >
-        {{ is_state('device_tracker.tk_iphone_16_pro', 'home')
+        {{ is_state('device_tracker.trevor_iphone', 'home')
            and is_state('device_tracker.unifi_default_42_15_78_4a_d9_f8', 'home') }}
   actions:
     - action: script.garage_security_send_alert
@@ -2456,7 +2456,7 @@
         {{ minutes_now >= 1350 or minutes_now < 360 }}
     - condition: template
       value_template: >
-        {% set trevor_away = states('device_tracker.tk_iphone_16_pro') not in ['home', 'unknown', 'unavailable', ''] %}
+        {% set trevor_away = states('device_tracker.trevor_iphone') not in ['home', 'unknown', 'unavailable', ''] %}
         {% set casey_away = states('device_tracker.unifi_default_42_15_78_4a_d9_f8') not in ['home', 'unknown', 'unavailable', ''] %}
         {{ not (trevor_away and casey_away) }}
   actions:
@@ -2502,8 +2502,8 @@
     - condition: template
       value_template: >
         {% set recent_window = 600 %}
-        {% set trevor_recent = is_state('device_tracker.tk_iphone_16_pro', 'home')
-           and (as_timestamp(now()) - as_timestamp(states.device_tracker.tk_iphone_16_pro.last_changed, 0)) < recent_window %}
+        {% set trevor_recent = is_state('device_tracker.trevor_iphone', 'home')
+           and (as_timestamp(now()) - as_timestamp(states.device_tracker.trevor_iphone.last_changed, 0)) < recent_window %}
         {% set casey_recent = is_state('device_tracker.unifi_default_42_15_78_4a_d9_f8', 'home')
            and (as_timestamp(now()) - as_timestamp(states.device_tracker.unifi_default_42_15_78_4a_d9_f8.last_changed, 0)) < recent_window %}
         {{ not (trevor_recent or casey_recent) }}
@@ -2563,7 +2563,7 @@
       id: obstruction_clear
     - trigger: state
       entity_id:
-        - device_tracker.tk_iphone_16_pro
+        - device_tracker.trevor_iphone
         - device_tracker.unifi_default_42_15_78_4a_d9_f8
       to: home
       id: person_home
@@ -2606,7 +2606,7 @@
       id: mudroom_locked
     - trigger: state
       entity_id:
-        - device_tracker.tk_iphone_16_pro
+        - device_tracker.trevor_iphone
         - device_tracker.unifi_default_42_15_78_4a_d9_f8
       not_from:
         - "unknown"
@@ -2630,7 +2630,7 @@
     - if:
         - condition: template
           value_template: >
-            {% set trevor_away = states('device_tracker.tk_iphone_16_pro') not in ['home', 'unknown', 'unavailable', ''] %}
+            {% set trevor_away = states('device_tracker.trevor_iphone') not in ['home', 'unknown', 'unavailable', ''] %}
             {% set casey_away = states('device_tracker.unifi_default_42_15_78_4a_d9_f8') not in ['home', 'unknown', 'unavailable', ''] %}
             {{ trigger.id in ['mudroom_locked', 'away_security']
                or is_state('lock.mudroom_door_lock', 'locked')
@@ -2665,7 +2665,7 @@
         - lock.mudroom_door_lock
       to: locked
     - trigger: state
-      entity_id: device_tracker.tk_iphone_16_pro
+      entity_id: device_tracker.trevor_iphone
       to: home
     - trigger: state
       entity_id: device_tracker.unifi_default_42_15_78_4a_d9_f8
@@ -2675,7 +2675,7 @@
     - if:
         - condition: template
           value_template: >
-            {{ is_state('device_tracker.tk_iphone_16_pro', 'home')
+            {{ is_state('device_tracker.trevor_iphone', 'home')
                or is_state('device_tracker.unifi_default_42_15_78_4a_d9_f8', 'home')
                or states('sensor.away_security_entry_point_issues') | int(0) == 0 }}
       then:
@@ -2700,7 +2700,7 @@
       entity_id: sun.sun
       to: "below_horizon"
     - trigger: state
-      entity_id: device_tracker.tk_iphone_16_pro
+      entity_id: device_tracker.trevor_iphone
       to: home
     - trigger: state
       entity_id: device_tracker.unifi_default_42_15_78_4a_d9_f8
@@ -2723,7 +2723,7 @@
           value_template: >
             {{ not (
               is_state('sun.sun', 'above_horizon')
-              and states('device_tracker.tk_iphone_16_pro') not in ['home', 'unknown', 'unavailable', '']
+              and states('device_tracker.trevor_iphone') not in ['home', 'unknown', 'unavailable', '']
               and states('device_tracker.unifi_default_42_15_78_4a_d9_f8') not in ['home', 'unknown', 'unavailable', '']
               and states('sensor.away_security_entry_point_issues') | int(0) > 0
               and states('sensor.away_security_active_lights') | int(0) > 0
@@ -2740,7 +2740,7 @@
       entity_id: sun.sun
       to: "below_horizon"
     - trigger: state
-      entity_id: device_tracker.tk_iphone_16_pro
+      entity_id: device_tracker.trevor_iphone
       to: home
     - trigger: state
       entity_id: device_tracker.unifi_default_42_15_78_4a_d9_f8
@@ -2762,7 +2762,7 @@
         - condition: template
           value_template: >
             {{ is_state('sun.sun', 'below_horizon')
-               or is_state('device_tracker.tk_iphone_16_pro', 'home')
+               or is_state('device_tracker.trevor_iphone', 'home')
                or is_state('device_tracker.unifi_default_42_15_78_4a_d9_f8', 'home')
                or states('sensor.away_security_active_lights') | int(0) == 0 }}
       then:
