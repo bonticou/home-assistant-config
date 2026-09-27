@@ -92,10 +92,10 @@ class WinePolicyTests(unittest.TestCase):
         for temperature in (53, 55, 57):
             for humidity in (55, 66, 70):
                 with self.subTest(temperature=temperature, humidity=humidity):
-                    self.assert_status(self.readings(temperature, humidity), "Optimal", "Healthy", "mdi:check-circle")
-        self.assert_status(self.readings(54.7, 67), "Optimal", "Healthy", "mdi:check-circle")
+                    self.assert_status(self.readings(temperature, humidity), "Optimal", "Stable", "mdi:glass-wine")
+        self.assert_status(self.readings(54.7, 67), "Optimal", "Stable", "mdi:glass-wine")
 
-    def test_pending_excursions_and_advisory_flags_only_monitor(self):
+    def test_non_actionable_variation_keeps_a_calm_summary(self):
         cases = [
             self.readings(temperature=50),
             self.readings(temperature=60),
@@ -112,7 +112,7 @@ class WinePolicyTests(unittest.TestCase):
         ]
         for values in cases:
             with self.subTest(values=values):
-                self.assert_status(values, "Warning", "Monitoring", "mdi:chart-line")
+                self.assert_status(values, "Warning", "Stable", "mdi:glass-wine")
 
     def test_sustained_alert_stays_critical_during_recovery(self):
         for flag in ("temp_high_alert", "temp_low_alert", "moisture_anomaly", "condensation_risk"):

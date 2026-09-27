@@ -114,6 +114,23 @@ appliance maintenance tasks are separate from this environmental issue.
 Scratch files are in the dedicated Codex work folder; nothing from this audit
 was created in Downloads.
 
+## Stable Summary Follow-Up
+
+Later on September 27, Trevor asked to replace the non-actionable `Monitoring`
+wording with a calm green status. The display now says **Stable** and uses a
+**green wine-glass icon** for both preferred conditions and variations that do
+not require action. The legacy internal states and detailed explanations remain;
+all alert thresholds, delays and missing-reading safeguards are unchanged.
+
+The Home tile and four Wine status surfaces share this presentation. Measurement
+colors and charts are unchanged. Updated policy expectations pass all ten tests;
+YAML and whitespace checks pass. Both live files passed full write/read-back,
+HA config validation returned valid without errors or warnings, and template
+reload completed. Live state reported `Stable` / `mdi:glass-wine` at 54.12°F and
+63.28% RH with no actionable alert. The served dashboard has green for both
+non-actionable states, and visual inspection confirms Stable and a green wine
+glass on Home. No test notification was sent.
+
 ## Residual Risks And Follow-Ups
 
 - Dew point remains a moisture-risk estimate, not proof of condensation. Check

@@ -1732,7 +1732,7 @@ template:
       # Red-wine storage: aim near 55°F; preferred storage band is
       # 53–57°F / 55–70% RH. These are house monitoring choices,
       # not hard wine-damage limits. A target excursion is only
-      # Monitoring; Needs attention requires a sustained alert.
+      # visible in Details; Needs attention requires a sustained alert.
       # Keep legacy states for consumers; display_label owns UI wording.
       - name: "wine_cave_status"
         unique_id: wine_cave_status
@@ -1756,28 +1756,17 @@ template:
           {% if is_state('binary_sensor.wine_cave_sensor_unavailable', 'on') %}mdi:wifi-alert
           {% elif not is_number(states('sensor.wine_temperature')) or not is_number(states('sensor.wine_humidity')) %}mdi:clock-outline
           {% elif is_state('binary_sensor.wine_cave_actionable_alert', 'on') %}mdi:alert-circle-outline
-          {% elif (states('sensor.wine_temperature') | float(0)) < 53
-            or (states('sensor.wine_temperature') | float(0)) > 57
-            or (states('sensor.wine_humidity') | float(0)) < 55
-            or (states('sensor.wine_humidity') | float(0)) > 70
-            or is_state('binary_sensor.wine_cave_drift_alert', 'on')
-            or is_state('binary_sensor.wine_cave_cooling_cycle', 'on') %}mdi:chart-line
-          {% else %}mdi:check-circle{% endif %}
+          {% else %}mdi:glass-wine{% endif %}
         attributes:
           temperature_min: 53
           temperature_max: 57
           humidity_min: 55
           humidity_max: 70
           display_label: >-
-            {% set t = states('sensor.wine_temperature') | float(0) %}
-            {% set rh = states('sensor.wine_humidity') | float(0) %}
             {% if is_state('binary_sensor.wine_cave_sensor_unavailable', 'on') %}Sensor unavailable
             {% elif not is_number(states('sensor.wine_temperature')) or not is_number(states('sensor.wine_humidity')) %}Waiting for readings
             {% elif is_state('binary_sensor.wine_cave_actionable_alert', 'on') %}Needs attention
-            {% elif t < 53 or t > 57 or rh < 55 or rh > 70
-              or is_state('binary_sensor.wine_cave_drift_alert', 'on')
-              or is_state('binary_sensor.wine_cave_cooling_cycle', 'on') %}Monitoring
-            {% else %}Healthy{% endif %}
+            {% else %}Stable{% endif %}
           detail: >-
             {% if is_state('binary_sensor.wine_cave_sensor_unavailable', 'on') %}
               Wine cave readings have been unavailable. Check the sensor connection; storage conditions cannot be confirmed.
