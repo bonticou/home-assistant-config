@@ -2398,62 +2398,15 @@ views:
             custom_fields:
               icon: >-
                 [[[
-                  const stateMap = hass?.states || {};
                   const status = entity?.state || 'Unknown';
-                  const cooling = stateMap['binary_sensor.wine_cave_cooling_cycle']?.state === 'on';
-                  const actionable = stateMap['binary_sensor.wine_cave_actionable_alert']?.state === 'on';
-                  const unavailable = stateMap['binary_sensor.wine_cave_sensor_unavailable']?.state === 'on';
-                  const coolingChanged = Date.parse(stateMap['binary_sensor.wine_cave_cooling_cycle']?.last_changed || '');
-                  const coolingMinutes = Number.isFinite(coolingChanged)
-                    ? (Date.now() - coolingChanged) / 60000
-                    : 0;
-                  let icon = 'mdi:glass-wine';
-                  let color = '#94a3b8';
-                  if (unavailable) {
-                    icon = 'mdi:wifi-alert';
-                    color = '#f59e0b';
-                  } else if (cooling && !actionable && coolingMinutes >= 90) {
-                    icon = 'mdi:snowflake-alert';
-                    color = '#f59e0b';
-                  } else if (cooling && !actionable) {
-                    icon = 'mdi:snowflake';
-                    color = '#7dd3fc';
-                  } else if (['Optimal', 'Normal', 'Good'].includes(status)) {
-                    color = '#22c55e';
-                  } else if (['Warning', 'Caution'].includes(status)) {
-                    icon = 'mdi:alert-circle-outline';
-                    color = '#f59e0b';
-                  } else if (status === 'Critical') {
-                    icon = 'mdi:alert-circle';
-                    color = '#ef4444';
-                  }
+                  const icon = entity?.attributes?.icon || 'mdi:glass-wine';
+                  const colors = { Optimal: '#2dd4bf', Warning: '#7c9bb4', Critical: '#fb923c', Unavailable: '#fbbf24' };
+                  const color = colors[status] || '#94a3b8';
                   return `<div class="tile-icon"><ha-icon icon="${icon}" style="color:${color}"></ha-icon></div>`;
                 ]]]
               text: >-
                 [[[
-                  const stateMap = hass?.states || {};
-                  const status = entity?.state || 'Unknown';
-                  const cooling = stateMap['binary_sensor.wine_cave_cooling_cycle']?.state === 'on';
-                  const actionable = stateMap['binary_sensor.wine_cave_actionable_alert']?.state === 'on';
-                  const unavailable = stateMap['binary_sensor.wine_cave_sensor_unavailable']?.state === 'on';
-                  const coolingChanged = Date.parse(stateMap['binary_sensor.wine_cave_cooling_cycle']?.last_changed || '');
-                  const coolingMinutes = Number.isFinite(coolingChanged)
-                    ? (Date.now() - coolingChanged) / 60000
-                    : 0;
-                  let meta = status || 'Unknown';
-                  if (unavailable) {
-                    meta = 'Sensor unavailable';
-                  } else if (cooling && !actionable && coolingMinutes >= 90) {
-                    meta = 'Cycle still settling';
-                  } else if (cooling && !actionable) {
-                    meta = 'Cooling cycle in progress';
-                  } else if (['Optimal', 'Normal', 'Good'].includes(status)) {
-                    meta = 'Healthy';
-                  } else if (['Warning', 'Caution'].includes(status)) {
-                    meta = 'Needs attention';
-                  } else if (status === 'Critical') {
-                    meta = 'Critical';
-                  }
+                  const meta = entity?.attributes?.display_label || 'Waiting for readings';
                   return `<div class="tile-copy"><div class="tile-label">Wine cave</div><div class="tile-meta">${meta}</div></div>`;
                 ]]]
             tap_action:
@@ -11058,47 +11011,19 @@ views:
       - type: custom:mushroom-template-card
         entity: sensor.wine_cave_status
         primary: >-
-          {% set temp = states('sensor.wine_temperature') | float(0) | round(1) %}
-          {% set status = states('sensor.wine_cave_status') %}
-          {% set cooling = is_state('binary_sensor.wine_cave_cooling_cycle', 'on') %}
-          {% set actionable = is_state('binary_sensor.wine_cave_actionable_alert', 'on') %}
-          {% set unavailable = is_state('binary_sensor.wine_cave_sensor_unavailable', 'on') %}
-          {% set cooling_age = as_timestamp(now()) - as_timestamp(states.binary_sensor.wine_cave_cooling_cycle.last_changed, now()) %}
-          {% if status in ['Optimal', 'Normal', 'Good'] %}{{ temp }}°F · Wine cave is optimal
-          {% elif unavailable %}{{ temp }}°F · Sensor unavailable
-          {% elif cooling and not actionable and cooling_age < 5400 %}{{ temp }}°F · Cooling cycle in progress
-          {% elif cooling and not actionable %}{{ temp }}°F · Cycle still settling
-          {% elif status == 'Critical' or actionable %}{{ temp }}°F · Conditions need attention
-          {% elif is_state('binary_sensor.wine_cave_drift_alert', 'on') %}{{ temp }}°F · Drift needs a look
-          {% elif status in ['Warning', 'Caution'] %}{{ temp }}°F · Slightly outside target
-          {% else %}{{ temp }}°F · Wine cave unavailable{% endif %}
+          {% set temp = states('sensor.wine_temperature') %}
+          {{ (temp | float | round(1) ~ '°F') if is_number(temp) else '—' }} · {{ state_attr('sensor.wine_cave_status', 'display_label') | default('Waiting for readings', true) }}
         secondary: >-
-          {% set humidity = states('sensor.wine_humidity') | float(0) | round(0) %}
-          {% set cooling = is_state('binary_sensor.wine_cave_cooling_cycle', 'on') %}
-          {% set actionable = is_state('binary_sensor.wine_cave_actionable_alert', 'on') %}
-          {% set cooling_age = as_timestamp(now()) - as_timestamp(states.binary_sensor.wine_cave_cooling_cycle.last_changed, now()) %}
-          {% if cooling and not actionable and cooling_age < 5400 %}
-            {{ humidity }}% humidity · normal dip while cooling
-          {% elif cooling and not actionable %}
-            {{ humidity }}% humidity · watching recovery
-          {% else %}
-            {{ humidity }}% humidity
-          {% endif %}
+          {% set humidity = states('sensor.wine_humidity') %}
+          {{ (humidity | float | round(0) ~ '% humidity') if is_number(humidity) else '— humidity' }}
         icon: >-
-          {% set cooling = is_state('binary_sensor.wine_cave_cooling_cycle', 'on') %}
-          {% set actionable = is_state('binary_sensor.wine_cave_actionable_alert', 'on') %}
-          {% if is_state('binary_sensor.wine_cave_sensor_unavailable', 'on') %}mdi:wifi-alert
-          {% elif cooling and not actionable %}mdi:snowflake
-          {% elif actionable or states('sensor.wine_cave_status') == 'Critical' %}mdi:alert-circle-outline
-          {% else %}mdi:glass-wine{% endif %}
+          {{ state_attr('sensor.wine_cave_status', 'icon') | default('mdi:glass-wine', true) }}
         icon_color: >-
           {% set status = states('sensor.wine_cave_status') %}
-          {% set cooling = is_state('binary_sensor.wine_cave_cooling_cycle', 'on') %}
-          {% set actionable = is_state('binary_sensor.wine_cave_actionable_alert', 'on') %}
-          {% if status in ['Optimal', 'Normal', 'Good'] %}teal
-          {% elif cooling and not actionable %}light-blue
-          {% elif status in ['Warning', 'Caution'] %}orange
-          {% elif status == 'Critical' %}red
+          {% if status == 'Optimal' %}teal
+          {% elif status == 'Warning' %}blue-grey
+          {% elif status == 'Critical' %}deep-orange
+          {% elif status == 'Unavailable' %}amber
           {% else %}grey{% endif %}
         fill_container: true
         tap_action:
@@ -11130,7 +11055,7 @@ views:
             icon: mdi:water-thermometer
             icon_color: amber
             content: >-
-              {{ states('sensor.wine_cave_dew_point') | float(0) | round(1) }}°F dew point
+              {{ (states('sensor.wine_cave_dew_point') | float | round(1) ~ '°F') if is_number(states('sensor.wine_cave_dew_point')) else '—' }} dew point
             tap_action:
               action: more-info
 
@@ -11625,51 +11550,21 @@ views:
             - type: custom:mushroom-template-card
               entity: sensor.wine_cave_status
               primary: >-
-                {{ states('sensor.wine_temperature') | float(0) | round(1) }}°F
-                · {{ states('sensor.wine_humidity') | float(0) | round(0) }}%
+                {% set temp = states('sensor.wine_temperature') %}
+                {% set humidity = states('sensor.wine_humidity') %}
+                {{ (temp | float | round(1) ~ '°F') if is_number(temp) else '—' }}
+                · {{ (humidity | float | round(0) ~ '%') if is_number(humidity) else '—' }}
               secondary: >-
-                {% set status = states('sensor.wine_cave_status') %}
-                {% set temp_avg = states('sensor.wine_temperature_24h_stats') %}
-                {% set humidity_avg = states('sensor.wine_humidity_24h_stats') %}
-                {% set cooling = is_state('binary_sensor.wine_cave_cooling_cycle', 'on') %}
-                {% set actionable = is_state('binary_sensor.wine_cave_actionable_alert', 'on') %}
-                {% set cooling_age = as_timestamp(now()) - as_timestamp(states.binary_sensor.wine_cave_cooling_cycle.last_changed, now()) %}
-                {% if status in ['Optimal', 'Normal', 'Good'] %}
-                  The cellar is steady. Dew point is {{ states('sensor.wine_cave_dew_point') | float(0) | round(1) }}°F
-                  with 24h averages of
-                  {{ (temp_avg | float | round(1) ~ '°F') if is_number(temp_avg) else 'pending temp data' }}
-                  and
-                  {{ (humidity_avg | float | round(0) ~ '%') if is_number(humidity_avg) else 'pending humidity data' }}.
-                {% elif cooling and not actionable and cooling_age < 5400 %}
-                  This looks like a normal cooling cycle: temperature is in range and humidity is temporarily low.
-                  Alerts wait unless the recovery runs long or stops matching the cycle pattern.
-                {% elif cooling and not actionable %}
-                  This started as a normal cooling cycle, but humidity has been low longer than expected.
-                  The watch notification is appropriate now; check the cartridge or door if it does not recover.
-                {% elif status in ['Warning', 'Caution'] %}
-                  Conditions are slightly outside target. Dew point is {{ states('sensor.wine_cave_dew_point') | float(0) | round(1) }}°F.
-                  Home Assistant will wait for the stricter alert sensors before pushing.
-                {% elif status == 'Critical' %}
-                  Conditions are out of range. Dew point is {{ states('sensor.wine_cave_dew_point') | float(0) | round(1) }}°F
-                  and the cave needs attention.
-                {% else %}
-                  Wine cave status is unavailable right now.
-                {% endif %}
+                {{ state_attr('sensor.wine_cave_status', 'display_label') | default('Waiting for readings', true) }}.
+                {{ state_attr('sensor.wine_cave_status', 'detail') | default('Waiting for cellar readings.', true) }}
               icon: >-
-                {% set cooling = is_state('binary_sensor.wine_cave_cooling_cycle', 'on') %}
-                {% set actionable = is_state('binary_sensor.wine_cave_actionable_alert', 'on') %}
-                {% if is_state('binary_sensor.wine_cave_sensor_unavailable', 'on') %}mdi:wifi-alert
-                {% elif cooling and not actionable %}mdi:snowflake
-                {% elif actionable or states('sensor.wine_cave_status') == 'Critical' %}mdi:alert-circle-outline
-                {% else %}mdi:glass-wine{% endif %}
+                {{ state_attr('sensor.wine_cave_status', 'icon') | default('mdi:glass-wine', true) }}
               icon_color: >-
                 {% set status = states('sensor.wine_cave_status') %}
-                {% set cooling = is_state('binary_sensor.wine_cave_cooling_cycle', 'on') %}
-                {% set actionable = is_state('binary_sensor.wine_cave_actionable_alert', 'on') %}
-                {% if status in ['Optimal', 'Normal', 'Good'] %}teal
-                {% elif cooling and not actionable %}light-blue
-                {% elif status in ['Warning', 'Caution'] %}orange
-                {% elif status == 'Critical' %}red
+                {% if status == 'Optimal' %}teal
+                {% elif status == 'Warning' %}blue-grey
+                {% elif status == 'Critical' %}deep-orange
+                {% elif status == 'Unavailable' %}amber
                 {% else %}grey{% endif %}
               multiline_secondary: true
               fill_container: true
@@ -11696,7 +11591,6 @@ views:
                   }
                   mushroom-shape-icon {
                     --shape-color: rgba(255, 255, 255, 0.08) !important;
-                    --icon-color: #f8fafc !important;
                   }
                   .primary {
                     color: #f8fafc !important;
@@ -11718,9 +11612,10 @@ views:
                   icon: mdi:thermometer
                   icon_color: >-
                     {% set raw = states('sensor.wine_temperature_24h_stats') %}
+                    {% set minimum = state_attr('sensor.wine_cave_status', 'temperature_min') | float(53) %}
+                    {% set maximum = state_attr('sensor.wine_cave_status', 'temperature_max') | float(57) %}
                     {% if not is_number(raw) %}grey
-                    {% elif raw | float < 53 %}light-blue
-                    {% elif raw | float > 57 %}red
+                    {% elif raw | float < minimum or raw | float > maximum %}blue-grey
                     {% else %}teal{% endif %}
                   content: >-
                     {% set raw = states('sensor.wine_temperature_24h_stats') %}
@@ -11732,9 +11627,10 @@ views:
                   icon: mdi:water-percent
                   icon_color: >-
                     {% set raw = states('sensor.wine_humidity_24h_stats') %}
+                    {% set minimum = state_attr('sensor.wine_cave_status', 'humidity_min') | float(55) %}
+                    {% set maximum = state_attr('sensor.wine_cave_status', 'humidity_max') | float(70) %}
                     {% if not is_number(raw) %}grey
-                    {% elif raw | float < 50 %}orange
-                    {% elif raw | float > 65 %}light-blue
+                    {% elif raw | float < minimum or raw | float > maximum %}blue-grey
                     {% else %}teal{% endif %}
                   content: >-
                     {% set raw = states('sensor.wine_humidity_24h_stats') %}
@@ -11746,33 +11642,22 @@ views:
                   icon: mdi:water-thermometer
                   icon_color: amber
                   content: >-
-                    {{ states('sensor.wine_cave_dew_point') | float(0) | round(1) }}°F dew point
+                    {{ (states('sensor.wine_cave_dew_point') | float | round(1) ~ '°F') if is_number(states('sensor.wine_cave_dew_point')) else '—' }} dew point
                   tap_action:
                     action: none
                 - type: template
                   entity: sensor.wine_cave_status
                   icon: >-
-                    {% set cooling = is_state('binary_sensor.wine_cave_cooling_cycle', 'on') %}
-                    {% set actionable = is_state('binary_sensor.wine_cave_actionable_alert', 'on') %}
-                    {% if cooling and not actionable %}mdi:snowflake
-                    {% elif actionable or states('sensor.wine_cave_status') == 'Critical' %}mdi:alert-circle-outline
-                    {% else %}mdi:heart-pulse{% endif %}
+                    {{ state_attr('sensor.wine_cave_status', 'icon') | default('mdi:glass-wine', true) }}
                   icon_color: >-
                     {% set status = states('sensor.wine_cave_status') %}
-                    {% set cooling = is_state('binary_sensor.wine_cave_cooling_cycle', 'on') %}
-                    {% set actionable = is_state('binary_sensor.wine_cave_actionable_alert', 'on') %}
-                    {% if status in ['Optimal', 'Normal', 'Good'] %}teal
-                    {% elif cooling and not actionable %}light-blue
-                    {% elif status in ['Warning', 'Caution'] %}orange
-                    {% elif status == 'Critical' %}red
+                    {% if status == 'Optimal' %}teal
+                    {% elif status == 'Warning' %}blue-grey
+                    {% elif status == 'Critical' %}deep-orange
+                    {% elif status == 'Unavailable' %}amber
                     {% else %}grey{% endif %}
                   content: >-
-                    {% set cooling = is_state('binary_sensor.wine_cave_cooling_cycle', 'on') %}
-                    {% set actionable = is_state('binary_sensor.wine_cave_actionable_alert', 'on') %}
-                    {% set cooling_age = as_timestamp(now()) - as_timestamp(states.binary_sensor.wine_cave_cooling_cycle.last_changed, now()) %}
-                    {% if cooling and not actionable and cooling_age < 5400 %}Cooling cycle
-                    {% elif cooling and not actionable %}Cycle watch
-                    {% else %}{{ states('sensor.wine_cave_status') }}{% endif %}
+                    {{ state_attr('sensor.wine_cave_status', 'display_label') | default('Waiting for readings', true) }}
                   tap_action:
                     action: none
               card_mod:
@@ -12037,17 +11922,20 @@ views:
             - type: custom:mushroom-template-card
               entity: sensor.wine_temperature
               primary: >-
-                {{ states('sensor.wine_temperature') | float(0) | round(1) }}°F
+                {{ (states('sensor.wine_temperature') | float | round(1) ~ '°F') if is_number(states('sensor.wine_temperature')) else '—' }}
               secondary: >-
                 {% set avg = states('sensor.wine_temperature_24h_stats') %}
                 24h average is
                 {{ (avg | float | round(1) ~ '°F') if is_number(avg) else 'still pending' }}.
-                Current cellar status is {{ states('sensor.wine_cave_status') | lower }}.
+                {{ state_attr('sensor.wine_cave_status', 'display_label') | default('Waiting for readings', true) }}.
+                {{ state_attr('sensor.wine_cave_status', 'detail') | default('Waiting for cellar readings.', true) }}
               icon: mdi:thermometer
               icon_color: >-
-                {% set temp = states('sensor.wine_temperature') | float(0) %}
-                {% if temp < 53 %}light-blue
-                {% elif temp > 57 %}red
+                {% set raw = states('sensor.wine_temperature') %}
+                {% set minimum = state_attr('sensor.wine_cave_status', 'temperature_min') | float(53) %}
+                {% set maximum = state_attr('sensor.wine_cave_status', 'temperature_max') | float(57) %}
+                {% if not is_number(raw) %}grey
+                {% elif raw | float < minimum or raw | float > maximum %}blue-grey
                 {% else %}teal{% endif %}
               multiline_secondary: true
               fill_container: true
@@ -12061,9 +11949,15 @@ views:
                 - type: template
                   entity: sensor.wine_humidity
                   icon: mdi:water-percent
-                  icon_color: blue
+                  icon_color: >-
+                    {% set raw = states('sensor.wine_humidity') %}
+                    {% set minimum = state_attr('sensor.wine_cave_status', 'humidity_min') | float(55) %}
+                    {% set maximum = state_attr('sensor.wine_cave_status', 'humidity_max') | float(70) %}
+                    {% if not is_number(raw) %}grey
+                    {% elif raw | float < minimum or raw | float > maximum %}blue-grey
+                    {% else %}teal{% endif %}
                   content: >-
-                    {{ states('sensor.wine_humidity') | float(0) | round(0) }}% now
+                    {{ (states('sensor.wine_humidity') | float | round(0) ~ '%') if is_number(states('sensor.wine_humidity')) else '—' }} now
                   tap_action:
                     action: none
                 - type: template
@@ -12071,7 +11965,7 @@ views:
                   icon: mdi:water-thermometer
                   icon_color: amber
                   content: >-
-                    {{ states('sensor.wine_cave_dew_point') | float(0) | round(1) }}°F dew point
+                    {{ (states('sensor.wine_cave_dew_point') | float | round(1) ~ '°F') if is_number(states('sensor.wine_cave_dew_point')) else '—' }} dew point
                   tap_action:
                     action: none
               card_mod:
@@ -12174,17 +12068,19 @@ views:
             - type: custom:mushroom-template-card
               entity: sensor.wine_humidity
               primary: >-
-                {{ states('sensor.wine_humidity') | float(0) | round(0) }}%
+                {{ (states('sensor.wine_humidity') | float | round(0) ~ '%') if is_number(states('sensor.wine_humidity')) else '—' }}
               secondary: >-
                 {% set avg = states('sensor.wine_humidity_24h_stats') %}
                 24h average is
                 {{ (avg | float | round(0) ~ '%') if is_number(avg) else 'still pending' }}.
-                Dew point is {{ states('sensor.wine_cave_dew_point') | float(0) | round(1) }}°F.
+                Dew point is {{ (states('sensor.wine_cave_dew_point') | float | round(1) ~ '°F') if is_number(states('sensor.wine_cave_dew_point')) else '—' }}.
               icon: mdi:water-percent
               icon_color: >-
-                {% set humidity = states('sensor.wine_humidity') | float(0) %}
-                {% if humidity < 50 %}orange
-                {% elif humidity > 65 %}light-blue
+                {% set raw = states('sensor.wine_humidity') %}
+                {% set minimum = state_attr('sensor.wine_cave_status', 'humidity_min') | float(55) %}
+                {% set maximum = state_attr('sensor.wine_cave_status', 'humidity_max') | float(70) %}
+                {% if not is_number(raw) %}grey
+                {% elif raw | float < minimum or raw | float > maximum %}blue-grey
                 {% else %}teal{% endif %}
               multiline_secondary: true
               fill_container: true
@@ -12198,22 +12094,30 @@ views:
                 - type: template
                   entity: sensor.wine_temperature
                   icon: mdi:thermometer
-                  icon_color: red
+                  icon_color: >-
+                    {% set raw = states('sensor.wine_temperature') %}
+                    {% set minimum = state_attr('sensor.wine_cave_status', 'temperature_min') | float(53) %}
+                    {% set maximum = state_attr('sensor.wine_cave_status', 'temperature_max') | float(57) %}
+                    {% if not is_number(raw) %}grey
+                    {% elif raw | float < minimum or raw | float > maximum %}blue-grey
+                    {% else %}teal{% endif %}
                   content: >-
-                    {{ states('sensor.wine_temperature') | float(0) | round(1) }}°F now
+                    {{ (states('sensor.wine_temperature') | float | round(1) ~ '°F') if is_number(states('sensor.wine_temperature')) else '—' }} now
                   tap_action:
                     action: none
                 - type: template
                   entity: sensor.wine_cave_status
-                  icon: mdi:heart-pulse
+                  icon: >-
+                    {{ state_attr('sensor.wine_cave_status', 'icon') | default('mdi:glass-wine', true) }}
                   icon_color: >-
                     {% set status = states('sensor.wine_cave_status') %}
-                    {% if status in ['Optimal', 'Normal', 'Good'] %}teal
-                    {% elif status in ['Warning', 'Caution'] %}orange
-                    {% elif status == 'Critical' %}red
+                    {% if status == 'Optimal' %}teal
+                    {% elif status == 'Warning' %}blue-grey
+                    {% elif status == 'Critical' %}deep-orange
+                    {% elif status == 'Unavailable' %}amber
                     {% else %}grey{% endif %}
                   content: >-
-                    {{ states('sensor.wine_cave_status') }}
+                    {{ state_attr('sensor.wine_cave_status', 'display_label') | default('Waiting for readings', true) }}
                   tap_action:
                     action: none
               card_mod:
@@ -12315,10 +12219,10 @@ views:
             - type: custom:mushroom-template-card
               entity: sensor.wine_cave_dew_point
               primary: >-
-                {{ states('sensor.wine_cave_dew_point') | float(0) | round(1) }}°F
+                {{ (states('sensor.wine_cave_dew_point') | float | round(1) ~ '°F') if is_number(states('sensor.wine_cave_dew_point')) else '—' }}
               secondary: >-
-                Temperature is {{ states('sensor.wine_temperature') | float(0) | round(1) }}°F
-                with {{ states('sensor.wine_humidity') | float(0) | round(0) }}% humidity right now.
+                Temperature is {{ (states('sensor.wine_temperature') | float | round(1) ~ '°F') if is_number(states('sensor.wine_temperature')) else '—' }}
+                with {{ (states('sensor.wine_humidity') | float | round(0) ~ '%') if is_number(states('sensor.wine_humidity')) else '—' }} humidity right now.
               icon: mdi:water-thermometer
               icon_color: amber
               multiline_secondary: true

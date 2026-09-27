@@ -2295,7 +2295,7 @@
 
 - id: wine_cave_moisture_anomaly_notification
   alias: "Wine Cave — Moisture Anomaly Notification"
-  description: Alerts when humidity is outside the desired band in a way that does not look like a normal refrigeration cycle.
+  description: Asks for a check after sustained humidity above 75% or an unusually dry condition.
   triggers:
     - trigger: state
       entity_id: binary_sensor.wine_cave_moisture_anomaly
@@ -2308,7 +2308,7 @@
       value_template: >
         {{ not (
           is_state('binary_sensor.wine_cave_condensation_risk', 'on')
-          and (states('sensor.wine_humidity') | float(0)) > 70
+          and (states('sensor.wine_humidity') | float(0)) > 75
         ) }}
   actions:
     - action: script.wine_cave_send_alert
@@ -2317,15 +2317,13 @@
         message: >-
           {% set humidity = states('sensor.wine_humidity') | float(0) | round(0) %}
           {% set ah = states('sensor.wine_cave_absolute_humidity') | float(0) | round(2) %}
-          {% set ah_delta = states('sensor.wine_cave_absolute_humidity_24h_delta') | float(0) %}
           {% if humidity < 50 %}
             Humidity is {{ humidity }}%, below your 50% floor.
             Actual moisture is {{ ah }} g/m³, so this looks drier than a normal cycle.
             If the door and power look normal, check the wine cave humidity cartridge.
           {% else %}
-            Humidity is {{ humidity }}% and actual moisture is {{ ah }} g/m³,
-            {{ (ah_delta | abs) | round(2) }} g/m³ above the 24-hour average.
-            This looks different from a normal refrigeration cycle.
+            Humidity is {{ humidity }}% and stayed above 75% for at least 15 minutes.
+            Check the door seal, humidity cartridge and bottles for excess moisture.
           {% endif %}
   mode: single
 
