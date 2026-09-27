@@ -5,17 +5,28 @@ A human-readable map of the Home Assistant device model. The full audit dump is 
 ## At A Glance
 
 - Base live snapshot: `2026-07-29T14:29:24.057042+00:00`; repository-defined entities reconciled through `2026-09-11`
-- Scale: 231 devices, 2526 entities, 151 network clients
+- Phone migration verified live: `2026-09-27` (initial registry observation: `2026-09-26`); unrelated base inventory was not refreshed
+- Scale: 231 devices, 2539 entities, 151 network clients
 - Lighting: 38 light entities, 35 Lutron Caséta entities
 
 | Thing | Count |
 | --- | --- |
 | Devices | 231 |
-| Entities | 2526 |
+| Entities | 2539 |
 | Control entities | 888 |
-| Telemetry entities | 1128 |
+| Telemetry entities | 1141 |
 | Network clients | 151 |
 | Areas | 32 |
+
+## Trevor's Phone Replacement — Verified
+
+The replacement Companion phone is now named `TK iPhone 18 Pro`, with all 31 entities using stable `trevor_iphone` identifiers. The live registry was verified on September 27, 2026. The old Companion registration and all its entities have been removed.
+
+| Device | Reported hardware model | Tracker | Notify entity | Registered entities |
+| --- | --- | --- | --- | --- |
+| TK iPhone 18 Pro | `iPhone19,2` | `device_tracker.trevor_iphone` | `notify.trevor_iphone` | 31 |
+
+Trevor's presence sources are the new phone and the existing `device_tracker.ipad_2`. An actionable test notification was received and its phone action callback confirmed. The separate disabled UniFi tracker `device_tracker.trevor_s_iphone_16_pro` remains a historical network record and is not used for presence.
 
 ## Area Index
 
@@ -46,7 +57,7 @@ A human-readable map of the Home Assistant device model. The full audit dump is 
 | Network Room | 1 | 0 | 0 | 5 | 0 |
 | Office | 4 | 8 | 1 | 14 | 1 |
 | Stairs | 1 | 1 | 1 | 0 | 0 |
-| Unassigned | 144 | 348 | 11 | 510 | 57 |
+| Unassigned | 144 | 348 | 11 | 523 | 58 |
 | Unnamed Room | 8 | 90 | 0 | 8 | 8 |
 | Upstairs Hallway | 1 | 1 | 1 | 0 | 0 |
 | Vestibule | 1 | 1 | 1 | 0 | 0 |

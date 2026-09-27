@@ -1391,9 +1391,11 @@ notify_trevor_phone:
         recent: "{{ notification_data.recent | default('', true) }}"
         keep_recent: "{{ notification_data.keep_recent | default('', true) }}"
         history: "{{ notification_data.history | default('', true) }}"
-    - action: notify.send_message
-      target:
-        entity_id: notify.trevor_iphone
+    # The mobile_app notify entity accepts only title/message in HA 2026.9.2;
+    # rich notification data still requires its legacy mobile_app service.
+    # Resolve that service from the device's original registration name, not
+    # its display-name override, so a later Companion rename stays in sync.
+    - action: "{{ 'notify.mobile_app_' ~ (device_attr('device_tracker.trevor_iphone', 'name') | slugify) }}"
       data:
         title: "{{ notification_title }}"
         message: "{{ notification_message }}"

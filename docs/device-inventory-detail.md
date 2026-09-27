@@ -4,16 +4,18 @@ Full generated audit view. For the readable overview, use [device-inventory.md](
 
 ## Last Updated
 
-- Snapshot: `2026-07-29T14:29:24.057042+00:00`
-- Summary: 228 devices, 2470 entities, 151 network clients, 33 Lutron Caséta entities
+- Base detail snapshot: `2026-07-29T14:29:24.057042+00:00`
+- Phone migration verified live: `2026-09-27` (initial registry observation: `2026-09-26`); unrelated base inventory was not refreshed
+- Summary counts follow the reconciled JSON inventory; unrelated per-device detail sections retain their earlier snapshot scope.
+- Summary: 231 devices, 2539 entities, 151 network clients, 35 Lutron Caséta entities
 
 ## Summary
 
 | Metric | Count |
 | --- | --- |
-| Devices | 228 |
-| Entities | 2470 |
-| Orphan entities | 832 |
+| Devices | 231 |
+| Entities | 2539 |
+| Orphan entities | 844 |
 | Network clients | 151 |
 | Areas | 32 |
 | Integrations | 44 |
@@ -22,10 +24,10 @@ Full generated audit view. For the readable overview, use [device-inventory.md](
 
 | Role | Entities |
 | --- | --- |
-| control | 868 |
+| control | 888 |
 | network | 151 |
-| other | 354 |
-| telemetry | 1097 |
+| other | 359 |
+| telemetry | 1141 |
 
 ### Top Integrations
 
@@ -35,22 +37,22 @@ Full generated audit view. For the readable overview, use [device-inventory.md](
 | unifi | 309 |
 | hydrawise | 245 |
 | sonos | 224 |
-| template | 206 |
-| automation | 189 |
-| script | 151 |
-| input_datetime | 90 |
+| template | 209 |
+| automation | 191 |
+| script | 154 |
+| input_datetime | 92 |
+| tplink | 63 |
 | sensorpush_cloud | 56 |
 | esphome | 55 |
 | whisker_ting | 48 |
 | input_boolean | 46 |
+| mobile_app | 44 |
 | flo | 43 |
 | homekit_controller | 41 |
 | ring | 39 |
 | hassio | 35 |
-| lutron_caseta | 33 |
-| mobile_app | 31 |
-| input_text | 28 |
-| lg_thinq | 27 |
+| lutron_caseta | 35 |
+| input_text | 30 |
 
 ## Devices By Area
 
@@ -2558,33 +2560,50 @@ _No registered entities._
 | `sensor.sun_solar_azimuth` | Solar azimuth | telemetry | sun | diagnostic | disabled |
 | `sensor.sun_solar_elevation` | Solar elevation | telemetry | sun | diagnostic | disabled |
 
-#### TK iPhone 16 Pro
+#### TK iPhone 18 Pro
 
-- Device ID: `device_784e00b00a1e`
+- Device ID: `device_0d7813a60730`
 - Integration: mobile_app
-- Model: Apple iPhone17,1
-- Capability mix: 17 telemetry, 0 control, 0 network, 1 other
+- Model: Apple iPhone19,2
+- Verified live September 27, 2026: device name and all 31 stable entity IDs below. Old Companion registration and its entities removed.
+- Trevor uses this tracker and the existing iPad tracker for presence; the disabled legacy UniFi tracker is historical only.
+- Actionable test notification receipt confirmed by the phone action callback. Availability below reflects only states included in the verification snapshot.
+- Capability mix: 30 telemetry, 0 control, 0 network, 1 other
+- Original integration name retained as registry metadata: TK iPhone 16 Pro
 
 | Entity | Name | Role | Integration | Detail | Availability |
 | --- | --- | --- | --- | --- | --- |
-| `binary_sensor.tk_iphone_16_pro_kiosk_mode` | Kiosk Mode | telemetry | mobile_app |  | not_enriched |
-| `device_tracker.tk_iphone_16_pro` | device_tracker.tk_iphone_16_pro | telemetry | mobile_app | diagnostic | not_enriched |
-| `notify.tk_iphone_16_pro` | notify.tk_iphone_16_pro | other | mobile_app |  | not_enriched |
-| `sensor.tk_iphone_16_pro_app_version` | App Version | telemetry | mobile_app | diagnostic | not_enriched |
-| `sensor.tk_iphone_16_pro_audio_output` | Audio Output | telemetry | mobile_app |  | not_enriched |
-| `sensor.tk_iphone_16_pro_battery_level` | Battery Level | telemetry | mobile_app |  | not_enriched |
-| `sensor.tk_iphone_16_pro_battery_state` | Battery State | telemetry | mobile_app |  | not_enriched |
-| `sensor.tk_iphone_16_pro_bssid` | BSSID | telemetry | mobile_app |  | not_enriched |
-| `sensor.tk_iphone_16_pro_connection_type` | Connection Type | telemetry | mobile_app |  | not_enriched |
-| `sensor.tk_iphone_16_pro_geocoded_location` | Geocoded Location | telemetry | mobile_app |  | not_enriched |
-| `sensor.tk_iphone_16_pro_kiosk_brightness` | Kiosk Brightness | telemetry | mobile_app |  | not_enriched |
-| `sensor.tk_iphone_16_pro_kiosk_volume` | Kiosk Volume | telemetry | mobile_app |  | not_enriched |
-| `sensor.tk_iphone_16_pro_last_update_trigger` | Last Update Trigger | telemetry | mobile_app |  | not_enriched |
-| `sensor.tk_iphone_16_pro_location_permission` | Location permission | telemetry | mobile_app |  | not_enriched |
-| `sensor.tk_iphone_16_pro_sim_1` | SIM 1 | telemetry | mobile_app |  | not_enriched |
-| `sensor.tk_iphone_16_pro_sim_2` | SIM 2 | telemetry | mobile_app |  | not_enriched |
-| `sensor.tk_iphone_16_pro_ssid` | SSID | telemetry | mobile_app |  | not_enriched |
-| `sensor.tk_iphone_16_pro_storage` | Storage | telemetry | mobile_app |  | not_enriched |
+| `binary_sensor.trevor_iphone_camera_motion` | TK iPhone 18 Pro Camera Motion | telemetry | mobile_app |  | disabled |
+| `binary_sensor.trevor_iphone_focus` | TK iPhone 18 Pro Focus | telemetry | mobile_app |  | not_enriched |
+| `binary_sensor.trevor_iphone_kiosk_mode` | TK iPhone 18 Pro Kiosk Mode | telemetry | mobile_app |  | not_enriched |
+| `binary_sensor.trevor_iphone_kiosk_screensaver` | TK iPhone 18 Pro Kiosk Screensaver | telemetry | mobile_app |  | not_enriched |
+| `device_tracker.trevor_iphone` | TK iPhone 18 Pro | telemetry | mobile_app | diagnostic | available |
+| `notify.trevor_iphone` | TK iPhone 18 Pro | other | mobile_app |  | available |
+| `sensor.trevor_iphone_activity` | TK iPhone 18 Pro Activity | telemetry | mobile_app |  | not_enriched |
+| `sensor.trevor_iphone_app_version` | TK iPhone 18 Pro App Version | telemetry | mobile_app | diagnostic | not_enriched |
+| `sensor.trevor_iphone_audio_output` | TK iPhone 18 Pro Audio Output | telemetry | mobile_app |  | not_enriched |
+| `sensor.trevor_iphone_average_active_pace` | TK iPhone 18 Pro Average Active Pace | telemetry | mobile_app |  | not_enriched |
+| `sensor.trevor_iphone_battery_level` | TK iPhone 18 Pro Battery Level | telemetry | mobile_app |  | available |
+| `sensor.trevor_iphone_battery_state` | TK iPhone 18 Pro Battery State | telemetry | mobile_app |  | not_enriched |
+| `sensor.trevor_iphone_bssid` | TK iPhone 18 Pro BSSID | telemetry | mobile_app |  | not_enriched |
+| `sensor.trevor_iphone_camera_stream` | TK iPhone 18 Pro Camera Stream | telemetry | mobile_app |  | disabled |
+| `sensor.trevor_iphone_connection_type` | TK iPhone 18 Pro Connection Type | telemetry | mobile_app |  | not_enriched |
+| `sensor.trevor_iphone_current_cadence` | TK iPhone 18 Pro Current Cadence | telemetry | mobile_app |  | not_enriched |
+| `sensor.trevor_iphone_current_pace` | TK iPhone 18 Pro Current Pace | telemetry | mobile_app |  | not_enriched |
+| `sensor.trevor_iphone_distance` | TK iPhone 18 Pro Distance | telemetry | mobile_app |  | not_enriched |
+| `sensor.trevor_iphone_floors_ascended` | TK iPhone 18 Pro Floors Ascended | telemetry | mobile_app |  | not_enriched |
+| `sensor.trevor_iphone_floors_descended` | TK iPhone 18 Pro Floors Descended | telemetry | mobile_app |  | not_enriched |
+| `sensor.trevor_iphone_geocoded_location` | TK iPhone 18 Pro Geocoded Location | telemetry | mobile_app |  | not_enriched |
+| `sensor.trevor_iphone_kiosk_brightness` | TK iPhone 18 Pro Kiosk Brightness | telemetry | mobile_app |  | disabled |
+| `sensor.trevor_iphone_kiosk_volume` | TK iPhone 18 Pro Kiosk Volume | telemetry | mobile_app |  | disabled |
+| `sensor.trevor_iphone_last_update_trigger` | TK iPhone 18 Pro Last Update Trigger | telemetry | mobile_app |  | not_enriched |
+| `sensor.trevor_iphone_location_permission` | TK iPhone 18 Pro Location permission | telemetry | mobile_app |  | available |
+| `sensor.trevor_iphone_pressure` | TK iPhone 18 Pro Pressure | telemetry | mobile_app |  | not_enriched |
+| `sensor.trevor_iphone_sim_1` | TK iPhone 18 Pro SIM 1 | telemetry | mobile_app |  | not_enriched |
+| `sensor.trevor_iphone_sim_2` | TK iPhone 18 Pro SIM 2 | telemetry | mobile_app |  | not_enriched |
+| `sensor.trevor_iphone_ssid` | TK iPhone 18 Pro SSID | telemetry | mobile_app |  | not_enriched |
+| `sensor.trevor_iphone_steps` | TK iPhone 18 Pro Steps | telemetry | mobile_app |  | not_enriched |
+| `sensor.trevor_iphone_storage` | TK iPhone 18 Pro Storage | telemetry | mobile_app |  | not_enriched |
 
 #### Terminal & SSH
 
