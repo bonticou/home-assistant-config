@@ -2402,7 +2402,7 @@ views:
                 [[[
                   const status = entity?.state || 'Unknown';
                   const icon = entity?.attributes?.icon || 'mdi:glass-wine';
-                  const colors = { Optimal: '#2dd4bf', Warning: '#7c9bb4', Critical: '#fb923c', Unavailable: '#fbbf24' };
+                  const colors = { Optimal: '#22c55e', Warning: '#22c55e', Critical: '#fb923c', Unavailable: '#fbbf24' };
                   const color = colors[status] || '#94a3b8';
                   return `<div class="tile-icon"><ha-icon icon="${icon}" style="color:${color}"></ha-icon></div>`;
                 ]]]
@@ -11022,8 +11022,7 @@ views:
           {{ state_attr('sensor.wine_cave_status', 'icon') | default('mdi:glass-wine', true) }}
         icon_color: >-
           {% set status = states('sensor.wine_cave_status') %}
-          {% if status == 'Optimal' %}teal
-          {% elif status == 'Warning' %}blue-grey
+          {% if status in ['Optimal', 'Warning'] %}green
           {% elif status == 'Critical' %}deep-orange
           {% elif status == 'Unavailable' %}amber
           {% else %}grey{% endif %}
@@ -11563,8 +11562,7 @@ views:
                 {{ state_attr('sensor.wine_cave_status', 'icon') | default('mdi:glass-wine', true) }}
               icon_color: >-
                 {% set status = states('sensor.wine_cave_status') %}
-                {% if status == 'Optimal' %}teal
-                {% elif status == 'Warning' %}blue-grey
+                {% if status in ['Optimal', 'Warning'] %}green
                 {% elif status == 'Critical' %}deep-orange
                 {% elif status == 'Unavailable' %}amber
                 {% else %}grey{% endif %}
@@ -11653,8 +11651,7 @@ views:
                     {{ state_attr('sensor.wine_cave_status', 'icon') | default('mdi:glass-wine', true) }}
                   icon_color: >-
                     {% set status = states('sensor.wine_cave_status') %}
-                    {% if status == 'Optimal' %}teal
-                    {% elif status == 'Warning' %}blue-grey
+                    {% if status in ['Optimal', 'Warning'] %}green
                     {% elif status == 'Critical' %}deep-orange
                     {% elif status == 'Unavailable' %}amber
                     {% else %}grey{% endif %}
@@ -12113,8 +12110,7 @@ views:
                     {{ state_attr('sensor.wine_cave_status', 'icon') | default('mdi:glass-wine', true) }}
                   icon_color: >-
                     {% set status = states('sensor.wine_cave_status') %}
-                    {% if status == 'Optimal' %}teal
-                    {% elif status == 'Warning' %}blue-grey
+                    {% if status in ['Optimal', 'Warning'] %}green
                     {% elif status == 'Critical' %}deep-orange
                     {% elif status == 'Unavailable' %}amber
                     {% else %}grey{% endif %}
