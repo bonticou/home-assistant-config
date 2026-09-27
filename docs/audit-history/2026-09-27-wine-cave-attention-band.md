@@ -42,8 +42,11 @@ appliance maintenance tasks are separate from this environmental issue.
 
 ## Decision And Changes
 
-- Keep the storage aim near **55°F**. Use **50–60°F / 50–80% RH** as the calm
-  monitoring band. These are operational choices, not hard wine-damage limits.
+- Keep the storage aim near **55°F**. Use **53–57°F / 55–70% RH** as the
+  preferred band. Trevor rejected the initial 50–60°F / 50–80% proposal as
+  too loose before it was deployed. The final range is a house preference,
+  not a manufacturer damage limit. Normal 54–55°F / 66–68% readings fit it.
+  Do not use 55°F as the minimum: it would exclude the steady observed cycle.
 - Make `sensor.wine_cave_status` the display authority. Preserve legacy states
   but publish plain-language `display_label`, `detail`, icon and range
   attributes. A brief excursion or drift means `Monitoring`. `Needs attention`
@@ -53,11 +56,19 @@ appliance maintenance tasks are separate from this environmental issue.
 - Align Home, Wine hero/detail popup/status chips and Notification Center
   narrative. Measurement colors use the central bounds. Keep all chart content
   and lazy disclosures unchanged.
-- Require RH **above 80%** for the existing high-moisture and dew-point-risk
-  branches. Retain absolute-humidity/dew-point criteria and their 15-/10-minute
-  onset delays. Normal RH alone cannot begin a high-humidity action.
-- Allow recovered low-humidity episodes to settle at up to 80% RH; align
-  informational excursion flags and add availability checks to them.
+- Require RH **above 75% for 15 minutes** for high-humidity attention. Remove
+  the absolute-humidity-change qualification so a steady high reading cannot
+  remain only Monitoring indefinitely; the rule needs only current temperature
+  and RH, not a potentially missing statistics baseline. Preserve low-RH logic.
+- Require RH above 75% plus the existing narrow dew-point gap for the separate
+  10-minute moisture-risk check. This remains a risk estimate, not measured
+  condensation. It can ask for a check before the 15-minute humidity timer.
+- Update the high-humidity push text to explain the actual threshold and check
+  to perform; remove the unsupported claim that an absolute deviation was
+  necessarily above the 24-hour average. Existing delivery/severity is retained.
+- Let a recovered dry episode settle at 50–75% RH (the recovery range, distinct
+  from the preferred band). Align excursion flags with the preferred band and
+  add availability checks to them.
 - Preserve temperature protection: above 60°F or below 50°F for 15 minutes,
   clearing after 10 minutes back in range. Preserve low-humidity, drift,
   unavailable-sensor, reminder and push-delivery policies.
@@ -67,20 +78,24 @@ appliance maintenance tasks are separate from this environmental issue.
 
 ## Checks And Deployment Status
 
-- Eight regression tests evaluate actual YAML/Jinja templates: inclusive range
-  boundaries, 66/75/80% RH, pending excursions, alert priority during recovery,
-  missing readings, cooling/drift monitoring, moisture/dew guards and unchanged
-  temperature delays. The prior configuration fails the new policy checks.
+- Ten regression tests evaluate actual YAML/Jinja templates: inclusive preferred
+  bounds; 54.7°F/67% Healthy; 72/75/76% pending Monitoring; alert priority during
+  recovery; missing readings; cooling/drift; sustained humidity with zero or
+  missing derived statistics; condensation and recovery boundaries; unchanged
+  temperature delays. Tests also pass against the candidate live configuration.
 - Dashboard YAML and JavaScript status cases passed. Structural comparison
   confirms ten Wine charts and three lazy disclosures are unchanged; other
   views are unchanged except the Home Wine tile.
 - Device inventory coverage passes for 174 active control references.
 - Prepared exact-match patches that preserve unrelated live Main Floor drift.
   Configuration patches also match the saved live snapshot from the phone task.
-- **Live deployment pending:** the Mac locked after the connected history
-  inspection. No Wine changes have been written live. The user was asked to
-  unlock it. Next: fresh preflight, full read-back, HA config validation,
-  template reload, then served-dashboard and live-status verification.
+- **Live deployment pending:** the Mac locked during initial review, then
+  locked again during the revised read-only preflight. No Wine changes have
+  been written live. The user was asked to unlock it. Next: complete fresh
+  preflight, full read-back, HA config validation, template/automation reloads,
+  then served-dashboard and live-status verification. The active live automation
+  file is monolithic; patch only the Wine moisture notification block, preserving
+  unrelated live automation differences and the repository include structure.
 
 Scratch files are in the dedicated Codex work folder; nothing from this audit
 was created in Downloads.

@@ -88,15 +88,22 @@ class WinePolicyTests(unittest.TestCase):
         self.assertEqual(self.render(status["attributes"]["display_label"], values), expected_label)
         self.assertEqual(self.render(status["icon"], values), expected_icon)
 
-    def test_normal_storage_band_is_inclusive(self):
-        for temperature in (50, 55, 60):
-            for humidity in (50, 66, 75, 80):
+    def test_preferred_storage_band_is_inclusive(self):
+        for temperature in (53, 55, 57):
+            for humidity in (55, 66, 70):
                 with self.subTest(temperature=temperature, humidity=humidity):
                     self.assert_status(self.readings(temperature, humidity), "Optimal", "Healthy", "mdi:check-circle")
+        self.assert_status(self.readings(54.7, 67), "Optimal", "Healthy", "mdi:check-circle")
 
     def test_pending_excursions_and_advisory_flags_only_monitor(self):
         cases = [
-            self.readings(humidity=81),
+            self.readings(temperature=50),
+            self.readings(temperature=60),
+            self.readings(humidity=50),
+            self.readings(humidity=80),
+            self.readings(humidity=72),
+            self.readings(humidity=75),
+            self.readings(humidity=76),
             self.readings(temperature=61),
             self.readings(humidity=49),
             self.readings(humidity=45, cooling_cycle="on"),
@@ -121,22 +128,38 @@ class WinePolicyTests(unittest.TestCase):
             with self.subTest(missing=entity):
                 self.assert_status(values, "Unknown", "Waiting for readings", "mdi:clock-outline")
 
-    def test_normal_humidity_does_not_create_moisture_or_condensation_alerts(self):
-        # Large AH change and a narrow air/dew-point gap alone are insufficient
-        # while RH remains inside the accepted storage band.
-        for humidity in (50, 66, 75, 80):
+    def test_preferred_humidity_does_not_create_moisture_or_condensation_alerts(self):
+        # Neither a large AH change nor a narrow air/dew-point gap turns
+        # preferred humidity into an actionable moisture condition.
+        for humidity in (55, 66, 70):
             for alert in ("moisture_anomaly", "condensation_risk"):
                 with self.subTest(humidity=humidity, alert=alert):
                     self.assertFalse(self.boolean(alert, self.readings(humidity=humidity)))
 
-    def test_high_humidity_retains_correlated_moisture_protection(self):
-        values = self.readings(humidity=81)
+    def test_steady_high_humidity_needs_attention_without_derived_readings(self):
+        self.assertFalse(self.boolean("moisture_anomaly", self.readings(humidity=75)))
+        values = self.readings(humidity=76)
+        values["sensor.wine_cave_absolute_humidity_24h_delta"] = "0"
         self.assertTrue(self.boolean("moisture_anomaly", values))
+        # A missing trend baseline or dew-point estimate must not suppress a
+        # sustained high-humidity alert when both raw readings are present.
+        values.pop("sensor.wine_cave_absolute_humidity_24h_delta")
+        values.pop("sensor.wine_cave_dew_point_margin")
+        self.assertTrue(self.boolean("moisture_anomaly", values, "availability"))
+        self.assertTrue(self.boolean("moisture_anomaly", values))
+        self.assertEqual(self.templates["wine_cave_moisture_anomaly"]["delay_on"], {"minutes": 15})
+
+    def test_condensation_requires_high_humidity_and_a_narrow_gap(self):
+        self.assertFalse(self.boolean("condensation_risk", self.readings(humidity=75)))
+        values = self.readings(humidity=76)
         self.assertTrue(self.boolean("condensation_risk", values))
-        values["sensor.wine_cave_absolute_humidity_24h_delta"] = "0.4"
-        self.assertFalse(self.boolean("moisture_anomaly", values))
         values["sensor.wine_cave_dew_point_margin"] = "8"
         self.assertFalse(self.boolean("condensation_risk", values))
+        self.assertEqual(self.templates["wine_cave_condensation_risk"]["delay_on"], {"minutes": 10})
+
+    def test_cycle_settled_uses_recovery_band_not_preferred_band(self):
+        self.assertTrue(self.boolean("cycle_settled", self.readings(55, 75)))
+        self.assertFalse(self.boolean("cycle_settled", self.readings(55, 76)))
 
     def test_dry_cycle_and_abnormally_dry_conditions_remain_distinct(self):
         self.assertFalse(self.boolean("moisture_anomaly", self.readings(55, 45)))

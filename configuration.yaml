@@ -1731,8 +1731,8 @@ template:
           {% endif %}
 
       # ── Storage Status ────────────────────────────────────
-      # Red-wine storage: aim near 55°F; calm monitoring band is
-      # 50–60°F / 50–80% RH. These are house monitoring choices,
+      # Red-wine storage: aim near 55°F; preferred storage band is
+      # 53–57°F / 55–70% RH. These are house monitoring choices,
       # not hard wine-damage limits. A target excursion is only
       # Monitoring; Needs attention requires a sustained alert.
       # Keep legacy states for consumers; display_label owns UI wording.
@@ -1747,7 +1747,7 @@ template:
             Unknown
           {% elif is_state('binary_sensor.wine_cave_actionable_alert', 'on') %}
             Critical
-          {% elif t < 50 or t > 60 or rh < 50 or rh > 80
+          {% elif t < 53 or t > 57 or rh < 55 or rh > 70
             or is_state('binary_sensor.wine_cave_drift_alert', 'on')
             or is_state('binary_sensor.wine_cave_cooling_cycle', 'on') %}
             Warning
@@ -1758,25 +1758,25 @@ template:
           {% if is_state('binary_sensor.wine_cave_sensor_unavailable', 'on') %}mdi:wifi-alert
           {% elif not is_number(states('sensor.wine_temperature')) or not is_number(states('sensor.wine_humidity')) %}mdi:clock-outline
           {% elif is_state('binary_sensor.wine_cave_actionable_alert', 'on') %}mdi:alert-circle-outline
-          {% elif (states('sensor.wine_temperature') | float(0)) < 50
-            or (states('sensor.wine_temperature') | float(0)) > 60
-            or (states('sensor.wine_humidity') | float(0)) < 50
-            or (states('sensor.wine_humidity') | float(0)) > 80
+          {% elif (states('sensor.wine_temperature') | float(0)) < 53
+            or (states('sensor.wine_temperature') | float(0)) > 57
+            or (states('sensor.wine_humidity') | float(0)) < 55
+            or (states('sensor.wine_humidity') | float(0)) > 70
             or is_state('binary_sensor.wine_cave_drift_alert', 'on')
             or is_state('binary_sensor.wine_cave_cooling_cycle', 'on') %}mdi:chart-line
           {% else %}mdi:check-circle{% endif %}
         attributes:
-          temperature_min: 50
-          temperature_max: 60
-          humidity_min: 50
-          humidity_max: 80
+          temperature_min: 53
+          temperature_max: 57
+          humidity_min: 55
+          humidity_max: 70
           display_label: >-
             {% set t = states('sensor.wine_temperature') | float(0) %}
             {% set rh = states('sensor.wine_humidity') | float(0) %}
             {% if is_state('binary_sensor.wine_cave_sensor_unavailable', 'on') %}Sensor unavailable
             {% elif not is_number(states('sensor.wine_temperature')) or not is_number(states('sensor.wine_humidity')) %}Waiting for readings
             {% elif is_state('binary_sensor.wine_cave_actionable_alert', 'on') %}Needs attention
-            {% elif t < 50 or t > 60 or rh < 50 or rh > 80
+            {% elif t < 53 or t > 57 or rh < 55 or rh > 70
               or is_state('binary_sensor.wine_cave_drift_alert', 'on')
               or is_state('binary_sensor.wine_cave_cooling_cycle', 'on') %}Monitoring
             {% else %}Healthy{% endif %}
@@ -1792,18 +1792,18 @@ template:
             {% elif is_state('binary_sensor.wine_cave_condensation_risk', 'on') %}
               Humidity has kept the calculated dew point close to air temperature. Check for actual moisture on bottles or labels; this is a risk estimate, not a surface measurement.
             {% elif is_state('binary_sensor.wine_cave_moisture_anomaly', 'on') %}
-              A sustained moisture change needs a look. Check the door seal and humidity cartridge; this clears after 30 minutes of recovery.
+              Humidity stayed above 75% or an unusually dry condition persisted for at least 15 minutes. Check the door seal, humidity cartridge and bottles for moisture; this clears after 30 minutes of recovery.
             {% elif is_state('binary_sensor.wine_cave_drift_alert', 'on') %}
               The recent average has shifted from the cellar baseline. Monitoring the trend; the sustained temperature and moisture protections remain active.
             {% elif is_state('binary_sensor.wine_cave_cooling_cycle', 'on') %}
               Humidity is low or recovering while temperature is in range. Monitoring recovery; a prolonged dip still triggers the existing reminder.
-            {% elif (states('sensor.wine_temperature') | float(0)) < 50
-              or (states('sensor.wine_temperature') | float(0)) > 60
-              or (states('sensor.wine_humidity') | float(0)) < 50
-              or (states('sensor.wine_humidity') | float(0)) > 80 %}
+            {% elif (states('sensor.wine_temperature') | float(0)) < 53
+              or (states('sensor.wine_temperature') | float(0)) > 57
+              or (states('sensor.wine_humidity') | float(0)) < 55
+              or (states('sensor.wine_humidity') | float(0)) > 70 %}
               Outside the usual storage band. Monitoring duration and moisture behavior before calling for action; a brief fluctuation alone is not an alert.
             {% else %}
-              Good conditions for storing the red-wine collection. Aim near 55°F; the normal monitoring band is 50–60°F and 50–80% humidity. Sustained temperature, moisture and sensor problems still need attention.
+              Good conditions for storing the red-wine collection. Aim near 55°F; the preferred band is 53–57°F and 55–70% humidity. Sustained temperature, moisture and sensor problems still need attention.
             {% endif %}
 
       # ── Temp Excursion Flag ───────────────────────────────
@@ -1815,7 +1815,7 @@ template:
           {{ is_number(states('sensor.wine_temperature')) }}
         state: >
           {% set t = states('sensor.wine_temperature') | float(0) %}
-          {{ 1 if (t < 50 or t > 60) else 0 }}
+          {{ 1 if (t < 53 or t > 57) else 0 }}
 
       # ── RH Excursion Flag ─────────────────────────────────
       - name: "wine_cave_rh_excursion"
@@ -1825,7 +1825,7 @@ template:
           {{ is_number(states('sensor.wine_humidity')) }}
         state: >
           {% set rh = states('sensor.wine_humidity') | float(0) %}
-          {{ 1 if (rh < 50 or rh > 80) else 0 }}
+          {{ 1 if (rh < 55 or rh > 70) else 0 }}
 
       - name: "wine_temp_24h_mean"
         unique_id: wine_temp_24h_mean
@@ -6951,7 +6951,7 @@ template:
           {% set humidity = states('sensor.wine_humidity') | float(0) %}
           {{ temp >= 50 and temp <= 60
              and humidity >= 50
-             and humidity <= 80
+             and humidity <= 75
              and is_state('binary_sensor.wine_cave_sensor_unavailable', 'off')
              and is_state('binary_sensor.wine_cave_temp_high_alert', 'off')
              and is_state('binary_sensor.wine_cave_temp_low_alert', 'off')
@@ -6991,19 +6991,16 @@ template:
         unique_id: wine_cave_moisture_anomaly
         availability: >
           {{ is_number(states('sensor.wine_temperature'))
-             and is_number(states('sensor.wine_humidity'))
-             and is_number(states('sensor.wine_cave_absolute_humidity_24h_delta')) }}
+             and is_number(states('sensor.wine_humidity')) }}
         state: >
           {% set temp = states('sensor.wine_temperature') | float(0) %}
           {% set humidity = states('sensor.wine_humidity') | float(0) %}
-          {% set ah_delta = states('sensor.wine_cave_absolute_humidity_24h_delta') | float(0) %}
           {% set normal_dry_cycle = temp >= 50 and temp <= 60
             and humidity >= 42
             and humidity < 50 %}
           {{ humidity < 42
              or (humidity < 50 and not normal_dry_cycle)
-             or (humidity > 80
-             and (ah_delta | abs) >= 0.5) }}
+             or humidity > 75 }}
         delay_on:
           minutes: 15
         delay_off:
@@ -7018,8 +7015,8 @@ template:
              and is_number(states('sensor.wine_humidity')) }}
         state: >
           {# Air/dew-point gap is a humidity proxy, not a measured cold surface.
-             Do not flag EuroCave's normal 50–80% RH storage band. #}
-          {{ (states('sensor.wine_humidity') | float(0)) > 80
+             Only flag risk above the house's 75% high-humidity check threshold. #}
+          {{ (states('sensor.wine_humidity') | float(0)) > 75
              and (states('sensor.wine_cave_dew_point_margin') | float(99)) < 7 }}
         delay_on:
           minutes: 10

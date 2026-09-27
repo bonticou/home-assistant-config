@@ -11614,8 +11614,8 @@ views:
                   icon: mdi:thermometer
                   icon_color: >-
                     {% set raw = states('sensor.wine_temperature_24h_stats') %}
-                    {% set minimum = state_attr('sensor.wine_cave_status', 'temperature_min') | float(50) %}
-                    {% set maximum = state_attr('sensor.wine_cave_status', 'temperature_max') | float(60) %}
+                    {% set minimum = state_attr('sensor.wine_cave_status', 'temperature_min') | float(53) %}
+                    {% set maximum = state_attr('sensor.wine_cave_status', 'temperature_max') | float(57) %}
                     {% if not is_number(raw) %}grey
                     {% elif raw | float < minimum or raw | float > maximum %}blue-grey
                     {% else %}teal{% endif %}
@@ -11629,8 +11629,8 @@ views:
                   icon: mdi:water-percent
                   icon_color: >-
                     {% set raw = states('sensor.wine_humidity_24h_stats') %}
-                    {% set minimum = state_attr('sensor.wine_cave_status', 'humidity_min') | float(50) %}
-                    {% set maximum = state_attr('sensor.wine_cave_status', 'humidity_max') | float(80) %}
+                    {% set minimum = state_attr('sensor.wine_cave_status', 'humidity_min') | float(55) %}
+                    {% set maximum = state_attr('sensor.wine_cave_status', 'humidity_max') | float(70) %}
                     {% if not is_number(raw) %}grey
                     {% elif raw | float < minimum or raw | float > maximum %}blue-grey
                     {% else %}teal{% endif %}
@@ -11934,8 +11934,8 @@ views:
               icon: mdi:thermometer
               icon_color: >-
                 {% set raw = states('sensor.wine_temperature') %}
-                {% set minimum = state_attr('sensor.wine_cave_status', 'temperature_min') | float(50) %}
-                {% set maximum = state_attr('sensor.wine_cave_status', 'temperature_max') | float(60) %}
+                {% set minimum = state_attr('sensor.wine_cave_status', 'temperature_min') | float(53) %}
+                {% set maximum = state_attr('sensor.wine_cave_status', 'temperature_max') | float(57) %}
                 {% if not is_number(raw) %}grey
                 {% elif raw | float < minimum or raw | float > maximum %}blue-grey
                 {% else %}teal{% endif %}
@@ -11953,8 +11953,8 @@ views:
                   icon: mdi:water-percent
                   icon_color: >-
                     {% set raw = states('sensor.wine_humidity') %}
-                    {% set minimum = state_attr('sensor.wine_cave_status', 'humidity_min') | float(50) %}
-                    {% set maximum = state_attr('sensor.wine_cave_status', 'humidity_max') | float(80) %}
+                    {% set minimum = state_attr('sensor.wine_cave_status', 'humidity_min') | float(55) %}
+                    {% set maximum = state_attr('sensor.wine_cave_status', 'humidity_max') | float(70) %}
                     {% if not is_number(raw) %}grey
                     {% elif raw | float < minimum or raw | float > maximum %}blue-grey
                     {% else %}teal{% endif %}
@@ -12079,8 +12079,8 @@ views:
               icon: mdi:water-percent
               icon_color: >-
                 {% set raw = states('sensor.wine_humidity') %}
-                {% set minimum = state_attr('sensor.wine_cave_status', 'humidity_min') | float(50) %}
-                {% set maximum = state_attr('sensor.wine_cave_status', 'humidity_max') | float(80) %}
+                {% set minimum = state_attr('sensor.wine_cave_status', 'humidity_min') | float(55) %}
+                {% set maximum = state_attr('sensor.wine_cave_status', 'humidity_max') | float(70) %}
                 {% if not is_number(raw) %}grey
                 {% elif raw | float < minimum or raw | float > maximum %}blue-grey
                 {% else %}teal{% endif %}
@@ -12098,8 +12098,8 @@ views:
                   icon: mdi:thermometer
                   icon_color: >-
                     {% set raw = states('sensor.wine_temperature') %}
-                    {% set minimum = state_attr('sensor.wine_cave_status', 'temperature_min') | float(50) %}
-                    {% set maximum = state_attr('sensor.wine_cave_status', 'temperature_max') | float(60) %}
+                    {% set minimum = state_attr('sensor.wine_cave_status', 'temperature_min') | float(53) %}
+                    {% set maximum = state_attr('sensor.wine_cave_status', 'temperature_max') | float(57) %}
                     {% if not is_number(raw) %}grey
                     {% elif raw | float < minimum or raw | float > maximum %}blue-grey
                     {% else %}teal{% endif %}

@@ -79,7 +79,7 @@ Supporting material:
 
 | Date | Entry | Scope |
 | --- | --- | --- |
-| 2026-09-27 | [Wine Cave attention band](2026-09-27-wine-cave-attention-band.md) | Seven-day history proves false attention from the 65% RH ceiling; prepares consistent 50–60°F / 50–80% monitoring with delayed attention, pending live deployment after Mac unlock |
+| 2026-09-27 | [Wine Cave attention band](2026-09-27-wine-cave-attention-band.md) | Seven-day history proves false attention from the 65% RH ceiling; prepares preferred 53–57°F / 55–70% conditions and sustained humidity attention above 75%, pending live deployment after Mac unlock |
 | 2026-09-26 | [Trevor iPhone replacement](2026-09-26-trevor-iphone-replacement.md) | Completed September 27: verifies 31 entity renames, 49 live tracker-reference changes, old Companion removal, and a real actionable push acknowledgment after correcting a pre-existing rich notification payload incompatibility |
 | 2026-09-11 | [Casey closet after the Core update](2026-09-11-casey-closet-after-core-update.md) | Confirms timely native motion again but retains uncertainty about quick light-off transitions and physical behavior |
 | 2026-09-11 | [Irrigation notification precision and connection warnings](2026-09-11-irrigation-notification-precision.md) | Removes unsupported volume/peak claims, makes routine pushes quiet, and gates connection warnings on sustained loss with durable session keys |
