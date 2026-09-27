@@ -89,13 +89,27 @@ appliance maintenance tasks are separate from this environmental issue.
 - Device inventory coverage passes for 174 active control references.
 - Prepared exact-match patches that preserve unrelated live Main Floor drift.
   Configuration patches also match the saved live snapshot from the phone task.
-- **Live deployment pending:** the Mac locked during initial review, then
-  locked again during the revised read-only preflight. No Wine changes have
-  been written live. The user was asked to unlock it. Next: complete fresh
-  preflight, full read-back, HA config validation, template/automation reloads,
-  then served-dashboard and live-status verification. The active live automation
-  file is monolithic; patch only the Wine moisture notification block, preserving
-  unrelated live automation differences and the repository include structure.
+- **Deployed and verified live on September 27.** After reconnecting the
+  signed-in Remote UI, all three live files passed exact-match preflight and
+  full write/read-back: configuration, dashboard and the active monolithic
+  automation file. Only the Wine moisture notification block changed in the
+  latter; unrelated live differences and the repo include structure remain.
+- Home Assistant config validation returned `valid`, with no errors or warnings.
+  Template and automation reloads completed successfully.
+- Live status exposes 53/57°F and 55/70% preferred bounds and `Healthy` at
+  54.84°F / 67.14% RH. Temperature, moisture, dew-risk and aggregate actionable
+  sensors were all off. The served dashboard uses the central label/range
+  attributes and no longer includes the old “Slightly outside target” copy.
+- The live automation config API confirms the new sustained-above-75% message
+  and removal of the old absolute-deviation/above-average claim.
+- Visual verification confirms `54.8°F · Healthy` / `67% humidity` on the Wine
+  page and `Wine cave — Healthy` on Home. No test push was sent.
+- Publication is isolated on `codex/wine-cave-attention-band` from upstream
+  main, so unrelated unpublished local-main work is excluded. The focused
+  branch passed the same ten policy tests and YAML checks. Inventory coverage
+  was checked with the corrected main-worktree checker against that branch;
+  the upstream checker's unrelated attribute-name false positives were not
+  bundled into the Wine change.
 
 Scratch files are in the dedicated Codex work folder; nothing from this audit
 was created in Downloads.
