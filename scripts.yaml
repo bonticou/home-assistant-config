@@ -3398,10 +3398,31 @@ driver_license_clear_renewal_notification:
 
 nwp_parking_pass_send_reminder:
   alias: NWP Parking Pass Send Reminder
-  description: Sends the NWP parking pass expiration reminder one day before and on expiration.
+  description: Sends the daily 7:30 AM application reminder starting five days before expiration, then expiration or expired notices until replaced.
   icon: mdi:parking
-  mode: restart
+  mode: single
   sequence:
+    # Read the durable cycle and native timestamp directly, including on the
+    # exact minute that the next morning's snooze expires.
+    - condition: template
+      value_template: >-
+        {% set expires = states('input_datetime.nwp_parking_pass_expiration_date') %}
+        {% set replaced = states('input_datetime.nwp_parking_pass_replaced_at') %}
+        {% set replaced_cycle = states('input_text.nwp_parking_pass_replaced_expiration_date') %}
+        {% set snooze_ts = state_attr('input_datetime.nwp_parking_pass_snooze_until', 'timestamp') | float(0) %}
+        {% if not is_state('input_boolean.nwp_parking_pass_reminders_enabled', 'on')
+           or expires in ['unknown', 'unavailable', 'none', ''] %}
+          false
+        {% else %}
+          {% set reminder_opens = strptime(expires, '%Y-%m-%d') - timedelta(days=5) %}
+          {% set replaced_current_cycle = replaced_cycle == expires
+             and replaced not in ['unknown', 'unavailable', 'none', '']
+             and replaced[:10] >= reminder_opens.strftime('%Y-%m-%d') %}
+          {{ not replaced_current_cycle
+             and snooze_ts <= as_timestamp(now())
+             and now() >= today_at('07:30:00')
+             and now().strftime('%Y-%m-%d') >= reminder_opens.strftime('%Y-%m-%d') }}
+        {% endif %}
     - variables:
         expires: "{{ states('input_datetime.nwp_parking_pass_expiration_date') }}"
         expires_label: >-
@@ -3438,12 +3459,18 @@ nwp_parking_pass_send_reminder:
           {% elif days < 0 %}
             🅿️ NWP parking pass expired
           {% else %}
-            🅿️ NWP parking pass expires
+            🅿️ Apply for your next NWP parking pass
           {% endif %}
         message: >-
           The NWP parking pass {{ reminder_phrase | trim }}.
           Expiration date: {{ expires_label | trim }}.
-          Replace or renew it before relying on the lot, then choose the pass length.
+          {% if days_until | int(999) > 0 %}
+            Apply in advance for the next pass. Once the replacement is confirmed,
+            choose its pass length below.
+          {% else %}
+            Renew or replace it before relying on the lot. Once the replacement
+            is confirmed, choose its pass length below.
+          {% endif %}
         data:
           group: personal-admin
           tag: nwp-parking-pass
@@ -3459,7 +3486,7 @@ nwp_parking_pass_send_reminder:
       target:
         entity_id: input_datetime.nwp_parking_pass_snooze_until
       data:
-        datetime: "{{ (today_at('09:00:00') + timedelta(days=1)).strftime('%Y-%m-%d %H:%M:%S') }}"
+        datetime: "{{ (today_at('07:30:00') + timedelta(days=1)).strftime('%Y-%m-%d %H:%M:%S') }}"
 
 nwp_parking_pass_mark_replaced:
   alias: NWP Parking Pass Mark Replaced
@@ -3517,7 +3544,7 @@ nwp_parking_pass_mark_replaced:
 
 nwp_parking_pass_snooze:
   alias: NWP Parking Pass Snooze
-  description: Snoozes the NWP parking pass expiration reminder.
+  description: Snoozes the NWP parking pass reminder to 7:30 AM after the chosen number of days.
   icon: mdi:alarm-snooze
   mode: restart
   fields:
@@ -3531,7 +3558,7 @@ nwp_parking_pass_snooze:
       target:
         entity_id: input_datetime.nwp_parking_pass_snooze_until
       data:
-        datetime: "{{ (today_at('09:00:00') + timedelta(days=snooze_days)).strftime('%Y-%m-%d %H:%M:%S') }}"
+        datetime: "{{ (today_at('07:30:00') + timedelta(days=snooze_days)).strftime('%Y-%m-%d %H:%M:%S') }}"
     - action: script.nwp_parking_pass_clear_notification
 
 nwp_parking_pass_clear_notification:

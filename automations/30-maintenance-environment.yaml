@@ -1753,20 +1753,17 @@
 
 - id: nwp_parking_pass_expiration_reminder
   alias: "NWP Parking Pass — Expiration Reminder"
-  description: Sends the NWP parking pass reminder the day before expiration and on expiration day.
+  description: Reminds Trevor at 7:30 AM daily to apply starting five days before expiration, until the pass is replaced or reminders are snoozed.
   triggers:
     - trigger: time
-      at: "09:13:00"
-    - trigger: time
-      at: input_datetime.nwp_parking_pass_snooze_until
+      at: "07:30:00"
   conditions:
     - condition: state
       entity_id: input_boolean.nwp_parking_pass_reminders_enabled
       state: "on"
-    - condition: state
-      entity_id: binary_sensor.nwp_parking_pass_due
-      state: "on"
   actions:
+    # The script checks fresh helper values at the snooze boundary; the
+    # template due sensor may not have updated at this exact clock tick.
     - action: script.nwp_parking_pass_send_reminder
   mode: single
 

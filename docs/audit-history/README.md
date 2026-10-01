@@ -79,6 +79,7 @@ Supporting material:
 
 | Date | Entry | Scope |
 | --- | --- | --- |
+| 2026-10-01 | [Parking pass morning application reminder](2026-10-01-parking-pass-morning-application-reminder.md) | Moves daily reminders and saved snoozes to 7:30 AM, starts application reminders five days before expiration, and verifies durable duplicate suppression live |
 | 2026-09-01 | [Garage opener light follower](2026-09-01-garage-opener-light-follower.md) | Hardens the garage opener lights follower rule with retry and failure notification, and records that the prior repo rule likely was not live because deployment remained blocked |
 | 2026-09-01 | [Irrigation false critical alerts](2026-09-01-irrigation-false-critical-alerts.md) | Confirms stale Hydrawise zone state and shared-well pressure inference were creating false critical sprinkler alerts, then demotes zone-too-long and irrigation-pressure-low signals to diagnostic history |
 | 2026-08-30 | [Lighting reliability regression](2026-08-30-lighting-reliability-regression.md) | Fixes an overbroad paused-TV overnight shutoff guard, hardens the overnight sweep with retry/failure alerting, and escalates Casey closet motion-on failures when the Lutron command path does not respond |
