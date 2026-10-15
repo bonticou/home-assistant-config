@@ -1,0 +1,19 @@
+name: Codex HA Admin
+version: "0.1.0"
+slug: codex_ha_admin
+description: Scoped diagnostics and verified configuration deployment over a local Unix socket.
+arch: [amd64, aarch64]
+startup: application
+boot: auto
+init: false
+homeassistant_api: true
+hassio_api: true
+hassio_role: manager
+map:
+  - type: homeassistant_config
+    read_only: false
+    path: /config
+  - type: share
+    read_only: false
+options: {}
+schema: {}

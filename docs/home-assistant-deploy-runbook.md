@@ -8,6 +8,30 @@ Use this when deploying repo-owned Home Assistant YAML or local frontend files
 to the live HA instance. The goal is a repeatable path with write/read-back,
 config check, reload, and verification.
 
+## Direct Administrative MCP Path
+
+Added October 14, 2026. Prefer the verified SSH-backed administrative MCP for
+repo-owned YAML and local frontend deployments. See
+[Home Assistant administrative MCP](home-assistant-admin-mcp.md).
+
+1. Read the current live files and hashes with `ha_admin_file_read`.
+2. Reconcile live/repository differences before preparing a change. Live
+   automations may still use a monolithic file even though this repo is split.
+3. Use `ha_admin_deploy_prepare` with the expected live hashes and inspect its
+   diff. Prepared plans expire after one hour.
+4. Apply the reviewed plan with only the needed reload domains. The helper
+   checks existing configuration validity, journals originals, verifies each
+   write, validates the resulting configuration, and restores files on failure.
+5. Verify live behavior. Treat reload errors/timeouts as uncertain, not proof
+   that nothing happened. Restart-only changes still need a separately planned
+   restart; this MCP does not expose Core restart.
+6. Use `ha_admin_deploy_rollback` only after reviewing the affected deployment.
+   It refuses to overwrite files that have drifted from known versions.
+
+The browser path below remains the fallback if SSH/helper access is unavailable,
+and is still useful for visual checks. Never bypass host-key verification to
+recover a failed SSH connection.
+
 ## Preferred Browser Deploy Path
 
 Keep deployed files small enough for reliable browser-mediated write/read-back.
