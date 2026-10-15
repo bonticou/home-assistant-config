@@ -7,6 +7,8 @@ Before starting a new audit, read this index and the entries that sound related.
 The goal is to keep historical context in the repo so future work can build on
 prior evidence instead of rediscovering it in chat.
 
+- [2026-10-15 Master bathroom lighting](2026-10-15-master-bathroom-lighting.md): restored three Lutron dimmers, dashboard controls and whole-house shutoff coverage.
+
 ## How To Use This History
 
 For every meaningful diagnostic or reliability change, add a dated Markdown file

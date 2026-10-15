@@ -6,14 +6,14 @@ A human-readable map of the Home Assistant device model. The full audit dump is 
 
 - Base live snapshot: `2026-07-29T14:29:24.057042+00:00`; repository-defined entities reconciled through `2026-09-11`
 - Phone migration verified live: `2026-09-27` (initial registry observation: `2026-09-26`); unrelated base inventory was not refreshed
-- Scale: 231 devices, 2539 entities, 151 network clients
-- Lighting: 38 light entities, 35 Lutron Caséta entities
+- Scale: 234 devices, 2542 entities, 151 network clients
+- Lighting: 41 light entities, 38 Lutron Caséta entities
 
 | Thing | Count |
 | --- | --- |
-| Devices | 231 |
-| Entities | 2539 |
-| Control entities | 888 |
+| Devices | 234 |
+| Entities | 2542 |
+| Control entities | 891 |
 | Telemetry entities | 1141 |
 | Network clients | 151 |
 | Areas | 32 |
@@ -27,6 +27,16 @@ The replacement Companion phone is now named `TK iPhone 18 Pro`, with all 31 ent
 | TK iPhone 18 Pro | `iPhone19,2` | `device_tracker.trevor_iphone` | `notify.trevor_iphone` | 31 |
 
 Trevor's presence sources are the new phone and the existing `device_tracker.ipad_2`. An actionable test notification was received and its phone action callback confirmed. The separate disabled UniFi tracker `device_tracker.trevor_s_iphone_16_pro` remains a historical network record and is not used for presence.
+
+## Master Bathroom — October 15 reconciliation
+
+Three Lutron Diva dimmers were re-enabled and assigned to Master Bathroom:
+
+- `light.master_bathroom_main_lights`
+- `light.master_bathroom_vanity_lights`
+- `light.master_bathroom_shower_lights`
+
+The chandelier entry is a Pico remote, not a light output. Unrelated baseline records and area counts below have not been refreshed.
 
 ## Area Index
 

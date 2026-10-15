@@ -6126,6 +6126,66 @@
       "network_count": 0,
       "other_count": 0,
       "telemetry_count": 0
+    },
+    {
+      "area": "Master Bathroom",
+      "control_count": 1,
+      "device_id": "device_0c37502067aa",
+      "disabled_by": "",
+      "entities": [
+        "light.master_bathroom_main_lights"
+      ],
+      "entity_count": 1,
+      "entry_type": "",
+      "integrations": [
+        "lutron_caseta"
+      ],
+      "manufacturer": "Lutron Electronics Co., Inc",
+      "model": "DVRF-6L (DivaSmartDimmer)",
+      "name": "Master Bathroom Main Lights",
+      "network_count": 0,
+      "other_count": 0,
+      "telemetry_count": 0
+    },
+    {
+      "area": "Master Bathroom",
+      "control_count": 1,
+      "device_id": "device_f8f6cb8bda5e",
+      "disabled_by": "",
+      "entities": [
+        "light.master_bathroom_vanity_lights"
+      ],
+      "entity_count": 1,
+      "entry_type": "",
+      "integrations": [
+        "lutron_caseta"
+      ],
+      "manufacturer": "Lutron Electronics Co., Inc",
+      "model": "DVRF-6L (DivaSmartDimmer)",
+      "name": "Master Bathroom Vanity Lights",
+      "network_count": 0,
+      "other_count": 0,
+      "telemetry_count": 0
+    },
+    {
+      "area": "Master Bathroom",
+      "control_count": 1,
+      "device_id": "device_00c5c397a72f",
+      "disabled_by": "",
+      "entities": [
+        "light.master_bathroom_shower_lights"
+      ],
+      "entity_count": 1,
+      "entry_type": "",
+      "integrations": [
+        "lutron_caseta"
+      ],
+      "manufacturer": "Lutron Electronics Co., Inc",
+      "model": "DVRF-6L (DivaSmartDimmer)",
+      "name": "Master Bathroom Shower Lights",
+      "network_count": 0,
+      "other_count": 0,
+      "telemetry_count": 0
     }
   ],
   "entities": [
@@ -46788,6 +46848,54 @@
       "platform": "met",
       "role": "telemetry",
       "unit": ""
+    },
+    {
+      "area": "Master Bathroom",
+      "availability": "not_enriched",
+      "capability_keys": [],
+      "device_class": "",
+      "device_id": "device_0c37502067aa",
+      "disabled_by": "",
+      "domain": "light",
+      "entity_category": "",
+      "entity_id": "light.master_bathroom_main_lights",
+      "hidden_by": "",
+      "name": "Master Bathroom Main Lights",
+      "platform": "lutron_caseta",
+      "role": "control",
+      "unit": ""
+    },
+    {
+      "area": "Master Bathroom",
+      "availability": "not_enriched",
+      "capability_keys": [],
+      "device_class": "",
+      "device_id": "device_f8f6cb8bda5e",
+      "disabled_by": "",
+      "domain": "light",
+      "entity_category": "",
+      "entity_id": "light.master_bathroom_vanity_lights",
+      "hidden_by": "",
+      "name": "Master Bathroom Vanity Lights",
+      "platform": "lutron_caseta",
+      "role": "control",
+      "unit": ""
+    },
+    {
+      "area": "Master Bathroom",
+      "availability": "not_enriched",
+      "capability_keys": [],
+      "device_class": "",
+      "device_id": "device_00c5c397a72f",
+      "disabled_by": "",
+      "domain": "light",
+      "entity_category": "",
+      "entity_id": "light.master_bathroom_shower_lights",
+      "hidden_by": "",
+      "name": "Master Bathroom Shower Lights",
+      "platform": "lutron_caseta",
+      "role": "control",
+      "unit": ""
     }
   ],
   "generated_at": "2026-07-29T14:29:24.057042+00:00",
@@ -62715,7 +62823,7 @@
   "schema_version": 3,
   "summary": {
     "area_count": 32,
-    "device_count": 231,
+    "device_count": 234,
     "domain_counts": {
       "ai_task": 2,
       "alarm_control_panel": 1,
@@ -62734,7 +62842,7 @@
       "input_number": 22,
       "input_select": 3,
       "input_text": 30,
-      "light": 38,
+      "light": 41,
       "lock": 5,
       "media_player": 27,
       "notify": 2,
@@ -62753,7 +62861,7 @@
       "valve": 30,
       "weather": 1
     },
-    "entity_count": 2539,
+    "entity_count": 2542,
     "integration_count": 44,
     "integration_counts": {
       "airthings": 4,
@@ -62779,7 +62887,7 @@
       "input_select": 3,
       "input_text": 30,
       "lg_thinq": 27,
-      "lutron_caseta": 35,
+      "lutron_caseta": 38,
       "matter": 25,
       "met": 1,
       "mobile_app": 44,
@@ -62804,7 +62912,7 @@
     "network_client_count": 151,
     "orphan_entity_count": 844,
     "role_counts": {
-      "control": 888,
+      "control": 891,
       "network": 151,
       "other": 359,
       "telemetry": 1141
@@ -62822,5 +62930,14 @@
     ],
     "actionable_push_receipt": "Phone action callback confirmed after delivery test.",
     "legacy_network_tracker": "The separate disabled UniFi tracker remains historical and is not used for presence."
+  },
+  "bathroom_reconciliation": {
+    "entities": [
+      "light.master_bathroom_main_lights",
+      "light.master_bathroom_vanity_lights",
+      "light.master_bathroom_shower_lights"
+    ],
+    "scope": "Three rehomed Lutron dimmers enabled, renamed and assigned to Master Bathroom; unrelated snapshot not refreshed. Targeted device pseudonyms derived from entity names.",
+    "verified_at": "2026-10-15"
   }
 }

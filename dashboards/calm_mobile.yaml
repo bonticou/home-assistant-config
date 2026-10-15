@@ -7738,6 +7738,58 @@ views:
       - type: vertical-stack
         cards:
           - type: custom:mushroom-title-card
+            title: Master Bathroom
+
+          - type: grid
+            columns: 2
+            square: false
+            cards:
+              - type: custom:mushroom-light-card
+                entity: light.master_bathroom_main_lights
+                name: Main
+                icon: mdi:circle
+                tap_action:
+                  <<: *lights_transition_tap_action
+                  data:
+                    light_entity: light.master_bathroom_main_lights
+                    transition_seconds: 3
+                show_brightness_control: true
+                collapsible_controls: true
+                use_light_color: false
+                card_mod:
+                  style: *lights_button_style
+              - type: custom:mushroom-light-card
+                entity: light.master_bathroom_vanity_lights
+                name: Vanity
+                icon: mdi:circle
+                tap_action:
+                  <<: *lights_transition_tap_action
+                  data:
+                    light_entity: light.master_bathroom_vanity_lights
+                    transition_seconds: 3
+                show_brightness_control: true
+                collapsible_controls: true
+                use_light_color: false
+                card_mod:
+                  style: *lights_button_style
+              - type: custom:mushroom-light-card
+                entity: light.master_bathroom_shower_lights
+                name: Shower
+                icon: mdi:circle
+                tap_action:
+                  <<: *lights_transition_tap_action
+                  data:
+                    light_entity: light.master_bathroom_shower_lights
+                    transition_seconds: 3
+                show_brightness_control: true
+                collapsible_controls: true
+                use_light_color: false
+                card_mod:
+                  style: *lights_button_style
+
+      - type: vertical-stack
+        cards:
+          - type: custom:mushroom-title-card
             title: Mudroom, etc.
 
           - type: custom:mushroom-light-card
