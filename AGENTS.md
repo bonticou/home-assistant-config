@@ -43,6 +43,32 @@ reports.
 
 ---
 
+# Home Assistant Access: MCP First
+
+Use MCP by default for live Home Assistant diagnostics and deployments. After
+reviewing the required audit history, prefer `homeassistant_admin` tools for
+health, automation discovery, retained traces, bounded logs, live configuration
+reads, configuration checks, and deployment preparation/application/rollback.
+Use the native `homeassistant` MCP for exposed entity states and supported device
+actions within the user's requested scope.
+
+Follow `docs/home-assistant-admin-mcp.md` and
+`docs/home-assistant-deploy-runbook.md`. Read live files and hashes before preparing
+a deployment, reconcile repository/live differences, review the prepared diff,
+and apply only the authorized change with the smallest relevant reloads. Verify
+live behavior afterward; a successful write does not prove a reload or a
+restart-only change has taken effect. MCP does not restart Core automatically.
+
+Use the browser for visual dashboard QA, operations not covered by MCP, or when
+direct access is unavailable. If the administrative tools are missing from a
+chat, check their registration and the documented `tools/ha_admin_mcp.py` CLI
+before falling back to browser-mediated diagnostics or deployment. Preserve
+SSH host-key verification and keep credentials and raw diagnostic output out of
+Git. This access preference does not authorize unrelated device actions or
+configuration changes.
+
+---
+
 # Design Philosophy
 
 The user interface should feel **calm, modern, and minimal**, inspired by the design language used in Apple products.
@@ -278,8 +304,9 @@ include split, run local YAML parsing and Home Assistant config validation
 before restart, and verify the live file read-back when deploying through File
 Editor or any browser-mediated path.
 
-For live deployment, follow `docs/home-assistant-deploy-runbook.md`. Do not run
-the browser deploy helper from a normal dashboard page; it must run from a
+For live deployment, follow the MCP-first path in
+`docs/home-assistant-deploy-runbook.md`. When browser fallback is necessary, do
+not run the browser deploy helper from a normal dashboard page; it must run from a
 mounted File Editor ingress iframe or it will hit the wrong `api/save` endpoint.
 If local `homeassistant.local` is disconnected or File Editor does not mount,
 try the Nabu Casa Remote UI File Editor route and verify `hass.connected ===
