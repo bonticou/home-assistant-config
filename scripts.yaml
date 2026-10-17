@@ -676,9 +676,6 @@ lights_bedtime_scene:
           - light.exterior_yard_lights
           - light.ratgdo32_4536e8_light
           - light.ratgdo32disco_c26634_light
-          - light.master_bathroom_main_lights
-          - light.master_bathroom_vanity_lights
-          - light.master_bathroom_shower_lights
           - light.master_casey_s_closet
           - light.wynn_s_room_wynn_s_room_closet_light
         transition: 8

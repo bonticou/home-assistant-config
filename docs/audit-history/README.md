@@ -9,6 +9,8 @@ prior evidence instead of rediscovering it in chat.
 
 - [2026-10-15 Master bathroom lighting](2026-10-15-master-bathroom-lighting.md): restored three Lutron dimmers, dashboard controls and whole-house shutoff coverage.
 
+- [2026-10-16 Bedtime preserves bathroom](2026-10-16-bedtime-preserve-bathroom.md): removed bathroom targets from Bedtime after user clarification.
+
 ## How To Use This History
 
 For every meaningful diagnostic or reliability change, add a dated Markdown file
