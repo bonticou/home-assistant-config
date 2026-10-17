@@ -11,6 +11,8 @@ prior evidence instead of rediscovering it in chat.
 
 - [2026-10-16 Bedtime preserves bathroom](2026-10-16-bedtime-preserve-bathroom.md): removed bathroom targets from Bedtime after user clarification.
 
+- [2026-10-16 Lights layout trial reverted](2026-10-16-lights-layout-trial-reverted.md): user rejected oversized room cards; exact prior dashboard restored.
+
 ## How To Use This History
 
 For every meaningful diagnostic or reliability change, add a dated Markdown file
