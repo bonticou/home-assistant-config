@@ -7,13 +7,13 @@ A recording-focused inventory for Home Assistant Recorder. This sits next to the
 | Thing | Count |
 | --- | --- |
 | Configured retention | 30 days |
-| Entities reviewed | 2539 |
-| Recorder candidates | 1537 |
-| Excluded by Recorder config | 651 |
-| Disabled in registry | 351 |
-| Low stateful-need candidates | 162 |
+| Entities reviewed | 2584 |
+| Recorder candidates | 1568 |
+| Excluded by Recorder config | 659 |
+| Disabled in registry | 357 |
+| Low stateful-need candidates | 170 |
 | Medium stateful-need candidates | 494 |
-| High stateful-need candidates | 502 |
+| High stateful-need candidates | 512 |
 
 ## Data Quality
 
@@ -36,28 +36,28 @@ A recording-focused inventory for Home Assistant Recorder. This sits next to the
 | --- | --- | --- | --- | --- | --- | --- |
 | derived_summary_or_dashboard_state | 141 | 141 | 0 | 0 |  |  |
 | camera_or_event_state | 17 | 17 | 0 | 0 |  |  |
-| integration_config_or_update_state | 2 | 2 | 0 | 0 |  |  |
+| integration_config_or_update_state | 8 | 8 | 0 | 0 |  |  |
 | infrastructure_health_diagnostic | 2 | 2 | 0 | 0 |  |  |
+| signal_quality_diagnostic | 2 | 2 | 0 | 0 |  |  |
 | operational_state_history | 422 | 0 | 422 | 0 |  |  |
 | event_or_safety_history | 417 | 0 | 0 | 417 |  |  |
-| uncategorized | 379 | 0 | 0 | 0 |  |  |
-| physical_timeseries | 85 | 0 | 0 | 85 |  |  |
+| uncategorized | 392 | 0 | 0 | 0 |  |  |
+| physical_timeseries | 95 | 0 | 0 | 95 |  |  |
 | infrastructure_or_camera_misc | 72 | 0 | 72 | 0 |  |  |
-| signal_quality_diagnostic | 0 | 0 | 0 | 0 |  |  |
 
 ## Domain Review
 
 | Domain | Recorder candidates | Low | Medium | High | Unknown | DB rows |
 | --- | --- | --- | --- | --- | --- | --- |
-| sensor | 430 | 104 | 20 | 217 | 89 |  |
-| binary_sensor | 281 | 4 | 49 | 146 | 82 |  |
+| sensor | 444 | 106 | 20 | 227 | 91 |  |
+| binary_sensor | 287 | 4 | 49 | 146 | 88 |  |
 | automation | 191 | 14 | 177 | 0 | 0 |  |
 | script | 154 | 10 | 144 | 0 | 0 |  |
 | input_datetime | 92 | 5 | 0 | 13 | 74 |  |
+| switch | 81 | 8 | 0 | 63 | 10 |  |
 | device_tracker | 74 | 0 | 74 | 0 | 0 |  |
-| switch | 73 | 2 | 0 | 63 | 8 |  |
 | input_boolean | 46 | 2 | 0 | 8 | 36 |  |
-| light | 38 | 0 | 3 | 2 | 33 |  |
+| light | 41 | 0 | 3 | 2 | 36 |  |
 | input_text | 30 | 4 | 0 | 5 | 21 |  |
 | valve | 30 | 0 | 0 | 30 | 0 |  |
 | media_player | 27 | 0 | 27 | 0 | 0 |  |

@@ -7602,6 +7602,23 @@ views:
                 use_light_color: false
                 card_mod:
                   style: *lights_button_style
+              - type: custom:button-card
+                entity: switch.office_uplights
+                name: Uplights
+                label: |
+                  [[[
+                    if (!entity) return 'Unavailable';
+                    if (entity.state === 'on') return 'On';
+                    if (entity.state === 'off') return 'Off';
+                    return entity.state;
+                  ]]]
+                show_icon: false
+                show_label: true
+                tap_action:
+                  action: toggle
+                hold_action:
+                  action: more-info
+                styles: *lights_switch_button_styles
 
       - type: vertical-stack
         cards:

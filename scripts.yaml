@@ -603,6 +603,7 @@ lights_all_off_scene:
       data:
         entity_id:
           - switch.great_room_uplights
+          - switch.office_uplights
           - switch.flower_lamp
           - switch.garage_garage_lights
           - switch.exterior_mud_room_stairs

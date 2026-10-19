@@ -15,6 +15,8 @@ prior evidence instead of rediscovering it in chat.
 
 - [2026-10-16 Compact Lights room layout](2026-10-16-compact-lights-room-layout.md): continued improvement after user clarification; compact grouped controls and inline brightness.
 
+- [2026-10-18 Office Uplights](2026-10-18-office-uplights.md): TP-Link discovery, compact control, All Off and existing lighting alert coverage.
+
 ## How To Use This History
 
 For every meaningful diagnostic or reliability change, add a dated Markdown file

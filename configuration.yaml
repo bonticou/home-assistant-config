@@ -2980,6 +2980,7 @@ template:
              and states('sensor.vacation_activity_window') in ['evening', 'pre_sunrise'] %}
           {% set lighting_switch_count =
             (1 if is_state('switch.garage_garage_lights', 'on') else 0)
+            + (1 if is_state('switch.office_uplights', 'on') else 0)
             + (1 if is_state('switch.great_room_uplights', 'on') and not vacation_window_active else 0)
             + (1 if is_state('switch.exterior_mud_room_stairs', 'on')
                    and not vacation_window_active else 0) %}
@@ -3030,6 +3031,9 @@ template:
             {% if is_state('switch.great_room_uplights', 'on') and not vacation_window_active %}
               {% set ns.names = ns.names + ['Great Room uplights'] %}
             {% endif %}
+            {% if is_state('switch.office_uplights', 'on') %}
+              {% set ns.names = ns.names + ['Office uplights'] %}
+            {% endif %}
             {% if is_state('switch.garage_garage_lights', 'on') %}
               {% set ns.names = ns.names + ['Garage Light'] %}
             {% endif %}
@@ -3078,6 +3082,9 @@ template:
             {% if is_state('switch.great_room_uplights', 'on') and not vacation_window_active %}
               {% set ns.ids = ns.ids + ['switch.great_room_uplights'] %}
             {% endif %}
+            {% if is_state('switch.office_uplights', 'on') %}
+              {% set ns.ids = ns.ids + ['switch.office_uplights'] %}
+            {% endif %}
             {% if is_state('switch.garage_garage_lights', 'on') %}
               {% set ns.ids = ns.ids + ['switch.garage_garage_lights'] %}
             {% endif %}
@@ -3099,6 +3106,7 @@ template:
           ] %}
           {% set switch_lights = [
             'switch.great_room_uplights',
+            'switch.office_uplights',
             'switch.flower_lamp',
             'switch.garage_garage_lights',
             'switch.exterior_mud_room_stairs'
@@ -3133,6 +3141,7 @@ template:
             ] %}
             {% set switch_lights = {
               'switch.great_room_uplights': 'Great Room uplights',
+              'switch.office_uplights': 'Office uplights',
               'switch.flower_lamp': 'Flower Lamp',
               'switch.garage_garage_lights': 'Garage light',
               'switch.exterior_mud_room_stairs': 'Mudroom exterior stairs'
@@ -3161,6 +3170,7 @@ template:
             ] %}
             {% set switch_lights = [
               'switch.great_room_uplights',
+              'switch.office_uplights',
               'switch.flower_lamp',
               'switch.garage_garage_lights',
               'switch.exterior_mud_room_stairs'

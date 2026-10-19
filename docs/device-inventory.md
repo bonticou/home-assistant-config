@@ -6,13 +6,13 @@ A human-readable map of the Home Assistant device model. The full audit dump is 
 
 - Base live snapshot: `2026-07-29T14:29:24.057042+00:00`; repository-defined entities reconciled through `2026-09-11`
 - Phone migration verified live: `2026-09-27` (initial registry observation: `2026-09-26`); unrelated base inventory was not refreshed
-- Scale: 234 devices, 2542 entities, 151 network clients
+- Scale: 236 devices, 2584 entities, 151 network clients
 - Lighting: 41 light entities, 38 Lutron Caséta entities
 
 | Thing | Count |
 | --- | --- |
-| Devices | 234 |
-| Entities | 2542 |
+| Devices | 236 |
+| Entities | 2584 |
 | Control entities | 891 |
 | Telemetry entities | 1141 |
 | Network clients | 151 |
@@ -401,3 +401,9 @@ The chandelier entry is a Pico remote, not a light output. Unrelated baseline re
 ## Irrigation notification helper
 
 `input_text.irrigation_last_connectivity_alert_key` stores the session or scheduled-cycle key after a connection warning, so reloads do not repeat the same warning. Added and loaded on 2026-09-11.
+
+## Office Uplights — October 18 reconciliation
+
+Added the TP-Link EP25 Office Uplights and its registry entities, assigned to Office. Its main control is `switch.office_uplights`. Included in Lights, All Off, away lighting alerts, and overnight checks. Bedtime and Evening retain existing office behavior.
+
+The separately discovered Family Room Uplight was also added to HA and inventoried; it is not the Office plug and received no new lighting rules. This is a targeted reconciliation, not a full inventory refresh.
