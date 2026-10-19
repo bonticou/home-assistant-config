@@ -2943,6 +2943,9 @@ template:
         icon: mdi:lightbulb-alert-outline
         state: >
           {% set exempt = namespace(entity_ids=[]) %}
+          {% if is_state('input_boolean.vacation_mode', 'on') and state_attr('sun.sun', 'elevation') | float(90) < 0 %}
+            {% set exempt.entity_ids = exempt.entity_ids + ['light.front_foyer_chandelier'] %}
+          {% endif %}
           {% set exempt.entity_ids = exempt.entity_ids + ['light.wynn_s_room_chandelier'] %}
           {% if is_state('binary_sensor.front_stairs_schedule_active', 'on') %}
             {% set exempt.entity_ids = exempt.entity_ids + ['light.stairs_front_stairs'] %}
@@ -2994,6 +2997,9 @@ template:
               'light.wynn_s_room_wynn_s_room_closet_light': "Wynn's closet"
             } %}
             {% set exempt = namespace(entity_ids=[]) %}
+            {% if is_state('input_boolean.vacation_mode', 'on') and state_attr('sun.sun', 'elevation') | float(90) < 0 %}
+              {% set exempt.entity_ids = exempt.entity_ids + ['light.front_foyer_chandelier'] %}
+            {% endif %}
             {% set exempt.entity_ids = exempt.entity_ids + ['light.wynn_s_room_chandelier'] %}
             {% if is_state('binary_sensor.front_stairs_schedule_active', 'on') %}
               {% set exempt.entity_ids = exempt.entity_ids + ['light.stairs_front_stairs'] %}
@@ -3046,6 +3052,9 @@ template:
             {{ ns.names | join('||') }}
           entity_ids: >
             {% set exempt = namespace(entity_ids=[]) %}
+            {% if is_state('input_boolean.vacation_mode', 'on') and state_attr('sun.sun', 'elevation') | float(90) < 0 %}
+              {% set exempt.entity_ids = exempt.entity_ids + ['light.front_foyer_chandelier'] %}
+            {% endif %}
             {% set exempt.entity_ids = exempt.entity_ids + ['light.wynn_s_room_chandelier'] %}
             {% if is_state('binary_sensor.front_stairs_schedule_active', 'on') %}
               {% set exempt.entity_ids = exempt.entity_ids + ['light.stairs_front_stairs'] %}

@@ -1351,6 +1351,15 @@ vacation_activity_apply:
                 entity_id: switch.exterior_mud_room_stairs
         - choose:
             - conditions:
+                - condition: template
+                  value_template: "{{ window == 'off' and (elevation | float(90)) < 0 }}"
+              sequence:
+                - action: light.turn_on
+                  data:
+                    entity_id: light.front_foyer_chandelier
+                    brightness_pct: 20
+                    transition: 30
+            - conditions:
                 - condition: state
                   entity_id: binary_sensor.foyer_chandelier_schedule_active
                   state: "on"

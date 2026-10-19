@@ -19,6 +19,8 @@ prior evidence instead of rediscovering it in chat.
 
 - [2026-10-18 Office vacation lighting](2026-10-18-office-vacation-lighting.md): both office controls join vacation simulation, cleanup, and alert exemptions; ordinary away behavior preserved.
 
+- [2026-10-18 Vacation foyer overnight](2026-10-18-vacation-foyer-overnight.md): 20% quiet-hours glow, normal-scheduler ownership guard, and intentional-light alert exemption.
+
 ## How To Use This History
 
 For every meaningful diagnostic or reliability change, add a dated Markdown file

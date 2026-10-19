@@ -375,6 +375,9 @@
       id: schedule_off
   conditions:
     - condition: state
+      entity_id: input_boolean.vacation_mode
+      state: "off"
+    - condition: state
       entity_id: input_boolean.interior_lights_guest_override
       state: "off"
   actions:
