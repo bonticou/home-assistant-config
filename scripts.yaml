@@ -1033,6 +1033,7 @@ vacation_mode_end:
     - action: light.turn_off
       data:
         entity_id:
+          - light.office_office_main_lights
           - light.family_room_main_lights_1
           - light.family_room_main_lights_2
           - light.family_room_main_lights_3
@@ -1047,6 +1048,7 @@ vacation_mode_end:
     - action: switch.turn_off
       data:
         entity_id:
+          - switch.office_uplights
           - switch.great_room_uplights
           - switch.exterior_mud_room_stairs
     - choose:
@@ -1134,6 +1136,7 @@ vacation_activity_apply:
                     - action: light.turn_on
                       data:
                         entity_id:
+                          - light.office_office_main_lights
                           - light.family_room_main_lights_1
                           - light.family_room_main_lights_2
                           - light.family_room_main_lights_3
@@ -1142,6 +1145,7 @@ vacation_activity_apply:
                     - action: switch.turn_on
                       data:
                         entity_id:
+                          - switch.office_uplights
                           - switch.great_room_uplights
                 - sequence:
                     - action: light.turn_on
@@ -1198,6 +1202,7 @@ vacation_activity_apply:
                     - action: light.turn_on
                       data:
                         entity_id:
+                          - light.office_office_main_lights
                           - light.family_room_main_lights_1
                           - light.family_room_main_lights_2
                           - light.family_room_main_lights_3
@@ -1206,6 +1211,7 @@ vacation_activity_apply:
                     - action: switch.turn_on
                       data:
                         entity_id:
+                          - switch.office_uplights
                           - switch.great_room_uplights
                 - sequence:
                     - action: light.turn_on
@@ -1262,6 +1268,7 @@ vacation_activity_apply:
                     - action: light.turn_on
                       data:
                         entity_id:
+                          - light.office_office_main_lights
                           - light.family_room_main_lights_1
                           - light.family_room_main_lights_2
                           - light.family_room_main_lights_3
@@ -1270,6 +1277,7 @@ vacation_activity_apply:
                     - action: switch.turn_on
                       data:
                         entity_id:
+                          - switch.office_uplights
                           - switch.great_room_uplights
                 - sequence:
                     - action: light.turn_off
@@ -1316,6 +1324,7 @@ vacation_activity_apply:
         - action: light.turn_off
           data:
             entity_id:
+              - light.office_office_main_lights
               - light.family_room_main_lights_1
               - light.family_room_main_lights_2
               - light.family_room_main_lights_3
@@ -1330,6 +1339,7 @@ vacation_activity_apply:
         - action: switch.turn_off
           data:
             entity_id:
+              - switch.office_uplights
               - switch.great_room_uplights
         - if:
             - condition: state

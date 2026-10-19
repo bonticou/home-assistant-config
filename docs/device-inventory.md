@@ -404,6 +404,6 @@ The chandelier entry is a Pico remote, not a light output. Unrelated baseline re
 
 ## Office Uplights — October 18 reconciliation
 
-Added the TP-Link EP25 Office Uplights and its registry entities, assigned to Office. Its main control is `switch.office_uplights`. Included in Lights, All Off, away lighting alerts, and overnight checks. Bedtime and Evening retain existing office behavior.
+Added the TP-Link EP25 Office Uplights and its registry entities, assigned to Office. Its main control is `switch.office_uplights`. Included in Lights, All Off, away lighting alerts, and overnight checks. Bedtime and normal Evening retain existing office behavior. Vacation simulation includes both Office Main and Uplights during its active windows, with cleanup at window end and when vacation ends.
 
 The separately discovered Family Room Uplight was also added to HA and inventoried; it is not the Office plug and received no new lighting rules. This is a targeted reconciliation, not a full inventory refresh.

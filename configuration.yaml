@@ -2955,6 +2955,7 @@ template:
              and states('sensor.vacation_activity_window') in ['evening', 'pre_sunrise'] %}
             {% set exempt.entity_ids = exempt.entity_ids + [
               'light.front_foyer_chandelier',
+              'light.office_office_main_lights',
               'light.family_room_main_lights_1',
               'light.family_room_main_lights_2',
               'light.family_room_main_lights_3',
@@ -2980,7 +2981,7 @@ template:
              and states('sensor.vacation_activity_window') in ['evening', 'pre_sunrise'] %}
           {% set lighting_switch_count =
             (1 if is_state('switch.garage_garage_lights', 'on') else 0)
-            + (1 if is_state('switch.office_uplights', 'on') else 0)
+            + (1 if is_state('switch.office_uplights', 'on') and not vacation_window_active else 0)
             + (1 if is_state('switch.great_room_uplights', 'on') and not vacation_window_active else 0)
             + (1 if is_state('switch.exterior_mud_room_stairs', 'on')
                    and not vacation_window_active else 0) %}
@@ -3005,6 +3006,7 @@ template:
                and states('sensor.vacation_activity_window') in ['evening', 'pre_sunrise'] %}
               {% set exempt.entity_ids = exempt.entity_ids + [
                 'light.front_foyer_chandelier',
+                'light.office_office_main_lights',
                 'light.family_room_main_lights_1',
                 'light.family_room_main_lights_2',
                 'light.family_room_main_lights_3',
@@ -3031,7 +3033,7 @@ template:
             {% if is_state('switch.great_room_uplights', 'on') and not vacation_window_active %}
               {% set ns.names = ns.names + ['Great Room uplights'] %}
             {% endif %}
-            {% if is_state('switch.office_uplights', 'on') %}
+            {% if is_state('switch.office_uplights', 'on') and not vacation_window_active %}
               {% set ns.names = ns.names + ['Office uplights'] %}
             {% endif %}
             {% if is_state('switch.garage_garage_lights', 'on') %}
@@ -3056,6 +3058,7 @@ template:
                and states('sensor.vacation_activity_window') in ['evening', 'pre_sunrise'] %}
               {% set exempt.entity_ids = exempt.entity_ids + [
                 'light.front_foyer_chandelier',
+                'light.office_office_main_lights',
                 'light.family_room_main_lights_1',
                 'light.family_room_main_lights_2',
                 'light.family_room_main_lights_3',
@@ -3082,7 +3085,7 @@ template:
             {% if is_state('switch.great_room_uplights', 'on') and not vacation_window_active %}
               {% set ns.ids = ns.ids + ['switch.great_room_uplights'] %}
             {% endif %}
-            {% if is_state('switch.office_uplights', 'on') %}
+            {% if is_state('switch.office_uplights', 'on') and not vacation_window_active %}
               {% set ns.ids = ns.ids + ['switch.office_uplights'] %}
             {% endif %}
             {% if is_state('switch.garage_garage_lights', 'on') %}

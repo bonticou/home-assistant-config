@@ -17,6 +17,8 @@ prior evidence instead of rediscovering it in chat.
 
 - [2026-10-18 Office Uplights](2026-10-18-office-uplights.md): TP-Link discovery, compact control, All Off and existing lighting alert coverage.
 
+- [2026-10-18 Office vacation lighting](2026-10-18-office-vacation-lighting.md): both office controls join vacation simulation, cleanup, and alert exemptions; ordinary away behavior preserved.
+
 ## How To Use This History
 
 For every meaningful diagnostic or reliability change, add a dated Markdown file
