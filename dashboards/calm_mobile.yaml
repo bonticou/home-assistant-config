@@ -11131,18 +11131,6 @@ views:
               opacity: 0.65 !important;
             }
 
-      - type: custom:mushroom-chips-card
-        alignment: left
-        chips:
-          - type: template
-            entity: sensor.wine_cave_dew_point
-            icon: mdi:water-thermometer
-            icon_color: amber
-            content: >-
-              {{ (states('sensor.wine_cave_dew_point') | float | round(1) ~ '°F') if is_number(states('sensor.wine_cave_dew_point')) else '—' }} dew point
-            tap_action:
-              action: more-info
-
       - type: custom:wine-trend-disclosure-card
         title: 24-hour trends
         range: 24h
@@ -11160,57 +11148,6 @@ views:
         range: 30d
         temperature_entity: sensor.wine_temperature_30d_stats
         humidity_entity: sensor.wine_humidity_30d_stats
-
-      - type: custom:mushroom-chips-card
-        alignment: left
-        chips:
-          - type: template
-            entity: sensor.wine_cave_next_charcoal_filter_due
-            icon: mdi:air-filter
-            icon_color: >-
-              {{ 'orange' if is_state('binary_sensor.wine_cave_charcoal_filter_due', 'on') else 'teal' }}
-            content: >-
-              {% set due = states('sensor.wine_cave_next_charcoal_filter_due') %}
-              {{ 'Charcoal ' ~ due if due not in ['unknown', 'unavailable', ''] else 'Charcoal pending' }}
-            tap_action:
-              action: more-info
-          - type: template
-            entity: sensor.wine_cave_next_cleaning_due
-            icon: mdi:spray-bottle
-            icon_color: >-
-              {{ 'orange' if is_state('binary_sensor.wine_cave_cabinet_cleaning_due', 'on') else 'teal' }}
-            content: >-
-              {% set due = states('sensor.wine_cave_next_cleaning_due') %}
-              {{ 'Cleaning ' ~ due if due not in ['unknown', 'unavailable', ''] else 'Cleaning pending' }}
-            tap_action:
-              action: more-info
-          - type: template
-            entity: sensor.wine_cave_maintenance_status
-            icon: mdi:calendar-check-outline
-            icon_color: >-
-              {{ 'orange' if is_state('binary_sensor.wine_cave_maintenance_due', 'on') else 'blue-grey' }}
-            content: >-
-              {{ states('sensor.wine_cave_maintenance_status') }}
-            tap_action:
-              action: more-info
-          - type: template
-            entity: input_datetime.wine_cave_parts_labor_warranty_review
-            icon: mdi:shield-check-outline
-            icon_color: blue
-            content: >-
-              Warranty {{ states('input_datetime.wine_cave_parts_labor_warranty_review') }}
-            tap_action:
-              action: more-info
-          - type: template
-            entity: input_boolean.wine_cave_rating_plate_captured
-            icon: >-
-              {{ 'mdi:tag-check-outline' if is_state('input_boolean.wine_cave_rating_plate_captured', 'on') else 'mdi:tag-outline' }}
-            icon_color: >-
-              {{ 'teal' if is_state('input_boolean.wine_cave_rating_plate_captured', 'on') else 'amber' }}
-            content: >-
-              {{ 'Serial captured' if is_state('input_boolean.wine_cave_rating_plate_captured', 'on') else 'Serial pending' }}
-            tap_action:
-              action: more-info
 
       - type: custom:mushroom-title-card
         title: Collection snapshot
