@@ -410,4 +410,4 @@ The separately discovered Family Room Uplight was also added to HA and inventori
 
 ## Generac — October 19 reconciliation
 
-Connected Generac Generator (G0072610) through the HACS Generac MobileLink integration. Added 26 registry entities; this is a targeted update, not a full refresh. Login is retained only by the integration. Notification recommendations are in `docs/generac-notifications.md`; no generator notification automations have been deployed yet.
+Connected Generac Generator (G0072610) through the HACS Generac MobileLink integration. Added 26 registry entities; this is a targeted update, not a full refresh. Login is retained only by the integration. Enabled notification rules and exact previews are in `docs/generac-notifications.md`.

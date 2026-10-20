@@ -23,6 +23,8 @@ prior evidence instead of rediscovering it in chat.
 
 - [2026-10-19 Generac connection](2026-10-19-generac-connection.md): MobileLink connected, telemetry verified, notification recommendations and limitations documented.
 
+- [2026-10-19 Generac notifications](2026-10-19-generac-notifications.md): four categories enabled with durable incident guards, exact previews, and live trace verification.
+
 ## How To Use This History
 
 For every meaningful diagnostic or reliability change, add a dated Markdown file

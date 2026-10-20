@@ -1,0 +1,133 @@
+- id: generac_status_notifications
+  alias: "Generator — Status and Maintenance Notifications"
+  description: Cloud-reported events only; durable incident timestamps suppress repeats across restarts. Routine exercises remain quiet.
+  mode: single
+  max_exceeded: silent
+  triggers:
+    - trigger: homeassistant
+      event: start
+    - trigger: event
+      event_type: automation_reloaded
+    - trigger: time_pattern
+      minutes: "/1"
+  actions:
+    - variables:
+        status: "{{ states('sensor.generac_generator_generac_5053300_status') }}"
+        connection: "{{ states('binary_sensor.generac_generator_generac_5053300_is_connected') }}"
+        warning: "{{ states('binary_sensor.generac_generator_generac_5053300_show_warning') }}"
+        maintenance: "{{ states('binary_sensor.generac_generator_generac_5053300_has_maintenance_alert') }}"
+        vendor_text: "{{ states('sensor.generac_generator_generac_5053300_status_text') | trim }}"
+        now_ts: "{{ as_timestamp(now()) | int }}"
+        monitoring_lost: "{{ connection != 'on' or status in ['unknown', 'unavailable', 'Unknown', 'Offline', 'Communication Issue'] }}"
+        needs_attention: "{{ status in ['Warning', 'Stopped'] or warning == 'on' }}"
+    - repeat:
+        for_each:
+          - monitoring
+          - attention
+          - run
+          - maintenance
+        sequence:
+          - variables:
+              kind: "{{ repeat.item }}"
+              helper: "{{ 'input_text.generac_' ~ repeat.item ~ '_incident' }}"
+              # Keep the last successfully notified state/time separate from the
+              # currently observed candidate. Never mark sent before dispatch.
+              record: "{{ states('input_text.generac_' ~ repeat.item ~ '_incident') | from_json({}) }}"
+          - variables:
+              valid: >-
+                {{ kind == 'monitoring' or
+                   (not monitoring_lost and
+                    status in ['Ready', 'Running', 'Exercising', 'Warning', 'Stopped'] and
+                    warning in ['on', 'off'] and maintenance in ['on', 'off']) }}
+              active: >-
+                {{ monitoring_lost if kind == 'monitoring' else
+                   needs_attention if kind == 'attention' else
+                   status == 'Running' if kind == 'run' else maintenance == 'on' }}
+              sent: "{{ record.get('sent', 'clear') }}"
+              notified_at: "{{ record.get('notified_at', 0) | int(0) }}"
+          - if:
+              - condition: template
+                value_template: "{{ valid }}"
+            then:
+              - variables:
+                  candidate: "{{ 'active' if active else 'clear' }}"
+                  since: >-
+                    {{ record.get('since', now_ts) | int(now_ts)
+                       if record.get('candidate') == ('active' if active else 'clear') else now_ts }}
+                  # Four minutes smooths cloud polling; monitoring loss must
+                  # persist 30 minutes. Recovery also requires stable data.
+                  wait_seconds: "{{ 1800 if kind == 'monitoring' and active else 240 }}"
+              - if:
+                  - condition: template
+                    value_template: "{{ record.get('candidate') != candidate }}"
+                then:
+                  - action: input_text.set_value
+                    target:
+                      entity_id: "{{ helper }}"
+                    data:
+                      value: "{{ dict(candidate=candidate, since=since, sent=sent, notified_at=notified_at) | to_json }}"
+              - if:
+                  - condition: template
+                    value_template: >-
+                      {{ now_ts - since >= wait_seconds and candidate != sent and
+                         (kind != 'maintenance' or not active or
+                          (9 <= now().hour < 20 and not needs_attention)) and
+                         (kind != 'run' or (active and not needs_attention) or (not active and status == 'Ready')) }}
+                then:
+                  - variables:
+                      send_message: "{{ active or kind in ['run', 'monitoring'] }}"
+                      detail: >-
+                        {{ vendor_text if vendor_text not in ['', 'unknown', 'unavailable', 'Unknown',
+                           'The generator is ready to run', 'Ready to run'] else '' }}
+                      title: >-
+                        {% if kind == 'attention' %}⚠️ Generator needs attention
+                        {% elif kind == 'maintenance' %}🔧 Generator reports maintenance due
+                        {% elif kind == 'run' and active %}⚡ Generator is running
+                        {% elif kind == 'run' %}✅ Generator ready again
+                        {% elif active %}📡 Generator monitoring lost
+                        {% else %}✅ Generator monitoring restored{% endif %}
+                      message: >-
+                        {% if kind == 'attention' %}
+                          {{ 'Generac reports a warning.' if warning == 'on' and status not in ['Warning', 'Stopped'] else 'Generac reports ' ~ (status | lower) ~ '.' }}{% if detail %} {{ detail }}{% endif %} Check Mobile Link for details.
+                        {% elif kind == 'maintenance' %}
+                          Generac has flagged maintenance.{% if detail %} {{ detail }}{% else %} The connection hasn't provided the specific task.{% endif %} Check Mobile Link before arranging service.
+                        {% elif kind == 'run' and active %}
+                          Generac reports the generator is running, rather than exercising. This connection doesn't confirm whether the house has transferred to generator power.
+                        {% elif kind == 'run' %}
+                          Generac now reports Ready to run after the running alert. This connection doesn't confirm whether utility power has been restored.
+                        {% elif active %}
+                          Home Assistant hasn't had a connected, usable generator status for 30 minutes. This means monitoring is unavailable; it does not confirm a generator fault. Check Mobile Link.
+                        {% else %}
+                          Home Assistant is receiving generator status again. Current reported status: {{ status }}.
+                        {% endif %}
+                  - if:
+                      - condition: template
+                        value_template: "{{ send_message }}"
+                    then:
+                      - action: script.notify_trevor_phone
+                        data:
+                          title: "{{ title | trim }}"
+                          message: "{{ message | trim }}"
+                          data:
+                            tag: "{{ 'generac-' ~ kind }}"
+                            group: generator
+                            url: https://app.mobilelinkgen.com/
+                            recent: true
+                            history: recent
+                  - action: input_text.set_value
+                    target:
+                      entity_id: "{{ helper }}"
+                    data:
+                      value: "{{ dict(candidate=candidate, since=since, sent=candidate, notified_at=(now_ts if send_message else notified_at)) | to_json }}"
+            else:
+              # Unknown data breaks confirmation time but preserves the sent
+              # incident, preventing a reconnect from duplicating an alert.
+              - if:
+                  - condition: template
+                    value_template: "{{ record.get('candidate', 'unknown') != 'unknown' }}"
+                then:
+                  - action: input_text.set_value
+                    target:
+                      entity_id: "{{ helper }}"
+                    data:
+                      value: "{{ dict(candidate='unknown', since=now_ts, sent=sent, notified_at=notified_at) | to_json }}"

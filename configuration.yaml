@@ -889,6 +889,22 @@ input_datetime:
     has_date: true
     has_time: true
 input_text:
+  generac_monitoring_incident:
+    name: Generac Monitoring Incident
+    max: 255
+    # Restored JSON: candidate, since, last sent state and notification time.
+  generac_attention_incident:
+    name: Generac Attention Incident
+    max: 255
+    # Restored JSON: candidate, since, last sent state and notification time.
+  generac_run_incident:
+    name: Generac Run Incident
+    max: 255
+    # Restored JSON: candidate, since, last sent state and notification time.
+  generac_maintenance_incident:
+    name: Generac Maintenance Incident
+    max: 255
+    # Restored JSON: candidate, since, last sent state and notification time.
   nwp_parking_pass_replaced_expiration_date:
     name: NWP Parking Pass Replaced Expiration Date
     max: 10
