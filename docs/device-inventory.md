@@ -6,13 +6,13 @@ A human-readable map of the Home Assistant device model. The full audit dump is 
 
 - Base live snapshot: `2026-07-29T14:29:24.057042+00:00`; repository-defined entities reconciled through `2026-09-11`
 - Phone migration verified live: `2026-09-27` (initial registry observation: `2026-09-26`); unrelated base inventory was not refreshed
-- Scale: 236 devices, 2584 entities, 151 network clients
+- Scale: 237 devices, 2610 entities, 151 network clients
 - Lighting: 41 light entities, 38 Lutron Caséta entities
 
 | Thing | Count |
 | --- | --- |
-| Devices | 236 |
-| Entities | 2584 |
+| Devices | 237 |
+| Entities | 2610 |
 | Control entities | 891 |
 | Telemetry entities | 1141 |
 | Network clients | 151 |
@@ -407,3 +407,7 @@ The chandelier entry is a Pico remote, not a light output. Unrelated baseline re
 Added the TP-Link EP25 Office Uplights and its registry entities, assigned to Office. Its main control is `switch.office_uplights`. Included in Lights, All Off, away lighting alerts, and overnight checks. Bedtime and normal Evening retain existing office behavior. Vacation simulation includes both Office Main and Uplights during its active windows, with cleanup at window end and when vacation ends.
 
 The separately discovered Family Room Uplight was also added to HA and inventoried; it is not the Office plug and received no new lighting rules. This is a targeted reconciliation, not a full inventory refresh.
+
+## Generac — October 19 reconciliation
+
+Connected Generac Generator (G0072610) through the HACS Generac MobileLink integration. Added 26 registry entities; this is a targeted update, not a full refresh. Login is retained only by the integration. Notification recommendations are in `docs/generac-notifications.md`; no generator notification automations have been deployed yet.

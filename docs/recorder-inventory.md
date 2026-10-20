@@ -7,13 +7,13 @@ A recording-focused inventory for Home Assistant Recorder. This sits next to the
 | Thing | Count |
 | --- | --- |
 | Configured retention | 30 days |
-| Entities reviewed | 2584 |
-| Recorder candidates | 1568 |
-| Excluded by Recorder config | 659 |
+| Entities reviewed | 2610 |
+| Recorder candidates | 1593 |
+| Excluded by Recorder config | 660 |
 | Disabled in registry | 357 |
-| Low stateful-need candidates | 170 |
+| Low stateful-need candidates | 174 |
 | Medium stateful-need candidates | 494 |
-| High stateful-need candidates | 512 |
+| High stateful-need candidates | 516 |
 
 ## Data Quality
 
@@ -34,23 +34,23 @@ A recording-focused inventory for Home Assistant Recorder. This sits next to the
 
 | Category | Entities | Low | Medium | High | DB rows | Live attr bytes |
 | --- | --- | --- | --- | --- | --- | --- |
-| derived_summary_or_dashboard_state | 141 | 141 | 0 | 0 |  |  |
-| camera_or_event_state | 17 | 17 | 0 | 0 |  |  |
+| derived_summary_or_dashboard_state | 144 | 144 | 0 | 0 |  |  |
+| camera_or_event_state | 18 | 18 | 0 | 0 |  |  |
 | integration_config_or_update_state | 8 | 8 | 0 | 0 |  |  |
 | infrastructure_health_diagnostic | 2 | 2 | 0 | 0 |  |  |
 | signal_quality_diagnostic | 2 | 2 | 0 | 0 |  |  |
 | operational_state_history | 422 | 0 | 422 | 0 |  |  |
-| event_or_safety_history | 417 | 0 | 0 | 417 |  |  |
-| uncategorized | 392 | 0 | 0 | 0 |  |  |
-| physical_timeseries | 95 | 0 | 0 | 95 |  |  |
+| event_or_safety_history | 420 | 0 | 0 | 420 |  |  |
+| uncategorized | 409 | 0 | 0 | 0 |  |  |
+| physical_timeseries | 96 | 0 | 0 | 96 |  |  |
 | infrastructure_or_camera_misc | 72 | 0 | 72 | 0 |  |  |
 
 ## Domain Review
 
 | Domain | Recorder candidates | Low | Medium | High | Unknown | DB rows |
 | --- | --- | --- | --- | --- | --- | --- |
-| sensor | 444 | 106 | 20 | 227 | 91 |  |
-| binary_sensor | 287 | 4 | 49 | 146 | 88 |  |
+| sensor | 463 | 109 | 20 | 229 | 105 |  |
+| binary_sensor | 291 | 4 | 49 | 148 | 90 |  |
 | automation | 191 | 14 | 177 | 0 | 0 |  |
 | script | 154 | 10 | 144 | 0 | 0 |  |
 | input_datetime | 92 | 5 | 0 | 13 | 74 |  |

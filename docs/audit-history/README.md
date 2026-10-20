@@ -21,6 +21,8 @@ prior evidence instead of rediscovering it in chat.
 
 - [2026-10-18 Vacation foyer overnight](2026-10-18-vacation-foyer-overnight.md): 20% quiet-hours glow, normal-scheduler ownership guard, and intentional-light alert exemption.
 
+- [2026-10-19 Generac connection](2026-10-19-generac-connection.md): MobileLink connected, telemetry verified, notification recommendations and limitations documented.
+
 ## How To Use This History
 
 For every meaningful diagnostic or reliability change, add a dated Markdown file
