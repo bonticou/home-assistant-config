@@ -1167,6 +1167,14 @@ input_boolean:
     initial: false
 
 input_select:
+  irrigation_season_status:
+    name: Irrigation Season Status
+    # User-reported season; records status without changing controller schedules.
+    # No initial value: restore the user's choice after restart.
+    options:
+      - Winterized
+      - In season
+    icon: mdi:sprinkler
   lighting_active_scene:
     name: Lighting Active Scene
     options:

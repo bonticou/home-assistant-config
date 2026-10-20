@@ -1035,17 +1035,6 @@ views:
             hold_action:
               action: more-info
           - type: template
-            entity: binary_sensor.irrigation_active
-            icon: >-
-              {{ 'mdi:sprinkler-variant' if is_state('binary_sensor.irrigation_active', 'on') else 'mdi:sprinkler' }}
-            icon_color: >-
-              {{ 'blue' if is_state('binary_sensor.irrigation_active', 'on') else 'grey' }}
-            tap_action:
-              action: url
-              url_path: https://app.hydrawise.com/
-            hold_action:
-              action: more-info
-          - type: template
             entity: sensor.basement_air_quality_radon
             icon: mdi:radioactive
             icon_color: >-
@@ -2452,6 +2441,115 @@ views:
                   popup_card_id: espresso-maintenance-popup
             hold_action:
               action: more-info
+            styles:
+              <<: *compact_tile_styles
+            extra_styles: *compact_tile_extra
+          - type: custom:button-card
+            entity: sensor.generac_generator_generac_5053300_status
+            triggers_update:
+              - binary_sensor.generac_generator_generac_5053300_is_connected
+              - binary_sensor.generac_generator_generac_5053300_show_warning
+              - binary_sensor.generac_generator_generac_5053300_has_maintenance_alert
+            show_icon: false
+            show_name: false
+            show_state: false
+            variables:
+              generator_label: >-
+                [[[
+                  const s = hass.states;
+                  const status = entity?.state;
+                  if (s['binary_sensor.generac_generator_generac_5053300_is_connected']?.state !== 'on' || ['unknown', 'unavailable', 'Unknown', 'Offline', 'Communication Issue'].includes(status)) return 'Monitoring unavailable';
+                  if (['Warning', 'Stopped'].includes(status) || s['binary_sensor.generac_generator_generac_5053300_show_warning']?.state === 'on') return 'Needs attention';
+                  if (s['binary_sensor.generac_generator_generac_5053300_has_maintenance_alert']?.state === 'on') return 'Maintenance due';
+                  return {Ready: 'Ready', Running: 'Running', Exercising: 'Exercising'}[status] || 'Status unavailable';
+                ]]]
+            custom_fields:
+              icon: >-
+                [[[
+                  const label = variables.generator_label;
+                  const color = label === 'Ready' ? '#22c55e' : ['Running', 'Exercising'].includes(label) ? '#60a5fa' : label === 'Needs attention' ? '#fb923c' : '#94a3b8';
+                  return `<div class="tile-icon"><ha-icon icon="mdi:engine-outline" style="color:${color}"></ha-icon></div>`;
+                ]]]
+              text: >-
+                [[[
+                  return `<div class="tile-copy"><div class="tile-label">Generator</div><div class="tile-meta">${variables.generator_label}</div></div>`;
+                ]]]
+            tap_action:
+              action: fire-dom-event
+              browser_mod:
+                service: browser_mod.popup
+                data:
+                  title: Generator
+                  content:
+                    type: vertical-stack
+                    cards:
+                      - type: custom:mushroom-template-card
+                        primary: >-
+                          {% set s = states('sensor.generac_generator_generac_5053300_status') %}
+                          {% if not is_state('binary_sensor.generac_generator_generac_5053300_is_connected', 'on') or s in ['unknown', 'unavailable', 'Unknown', 'Offline', 'Communication Issue'] %}Monitoring unavailable
+                          {% elif s in ['Warning', 'Stopped'] or is_state('binary_sensor.generac_generator_generac_5053300_show_warning', 'on') %}Needs attention
+                          {% elif is_state('binary_sensor.generac_generator_generac_5053300_has_maintenance_alert', 'on') %}Maintenance due
+                          {% else %}{{ s }}{% endif %}
+                        secondary: >-
+                          {% set s = states('sensor.generac_generator_generac_5053300_status') %}
+                          {% if not is_state('binary_sensor.generac_generator_generac_5053300_is_connected', 'on') or s in ['unknown', 'unavailable', 'Unknown', 'Offline', 'Communication Issue'] %}
+                            Generator updates aren't available. Check Mobile Link for the latest report.
+                          {% elif is_state('binary_sensor.generac_generator_generac_5053300_has_maintenance_alert', 'on') %}
+                            Generac has flagged maintenance. Check Mobile Link for the specific task.
+                          {% else %}
+                            {{ states('sensor.generac_generator_generac_5053300_status_text') }}
+                          {% endif %}
+                        multiline_secondary: true
+                        icon: mdi:engine-outline
+                        icon_color: >-
+                          {{ 'green' if is_state('sensor.generac_generator_generac_5053300_status', 'Ready') and is_state('binary_sensor.generac_generator_generac_5053300_is_connected', 'on') and is_state('binary_sensor.generac_generator_generac_5053300_show_warning', 'off') and is_state('binary_sensor.generac_generator_generac_5053300_has_maintenance_alert', 'off') else 'grey' }}
+                        tap_action:
+                          action: none
+                      - type: custom:mushroom-template-card
+                        primary: Battery voltage
+                        secondary: >-
+                          {% set v = states('sensor.generac_generator_generac_5053300_battery_voltage') %}
+                          {{ (v | float | round(1) ~ ' V · reported by Generac') if is_number(v) else 'Reading unavailable' }}
+                        icon: mdi:car-battery
+                        icon_color: grey
+                        tap_action:
+                          action: none
+                      - type: custom:mushroom-template-card
+                        primary: Open Mobile Link
+                        secondary: Generator details and service information
+                        icon: mdi:open-in-new
+                        tap_action:
+                          action: url
+                          url_path: https://app.mobilelinkgen.com/
+            styles:
+              <<: *compact_tile_styles
+            extra_styles: *compact_tile_extra
+          - type: custom:button-card
+            entity: input_select.irrigation_season_status
+            triggers_update:
+              - binary_sensor.irrigation_active
+            show_icon: false
+            show_name: false
+            show_state: false
+            custom_fields:
+              icon: >-
+                [[[
+                  const winter = entity?.state === 'Winterized';
+                  const active = hass.states['binary_sensor.irrigation_active']?.state === 'on';
+                  const icon = winter ? 'mdi:snowflake' : 'mdi:sprinkler-variant';
+                  const color = winter ? '#94a3b8' : active ? '#60a5fa' : '#94a3b8';
+                  return `<div class="tile-icon"><ha-icon icon="${icon}" style="color:${color}"></ha-icon></div>`;
+                ]]]
+              text: >-
+                [[[
+                  const season = entity?.state;
+                  const active = hass.states['binary_sensor.irrigation_active']?.state;
+                  const label = season === 'Winterized' ? 'Winterized' : season !== 'In season' ? 'Status unavailable' : active === 'on' ? 'Watering reported' : active === 'off' ? 'Idle' : 'Status unavailable';
+                  return `<div class="tile-copy"><div class="tile-label">Irrigation</div><div class="tile-meta">${label}</div></div>`;
+                ]]]
+            tap_action:
+              action: navigate
+              navigation_path: /calm-mobile/irrigation
             styles:
               <<: *compact_tile_styles
             extra_styles: *compact_tile_extra
@@ -10514,6 +10612,20 @@ views:
       - type: custom:mushroom-title-card
         title: Irrigation
         subtitle: Schedule, actual water, rain, and flow safety
+
+      - type: custom:mushroom-select-card
+        entity: input_select.irrigation_season_status
+        name: Season status
+        icon: mdi:sprinkler
+      - type: custom:mushroom-template-card
+        primary: >-
+          {{ 'Winterized for the season' if is_state('input_select.irrigation_season_status', 'Winterized') else 'Irrigation in season' }}
+        secondary: >-
+          {{ 'Recorded as winterized. Change Season status after spring startup.' if is_state('input_select.irrigation_season_status', 'Winterized') else 'Watering schedules are managed in Hydrawise.' }}
+        multiline_secondary: true
+        icon: mdi:information-outline
+        tap_action:
+          action: none
 
       - type: custom:button-card
         entity: sensor.irrigation_7_day_ledger

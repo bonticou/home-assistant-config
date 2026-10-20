@@ -1,5 +1,7 @@
 # Audit History
 
+- [2026-10-19 Home generator and irrigation](2026-10-19-home-generator-irrigation.md): compact home pills, generator detail, and recorded winterized season.
+
 This directory is the durable memory for Home Assistant audits, diagnostics,
 incident reviews, and reliability fixes.
 
