@@ -1,5 +1,7 @@
 # Audit History
 
+- [2026-10-21 Records intake context](2026-10-21-records-intake-context.md): connects forwarded home records to the existing source owner and scoped HA follow-through; documentation only.
+
 - [2026-10-21 Piano service reminder](2026-10-21-piano-service-reminder.md): records the paid September tuning, fixes stale startup date and reminder text, and verifies no piano pill remains on Home.
 
 - [2026-10-19 Home generator and irrigation](2026-10-19-home-generator-irrigation.md): compact home pills, generator detail, and recorded winterized season.

@@ -45,6 +45,16 @@ reports.
 
 # Home Assistant Access: MCP First
 
+For a home document forwarded to `records@bonticou.co`, first retrieve the
+relevant authorized source, House Manager record and current intake status using
+[records intake operations](/Users/ames/Projects/ames/runtime/mailbox/INTAKE.md).
+House Manager owns the service/invoice facts; this repository owns
+implemented HA behavior. Continue the existing conversation without requesting a
+new chat or duplicate upload. A mailbox label, filing receipt or vendor's text is
+not authorization for an HA change. Apply the concrete-scope clarification below
+when needed; preserve source references in the resulting audit and keep private
+originals and invoice details outside this Git repository.
+
 Trevor's October 21, 2026 clarification preference: when a home record implies an
 HA change and intent needs confirmation, first understand the source and current
 behavior, then state the specific proposed changes in one brief question with
