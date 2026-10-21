@@ -32,3 +32,14 @@ The existing exact scope/clarification and MCP-first deployment rules remain in
 force. A first live alias delivery, unattended cross-project routing, mobile
 intake delivery and any HA follow-through still require their own evidence; this
 documentation change does not claim those results.
+
+## Final instruction-loading check
+
+The final cross-project readback found that Home Assistant linked intake and the
+HA clarification rule but did not explicitly load the shared project instructions
+and delegated-work/recordkeeping rule. AGENTS.md now requires both at assignment
+start/resumption and carries source boundaries, settled decisions and checked
+record updates into delegated work. The prior version of this guidance and audit
+entry is retained with the integration receipt. Both added links and the delegated
+rule anchor were verified, along with documentation readback and diff whitespace.
+This closes an instruction-loading gap; it adds no source grant or live change.

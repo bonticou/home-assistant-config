@@ -6,6 +6,15 @@ The goal of this system is to maintain a **beautiful, calm, and reliable smart h
 
 Agents working in this repository should prioritize **design clarity, reliability, and elegant configuration**.
 
+At the start of a new or resumed assignment, read the current
+[shared project instructions](/Users/ames/Projects/AGENTS.md) and
+[delegated-work and recordkeeping rule](/Users/ames/Projects/ames/foundation/OPERATING.md#complete-delegated-reviews-without-repeated-approvals)
+alongside this project's instructions. Carry applicable source boundaries,
+authority and current decisions into delegated work. Save confirmed decisions
+and implementation evidence in their existing authoritative records, read them
+back, and run the relevant checks before reporting completion. Existing
+Home Assistant scope and other actual-action requirements remain applicable.
+
 ---
 
 # Core Priorities
