@@ -45,6 +45,15 @@ reports.
 
 # Home Assistant Access: MCP First
 
+Trevor's October 21, 2026 clarification preference: when a home record implies an
+HA change and intent needs confirmation, first understand the source and current
+behavior, then state the specific proposed changes in one brief question with
+Yes/No choices and room for a correction. A Yes covers the described task in this
+existing project; do not require a new chat or repeat the approval. Already
+explicit authorization remains sufficient. Follow the shared
+[quick clarification rule](../../ames/foundation/OPERATING.md#quick-clarification-for-home-assistant-follow-through),
+then complete implementation, verification and durable records within that scope.
+
 Use MCP by default for live Home Assistant diagnostics and deployments. After
 reviewing the required audit history, prefer `homeassistant_admin` tools for
 health, automation discovery, retained traces, bounded logs, live configuration
