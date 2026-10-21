@@ -741,12 +741,12 @@ input_datetime:
     has_date: true
     has_time: true
   # Antique Steinway piano care
-  # durable record: ../house-manager/assets/antique-steinway-piano.md
+  # durable record: ../house manager/assets/antique-steinway-piano.md
+  # Restore the saved service date; an initial value would reset future tunings.
   piano_last_tuned:
     name: Piano Last Tuned
     has_date: true
     has_time: false
-    initial: "2025-09-26"
   piano_tuning_snooze_until:
     name: Piano Tuning Snooze Until
     has_date: true

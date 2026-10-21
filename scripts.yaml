@@ -3238,11 +3238,20 @@ piano_send_tuning_reminder:
     - action: script.notify_trevor_phone
       data:
         title: "🎹🛠️ Steinway tuning check"
+        # Source: ../house manager/assets/antique-steinway-piano.md
         message: >-
-          Last tuning/appraisal: September 26, 2025.
-          Ask Gary Bauchman about tuning the Steinway again:
+          {% set last = states('input_datetime.piano_last_tuned') %}
+          {% set due = states('sensor.piano_next_tuning_due') %}
+          {% if last not in ['unknown', 'unavailable', 'none', ''] %}
+            Last tuned {{ strptime(last, '%Y-%m-%d').strftime('%B %-d, %Y') }}.
+          {% else %}
+            Last tuning date needs confirmation.
+          {% endif %}
+          {% if due not in ['unknown', 'unavailable', 'none', ''] %}
+            Next annual tuning due {{ strptime(due, '%Y-%m-%d').strftime('%B %-d, %Y') }}; sooner if needed.
+          {% endif %}
+          Contact Gary Bauchman to arrange tuning:
           914-325-0003 · artiststouchpiano@gmail.com.
-          Record: ../house-manager/assets/antique-steinway-piano.md.
         data:
           group: piano-care
           tag: steinway-tuning-check
