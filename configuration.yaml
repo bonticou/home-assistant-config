@@ -5193,31 +5193,6 @@ template:
                 'actions': espresso_actions
               }] %}
             {% endif %}
-            {% set fertilizer_active = is_state('binary_sensor.garden_fertilizer_due', 'on') %}
-            {% set fertilizer_due = state_attr('sensor.garden_fertilizer_status', 'current_cycle') if fertilizer_active else state_attr('sensor.garden_fertilizer_status', 'next_due_date') %}
-            {% if is_state('input_boolean.garden_fertilizer_notifications_enabled', 'on') and fertilizer_due not in ['unknown', 'unavailable', 'none', ''] %}
-              {% set ns.items = ns.items + [{
-                'id': 'garden-fertilizer-' ~ fertilizer_due,
-                'title': 'Fertilizer time',
-                'emoji': '🍅',
-                'icon': 'mdi:sprout',
-                'group': 'Garden',
-                'state': 'due' if fertilizer_active else 'upcoming',
-                'severity': 'watch' if fertilizer_active else 'info',
-                'date': fertilizer_due,
-                'due_prefix': 'Due',
-                'basis_date': states('input_datetime.garden_fertilizer_last_done_at')[:10],
-                'basis_prefix': 'last done',
-                'narrative': 'It is a fertilizer Friday. Add fertilizer when you have a few minutes, then mark it done.',
-                'url': '/calm-mobile/notices',
-                'entity_id': 'sensor.garden_fertilizer_status',
-                'show_in_upcoming': true,
-                'actions': ([
-                  {'label': 'Done', 'service': 'script.garden_fertilizer_mark_done', 'inline': false},
-                  {'label': 'Snooze', 'service': 'script.garden_fertilizer_snooze', 'inline': false}
-                ] if fertilizer_active else [])
-              }] %}
-            {% endif %}
             {% set dehumidifier_filter_active = is_state('binary_sensor.dehumidifier_air_filter_due', 'on') %}
             {% set dehumidifier_filter_due = state_attr('sensor.dehumidifier_air_filter_status', 'current_cycle') if dehumidifier_filter_active else state_attr('sensor.dehumidifier_air_filter_status', 'next_due_date') %}
             {% if is_state('input_boolean.dehumidifier_air_filter_notifications_enabled', 'on') and dehumidifier_filter_due not in ['unknown', 'unavailable', 'none', ''] %}
