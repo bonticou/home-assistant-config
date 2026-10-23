@@ -889,6 +889,14 @@ input_datetime:
     has_date: true
     has_time: true
 input_text:
+  garden_planning_2027_done_at:
+    name: Garden Planning 2027 Done At
+    max: 32
+    # Restored timestamp; deliberately no initial value.
+  garden_planning_2027_notified_at:
+    name: Garden Planning 2027 Notified At
+    max: 32
+    # Stamp only after successful delivery; one dated planning task.
   generac_monitoring_incident:
     name: Generac Monitoring Incident
     max: 255
@@ -4902,6 +4910,30 @@ template:
             {% set now_date = now().strftime('%Y-%m-%d') %}
             {% set now_stamp = now().strftime('%Y-%m-%d %H:%M:%S') %}
             {% set ns = namespace(items=[]) %}
+            {% if states('input_text.garden_planning_2027_done_at') in ['unknown', 'unavailable', 'none', ''] %}
+              {% set garden_planning_active = now_stamp >= '2027-04-09 09:00:00' %}
+              {% set ns.items = ns.items + [{
+                'id': 'garden-planning-2027',
+                'title': "Plan next season's garden",
+                'emoji': '🌱',
+                'icon': 'mdi:sprout',
+                'group': 'Garden',
+                'state': 'due' if garden_planning_active else 'upcoming',
+                'severity': 'watch' if garden_planning_active else 'info',
+                'date': '2027-04-09',
+                'due_prefix': 'Plan on',
+                'show_in_upcoming': true,
+                'narrative': "Begin planning the garden one month before Mother's Day on May 9, 2027.",
+                'details': {
+                  'summary_title': 'Garden planning',
+                  'summary': 'Choose what to grow, review seeds and supplies, and sketch the planting plan for the coming season.',
+                  'facts': [{'label': 'Planning date', 'value': 'April 9, 2027'}, {'label': "Mother’s Day", 'value': 'May 9, 2027'}],
+                  'after_action': 'Planning done completes this one-time task and removes it from the notification queue.',
+                  'tracking': 'No annual recurrence. Fertilizer notifications remain removed.'
+                },
+                'actions': [{'label': 'Planning done', 'service': 'script.garden_planning_2027_mark_done', 'inline': false}]
+              }] %}
+            {% endif %}
             {% if is_state('binary_sensor.water_notification_alert_active', 'on') %}
               {% set ns.items = ns.items + [{
                 'id': 'water-guard',

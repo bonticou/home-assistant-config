@@ -6194,3 +6194,14 @@ basement_humidity_snooze_24h:
         alert_kind: humidity_high
         clear: true
     - action: script.basement_humidity_clear_alert
+
+garden_planning_2027_mark_done:
+  alias: Garden Planning 2027 Mark Done
+  description: Completes only the one-time April 9, 2027 gardening planning task.
+  mode: single
+  sequence:
+    - action: input_text.set_value
+      target:
+        entity_id: input_text.garden_planning_2027_done_at
+      data:
+        value: "{{ now().strftime('%Y-%m-%d %H:%M:%S') }}"

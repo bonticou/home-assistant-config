@@ -2646,3 +2646,37 @@
               data:
                 datetime: "{{ now().strftime('%Y-%m-%d %H:%M:%S') }}"
   mode: single
+
+- id: garden_planning_2027_reminder
+  alias: Garden — Planning 2027 Reminder
+  description: One-time April 9, 2027 planning reminder; never reactivates fertilizer.
+  triggers:
+    - trigger: time
+      at: '09:00:00'
+    - trigger: time_pattern
+      minutes: '/15'
+  conditions:
+    - condition: template
+      value_template: >-
+        {{ now().strftime('%Y-%m-%d %H:%M:%S') >= '2027-04-09 09:00:00'
+           and 9 <= now().hour < 20
+           and state_attr('input_text.garden_planning_2027_done_at', 'max') == 32
+           and state_attr('input_text.garden_planning_2027_notified_at', 'max') == 32
+           and states('input_text.garden_planning_2027_done_at') in ['', 'unknown']
+           and states('input_text.garden_planning_2027_notified_at') in ['', 'unknown'] }}
+  actions:
+    - action: script.notify_trevor_phone
+      data:
+        title: "🌱 Plan next season's garden"
+        message: "Mother's Day is May 9. Take a little time to choose what to grow and review seeds, supplies, and your planting plan."
+        data:
+          tag: garden-planning-2027
+          group: garden
+          url: /calm-mobile/notices
+          recent: true
+    - action: input_text.set_value
+      target:
+        entity_id: input_text.garden_planning_2027_notified_at
+      data:
+        value: "{{ now().strftime('%Y-%m-%d %H:%M:%S') }}"
+  mode: single
