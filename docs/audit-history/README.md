@@ -1,5 +1,7 @@
 # Audit History
 
+- [2026-10-23 Project operations review](2026-10-23-project-operations-review.md): whole-project configuration map, verified access paths, live drift and coverage limits; documentation only.
+
 - [2026-10-23 Garden planning notice](2026-10-23-garden-planning-notice.md): one-time April 9, 2027 task in Upcoming, dated push, and durable completion.
 
 - [2026-10-23 Fertilizer notification removal](2026-10-23-fertilizer-notification-removal.md): removed the timeline item and dedicated sender; preserved history and unrelated notices.

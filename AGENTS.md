@@ -15,7 +15,9 @@ Agents working in this repository should prioritize **design clarity, reliabilit
 At the start of a new or resumed assignment, read the current
 [shared project instructions](/Users/ames/Projects/AGENTS.md) and
 [delegated-work and recordkeeping rule](/Users/ames/Projects/ames/foundation/OPERATING.md#complete-delegated-reviews-without-repeated-approvals)
-alongside this project's instructions. Carry applicable source boundaries,
+alongside this project's instructions. Use the
+[Home Assistant operations map](docs/home-assistant-operations-map.md) to locate
+feature ownership, access paths and dated coverage limits. Carry applicable source boundaries,
 authority and current decisions into delegated work. Save confirmed decisions
 and implementation evidence in their existing authoritative records, read them
 back, and run the relevant checks before reporting completion. Existing
@@ -355,8 +357,9 @@ Current split context:
   automations` pointer. The actual automation lists live in
   `automations/00-water-irrigation.yaml`,
   `automations/10-lighting-security.yaml`,
-  `automations/20-climate-commute.yaml`, and
-  `automations/30-maintenance-environment.yaml`. Keep those chunks coherent and
+  `automations/20-climate-commute.yaml`,
+  `automations/30-maintenance-environment.yaml`, and
+  `automations/35-generator-notifications.yaml`. Keep those chunks coherent and
   small enough for reliable browser/File Editor read-back; do not collapse them
   back into one large file.
 - `scripts.yaml` and `scenes.yaml` remain the standard Home Assistant-managed

@@ -27,5 +27,7 @@ Live admin readbacks confirmed all three deployed files and enabled planning
 automation; fertilizer sender remains absent. Native Safari accessibility
 readback showed Upcoming 18 with the planning title and Apr 9, 2027 date,
 Needs Attention still 1 (Water guardrail), and no Fertilizer time entry.
-Originating agent will perform the final desktop presentation check. No test
-push or completion was executed against the real future task.
+The originating agent also completed the final connected Safari presentation
+check: Upcoming showed “🌱 Plan next season's garden” and “Plan on Apr 9, 2027,”
+with the description tying that date to Mother's Day on May 9. No test push or
+completion was executed against the real future task.
