@@ -19,7 +19,13 @@ no remaining sender calls in the live automation file. Automation discovery show
 the removed sender unavailable (unloaded registry remnant), and the fertilizer
 notification action handler still on. Device inventory coverage passed.
 
-Native timeline state is not exposed; the originating chat owns final desktop
-Notification Center readback. No claim of that UI verification is made here.
+Native timeline state is not exposed. The originating agent reported completed
+desktop verification through native CUA Safari after refreshing
+`/calm-mobile/notices`: Needs Attention decreased from 2 to 1, leaving only the
+existing Water guardrail; Upcoming decreased from 18 to 17. The screenshot
+confirmed Fertilizer time absent and unrelated Recent laundry notices preserved.
+The full accessibility tree contained no fertilizer text. This UI evidence is
+attributed to the originating agent's final verification handoff, not a second
+desktop inspection by this worker. No further live changes were made.
 Dormant historical helpers/scripts remain intentionally preserved; no automatic
 reactivation was created. Prior Recent history may remain as historical evidence.
