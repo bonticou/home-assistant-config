@@ -174,20 +174,74 @@ not a count of 27 proven faults. Live YAML has **182 definitions** versus **183*
 in the repo; `downstairs_climate_sensor_spread_watch` is repo-only, with no live-only
 IDs. It was not deployed or deleted during this review.
 
-| Files checked via live read/hash | Result |
+| Exact divergent file | Observation and practical implication |
 | --- | --- |
-| `configuration.yaml`, `scripts.yaml`, `lights.yaml`, `dashboards/calm_mobile.yaml` | Different from repo; functional differences not exhaustively reconciled |
-| `automations.yaml` | Live monolithic list versus repo include pointer/five chunks, plus the one-definition difference above |
-| `scenes.yaml`, `sensors.yaml`, `dashboards/ha_safe.yaml`, `www/house-notices-card.js` | Exact byte/hash matches |
+| `configuration.yaml` | Different hash. Owns global settings, helpers, templates, Recorder and include wiring. Compare the affected section and dependencies; replacing the whole file could overwrite unrelated live behavior |
+| `automations.yaml` | Live monolithic list versus repo include pointer/five chunks, plus the one-definition difference above. Matching IDs do not establish matching triggers/actions. Preserve the live layout for scoped edits unless a migration is separately authorized |
+| `scripts.yaml` | Different hash. Contains shared lighting actions, notification delivery and reminder actions. Compare the edited script and its callers/helpers; no specific behavioral difference has yet been established |
+| `lights.yaml` | Different hash. Defines light groups; bytes alone do not establish a membership change. Check the relevant group and callers before changing shared lighting actions |
+| `dashboards/calm_mobile.yaml` | Different hash. Owns primary UI presentation and controls. Compare the affected view/card/resources and verify the served UI; this mismatch does not establish an automation defect |
+
+`scenes.yaml`, `sensors.yaml`, `dashboards/ha_safe.yaml` and
+`www/house-notices-card.js` matched byte-for-byte. These comparisons establish file
+divergence and the stated automation layout/ID difference, not all semantic
+differences, which copy is correct, or that a discrepancy is a fault.
+
+### UI-managed inventory and dependencies
+
+A same-day follow-up inspected the authenticated desktop HA Settings UI. This
+closes the inventory/navigation gap without reading raw `.storage` or credential
+values. Detailed observations and all 40 integration names are in the
+[review evidence](audit-history/2026-10-23-project-operations-review.md#desktop-registry-follow-up).
+
+| Live UI source | Verified coverage and ownership |
+| --- | --- |
+| Devices & services → Integrations (`/config/integrations/dashboard`) | 40 configured integration families. Showing disabled integrations returned “No disabled integrations.” Discovered cards are separate from configured entries. Spotify, UPnP/IGD and Zigbee Home Automation displayed “Failed setup, will retry”; no diagnosis or repair performed |
+| Devices (`/config/devices/dashboard`) | 281 displayed device records, with area, integration, manufacturer/model and battery columns. This includes service/network records, not 281 distinct physical appliances |
+| Entities (`/config/entities`) | 2,802 with the status filter cleared; 2,268 with the original Enabled filter, restored afterward. Device, area, integration and status columns establish the lookup path. Registered/enabled does not mean available or MCP-exposed |
+| Helpers (`/config/helpers`) | 423 displayed items with entity ID, type and editability columns. Includes templates and other helper types, so it is not comparable to the repo's 198 `input_*` definitions. Check the item's owner before editing |
+| Areas and labels (`/config/areas/dashboard`, `/config/labels`) | 33 areas; Main Floor and Second Floor plus unassigned “Other areas.” Labels page reported no labels. Device/area assignments are registry metadata, independent of YAML logic |
+| Dashboards (`/config/lovelace/dashboards`) | Nine rows: six built-in UI-controlled dashboards, YAML Home and HA Safe, and a user-created UI-controlled Overview. The latter is outside the two repo dashboard files |
+| Resources (`/config/lovelace/resources`) | 13 JavaScript module registrations: seven HACS cards, five local modules and Browser Mod. Browser Mod URL carries `3.2.0`; repo manifest says `2.7.3`. A registration/version string does not prove runtime loading or compatibility |
+| Apps (`/config/apps/installed`) | Codex HA Admin, Terminal & SSH, File editor and Matter Server. Admin transport depends on the first two; File editor supports browser deployment; Matter Server is the adjacent Matter service |
+
+Configured integration cards may contain multiple entries. Inventory scope is the
+UI-visible category list, registry totals/columns and ownership paths, not an
+export of every entity or every integration option. No login or permission block
+occurred. Native MCP remains exposure-limited; admin MCP has no registry/config-entry
+reader. The desktop UI supplies these views. Credential ownership, full option
+payloads and per-device health were neither required nor inspected. UI-controlled
+Overview contents were not audited; its existence and ownership were verified.
+
+### Home Connect developer-account dependency
+
+The live integration search for “Home Connect” returned **No integrations found**;
+the disabled list was also empty, and bounded repo searches found no implementation.
+An active HA dependency on the Ames developer account is therefore **not established**.
+
+Official [HA setup documentation](https://www.home-assistant.io/integrations/home_connect/)
+requires a developer application and HA Application Credential, followed by separate
+appliance-owner authorization. [Home Connect authorization](https://api-docs.home-connect.com/authorization/)
+uses access/refresh tokens; a developer-portal login session is not the runtime API
+path. Account/application linkage cannot be verified without an existing entry
+and appropriate account evidence; no credentials were opened.
+
+The parent-held Developer Team notice reports an **October 26–November 26, 2026**
+developer-account migration window, followed by temporary developer-account access
+loss. Preserve that owner-assisted account task using the
+[official portal](https://developer.home-connect.com/user/login); no migration or
+account changes were performed here. The dates come from that notice, not an
+independent public confirmation. Do not infer appliance, mobile-app, API or token-
+refresh outage from developer-portal access loss. See the review evidence for provenance.
 
 Three priorities for future work, with no remediation performed here:
 
 - **Reconcile at the point of change.** Repo/live drift makes whole-file deployment
-  unsafe without comparison. UI-managed config entries, device/entity/area registries,
-  storage dashboards and every runtime entity are not fully observable through these
-  tools. Credentials and authentication storage were intentionally excluded. A
-  targeted supported UI review can fill an actual task's gap; this is not permission
-  expansion or a claim that all HA configuration has been inspected.
+  unsafe without comparison. Desktop registry metadata is now verified above;
+  integration options, UI-controlled dashboard contents and every entity's runtime
+  behavior remain task-specific checks. Credentials and authentication storage were
+  intentionally excluded. This is not permission expansion or a claim that every
+  HA setting has been inspected.
 - **Plan decomposition separately.** Main YAML is 445,929 bytes, above the project's
   approximately 300 KB reliability threshold; the primary dashboard is 560,810 bytes.
   The main template block dominates the file. Record the reliability concern without
