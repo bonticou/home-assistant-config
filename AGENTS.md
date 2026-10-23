@@ -1,5 +1,11 @@
 # AGENTS.md
 
+## Records coordination
+
+Follow [the Dot intake contract](/Users/ames/Projects/ames/runtime/mailbox/INTAKE.md) and [Eames/local Ames responsibilities](/Users/ames/Projects/ames/planning/DOT_BRIDGE.md). **Eames** is the Dot; **Ames** is the local workspace. Eames owns ad hoc cloud discovery, interpretation, useful clarification and delivery through the dedicated native ames@bonticou.co connection. Prefer supported exact-account arrival events once verified; no fixed discovery ceiling or invented polling interval. Clear records need no forced conversation. Invoke local Ames only for useful local analysis or canonical filing/retrieval, at most three new records sequentially per background batch. Discovery, notifications and local batch size are separate controls; empty checks stay quiet. No personal-Gmail substitution or scheduled Mac discovery. Eames verified native Ames profile/Records search on 22 October; full originals, attachment bytes, arrival events and live delivery remain unverified, so automatic processing stays paused. Preserve canonical House, Taxes, Estate/Insurance and Som ownership, originals, receipts, attributed answers and existing financial/email/cellar/HA action requirements. Legacy intake and Muse remain retired.
+
+Muse/Zuck integration is retired by Trevor on 22 October 2026. Do not contact its coordinator, use its transport, or restart its schedules. Dot is the intended records surface; native activation remains pending verification. Follow [current records intake](/Users/ames/Projects/ames/runtime/mailbox/INTAKE.md). Preserve independent project work and actual-action requirements.
+
 This repository contains a Home Assistant configuration.
 
 The goal of this system is to maintain a **beautiful, calm, and reliable smart home interface** while preserving clean, maintainable configuration.
