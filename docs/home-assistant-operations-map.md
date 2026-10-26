@@ -271,3 +271,12 @@ These results establish the process: identify the user's surface, use the capabl
 existing context, inspect ownership, make the scoped change with recovery, and
 read back the user-visible outcome. Keep dated evidence in the audits rather than
 copying implementation details into multiple runbooks.
+
+### October 26 main-floor spread reconciliation
+
+The previously repo-only `downstairs_climate_sensor_spread_watch` and dedicated
+spread templates have now been removed from the repository. Live configuration
+and loaded state already lacked this feature. Trevor explicitly does not want
+Kitchen–Dining Room spread monitoring or notifications recreated. See
+[retirement evidence](audit-history/2026-10-26-main-floor-spread-retirement.md).
+The October 23 divergence figures above remain dated historical observations.

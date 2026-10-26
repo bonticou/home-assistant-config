@@ -77,7 +77,6 @@
         entity_id:
           - sensor.downstairs_temp_avg
           - sensor.downstairs_humidity_avg
-          - sensor.downstairs_temp_spread
           - sensor.downstairs_time_period
           - sensor.downstairs_active_season
           - sensor.downstairs_outdoor_temp
@@ -92,7 +91,6 @@
           - sensor.downstairs_away_watch
           - sensor.downstairs_away_watch_reason
           - sensor.downstairs_away_minutes
-          - binary_sensor.downstairs_temp_spread_high
           - binary_sensor.downstairs_someone_home
           - binary_sensor.downstairs_everyone_away
           - sensor.environment_house_status
@@ -265,35 +263,6 @@
             data:
               tag: downstairs-away-watch
   mode: restart
-
-- id: downstairs_climate_sensor_spread_watch
-  alias: "Environment — Main Floor Sensor Spread Watch"
-  description: Warns when the Kitchen and Dining Room sensors disagree for an extended period and the average may be less trustworthy.
-  triggers:
-    - trigger: state
-      entity_id: binary_sensor.downstairs_temp_spread_high
-      to: "on"
-      for:
-        minutes: 30
-  conditions:
-    - condition: state
-      entity_id: input_boolean.downstairs_pilot_enabled
-      state: "on"
-    - condition: state
-      entity_id: input_boolean.downstairs_mobile_alerts_enabled
-      state: "on"
-    - condition: state
-      entity_id: input_boolean.environment_alerts_enabled
-      state: "on"
-  actions:
-    - action: script.environment_send_alert
-      data:
-        room: Main Floor
-        alert_kind: source_disagreement
-        message: >-
-          Kitchen and Dining Room are still {{ states('sensor.downstairs_temp_spread') }}°F apart.
-          That likely means the Main Floor is uneven or one sensor placement needs a second look before trusting the average too heavily.
-  mode: single
 
 - id: environment_room_actionable_alerts
   alias: "Environment — Room Actionable Alerts"
@@ -490,7 +459,6 @@
         - binary_sensor.environment_basement_sensor_unavailable
         - binary_sensor.environment_garage_sensor_unavailable
         - binary_sensor.environment_attic_sensor_unavailable
-        - binary_sensor.downstairs_temp_spread_high
       to: "off"
   actions:
     - variables:
@@ -502,12 +470,10 @@
           {% elif 'basement' in entity %}Basement
           {% elif 'garage' in entity %}Garage
           {% elif 'attic' in entity %}Attic
-          {% elif entity == 'binary_sensor.downstairs_temp_spread_high' %}Main Floor
           {% else %}Environment{% endif %}
         kind: >-
           {% if 'sensor_unavailable' in entity %}sensor_unavailable
           {% elif 'disagreement' in entity %}source_disagreement
-          {% elif entity == 'binary_sensor.downstairs_temp_spread_high' %}source_disagreement
           {% elif 'temp_high' in entity %}temp_high
           {% elif 'temp_low' in entity %}temp_low
           {% elif 'humidity_high' in entity %}humidity_high

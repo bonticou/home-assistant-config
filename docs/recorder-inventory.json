@@ -1026,7 +1026,7 @@
     },
     {
       "area": "",
-      "availability": "not_enriched",
+      "availability": "unavailable",
       "category": "operational_state_history",
       "db": null,
       "device_class": "",
@@ -6301,7 +6301,7 @@
     },
     {
       "area": "",
-      "availability": "not_enriched",
+      "availability": "unavailable",
       "category": "uncategorized",
       "db": null,
       "device_class": "",
@@ -37776,7 +37776,7 @@
     },
     {
       "area": "",
-      "availability": "not_enriched",
+      "availability": "unavailable",
       "category": "derived_summary_or_dashboard_state",
       "db": null,
       "device_class": "",
@@ -65750,7 +65750,7 @@
       "unit": ""
     }
   ],
-  "generated_at": "2026-10-23T12:37:02+00:00",
+  "generated_at": "2026-10-26T16:48:56+00:00",
   "integrations": [
     {
       "db_rows": null,

@@ -6652,7 +6652,7 @@
     },
     {
       "area": "",
-      "availability": "not_enriched",
+      "availability": "unavailable",
       "capability_keys": [],
       "device_class": "",
       "device_id": "",
@@ -6664,7 +6664,8 @@
       "name": "Environment \u2014 Main Floor Sensor Spread Watch",
       "platform": "automation",
       "role": "other",
-      "unit": ""
+      "unit": "",
+      "retirement_note": "2026-10-26: live YAML absent and loaded state unavailable; historical registry remnant. Trevor retired Kitchen/Dining Room spread tracking; do not recreate."
     },
     {
       "area": "",
@@ -10028,7 +10029,7 @@
     },
     {
       "area": "",
-      "availability": "not_enriched",
+      "availability": "unavailable",
       "capability_keys": [],
       "device_class": "",
       "device_id": "",
@@ -10040,7 +10041,8 @@
       "name": "Main Floor Temp Spread High",
       "platform": "template",
       "role": "telemetry",
-      "unit": ""
+      "unit": "",
+      "retirement_note": "2026-10-26: live YAML absent and loaded state unavailable; historical registry remnant. Trevor retired Kitchen/Dining Room spread tracking; do not recreate."
     },
     {
       "area": "",
@@ -29861,7 +29863,7 @@
     },
     {
       "area": "",
-      "availability": "not_enriched",
+      "availability": "unavailable",
       "capability_keys": [],
       "device_class": "",
       "device_id": "",
@@ -29873,7 +29875,8 @@
       "name": "Main Floor Temp Spread",
       "platform": "template",
       "role": "telemetry",
-      "unit": ""
+      "unit": "",
+      "retirement_note": "2026-10-26: live YAML absent and loaded state unavailable; historical registry remnant. Trevor retired Kitchen/Dining Room spread tracking; do not recreate."
     },
     {
       "area": "",
@@ -50818,7 +50821,7 @@
     },
     {
       "area": "",
-      "availability": "not_enriched",
+      "availability": "unavailable",
       "capability_keys": [],
       "device_class": "",
       "device_id": "",
@@ -50830,7 +50833,8 @@
       "name": "Environment \u2014 Main Floor Sensor Spread Watch",
       "platform": "automation",
       "role": "other",
-      "unit": ""
+      "unit": "",
+      "retirement_note": "2026-10-26: live YAML absent and loaded state unavailable; historical registry remnant. Trevor retired Kitchen/Dining Room spread tracking; do not recreate."
     },
     {
       "area": "",
@@ -53778,7 +53782,7 @@
     },
     {
       "area": "",
-      "availability": "not_enriched",
+      "availability": "unavailable",
       "capability_keys": [],
       "device_class": "",
       "device_id": "",
@@ -53790,7 +53794,8 @@
       "name": "Main Floor Temp Spread High",
       "platform": "template",
       "role": "telemetry",
-      "unit": ""
+      "unit": "",
+      "retirement_note": "2026-10-26: live YAML absent and loaded state unavailable; historical registry remnant. Trevor retired Kitchen/Dining Room spread tracking; do not recreate."
     },
     {
       "area": "",
@@ -62434,7 +62439,7 @@
     },
     {
       "area": "",
-      "availability": "not_enriched",
+      "availability": "unavailable",
       "capability_keys": [],
       "device_class": "",
       "device_id": "",
@@ -62446,7 +62451,8 @@
       "name": "Main Floor Temp Spread",
       "platform": "template",
       "role": "telemetry",
-      "unit": ""
+      "unit": "",
+      "retirement_note": "2026-10-26: live YAML absent and loaded state unavailable; historical registry remnant. Trevor retired Kitchen/Dining Room spread tracking; do not recreate."
     },
     {
       "area": "",

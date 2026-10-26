@@ -12,3 +12,16 @@ Durable notes for climate behavior, labels, and future tuning.
 
 - Consider smarter downstairs climate logic that blends SensorPush readings and averaging rather than relying on one control sensor alone.
 - Good candidates: `sensor.downstairs_temp_avg`, room-level SensorPush readings, humidity recovery trends, thermostat runtime, and open-window advantage.
+
+## Main-floor sensor comparison retired — October 26, 2026
+
+Trevor explicitly does not want the Kitchen and Dining Room SensorPush readings
+compared for spread monitoring or notifications. Do not recreate Main Floor Temp
+Spread, Main Floor Temp Spread High, or Environment — Main Floor Sensor Spread
+Watch. Preserve both sensors, ordinary temperature/humidity readings, averages,
+HVAC control and unrelated room alerts. The separate Dining Room SensorPush versus
+Ecobee checks remain outside this change.
+
+Live configuration and loaded state already had the spread feature removed; this
+change removes stale repository definitions that could otherwise restore it. See
+[verification and recovery evidence](audit-history/2026-10-26-main-floor-spread-retirement.md).

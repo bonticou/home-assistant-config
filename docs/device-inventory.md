@@ -411,3 +411,11 @@ The separately discovered Family Room Uplight was also added to HA and inventori
 ## Generac — October 19 reconciliation
 
 Connected Generac Generator (G0072610) through the HACS Generac MobileLink integration. Added 26 registry entities; this is a targeted update, not a full refresh. Login is retained only by the integration. Enabled notification rules and exact previews are in `docs/generac-notifications.md`.
+
+## Main-floor spread retirement — October 26, 2026
+
+The Main Floor Temp Spread, Main Floor Temp Spread High and Main Floor Sensor
+Spread Watch records are historical, unavailable registry remnants. Their live
+YAML definitions are absent; the stale repository definitions have now been
+removed. Both Kitchen and Dining Room temperature/humidity sensors remain live.
+See [retirement evidence](audit-history/2026-10-26-main-floor-spread-retirement.md).

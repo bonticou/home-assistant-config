@@ -6633,20 +6633,6 @@ template:
             unknown
           {% endif %}
 
-      - name: "Main Floor Temp Spread"
-        unique_id: downstairs_temp_spread
-        unit_of_measurement: "°F"
-        device_class: temperature
-        state_class: measurement
-        state: >
-          {% set t1 = states('sensor.main_floor_temperature') %}
-          {% set t2 = states('sensor.main_floor_2_temperature') %}
-          {% if is_number(t1) and is_number(t2) %}
-            {{ ((t1 | float(0)) - (t2 | float(0))) | abs | round(1) }}
-          {% else %}
-            unknown
-          {% endif %}
-
       - name: "Main Floor Time Period"
         unique_id: downstairs_time_period
         state: >
@@ -6737,14 +6723,11 @@ template:
       - name: "Main Floor Climate Status"
         unique_id: downstairs_climate_status
         state: >
-          {% set spread = states('sensor.downstairs_temp_spread') %}
           {% set humidity = states('sensor.downstairs_humidity_avg') %}
           {% set avg_temp = states('sensor.downstairs_temp_avg') %}
           {% set setpoint = states('sensor.downstairs_ecobee_setpoint') %}
           {% set action = state_attr('climate.dining_room', 'hvac_action') | default('idle', true) %}
-          {% if is_number(spread) and spread | float(0) > 3 %}
-            uneven
-          {% elif action == 'heating' %}
+          {% if action == 'heating' %}
             warming
           {% elif action == 'cooling' %}
             cooling
@@ -6767,7 +6750,6 @@ template:
           {% elif status == 'too_cool' %}mdi:thermometer-low
           {% elif status == 'humid' %}mdi:water-percent
           {% elif status == 'dry' %}mdi:water-off-outline
-          {% elif status == 'uneven' %}mdi:thermometer-alert
           {% else %}mdi:home-thermometer-outline{% endif %}
 
       - name: "Main Floor Climate Insight"
@@ -6775,7 +6757,6 @@ template:
         state: >
           {% set avg_temp = states('sensor.downstairs_temp_avg') %}
           {% set humidity = states('sensor.downstairs_humidity_avg') %}
-          {% set spread = states('sensor.downstairs_temp_spread') %}
           {% set outdoor = states('sensor.downstairs_outdoor_temp') %}
           {% set setpoint = states('sensor.downstairs_ecobee_setpoint') %}
           {% set profile = states('select.dining_room_current_mode') | replace('_', ' ') %}
@@ -6783,7 +6764,7 @@ template:
           {% set open_window = is_state('binary_sensor.downstairs_open_window_eligible', 'on') %}
           Main Floor averages {{ avg_temp }}°F and {{ humidity }}% humidity.
           Dining Room Ecobee is {{ action }} in {{ profile }} with a setpoint of {{ setpoint }}°F.
-          Sensor spread is {{ spread }}°F and outdoor air is {{ outdoor }}°F.
+          Outdoor air is {{ outdoor }}°F.
           {% if open_window %}Outdoor air looks favorable for opening windows and coasting.{% endif %}
 
       - name: "Main Floor Away Watch"
@@ -7092,14 +7073,6 @@ template:
           {{ 'mdi:alert-circle-outline' if is_state('binary_sensor.wine_cave_actionable_alert', 'on') else 'mdi:check-circle-outline' }}
 
   - binary_sensor:
-      - name: "Main Floor Temp Spread High"
-        unique_id: downstairs_temp_spread_high
-        state: >
-          {{ is_number(states('sensor.downstairs_temp_spread'))
-             and states('sensor.downstairs_temp_spread') | float(0) > 3 }}
-        icon: >
-          {{ 'mdi:thermometer-alert' if is_state('binary_sensor.downstairs_temp_spread_high', 'on') else 'mdi:thermometer' }}
-
       - name: "Main Floor Open Window Eligible"
         unique_id: downstairs_open_window_eligible
         state: >
@@ -7618,7 +7591,7 @@ template:
           {% set rooms = [states('sensor.environment_kitchen_status'), states('sensor.environment_dining_room_status')] %}
           {% if 'attention' in rooms or 'unavailable' in rooms %}
             attention
-          {% elif 'watch' in rooms or is_state('binary_sensor.downstairs_temp_spread_high', 'on')
+          {% elif 'watch' in rooms
              or is_state('binary_sensor.environment_dining_room_ecobee_temp_disagreement', 'on')
              or is_state('binary_sensor.environment_dining_room_ecobee_humidity_disagreement', 'on') %}
             watch

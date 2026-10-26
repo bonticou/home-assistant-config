@@ -1524,7 +1524,6 @@ views:
                       too_cool: ['mdi:thermometer-low', 'Cool', '#a5b4fc'],
                       humid: ['mdi:water-percent-alert', 'Humid', '#67e8f9'],
                       dry: ['mdi:water-off-outline', 'Dry', '#fbbf24'],
-                      uneven: ['mdi:thermometer-alert', 'Uneven', '#fdba74'],
                     };
                     const comfort = statusMap[status] || statusMap.steady;
                     const modeLabel = ['home', 'sleep', 'away'].includes(profile)
@@ -1534,7 +1533,6 @@ views:
                     const kitchenHumidity = rounded(state('sensor.main_floor_humidity'));
                     const diningTemp = rounded(state('sensor.main_floor_2_temperature'));
                     const diningHumidity = rounded(state('sensor.main_floor_2_humidity'));
-                    const spread = rounded(state('sensor.downstairs_temp_spread'), 1);
                     return `
                       <div class="climate-sheet">
                         <div class="climate-header">
@@ -1581,7 +1579,7 @@ views:
                           <div class="sensor-row">
                             <div>
                               <div class="sensor-name">Dining Room</div>
-                              <div class="sensor-meta">Room sensor · spread ${spread}°</div>
+                              <div class="sensor-meta">Room sensor</div>
                             </div>
                             <div class="sensor-reading">${diningTemp}° · ${diningHumidity}%</div>
                           </div>
