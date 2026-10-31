@@ -111,6 +111,7 @@ Supporting material:
 
 | Date | Entry | Scope |
 | --- | --- | --- |
+| 2026-10-31 | [Dining Room disagreement retirement](2026-10-31-dining-disagreement-retirement.md) | Corrects the missed SensorPush/Ecobee sender; removes both comparison alerts live and preserves actual climate safeguards |
 | 2026-10-26 | [Main-floor spread retirement](2026-10-26-main-floor-spread-retirement.md) | Confirms live comparison already unloaded; removes stale repository tracking and sender, preserving both sensors and HVAC |
 | 2026-10-14 | [Administrative MCP connection](2026-10-14-administrative-mcp-connection.md) | Adds verified SSH-backed trace/log inspection and journaled configuration deployment, with live deployment/rollback acceptance and no Core restart |
 | 2026-10-01 | [Parking pass morning application reminder](2026-10-01-parking-pass-morning-application-reminder.md) | Moves daily reminders and saved snoozes to 7:30 AM, starts application reminders five days before expiration, and verifies durable duplicate suppression live |

@@ -419,3 +419,10 @@ Spread Watch records are historical, unavailable registry remnants. Their live
 YAML definitions are absent; the stale repository definitions have now been
 removed. Both Kitchen and Dining Room temperature/humidity sensors remain live.
 See [retirement evidence](audit-history/2026-10-26-main-floor-spread-retirement.md).
+
+## Dining Room disagreement retirement — October 31, 2026
+
+Both Dining Room Ecobee temperature/humidity disagreement template entities are
+now unloaded historical registry entries. Physical SensorPush and Ecobee readings,
+threshold alerts, averages and HVAC are preserved. See
+[corrective deployment](audit-history/2026-10-31-dining-disagreement-retirement.md).

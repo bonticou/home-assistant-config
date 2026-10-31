@@ -10238,7 +10238,7 @@
     },
     {
       "area": "",
-      "availability": "not_enriched",
+      "availability": "unavailable",
       "capability_keys": [],
       "device_class": "",
       "device_id": "",
@@ -10250,11 +10250,12 @@
       "name": "Environment Dining Room Ecobee Humidity Disagreement",
       "platform": "template",
       "role": "telemetry",
-      "unit": ""
+      "unit": "",
+      "retirement_note": "2026-10-31: Dining Room SensorPush/Ecobee comparison retired per Trevor; live definitions and sender triggers removed, templates reloaded. Preserve physical readings and real climate alerts."
     },
     {
       "area": "",
-      "availability": "not_enriched",
+      "availability": "unavailable",
       "capability_keys": [],
       "device_class": "",
       "device_id": "",
@@ -10266,7 +10267,8 @@
       "name": "Environment Dining Room Ecobee Temp Disagreement",
       "platform": "template",
       "role": "telemetry",
-      "unit": ""
+      "unit": "",
+      "retirement_note": "2026-10-31: Dining Room SensorPush/Ecobee comparison retired per Trevor; live definitions and sender triggers removed, templates reloaded. Preserve physical readings and real climate alerts."
     },
     {
       "area": "",
@@ -53959,7 +53961,7 @@
     },
     {
       "area": "",
-      "availability": "not_enriched",
+      "availability": "unavailable",
       "capability_keys": [],
       "device_class": "",
       "device_id": "",
@@ -53971,11 +53973,12 @@
       "name": "Environment Dining Room Ecobee Humidity Disagreement",
       "platform": "template",
       "role": "telemetry",
-      "unit": ""
+      "unit": "",
+      "retirement_note": "2026-10-31: Dining Room SensorPush/Ecobee comparison retired per Trevor; live definitions and sender triggers removed, templates reloaded. Preserve physical readings and real climate alerts."
     },
     {
       "area": "",
-      "availability": "not_enriched",
+      "availability": "unavailable",
       "capability_keys": [],
       "device_class": "",
       "device_id": "",
@@ -53987,7 +53990,8 @@
       "name": "Environment Dining Room Ecobee Temp Disagreement",
       "platform": "template",
       "role": "telemetry",
-      "unit": ""
+      "unit": "",
+      "retirement_note": "2026-10-31: Dining Room SensorPush/Ecobee comparison retired per Trevor; live definitions and sender triggers removed, templates reloaded. Preserve physical readings and real climate alerts."
     },
     {
       "area": "",

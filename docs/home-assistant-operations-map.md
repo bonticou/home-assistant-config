@@ -280,3 +280,10 @@ and loaded state already lacked this feature. Trevor explicitly does not want
 Kitchen–Dining Room spread monitoring or notifications recreated. See
 [retirement evidence](audit-history/2026-10-26-main-floor-spread-retirement.md).
 The October 23 divergence figures above remain dated historical observations.
+
+### October 31 disagreement correction
+
+The separate Dining Room SensorPush/Ecobee temperature and humidity comparison
+alerts are now retired live and in the repository. Both main-floor comparison
+features must remain retired; ordinary climate/safety alerts remain enabled.
+See [corrective deployment](audit-history/2026-10-31-dining-disagreement-retirement.md).

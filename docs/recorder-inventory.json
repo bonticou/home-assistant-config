@@ -6626,7 +6626,7 @@
     },
     {
       "area": "",
-      "availability": "not_enriched",
+      "availability": "unavailable",
       "category": "physical_timeseries",
       "db": null,
       "device_class": "",
@@ -6651,7 +6651,7 @@
     },
     {
       "area": "",
-      "availability": "not_enriched",
+      "availability": "unavailable",
       "category": "uncategorized",
       "db": null,
       "device_class": "",
@@ -65750,7 +65750,7 @@
       "unit": ""
     }
   ],
-  "generated_at": "2026-10-26T16:48:56+00:00",
+  "generated_at": "2026-10-31T18:17:59+00:00",
   "integrations": [
     {
       "db_rows": null,

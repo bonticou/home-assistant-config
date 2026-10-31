@@ -65,3 +65,10 @@ routines, real notifications, credentials, network or security settings changed.
 Residual limit: the time/source of the earlier live removal and the historical
 notification Trevor saw are not established by current evidence. Separate Ecobee
 disagreement rules remain intentionally outside this Kitchen–Dining Room scope.
+
+## October 31 correction
+
+Trevor's new screenshot established that the separate Dining Room SensorPush–
+Ecobee alert was also unwanted. The earlier scope interpretation was incomplete.
+Both disagreement branches are now retired in live HA; see
+[corrective deployment](2026-10-31-dining-disagreement-retirement.md).

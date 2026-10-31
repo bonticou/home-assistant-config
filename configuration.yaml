@@ -7373,14 +7373,6 @@ template:
           humidity: "{{ states('sensor.main_floor_2_humidity') }}"
           ecobee_temperature: "{{ states('sensor.dining_room_current_temperature') }}"
           ecobee_humidity: "{{ states('sensor.dining_room_current_humidity') }}"
-          temperature_delta_vs_ecobee: >
-            {% set a = states('sensor.main_floor_2_temperature') %}
-            {% set b = states('sensor.dining_room_current_temperature') %}
-            {{ ((a | float(0)) - (b | float(0))) | abs | round(1) if is_number(a) and is_number(b) else 'unknown' }}
-          humidity_delta_vs_ecobee: >
-            {% set a = states('sensor.main_floor_2_humidity') %}
-            {% set b = states('sensor.dining_room_current_humidity') %}
-            {{ ((a | float(0)) - (b | float(0))) | abs | round(0) if is_number(a) and is_number(b) else 'unknown' }}
           issue: >
             {% set t = states('sensor.main_floor_2_temperature') %}
             {% set h = states('sensor.main_floor_2_humidity') %}
@@ -7389,7 +7381,6 @@ template:
             {% elif (t | float(0)) > 80 %}Too warm
             {% elif (h | float(0)) < 28 %}Very dry
             {% elif (h | float(0)) > 65 %}Very humid
-            {% elif is_state('binary_sensor.environment_dining_room_ecobee_temp_disagreement', 'on') or is_state('binary_sensor.environment_dining_room_ecobee_humidity_disagreement', 'on') %}Ecobee disagreement
             {% elif (t | float(0)) < 64 or (t | float(0)) > 76 or (h | float(0)) < 32 or (h | float(0)) > 60 %}Comfort watch
             {% else %}Steady{% endif %}
 
@@ -7591,9 +7582,7 @@ template:
           {% set rooms = [states('sensor.environment_kitchen_status'), states('sensor.environment_dining_room_status')] %}
           {% if 'attention' in rooms or 'unavailable' in rooms %}
             attention
-          {% elif 'watch' in rooms
-             or is_state('binary_sensor.environment_dining_room_ecobee_temp_disagreement', 'on')
-             or is_state('binary_sensor.environment_dining_room_ecobee_humidity_disagreement', 'on') %}
+          {% elif 'watch' in rooms %}
             watch
           {% else %}
             steady
@@ -8050,30 +8039,6 @@ template:
         state: "{{ is_number(states('sensor.attic_humidity')) and (states('sensor.attic_humidity') | float(0)) > 80 }}"
         delay_on:
           hours: 2
-        delay_off:
-          minutes: 30
-
-      - name: "Environment Dining Room Ecobee Temp Disagreement"
-        unique_id: environment_dining_room_ecobee_temp_disagreement
-        state: >
-          {% set primary = states('sensor.main_floor_2_temperature') %}
-          {% set ecobee = states('sensor.dining_room_current_temperature') %}
-          {{ is_number(primary) and is_number(ecobee)
-             and ((primary | float(0)) - (ecobee | float(0))) | abs >= 3 }}
-        delay_on:
-          minutes: 45
-        delay_off:
-          minutes: 15
-
-      - name: "Environment Dining Room Ecobee Humidity Disagreement"
-        unique_id: environment_dining_room_ecobee_humidity_disagreement
-        state: >
-          {% set primary = states('sensor.main_floor_2_humidity') %}
-          {% set ecobee = states('sensor.dining_room_current_humidity') %}
-          {{ is_number(primary) and is_number(ecobee)
-             and ((primary | float(0)) - (ecobee | float(0))) | abs >= 10 }}
-        delay_on:
-          minutes: 90
         delay_off:
           minutes: 30
 

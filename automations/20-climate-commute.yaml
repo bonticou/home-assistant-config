@@ -103,8 +103,6 @@
           - sensor.environment_basement_status
           - sensor.environment_garage_status
           - sensor.environment_attic_status
-          - binary_sensor.environment_dining_room_ecobee_temp_disagreement
-          - binary_sensor.environment_dining_room_ecobee_humidity_disagreement
           - binary_sensor.environment_basement_radon_high_alert
     - choose:
         - conditions:
@@ -345,14 +343,6 @@
       to: "on"
       id: attic_humidity_high
     - trigger: state
-      entity_id: binary_sensor.environment_dining_room_ecobee_temp_disagreement
-      to: "on"
-      id: dining_temp_disagreement
-    - trigger: state
-      entity_id: binary_sensor.environment_dining_room_ecobee_humidity_disagreement
-      to: "on"
-      id: dining_humidity_disagreement
-    - trigger: state
       entity_id:
         - binary_sensor.environment_kitchen_sensor_unavailable
         - binary_sensor.environment_dining_room_sensor_unavailable
@@ -381,7 +371,6 @@
           {% else %}Environment{% endif %}
         kind: >-
           {% if trigger_name == 'sensor_unavailable' %}sensor_unavailable
-          {% elif 'disagreement' in trigger_name %}source_disagreement
           {% elif 'temp_high' in trigger_name %}temp_high
           {% elif 'temp_low' in trigger_name %}temp_low
           {% elif 'humidity_high' in trigger_name %}humidity_high
@@ -397,10 +386,6 @@
             {% set t = states('sensor.main_floor_temperature') %}
             {% set h = states('sensor.main_floor_humidity') %}
             Kitchen is at {{ t }}°F and {{ h }}% humidity. This has stayed outside the action range long enough to deserve a look.
-          {% elif room_name == 'Dining Room' and kind == 'source_disagreement' %}
-            Dining Room SensorPush and Ecobee readings have been apart long enough to check placement or airflow.
-            SensorPush is {{ states('sensor.main_floor_2_temperature') }}°F / {{ states('sensor.main_floor_2_humidity') }}%.
-            Ecobee is {{ states('sensor.dining_room_current_temperature') }}°F / {{ states('sensor.dining_room_current_humidity') }}%.
           {% elif room_name == 'Dining Room' %}
             Dining Room is at {{ states('sensor.main_floor_2_temperature') }}°F and {{ states('sensor.main_floor_2_humidity') }}% humidity.
             Dining Room Ecobee is {{ states('sensor.dining_room_current_temperature') }}°F and {{ states('sensor.dining_room_current_humidity') }}%.
@@ -451,8 +436,6 @@
         - binary_sensor.environment_garage_humidity_high_alert
         - binary_sensor.environment_attic_temp_high_alert
         - binary_sensor.environment_attic_humidity_high_alert
-        - binary_sensor.environment_dining_room_ecobee_temp_disagreement
-        - binary_sensor.environment_dining_room_ecobee_humidity_disagreement
         - binary_sensor.environment_kitchen_sensor_unavailable
         - binary_sensor.environment_dining_room_sensor_unavailable
         - binary_sensor.environment_primary_bedroom_sensor_unavailable
@@ -473,7 +456,6 @@
           {% else %}Environment{% endif %}
         kind: >-
           {% if 'sensor_unavailable' in entity %}sensor_unavailable
-          {% elif 'disagreement' in entity %}source_disagreement
           {% elif 'temp_high' in entity %}temp_high
           {% elif 'temp_low' in entity %}temp_low
           {% elif 'humidity_high' in entity %}humidity_high
