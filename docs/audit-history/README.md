@@ -1,5 +1,7 @@
 # Audit History
 
+- [2026-11-04 Deck Lutron replacement](2026-11-04-deck-lutron-replacement.md): replacement discovered and assigned the stable entity ID; retired record retained disabled.
+
 - [2026-10-23 Bedtime office uplights](2026-10-23-bedtime-office-uplights.md): trace-proven missing target added to Bedtime; bathroom exclusion preserved.
 
 - [2026-10-23 Project operations review](2026-10-23-project-operations-review.md): whole-project configuration map, verified access paths, live drift and coverage limits; documentation only.

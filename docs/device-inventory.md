@@ -426,3 +426,7 @@ Both Dining Room Ecobee temperature/humidity disagreement template entities are
 now unloaded historical registry entries. Physical SensorPush and Ecobee readings,
 threshold alerts, averages and HVAC are preserved. See
 [corrective deployment](audit-history/2026-10-31-dining-disagreement-retirement.md).
+
+## Deck dimmer replacement — November 4, 2026
+
+Lutron refresh discovered Deck Deck Lights 1; the old Deck Deck Lights was no longer provided. The replacement now retains `light.deck_deck_lights`, the Deck area and prior name, available/off. The retired entity is preserved disabled as `light.deck_deck_lights_retired_20261104`. The second dimmer remains `light.exterior_deck_lights`; its integration-provided display name refreshed to Deck Deck Lights 2. This is targeted reconciliation, not a new full inventory census.

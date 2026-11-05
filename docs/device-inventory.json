@@ -3827,7 +3827,7 @@
     {
       "area": "Deck",
       "control_count": 1,
-      "device_id": "device_e39749ff5aa3",
+      "device_id": "device_deck_replacement_20261104",
       "disabled_by": "",
       "entities": [
         "light.deck_deck_lights"
@@ -21591,16 +21591,16 @@
     },
     {
       "area": "Deck",
-      "availability": "not_enriched",
+      "availability": "available",
       "capability_keys": [],
       "device_class": "",
-      "device_id": "device_e39749ff5aa3",
+      "device_id": "device_deck_replacement_20261104",
       "disabled_by": "",
       "domain": "light",
       "entity_category": "",
       "entity_id": "light.deck_deck_lights",
       "hidden_by": "",
-      "name": "light.deck_deck_lights",
+      "name": "Deck Deck Lights",
       "platform": "lutron_caseta",
       "role": "control",
       "unit": ""
@@ -64171,5 +64171,19 @@
   "generac_reconciliation": {
     "date": "2026-10-19",
     "scope": "Targeted MobileLink device registry addition; sensor values and credentials omitted."
+  },
+  "deck_replacement_reconciliation": {
+    "date": "2026-11-04",
+    "method": "Authenticated HA registry UI after Lutron integration reload",
+    "entity_id": "light.deck_deck_lights",
+    "discovered_entity_id": "light.deck_deck_deck_lights_1",
+    "retired_entity_id": "light.deck_deck_lights_retired_20261104",
+    "retired_disabled": true,
+    "prior_inventory_device_id": "device_e39749ff5aa3",
+    "replacement_inventory_device_id": "device_deck_replacement_20261104",
+    "area": "Deck",
+    "state_observed": "off",
+    "other_deck_entity_preserved": "light.exterior_deck_lights",
+    "scope": "Targeted active-device replacement; retained retired registry record is described here, not a fresh whole-registry census."
   }
 }
