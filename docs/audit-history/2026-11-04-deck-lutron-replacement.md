@@ -53,3 +53,37 @@ available/off state and dimmer control. No tile was added under replacement scop
 A complete raw audit of UI-managed Overview contents or every helper definition
 was not performed; the supported old-device/entity Related views and live YAML
 reference checks above are the verified coverage, not a whole-storage guarantee.
+
+## Additional supported-source checks and inventory-check limits
+
+Admin MCP additionally read live scenes.yaml, lights.yaml and dashboards/ha_safe.yaml:
+none contained the old device identifier, temporary discovered entity ID or
+retired entity ID. Earlier exact live checks cover configuration.yaml (including
+YAML helpers/templates), scripts.yaml, monolithic automations.yaml and
+calm_mobile.yaml. These checks do not traverse arbitrary storage or hidden includes.
+
+Opened the user-created Overview at /lovelace/0 and its supported configuration
+editor without saving. It reports “No strategy type found” and an editor validation
+error. The editor's regex search for the old device ID and temporary/retired entity
+identifiers did not select a match; rendered editor text contained none. Because
+this editor is erroring and its accessibility text is virtualized, this is a
+bounded UI inspection, not a certified complete stored-config export. No unrelated
+Overview repair was attempted. Built-in generated dashboards were not exported.
+
+Compared both entities' settings and voice-assistant panes: replacement retains
+Deck device-area inheritance, prior name, enabled/visible state and no custom icon
+or labels shown. Both voice panes show default-name alias only, Assist enabled,
+Alexa/Google disabled; no exposure setting was changed. No additional entity-option
+controls were offered in these settings panes. Raw integration-specific option
+payloads, every UI-created helper/group definition, and external device-ID consumers
+remain outside the verified coverage. Old-device Related and retired-entity Related
+inspection found no residual dependency; no further migration was identified.
+
+The “178 active control references” check is local regex membership against
+inventory JSON entities/orphans for 12 control domains across a hardcoded file
+list: configuration.yaml, automations.yaml, the first four automation chunks,
+scripts.yaml, scenes.yaml and dashboards/calm_mobile.yaml. It does not traverse
+includes, query HA, validate device IDs or availability, cover all files (notably
+lights.yaml, the generator chunk and ha_safe), or inspect stored dashboards/helpers.
+It is not evidence of complete replacement coverage. All above limitations remain
+explicit; no raw .storage access, grants, actuation or additional live edits occurred.
