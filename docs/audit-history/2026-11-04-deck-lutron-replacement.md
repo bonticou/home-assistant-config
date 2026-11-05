@@ -32,3 +32,24 @@ No YAML deployment or deployment-backup ID applies; this was a recoverable
 registry replacement. No credentials, exposure, grants or integration reconnect
 were changed. UI-managed references by stable entity ID remain valid; arbitrary
 external consumers using the former physical device identifier were not inspected.
+
+## Follow-up reference and presentation verification
+
+Observed clock 2026-11-05 00:18:39 UTC converts to November 4, 19:18:39 EST
+(America/New_York); the audit date and retired suffix are correct.
+The old device's Related panel now reports no automations, scripts or scenes.
+The replacement device's Related panel lists both late-night exterior reminder
+and clear automations, plus All Off, Bedtime, Late Night Exterior Off, Vacation
+Activity Apply and Vacation Mode End. No scenes are listed. Thus the visible HA
+relationships follow the replacement, with no remaining old-device target found.
+The retired entity's Related view shows only integration context, no helper,
+automation, script or dashboard relationship. Raw registry IDs were returned
+privately to the originating task and are intentionally omitted here.
+
+The current Lights page loads all existing sections without unavailable controls.
+It does not have a dedicated Deck tile: the unchanged live dashboard has no direct
+reference to this entity. Replacement details show the expected name, Deck area,
+available/off state and dimmer control. No tile was added under replacement scope.
+A complete raw audit of UI-managed Overview contents or every helper definition
+was not performed; the supported old-device/entity Related views and live YAML
+reference checks above are the verified coverage, not a whole-storage guarantee.
