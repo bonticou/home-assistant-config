@@ -88,3 +88,48 @@ Supported entity/device Related views and seven live configuration files were
 inspected. Arbitrary external device-ID consumers and every UI-managed storage
 object were not exported. The current combined dashboard was not physically
 actuated, and offline tests do not measure visible synchronization speed.
+
+
+## Follow-up: latency after the user test
+
+Trevor confirmed: “OK, is there any possible way to reduce the latency? Otherwise,
+they work perfectly”. This confirms his functional test; the following measurements
+are from retained Home Assistant traces, not a new physical test by the assistant.
+
+Two completed post-deployment right-to-left dimming runs at 23:10:24 and 23:10:27
+UTC were retained. Both sent the expected brightness with `transition: 0`, and the
+returning left-side event failed the equality condition as intended, rather than
+issuing a command back. Measured timings were:
+
+| Segment | Run 1 | Run 2 |
+| --- | ---: | ---: |
+| Source state timestamp to follower service-dispatch step | 3.621 ms | 2.968 ms |
+| Source state timestamp to matching follower state timestamp | 49.307 ms | 54.501 ms |
+| Automation start to completion | 56.372 ms | 53.147 ms |
+
+This is a small retained sample of one direction. It does not measure time from
+finger movement to the source report, radio transit independently, or visible
+light response. The remaining retained entries are equality-filtered follower
+updates. No additional lights were operated and no live configuration changed.
+
+The Home Assistant dispatch portion is already only a few milliseconds. Removing
+safety/equality checks, aggressive polling, or a custom integration is not justified
+by this evidence. The local dimmer must first publish a state change before this
+state-based pairing can act. Historical third-party reports quote Lutron support
+describing delayed local dimmer status reports, but an exact three-second delay
+has not been measured or established for these installed devices.
+
+The practical architecture option is a dimming-capable Pico at each preferred
+control position, each natively assigned to both sconces in Lutron. Lutron documents
+that one Pico can operate multiple dimmers together for on/off/dimming; this avoids
+waiting for one wired dimmer's reported level before commanding the other. It
+changes which controls the person uses, and does not make the existing sliders
+report sooner. Any change to wired controls or load wiring would first need a
+specific approved plan and a qualified electrician. No purchase, pairing, wiring
+change or architecture migration was made.
+
+Sources checked for the follow-up:
+- [Lutron: Pico control of multiple dimmers](https://www.casetawireless.com/us/en/caseta-advantage/pico-smart-remote).
+- [Lutron: Pico pairing and simultaneous device control](https://support.lutron.com/us/en/product/casetawireless/article/troubleshooting/How-to-program-a-Pico-remote-with-a-Cas%C3%A9ta-device-or-the-Lutron-app).
+- [Home Assistant: Lutron Caseta local integration and supported button events](https://www.home-assistant.io/integrations/lutron_caseta/).
+- [Historical Hubitat discussion quoting Lutron support](https://community.hubitat.com/t/lutron-caseta-integration-delay/1490/15), secondary evidence only, not a benchmark for this house.
