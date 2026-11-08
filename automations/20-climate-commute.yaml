@@ -21,15 +21,28 @@
         - light.master_bedroom_sconce_l
         - light.master_bedroom_sconce_r
   conditions:
+    # Paired scenes own both loads and their intentional fades while running.
+    - condition: template
+      value_template: >
+        {{ not is_state('script.lights_all_off_scene', 'on')
+           and not is_state('script.lights_bedtime_scene', 'on') }}
     - condition: template
       value_template: >
         {% set source = trigger.to_state %}
+        {% set previous = trigger.from_state %}
         {% set target_id = 'light.master_bedroom_sconce_r'
            if trigger.entity_id == 'light.master_bedroom_sconce_l'
            else 'light.master_bedroom_sconce_l' %}
         {% set target_state = states(target_id) %}
         {{ source is not none
+           and previous is not none
            and source.state in ['on', 'off']
+           and previous.state in ['on', 'off']
+           and (
+             source.state != previous.state
+             or (source.attributes.brightness | int(255))
+                != (previous.attributes.brightness | int(255))
+           )
            and target_state not in ['unknown', 'unavailable']
            and (
              source.state != target_state
@@ -56,6 +69,7 @@
               data:
                 entity_id: "{{ target_entity }}"
                 brightness: "{{ source_brightness }}"
+                transition: 0
         - conditions:
             - condition: template
               value_template: "{{ source_state == 'off' }}"
@@ -63,6 +77,7 @@
             - action: light.turn_off
               data:
                 entity_id: "{{ target_entity }}"
+                transition: 0
   mode: restart
 
 - id: downstairs_climate_pilot_startup_sync

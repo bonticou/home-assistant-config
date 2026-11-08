@@ -38,6 +38,15 @@ Three Lutron Diva dimmers were re-enabled and assigned to Master Bathroom:
 
 The chandelier entry is a Pico remote, not a light output. Unrelated baseline records and area counts below have not been refreshed.
 
+## Master Sconce Left — November 8 replacement
+
+The new Lutron Diva dimmer now uses `light.master_bedroom_sconce_l`, named
+Master Sconce L in Master Bedroom. The prior dimmer remains intact as
+`light.master_sconce_l_spare_20261108`, disabled and clearly held for repurposing.
+The right dimmer and `light.master_bedroom_sconces` group are unchanged. Existing
+paired controls and Sleep/Bedtime references therefore follow the replacement.
+This is a targeted reconciliation, not a refresh of the baseline counts below.
+
 ## Area Index
 
 | Area | Devices | Controls | Lights | Telemetry | Network |

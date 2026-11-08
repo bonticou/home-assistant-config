@@ -5085,7 +5085,7 @@
     {
       "area": "Master Bedroom",
       "control_count": 1,
-      "device_id": "device_798e44b8b882",
+      "device_id": "device_master_sconce_l_replacement_20261108",
       "disabled_by": "",
       "entities": [
         "light.master_bedroom_sconce_l"
@@ -21847,16 +21847,19 @@
     },
     {
       "area": "Master Bedroom",
-      "availability": "not_enriched",
-      "capability_keys": [],
+      "availability": "available",
+      "capability_keys": [
+        "brightness",
+        "transition"
+      ],
       "device_class": "",
-      "device_id": "device_798e44b8b882",
+      "device_id": "device_master_sconce_l_replacement_20261108",
       "disabled_by": "",
       "domain": "light",
       "entity_category": "",
       "entity_id": "light.master_bedroom_sconce_l",
       "hidden_by": "",
-      "name": "light.master_bedroom_sconce_l",
+      "name": "Master Sconce L",
       "platform": "lutron_caseta",
       "role": "control",
       "unit": ""
@@ -64185,5 +64188,21 @@
     "state_observed": "off",
     "other_deck_entity_preserved": "light.exterior_deck_lights",
     "scope": "Targeted active-device replacement; retained retired registry record is described here, not a fresh whole-registry census."
+  },
+  "master_sconce_replacement_reconciliation": {
+    "date": "2026-11-08",
+    "method": "Authenticated HA registry UI after Lutron integration reload",
+    "entity_id": "light.master_bedroom_sconce_l",
+    "discovered_entity_id": "light.master_master_sconce_l_new",
+    "held_entity_id": "light.master_sconce_l_spare_20261108",
+    "held_disabled": true,
+    "held_device_preserved": true,
+    "prior_inventory_device_id": "device_798e44b8b882",
+    "replacement_inventory_device_id": "device_master_sconce_l_replacement_20261108",
+    "area": "Master Bedroom",
+    "state_observed": "on at 3 percent",
+    "right_entity_preserved": "light.master_bedroom_sconce_r",
+    "group_preserved": "light.master_bedroom_sconces",
+    "scope": "Targeted active-device replacement. Retained disabled former device is described here, not a fresh whole-registry census."
   }
 }

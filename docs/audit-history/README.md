@@ -1,5 +1,7 @@
 # Audit History
 
+- [2026-11-08 Master sconce left replacement](2026-11-08-master-sconce-left-replacement.md): new dimmer takes the stable left identity; old switch held intact; zero-fade follower commands and scene guards deployed.
+
 - [2026-11-04 Deck Lutron replacement](2026-11-04-deck-lutron-replacement.md): replacement discovered and assigned the stable entity ID; retired record retained disabled.
 
 - [2026-10-23 Bedtime office uplights](2026-10-23-bedtime-office-uplights.md): trace-proven missing target added to Bedtime; bathroom exclusion preserved.
