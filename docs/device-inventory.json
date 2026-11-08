@@ -6311,6 +6311,26 @@
       "network_count": 0,
       "other_count": 2,
       "telemetry_count": 24
+    },
+    {
+      "area": "Master Bedroom",
+      "control_count": 1,
+      "device_id": "device_798e44b8b882",
+      "disabled_by": "",
+      "entities": [
+        "light.master_bedroom_lantern"
+      ],
+      "entity_count": 1,
+      "entry_type": "",
+      "integrations": [
+        "lutron_caseta"
+      ],
+      "manufacturer": "Lutron Electronics Co., Inc",
+      "model": "DVRF-6L (DivaSmartDimmer)",
+      "name": "Master Bedroom Lantern",
+      "network_count": 0,
+      "other_count": 0,
+      "telemetry_count": 0
     }
   ],
   "entities": [
@@ -48117,6 +48137,25 @@
       "platform": "generac",
       "role": "other",
       "unit": ""
+    },
+    {
+      "area": "Master Bedroom",
+      "availability": "available",
+      "capability_keys": [
+        "brightness",
+        "transition"
+      ],
+      "device_class": "",
+      "device_id": "device_798e44b8b882",
+      "disabled_by": "",
+      "domain": "light",
+      "entity_category": "",
+      "entity_id": "light.master_bedroom_lantern",
+      "hidden_by": "",
+      "name": "Master Bedroom Lantern",
+      "platform": "lutron_caseta",
+      "role": "control",
+      "unit": ""
     }
   ],
   "generated_at": "2026-07-29T14:29:24.057042+00:00",
@@ -64194,8 +64233,6 @@
     "method": "Authenticated HA registry UI after Lutron integration reload",
     "entity_id": "light.master_bedroom_sconce_l",
     "discovered_entity_id": "light.master_master_sconce_l_new",
-    "held_entity_id": "light.master_sconce_l_spare_20261108",
-    "held_disabled": true,
     "held_device_preserved": true,
     "prior_inventory_device_id": "device_798e44b8b882",
     "replacement_inventory_device_id": "device_master_sconce_l_replacement_20261108",
@@ -64203,6 +64240,27 @@
     "state_observed": "on at 3 percent",
     "right_entity_preserved": "light.master_bedroom_sconce_r",
     "group_preserved": "light.master_bedroom_sconces",
-    "scope": "Targeted active-device replacement. Retained disabled former device is described here, not a fresh whole-registry census."
+    "scope": "Targeted active-device replacement. Former device subsequently repurposed as Master Bedroom Lantern; see lantern reconciliation. Not a fresh whole-registry census.",
+    "held_at_replacement_entity_id": "light.master_sconce_l_spare_20261108",
+    "held_at_replacement_disabled": true,
+    "phase_two_entity_id": "light.master_bedroom_lantern",
+    "phase_two_disabled": false
+  },
+  "master_bedroom_lantern_reconciliation": {
+    "date": "2026-11-08",
+    "method": "Authenticated HA registry UI; existing retained physical dimmer reused",
+    "entity_id": "light.master_bedroom_lantern",
+    "previous_entity_id": "light.master_sconce_l_spare_20261108",
+    "device_id": "device_798e44b8b882",
+    "area": "Master Bedroom",
+    "name": "Master Bedroom Lantern",
+    "disabled": false,
+    "bedtime_brightness_pct": 40,
+    "bedtime_transition_seconds": 5,
+    "sleep_and_vacation_start_transition_seconds": 3,
+    "independent_of_sconce_pair": true,
+    "existing_door_lantern_preserved": "switch.master_lantern",
+    "scope": "Targeted enabled device/entity addition back to active inventory; baseline counts remain historical.",
+    "state_observed": "on at 40 percent after enable; no scene replay or light command"
   }
 }

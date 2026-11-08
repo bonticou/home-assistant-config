@@ -1,6 +1,6 @@
 # Audit History
 
-- [2026-11-08 Master bedroom lantern plan](2026-11-08-master-bedroom-lantern-plan.md): held dimmer repurposing, normal rule coverage and pending Bedtime choice; not deployed.
+- [2026-11-08 Master bedroom lantern](2026-11-08-master-bedroom-lantern-plan.md): held dimmer repurposed, independent control, five-second 40% Bedtime fade and normal shutdown coverage deployed.
 
 - [2026-11-08 Master sconce left replacement](2026-11-08-master-sconce-left-replacement.md): new dimmer takes the stable left identity; old switch held intact; zero-fade follower commands and scene guards deployed.
 

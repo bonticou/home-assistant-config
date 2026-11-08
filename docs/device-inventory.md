@@ -41,11 +41,21 @@ The chandelier entry is a Pico remote, not a light output. Unrelated baseline re
 ## Master Sconce Left — November 8 replacement
 
 The new Lutron Diva dimmer now uses `light.master_bedroom_sconce_l`, named
-Master Sconce L in Master Bedroom. The prior dimmer remains intact as
-`light.master_sconce_l_spare_20261108`, disabled and clearly held for repurposing.
+Master Sconce L in Master Bedroom. The prior dimmer was held intact, then repurposed in phase two as
+`light.master_bedroom_lantern`, named Master Bedroom Lantern and enabled.
 The right dimmer and `light.master_bedroom_sconces` group are unchanged. Existing
 paired controls and Sleep/Bedtime references therefore follow the replacement.
 This is a targeted reconciliation, not a refresh of the baseline counts below.
+
+## Master Bedroom Lantern — November 8 repurposing
+
+The former left-sconce Diva dimmer is now the separate
+`light.master_bedroom_lantern`. Bedtime brings it to 40 percent over five seconds;
+Sleep / All Off and Vacation Start turn it off with a three-second fade. It joins
+ordinary away-light and guarded overnight handling through existing light-domain
+discovery. Its own Lantern dashboard control is separate from the paired sconces
+and from the existing door-light `switch.master_lantern`. Baseline counts below
+are historical and have not been recomputed.
 
 ## Area Index
 

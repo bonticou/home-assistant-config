@@ -7843,6 +7843,21 @@ views:
                 card_mod:
                   style: *lights_button_style
               - type: custom:mushroom-light-card
+                entity: light.master_bedroom_lantern
+                name: Lantern
+                icon: mdi:circle
+                tap_action:
+                  <<: *lights_transition_tap_action
+                  data:
+                    light_entity: light.master_bedroom_lantern
+                    transition_seconds: 3
+                show_brightness_control: true
+                collapsible_controls: true
+                show_color_temp_control: false
+                use_light_color: false
+                card_mod:
+                  style: *lights_button_style
+              - type: custom:mushroom-light-card
                 entity: light.master_casey_s_closet
                 name: Casey's closet
                 icon: mdi:circle

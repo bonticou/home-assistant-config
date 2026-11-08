@@ -564,6 +564,7 @@ lights_all_off_scene:
           - light.master_bathroom_vanity_lights
           - light.master_bathroom_shower_lights
           - light.master_casey_s_closet
+          - light.master_bedroom_lantern
           - light.wynn_s_room_wynn_s_room_closet_light
         transition: 3
     - variables:
@@ -629,7 +630,7 @@ lights_all_off_scene:
 
 lights_bedtime_scene:
   alias: Lights Bedtime Scene
-  description: Turn off the house lights for bedtime, turn off the family room TV, leave Wynn's room and the front entry lights alone, bring the master bedroom sconces on softly, fade the chandelier down first, turn off the garage and exterior utility lights, then settle the front stairs to a 4 percent overnight glow, and keep the chandelier off for the rest of the night.
+  description: Turn off the house lights for bedtime, turn off the family room TV, leave Wynn's room and the front entry lights alone, bring the master bedroom sconces and lantern on softly, fade the chandelier down first, turn off the garage and exterior utility lights, then settle the front stairs to a 4 percent overnight glow, and keep the chandelier off for the rest of the night.
   icon: mdi:weather-night
   mode: single
   sequence:
@@ -680,6 +681,12 @@ lights_bedtime_scene:
           - light.master_casey_s_closet
           - light.wynn_s_room_wynn_s_room_closet_light
         transition: 8
+    - action: light.turn_on
+      target:
+        entity_id: light.master_bedroom_lantern
+      data:
+        brightness_pct: 40
+        transition: 5
     - action: light.turn_on
       target:
         entity_id:
@@ -988,6 +995,7 @@ vacation_mode_start:
           - light.wynn_s_room_chandelier
           - light.wynn_s_room_ceiling_lights
           - light.master_casey_s_closet
+          - light.master_bedroom_lantern
         transition: 3
     - action: switch.turn_off
       data:
