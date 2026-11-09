@@ -6331,6 +6331,27 @@
       "network_count": 0,
       "other_count": 0,
       "telemetry_count": 0
+    },
+    {
+      "area": "",
+      "control_count": 1,
+      "device_id": "device_dehumidifier_ep25_20261108",
+      "disabled_by": "",
+      "entities": [
+        "switch.dehumidifier",
+        "sensor.dehumidifier_current_consumption"
+      ],
+      "entity_count": 2,
+      "entry_type": "",
+      "integrations": [
+        "tplink"
+      ],
+      "manufacturer": "TP-Link",
+      "model": "EP25",
+      "name": "Dehumidifier",
+      "network_count": 0,
+      "other_count": 0,
+      "telemetry_count": 1
     }
   ],
   "entities": [
@@ -48156,6 +48177,38 @@
       "platform": "lutron_caseta",
       "role": "control",
       "unit": ""
+    },
+    {
+      "area": "",
+      "availability": "available",
+      "capability_keys": [],
+      "device_class": "",
+      "device_id": "device_dehumidifier_ep25_20261108",
+      "disabled_by": "",
+      "domain": "switch",
+      "entity_category": "",
+      "entity_id": "switch.dehumidifier",
+      "hidden_by": "",
+      "name": "Dehumidifier",
+      "platform": "tplink",
+      "role": "control",
+      "unit": ""
+    },
+    {
+      "area": "",
+      "availability": "available",
+      "capability_keys": [],
+      "device_class": "",
+      "device_id": "device_dehumidifier_ep25_20261108",
+      "disabled_by": "",
+      "domain": "sensor",
+      "entity_category": "",
+      "entity_id": "sensor.dehumidifier_current_consumption",
+      "hidden_by": "",
+      "name": "Current consumption",
+      "platform": "tplink",
+      "role": "telemetry",
+      "unit": "W"
     }
   ],
   "generated_at": "2026-07-29T14:29:24.057042+00:00",
@@ -64262,5 +64315,17 @@
     "existing_door_lantern_preserved": "switch.master_lantern",
     "scope": "Targeted enabled device/entity addition back to active inventory; baseline counts remain historical.",
     "state_observed": "on at 40 percent after enable; no scene replay or light command"
+  },
+  "dehumidifier_reconciliation": {
+    "date": "2026-11-08",
+    "method": "Authenticated HA UI after owner-supplied credential share",
+    "hardware": "2.6",
+    "identity": "Full MAC matched screenshot; private identifiers omitted",
+    "entities_verified": [
+      "switch.dehumidifier",
+      "sensor.dehumidifier_current_consumption"
+    ],
+    "scope": "Only two exact entity IDs verified; other plug telemetry/configuration entities not enumerated. Historical summary counts unchanged.",
+    "automation": "None created; no relay commands issued"
   }
 }

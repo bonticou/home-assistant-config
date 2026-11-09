@@ -449,3 +449,10 @@ threshold alerts, averages and HVAC are preserved. See
 ## Deck dimmer replacement — November 4, 2026
 
 Lutron refresh discovered Deck Deck Lights 1; the old Deck Deck Lights was no longer provided. The replacement now retains `light.deck_deck_lights`, the Deck area and prior name, available/off. The retired entity is preserved disabled as `light.deck_deck_lights_retired_20261104`. The second dimmer remains `light.exterior_deck_lights`; its integration-provided display name refreshed to Deck Deck Lights 2. This is targeted reconciliation, not a new full inventory census.
+
+## Dehumidifier Kasa connection - November 8, 2026
+
+Added owner-identified EP25 hardware 2.6; verified `switch.dehumidifier` and
+`sensor.dehumidifier_current_consumption`, on and about 450 W. No relay commands
+or humidity automation. Only these two exact IDs reconciled; not a full census.
+See [connection evidence](audit-history/2026-11-08-dehumidifier-kasa-connection.md).
