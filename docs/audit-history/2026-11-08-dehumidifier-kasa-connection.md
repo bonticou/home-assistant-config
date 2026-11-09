@@ -1,5 +1,31 @@
 # Dehumidifier Kasa connection - November 8, 2026
 
+## Current decision: leave the plug powered
+
+Trevor's latest instruction is to leave it on constantly. Interpreted as leaving
+the Kasa relay on, with the appliance's own settings controlling operation; no
+claim that its humidistat setting or continuous mode has been inspected or changed.
+The new humidity-switching rule was removed and passive monitoring retained.
+At 9:07 PM Eastern, the observer verified relay on, 444.9 W and Airthings 33%.
+No physical relay command was issued during this change.
+
+Earlier in this exchange Trevor requested Kasa automation and then specified
+45% on /35% off. A guarded rule was briefly deployed (initial 50/45 plan
+02124baa18234adba7f04961ab4d1a32, corrected 45/35 plan
+650a1bb9020b47db80a9ad78bc5b47a5), then superseded by the leave-powered decision
+before its twenty-minute startup guard elapsed. Its last_triggered remained null.
+Removal deployment 422ce3ab5b2f4b929cb61fe009472605 passed HA validation and
+automation reload. Readback confirms no controller definition, observer retained;
+the removed controller remains only as an unavailable registry remnant.
+Final live SHA256: ff632c4bce2326ace100284a6c62d9dfb10d483a5145f91ce71692cd0019ff14.
+Observer trace 3a56a5d26c72a9a6871f6162f8fece89 confirms control_enabled false.
+Repository automation content is unchanged from before this exchange. The
+temporary controller passed four focused behavioral tests and inventory coverage;
+its implementation/tests were removed together. No Core restart or push sent.
+The motor-rating uncertainty below remains unresolved by leaving the relay on.
+
+## Earlier connection and commissioning evidence
+
 Owner-identified EP25 hardware 2.6 is connected to Home Assistant as Dehumidifier.
 Full MAC matched the owner screenshot. No relay command or humidity automation
 was issued. Live readback: switch.dehumidifier on; sensor.dehumidifier_current_consumption
