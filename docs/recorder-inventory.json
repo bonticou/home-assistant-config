@@ -25,13 +25,13 @@
     {
       "category": "uncategorized",
       "db_rows": null,
-      "entities": 471,
+      "entities": 473,
       "high_stateful_need": 0,
       "live_attr_bytes": null,
       "low_stateful_need": 0,
       "medium_stateful_need": 0,
-      "recorded_candidates": 409,
-      "unknown_stateful_need": 409
+      "recorded_candidates": 411,
+      "unknown_stateful_need": 411
     },
     {
       "category": "derived_summary_or_dashboard_state",
@@ -47,12 +47,12 @@
     {
       "category": "physical_timeseries",
       "db_rows": null,
-      "entities": 134,
-      "high_stateful_need": 96,
+      "entities": 135,
+      "high_stateful_need": 97,
       "live_attr_bytes": null,
       "low_stateful_need": 0,
       "medium_stateful_need": 0,
-      "recorded_candidates": 96,
+      "recorded_candidates": 97,
       "unknown_stateful_need": 0
     },
     {
@@ -115,12 +115,12 @@
     {
       "db_rows": null,
       "domain": "sensor",
-      "entities": 808,
-      "high_stateful_need": 229,
+      "entities": 809,
+      "high_stateful_need": 230,
       "live_attr_bytes": null,
       "low_stateful_need": 109,
       "medium_stateful_need": 20,
-      "recorded_candidates": 463,
+      "recorded_candidates": 464,
       "unknown_stateful_need": 105
     },
     {
@@ -170,13 +170,13 @@
     {
       "db_rows": null,
       "domain": "switch",
-      "entities": 391,
+      "entities": 392,
       "high_stateful_need": 63,
       "live_attr_bytes": null,
       "low_stateful_need": 8,
       "medium_stateful_need": 0,
-      "recorded_candidates": 81,
-      "unknown_stateful_need": 10
+      "recorded_candidates": 82,
+      "unknown_stateful_need": 11
     },
     {
       "db_rows": null,
@@ -203,13 +203,13 @@
     {
       "db_rows": null,
       "domain": "light",
-      "entities": 41,
+      "entities": 42,
       "high_stateful_need": 2,
       "live_attr_bytes": null,
       "low_stateful_need": 0,
       "medium_stateful_need": 3,
-      "recorded_candidates": 41,
-      "unknown_stateful_need": 36
+      "recorded_candidates": 42,
+      "unknown_stateful_need": 37
     },
     {
       "db_rows": null,
@@ -24676,7 +24676,7 @@
     },
     {
       "area": "Deck",
-      "availability": "not_enriched",
+      "availability": "available",
       "category": "uncategorized",
       "db": null,
       "device_class": "",
@@ -24685,7 +24685,7 @@
       "entity_category": "",
       "entity_id": "light.deck_deck_lights",
       "exclude_match": "",
-      "friendly_name": "light.deck_deck_lights",
+      "friendly_name": "Deck Deck Lights",
       "hidden_by": "",
       "live_age_seconds": null,
       "live_attr_bytes": null,
@@ -25151,7 +25151,32 @@
     },
     {
       "area": "Master Bedroom",
-      "availability": "not_enriched",
+      "availability": "available",
+      "category": "uncategorized",
+      "db": null,
+      "device_class": "",
+      "disabled_by": "",
+      "domain": "light",
+      "entity_category": "",
+      "entity_id": "light.master_bedroom_lantern",
+      "exclude_match": "",
+      "friendly_name": "Master Bedroom Lantern",
+      "hidden_by": "",
+      "live_age_seconds": null,
+      "live_attr_bytes": null,
+      "live_last_reported": null,
+      "platform": "lutron_caseta",
+      "reason": "No specific Recorder policy has been assigned yet.",
+      "recommendation": "review",
+      "recorder_status": "recorded_candidate",
+      "retention_days": 30,
+      "role": "control",
+      "stateful_need": "unknown",
+      "unit": ""
+    },
+    {
+      "area": "Master Bedroom",
+      "availability": "available",
       "category": "uncategorized",
       "db": null,
       "device_class": "",
@@ -25160,7 +25185,7 @@
       "entity_category": "",
       "entity_id": "light.master_bedroom_sconce_l",
       "exclude_match": "",
-      "friendly_name": "light.master_bedroom_sconce_l",
+      "friendly_name": "Master Sconce L",
       "hidden_by": "",
       "live_age_seconds": null,
       "live_attr_bytes": null,
@@ -37073,6 +37098,31 @@
       "role": "telemetry",
       "stateful_need": "low",
       "unit": ""
+    },
+    {
+      "area": "",
+      "availability": "available",
+      "category": "physical_timeseries",
+      "db": null,
+      "device_class": "",
+      "disabled_by": "",
+      "domain": "sensor",
+      "entity_category": "",
+      "entity_id": "sensor.dehumidifier_current_consumption",
+      "exclude_match": "",
+      "friendly_name": "Current consumption",
+      "hidden_by": "",
+      "live_age_seconds": null,
+      "live_attr_bytes": null,
+      "live_last_reported": null,
+      "platform": "tplink",
+      "reason": "Physical telemetry often powers charts, alerts, and trend comparisons.",
+      "recommendation": "keep_or_shorten_by_dashboard_need",
+      "recorder_status": "recorded_candidate",
+      "retention_days": 30,
+      "role": "telemetry",
+      "stateful_need": "high",
+      "unit": "W"
     },
     {
       "area": "",
@@ -55525,6 +55575,31 @@
       "unit": ""
     },
     {
+      "area": "",
+      "availability": "available",
+      "category": "uncategorized",
+      "db": null,
+      "device_class": "",
+      "disabled_by": "",
+      "domain": "switch",
+      "entity_category": "",
+      "entity_id": "switch.dehumidifier",
+      "exclude_match": "",
+      "friendly_name": "Dehumidifier",
+      "hidden_by": "",
+      "live_age_seconds": null,
+      "live_attr_bytes": null,
+      "live_last_reported": null,
+      "platform": "tplink",
+      "reason": "No specific Recorder policy has been assigned yet.",
+      "recommendation": "review",
+      "recorder_status": "recorded_candidate",
+      "retention_days": 30,
+      "role": "control",
+      "stateful_need": "unknown",
+      "unit": ""
+    },
+    {
       "area": "Dining Room",
       "availability": "not_enriched",
       "category": "integration_config_or_update_state",
@@ -65750,7 +65825,7 @@
       "unit": ""
     }
   ],
-  "generated_at": "2026-10-31T18:17:59+00:00",
+  "generated_at": "2026-11-09T01:35:59+00:00",
   "integrations": [
     {
       "db_rows": null,
@@ -65831,14 +65906,14 @@
     },
     {
       "db_rows": null,
-      "entities": 105,
-      "high_stateful_need": 25,
+      "entities": 107,
+      "high_stateful_need": 26,
       "live_attr_bytes": null,
       "low_stateful_need": 8,
       "medium_stateful_need": 0,
       "platform": "tplink",
-      "recorded_candidates": 58,
-      "unknown_stateful_need": 25
+      "recorded_candidates": 60,
+      "unknown_stateful_need": 26
     },
     {
       "db_rows": null,
@@ -65886,14 +65961,14 @@
     },
     {
       "db_rows": null,
-      "entities": 38,
+      "entities": 39,
       "high_stateful_need": 2,
       "live_attr_bytes": null,
       "low_stateful_need": 1,
       "medium_stateful_need": 0,
       "platform": "lutron_caseta",
-      "recorded_candidates": 34,
-      "unknown_stateful_need": 31
+      "recorded_candidates": 35,
+      "unknown_stateful_need": 32
     },
     {
       "db_rows": null,
@@ -66472,31 +66547,31 @@
       "infrastructure_or_camera_misc": 72,
       "integration_config_or_update_state": 8,
       "operational_state_history": 422,
-      "physical_timeseries": 96,
+      "physical_timeseries": 97,
       "signal_quality_diagnostic": 2,
-      "uncategorized": 409
+      "uncategorized": 411
     },
     "db": {
       "available": false
     },
     "disabled_count": 357,
-    "entity_count": 2610,
+    "entity_count": 2613,
     "excluded_by_config_count": 660,
     "recommendation_counts": {
       "keep": 420,
-      "keep_or_shorten_by_dashboard_need": 96,
-      "review": 409,
+      "keep_or_shorten_by_dashboard_need": 97,
+      "review": 411,
       "review_current_only": 156,
       "review_selectively": 494,
       "review_short_or_current_only": 18
     },
-    "recorded_candidate_count": 1593,
+    "recorded_candidate_count": 1596,
     "retention_days": 30,
     "stateful_need_counts": {
-      "high": 516,
+      "high": 517,
       "low": 174,
       "medium": 494,
-      "unknown": 409
+      "unknown": 411
     }
   }
 }

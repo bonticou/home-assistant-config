@@ -7,13 +7,13 @@ A recording-focused inventory for Home Assistant Recorder. This sits next to the
 | Thing | Count |
 | --- | --- |
 | Configured retention | 30 days |
-| Entities reviewed | 2610 |
-| Recorder candidates | 1593 |
+| Entities reviewed | 2613 |
+| Recorder candidates | 1596 |
 | Excluded by Recorder config | 660 |
 | Disabled in registry | 357 |
 | Low stateful-need candidates | 174 |
 | Medium stateful-need candidates | 494 |
-| High stateful-need candidates | 516 |
+| High stateful-need candidates | 517 |
 
 ## Data Quality
 
@@ -41,23 +41,23 @@ A recording-focused inventory for Home Assistant Recorder. This sits next to the
 | signal_quality_diagnostic | 2 | 2 | 0 | 0 |  |  |
 | operational_state_history | 422 | 0 | 422 | 0 |  |  |
 | event_or_safety_history | 420 | 0 | 0 | 420 |  |  |
-| uncategorized | 409 | 0 | 0 | 0 |  |  |
-| physical_timeseries | 96 | 0 | 0 | 96 |  |  |
+| uncategorized | 411 | 0 | 0 | 0 |  |  |
+| physical_timeseries | 97 | 0 | 0 | 97 |  |  |
 | infrastructure_or_camera_misc | 72 | 0 | 72 | 0 |  |  |
 
 ## Domain Review
 
 | Domain | Recorder candidates | Low | Medium | High | Unknown | DB rows |
 | --- | --- | --- | --- | --- | --- | --- |
-| sensor | 463 | 109 | 20 | 229 | 105 |  |
+| sensor | 464 | 109 | 20 | 230 | 105 |  |
 | binary_sensor | 291 | 4 | 49 | 148 | 90 |  |
 | automation | 191 | 14 | 177 | 0 | 0 |  |
 | script | 154 | 10 | 144 | 0 | 0 |  |
 | input_datetime | 92 | 5 | 0 | 13 | 74 |  |
-| switch | 81 | 8 | 0 | 63 | 10 |  |
+| switch | 82 | 8 | 0 | 63 | 11 |  |
 | device_tracker | 74 | 0 | 74 | 0 | 0 |  |
 | input_boolean | 46 | 2 | 0 | 8 | 36 |  |
-| light | 41 | 0 | 3 | 2 | 36 |  |
+| light | 42 | 0 | 3 | 2 | 37 |  |
 | input_text | 30 | 4 | 0 | 5 | 21 |  |
 | valve | 30 | 0 | 0 | 30 | 0 |  |
 | media_player | 27 | 0 | 27 | 0 | 0 |  |

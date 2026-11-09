@@ -2680,3 +2680,46 @@
       data:
         value: "{{ now().strftime('%Y-%m-%d %H:%M:%S') }}"
   mode: single
+
+- id: dehumidifier_observation_only
+  alias: "Environment - Dehumidifier Observation Only"
+  description: "Passive commissioning snapshots; never operates the plug. Power is load evidence, not compressor certification."
+  trace:
+    stored_traces: 96
+  triggers:
+    - trigger: time_pattern
+      minutes: "/5"
+      id: sample
+    - trigger: state
+      entity_id: switch.dehumidifier
+      id: relay
+    - trigger: homeassistant
+      event: start
+      id: startup
+    - trigger: event
+      event_type: automation_reloaded
+      id: reload
+  actions:
+    - variables:
+        observed_at: "{{ now().isoformat() }}"
+        humidity_percent: "{{ states('sensor.basement_air_quality_humidity') }}"
+        humidity_reported_at: "{{ states.sensor.basement_air_quality_humidity.last_reported.isoformat() if states.sensor.basement_air_quality_humidity is defined else 'unavailable' }}"
+        humidity_measurement_freshness: "Not exposed; reported_at is HA receipt time, not original sample time."
+        relay_state: "{{ states('switch.dehumidifier') }}"
+        power_watts: "{{ states('sensor.dehumidifier_current_consumption') }}"
+        control_enabled: false
+    - if:
+        - condition: template
+          value_template: "{{ trigger.id == 'relay' and trigger.from_state is not none and trigger.to_state is not none and trigger.from_state.state != trigger.to_state.state }}"
+      then:
+        - action: logbook.log
+          data:
+            name: Dehumidifier observation
+            entity_id: switch.dehumidifier
+            message: >-
+              Plug changed {{ trigger.from_state.state }} to {{ trigger.to_state.state }}.
+              Airthings {{ humidity_percent }}%; power {{ power_watts }} W at observation.
+              No command issued by this observer.
+    - stop: "Observation captured; no appliance control."
+  mode: queued
+  max: 5
