@@ -494,27 +494,8 @@
         {% set trigger_id = trigger.id | default('') %}
         {% set last_evening_ts = as_timestamp(state_attr('script.lights_evening_scene', 'last_triggered'), 0) %}
         {% set evening_today = last_evening_ts >= as_timestamp(today_at('12:00')) %}
-        {% set evening_recent = last_evening_ts > 0 and (as_timestamp(now()) - last_evening_ts) < 1200 %}
-        {% set expected = [
-          'light.family_room_main_lights_1',
-          'light.family_room_main_lights_2',
-          'light.family_room_main_lights_3',
-          'light.kitchen_island',
-          'light.front_foyer_ceiling_lights',
-          'light.kitchen_main'
-        ] %}
-        {% set ns = namespace(missing=false) %}
-        {% for entity_id in expected %}
-          {% if states(entity_id) in ['off', 'unknown', 'unavailable'] %}
-            {% set ns.missing = true %}
-          {% endif %}
-        {% endfor %}
-        {% if trigger_id in ['startup', 'automation_reloaded'] %}
-          {{ scene == 'None' or (scene == 'Evening' and (not evening_today or ns.missing)) }}
-        {% elif trigger_id == 'refresh' %}
-          {{ scene == 'None'
-             or (scene == 'Evening' and not evening_today)
-             or (scene == 'Evening' and evening_recent and ns.missing) }}
+        {% if trigger_id in ['startup', 'automation_reloaded', 'refresh'] %}
+          {{ scene == 'None' or (scene == 'Evening' and not evening_today) }}
         {% else %}
           {{ scene not in ['Evening', 'TV', 'Bedtime']
              or (scene == 'Evening' and not evening_today) }}
