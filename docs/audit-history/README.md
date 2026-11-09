@@ -1,5 +1,7 @@
 # Audit History
 
+- [2026-11-08 Evening manual-off replay](2026-11-08-evening-manual-off-replay.md): read-only traces confirm reload and renewable five-minute repair undo manual Family Room off; fix recommended, not deployed.
+
 - [2026-11-08 Dehumidifier Kasa connection](2026-11-08-dehumidifier-kasa-connection.md): exact plug authenticated, power verified; no switching automation.
 
 - [2026-11-08 Master bedroom lantern](2026-11-08-master-bedroom-lantern-plan.md): held dimmer repurposed, independent control, five-second 40% Bedtime fade and normal shutdown coverage deployed.
