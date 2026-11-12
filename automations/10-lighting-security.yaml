@@ -496,6 +496,8 @@
         {% set evening_today = last_evening_ts >= as_timestamp(today_at('12:00')) %}
         {% if trigger_id in ['startup', 'automation_reloaded', 'refresh'] %}
           {{ scene == 'None' or (scene == 'Evening' and not evening_today) }}
+        {% elif trigger_id == 'arrival' %}
+          {{ scene not in ['TV', 'Bedtime'] }}
         {% else %}
           {{ scene not in ['Evening', 'TV', 'Bedtime']
              or (scene == 'Evening' and not evening_today) }}
