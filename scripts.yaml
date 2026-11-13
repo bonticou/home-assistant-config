@@ -818,52 +818,63 @@ lights_overnight_sweep_off:
   mode: restart
   sequence:
     - variables:
-        active_lights: >
-          {% set entity_ids = state_attr('sensor.overnight_lights_left_on', 'entity_ids') | default('', true) %}
-          {{ (entity_ids.split('||') if entity_ids else []) | reject('eq', '') | list }}
+        active_lights: |
+          {% set entity_ids = state_attr('sensor.overnight_lights_left_on', 'entity_ids') | default('', true) %} {{ (entity_ids.split('||') if entity_ids else []) | reject('eq', '') | list }}
     - repeat:
-        for_each: "{{ active_lights }}"
+        for_each: '{{ active_lights }}'
         sequence:
+          - condition: template
+            value_template: |-
+              {{ not scheduled | default(false) or (1 <= now().hour < 6 and ( state_attr('sensor.overnight_lights_left_on', 'auto_off_guard') | default('unknown', true) | trim == 'clear'
+                 and (states('input_datetime.overnight_lights_snooze_until') in ['unknown', 'unavailable', 'none', ''] or as_timestamp(states('input_datetime.overnight_lights_snooze_until'), 0) <= as_timestamp(now())) )) }}
           - action: homeassistant.turn_off
             continue_on_error: true
             target:
-              entity_id: "{{ repeat.item }}"
+              entity_id: '{{ repeat.item }}'
     - delay:
         seconds: 3
     - variables:
-        remaining_lights: >
-          {% set entity_ids = state_attr('sensor.overnight_lights_left_on', 'entity_ids') | default('', true) %}
-          {{ (entity_ids.split('||') if entity_ids else []) | reject('eq', '') | list }}
-        remaining_light_text: >-
-          {% set names = state_attr('sensor.overnight_lights_left_on', 'names') | default('', true) %}
-          {{ names.replace('||', ', ') if names else 'Some house lights' }}
+        remaining_lights: |
+          {% set entity_ids = state_attr('sensor.overnight_lights_left_on', 'entity_ids') | default('', true) %} {{ (entity_ids.split('||') if entity_ids else []) | reject('eq', '') | list }}
+        remaining_light_text: |-
+          {% set names = state_attr('sensor.overnight_lights_left_on', 'names') | default('', true) %} {{ names.replace('||', ', ') if names else 'Some house lights' }}
     - repeat:
-        for_each: "{{ remaining_lights }}"
+        for_each: '{{ remaining_lights }}'
         sequence:
+          - condition: template
+            value_template: |-
+              {{ not scheduled | default(false) or (1 <= now().hour < 6 and ( state_attr('sensor.overnight_lights_left_on', 'auto_off_guard') | default('unknown', true) | trim == 'clear'
+                 and (states('input_datetime.overnight_lights_snooze_until') in ['unknown', 'unavailable', 'none', ''] or as_timestamp(states('input_datetime.overnight_lights_snooze_until'), 0) <= as_timestamp(now())) )) }}
           - action: homeassistant.turn_off
             continue_on_error: true
             target:
-              entity_id: "{{ repeat.item }}"
+              entity_id: '{{ repeat.item }}'
     - delay:
         seconds: 5
     - if:
         - condition: template
-          value_template: "{{ states('sensor.overnight_lights_left_on') | int(0) > 0 }}"
+          value_template: '{{ not scheduled | default(false) }}'
+        - condition: template
+          value_template: '{{ states(''sensor.overnight_lights_left_on'') | int(0) > 0 }}'
       then:
         - variables:
-            failed_light_text: >-
-              {% set names = state_attr('sensor.overnight_lights_left_on', 'names') | default('', true) %}
-              {{ names.replace('||', ', ') if names else remaining_light_text }}
+            failed_light_text: |-
+              {% set names = state_attr('sensor.overnight_lights_left_on', 'names') | default('', true) %} {{ names.replace('||', ', ') if names else remaining_light_text }}
         - action: script.notify_trevor_phone
           data:
-            title: "⚠️ Lights still on"
-            message: "I tried the overnight shutoff twice, but {{ failed_light_text }} still did not turn off."
+            title: ⚠️ Lights still on
+            message: I tried the overnight shutoff twice, but {{ failed_light_text }} still did not turn off.
             data:
               tag: overnight-lights-sweep-failed
               group: lighting
               url: /calm-mobile/lights
               push:
                 interruption-level: time-sensitive
+  trace:
+    stored_traces: 40
+  fields:
+    scheduled:
+      description: True for automatic overnight cleanup; recheck protections before each command.
 
 door_lights_schedule_on:
   alias: Door Lights Schedule On

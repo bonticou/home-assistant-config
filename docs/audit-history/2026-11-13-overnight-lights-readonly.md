@@ -1,5 +1,9 @@
 # Overnight lights stayed on — November 13, 2026
 
+**Current outcome:** focused retry/diagnostic hardening was subsequently authorized
+and deployed. The original overnight cause remains unproven. See the implementation
+and runtime evidence below; the first investigation itself was read-only.
+
 Read-only investigation requested for the November 12–13 night. No HA files,
 helpers, security/network settings or physical devices changed. Existing admin
 MCP works in this project chat: Core/API 2026.9.2, configuration access true,
@@ -58,3 +62,79 @@ guard attributes, snooze, scene, TV hold/player, guest-lighting and vacation
 helpers between midnight and 6 AM. A future authorized reliability change could
 increase sweep trace retention beyond a full day and capture guard values;
 no such change was made during this read-only task.
+
+## Authorized hardening and deployment
+
+Trevor subsequently requested diagnosing and hardening the failure, emphasizing
+that cleanup has all night to retry. Preserve intentional TV/up-late, guest
+lighting, vacation and snooze protections; House guests remains a separate
+away-motion feature. No access/security changes or physical replay authorized.
+
+Implemented in the existing lighting automation chunk and sweep script:
+
+- Five-minute evaluations during 1:00–5:59 AM, including a final 5:59 check,
+  replace the 15-minute all-day watchdog. A ready-state template resumes after
+  30 seconds when lights need cleanup and protection clears. Snooze expiry,
+  HA startup and automation reload also reevaluate. Template triggers are false
+  outside the overnight window, avoiding daytime TV churn consuming traces.
+- Preserve the existing two-pass cleanup and per-device error isolation. Scheduled
+  calls now recheck protection and operating hours before every device command
+  in both passes. Explicit manual Turn off now retains its existing behavior.
+- Launch the sweep asynchronously and wait at most one minute for completion.
+  A stuck child does not occupy the scheduler indefinitely; its existing restart
+  mode permits a subsequent overnight attempt. Physical services can still fail;
+  retries are not a guarantee against HA/network/device outages.
+- Capture the actual count, names/IDs, guard, scene, TV hold/player, guest
+  lighting, motion-only House guests, vacation, snooze and last script start in
+  each evaluation trace. Retain 200 scheduler and 40 script traces. Last_triggered
+  on the scheduler now means an evaluation, not necessarily a light command.
+- Log overnight decisions and outcomes to Logbook. Logging errors are explicitly
+  nonfatal and cannot prevent cleanup. Existing 30-day Recorder policy has no
+  exclusion for these automation/logbook records; database persistence was not
+  directly measured. Regenerated Recorder inventories, with no database available;
+  Markdown output was unchanged, JSON generation timestamp refreshed.
+- Scheduled unsuccessful cleanup sends at most one failure notice after 1 AM
+  per day, using the existing restored overnight last-notified timestamp. A
+  separate 6 AM review (with recovery attempts until 7 AM) explains lights then
+  reported on or unavailable and the current protection reason. It never turns
+  lights off or claims that a current reading proves all-night persistence.
+  Morning dedup uses the same timestamp with a separate 6 AM boundary, stamped
+  only after the notification returns. A reload/restart with a saved stamp
+  suppresses duplicates. As with other send-then-stamp flows, a crash precisely
+  between successful delivery and stamping can still duplicate a notice.
+- Existing notification action buttons provide Snooze tonight / Turn off now;
+  morning review offers Turn off now and the Lights destination. Existing clear
+  handling removes the tagged notices when the watched light count reaches zero.
+  No new helper or Core restart was needed; no changes to Evening, exemptions,
+  guard policy, House guests, or unrelated devices/configuration.
+
+### Validation and live evidence
+
+- Six focused tests passed: all 1,440 minute boundaries, protected/unprotected
+  readiness, per-pass protection checks and manual bypass, snooze, unavailable
+  count, durable notification windows, bounded waits, recovery triggers and
+  nonfatal logging. Six existing Evening tests also passed.
+- YAML parsed; semantic comparisons showed only the overnight scheduler, new
+  morning review and sweep script differ from the fresh live baseline. Inventory
+  coverage passed for 180 active control references. Focused diff checks passed.
+- Reviewed MCP deployment `697bc246d19340a0a2684261a6d7c49b` applied November 13
+  with HA configuration validation OK and script/automation reloads completed.
+  No Core restart. Exact live hashes matched the reviewed plan:
+  automations `d7f146168101787da1e87c6452795edd94f2c0599a5705ad46812e97851dac99`;
+  scripts `b473329deb17899259eeef662903bf72a91bff83148923e0e3e06295d2a1085a`.
+- Both automations loaded enabled. Natural reload traces at **8:14:56 AM EST**
+  (`74795d8b0826de72398c8e85252e0cc5` scheduler,
+  `6598ccc89a932f3cd6b0f182775b4050` morning) captured current variables and
+  correctly stopped at their time-window condition, with no error, physical
+  command or test notification.
+- Current-only observation: guard clear; TV player paused; TV hold, guest
+  lighting, House guests and vacation off; snooze expired. Ten daytime lights
+  reported on, including Back Stairs but not Upstairs Hallway. Script last start
+  remains November 12 at 1 AM. These current values do not reconstruct the
+  November 13 overnight guard history or establish the original root cause.
+
+Next-night verification remains: observe a natural unprotected sweep, any
+protected deferral and subsequent retry, actual device convergence, persisted
+decision records, and any real failure/morning notice. No scheduled follow-up
+agent or physical replay was created. Runtime/config verification is complete;
+the next-night physical outcome is not yet observed.

@@ -1539,44 +1539,212 @@
   mode: single
 
 - id: overnight_lights_one_am_auto_off
-  alias: "Lights — Overnight Left-On Auto-Off"
-  description: Turns off non-exempt lights after 1 AM if the reminder was not snoozed and no late-night guard is active.
+  alias: Lights — Overnight Left-On Auto-Off
+  description: Retry throughout 1–6 AM and when protections clear; retain decisions without bypassing intentional
+    holds.
+  trace:
+    stored_traces: 200
   triggers:
-    - trigger: time
-      at: "01:00:00"
-      id: one_am
-    - trigger: time_pattern
-      minutes: "/15"
+    - trigger: template
+      value_template: '{{ 1 <= now().hour < 6 and (now().minute % 5 == 0 or (now().hour == 5 and now().minute ==
+        59)) }}'
       id: watchdog
+    - trigger: template
+      value_template: |-
+        {% set snooze = states('input_datetime.overnight_lights_snooze_until') %}
+        {{ 1 <= now().hour < 6 and states('sensor.overnight_lights_left_on') | int(0) > 0 and state_attr('sensor.overnight_lights_left_on', 'auto_off_guard') | default('unknown', true) | trim == 'clear'
+           and (snooze in ['unknown', 'unavailable', 'none', ''] or as_timestamp(snooze, 0) <= as_timestamp(now())) }}
+      for:
+        seconds: 30
+      id: ready_settled
     - trigger: homeassistant
       event: start
-      id: watchdog
+      id: startup
     - trigger: event
       event_type: automation_reloaded
-      id: watchdog
-  conditions:
-    - condition: template
-      value_template: >
-        {% set minutes_now = now().hour * 60 + now().minute %}
-        {{ minutes_now >= 60 and minutes_now < 360 }}
-    - condition: template
-      value_template: "{{ states('sensor.overnight_lights_left_on') | int(0) > 0 }}"
-    - condition: template
-      value_template: >
-        {% set snooze = states('input_datetime.overnight_lights_snooze_until') %}
-        {{ snooze in ['unknown', 'unavailable', 'none', '']
-           or as_timestamp(snooze, 0) <= as_timestamp(now()) }}
-    - condition: template
-      value_template: >
-        {{ state_attr('sensor.overnight_lights_left_on', 'auto_off_guard') | default('clear', true) | trim == 'clear' }}
+      id: reload
+    - trigger: time
+      at: input_datetime.overnight_lights_snooze_until
+      id: snooze_expired
   actions:
-    - action: script.lights_overnight_sweep_off
+    - variables:
+        evaluated_at: '{{ now().isoformat() }}'
+        watched_count: '{{ states(''sensor.overnight_lights_left_on'') }}'
+        watched_names: |-
+          {{ state_attr('sensor.overnight_lights_left_on', 'names') | default('', true) | replace('||', ', ') }}
+        watched_entities: '{{ state_attr(''sensor.overnight_lights_left_on'', ''entity_ids'') | default('''', true)
+          }}'
+        guard: |-
+          {{ state_attr('sensor.overnight_lights_left_on', 'auto_off_guard') | default('unknown', true) | trim }}
+        scene: '{{ states(''input_select.lighting_active_scene'') }}'
+        tv_hold: '{{ states(''input_boolean.tv_lighting_scene_hold'') }}'
+        tv_player: '{{ states(''media_player.family_room_tv_2'') }}'
+        guest_lighting: '{{ states(''input_boolean.interior_lights_guest_override'') }}'
+        house_guests_motion_only: '{{ states(''input_boolean.away_motion_security_guest_stay'') }}'
+        vacation: '{{ states(''input_boolean.vacation_mode'') }}'
+        snooze_until: '{{ states(''input_datetime.overnight_lights_snooze_until'') }}'
+        sweep_last_started: '{{ state_attr(''script.lights_overnight_sweep_off'', ''last_triggered'') }}'
+    - variables:
+        decision_reason: |-
+          {% if not is_number(watched_count) %}Light status is unavailable
+          {% elif watched_count | int == 0 %}All watched lights are off
+          {% elif as_timestamp(snooze_until, 0) > as_timestamp(now()) %}Snoozed until {{ snooze_until }}
+          {% elif guest_lighting == 'on' %}Guest Lighting Override is on
+          {% elif scene == 'TV' or tv_hold == 'on' or tv_player == 'playing' %}TV protection: scene {{ scene }}, hold {{ tv_hold }}, player {{ tv_player }}
+          {% elif vacation == 'on' %}Vacation mode is on
+          {% elif guard != 'clear' %}Protection status is {{ guard }}
+          {% else %}No protection is blocking cleanup{% endif %}
+    - condition: template
+      value_template: '{{ 1 <= now().hour < 6 }}'
+    - action: logbook.log
+      data:
+        name: Overnight lights decision
+        entity_id: automation.lights_overnight_left_on_auto_off
+        message: |-
+          {{ evaluated_at }}: {{ decision_reason | trim }}. Count {{ watched_count }}; {{ watched_names }}. TV scene {{ scene }}, hold {{ tv_hold }}, player {{ tv_player }}; guest lighting {{ guest_lighting }}; vacation {{ vacation }}; snooze {{ snooze_until }}. House guests affects motion alerts only.
+      continue_on_error: true
+    - condition: template
+      value_template: '{{ is_number(watched_count) and watched_count | int > 0 }}'
+    - condition: template
+      value_template: |-
+        {% set snooze = states('input_datetime.overnight_lights_snooze_until') %}
+        {{ state_attr('sensor.overnight_lights_left_on', 'auto_off_guard') | default('unknown', true) | trim == 'clear'
+           and (snooze in ['unknown', 'unavailable', 'none', ''] or as_timestamp(snooze, 0) <= as_timestamp(now())) }}
+    - action: script.turn_on
+      continue_on_error: true
+      target:
+        entity_id: script.lights_overnight_sweep_off
+      data:
+        variables:
+          scheduled: true
+    - delay:
+        seconds: 1
+    - wait_template: '{{ is_state(''script.lights_overnight_sweep_off'', ''off'') }}'
+      timeout: 00:01:00
+      continue_on_timeout: true
+    - variables:
+        remaining_count: '{{ states(''sensor.overnight_lights_left_on'') }}'
+        remaining_names: |-
+          {{ state_attr('sensor.overnight_lights_left_on', 'names') | default('', true) | replace('||', ', ') }}
+    - action: logbook.log
+      data:
+        name: Overnight lights result
+        entity_id: automation.lights_overnight_left_on_auto_off
+        message: |-
+          After cleanup: {{ remaining_count }} lights reported on; {{ remaining_names }}. A nonzero or unavailable result will be retried while protections permit.
+      continue_on_error: true
+    - choose:
+        - conditions:
+            - condition: template
+              value_template: '{{ is_number(remaining_count) and remaining_count | int == 0 }}'
+          sequence:
+            - action: script.notify_trevor_phone
+              data:
+                message: clear_notification
+                data:
+                  tag: overnight-lights-left-on
+      default:
+        - condition: template
+          value_template: |-
+            {% set snooze = states('input_datetime.overnight_lights_snooze_until') %}
+            {{ state_attr('sensor.overnight_lights_left_on', 'auto_off_guard') | default('unknown', true) | trim == 'clear'
+               and (snooze in ['unknown', 'unavailable', 'none', ''] or as_timestamp(snooze, 0) <= as_timestamp(now())) }}
+        - condition: template
+          value_template: |-
+            {{ as_timestamp(states('input_datetime.overnight_lights_last_notified_at'), 0) < as_timestamp(today_at('01:00')) }}
+        - action: script.notify_trevor_phone
+          data:
+            title: ⚠️ Overnight lights need attention
+            message: |-
+              Cleanup has not confirmed all lights off: {{ remaining_names if remaining_names else "light status unavailable" }}. I will keep retrying until 6 AM when protections permit. Check the Lights page or use Snooze tonight to pause.
+            data:
+              tag: overnight-lights-sweep-failed
+              group: lighting
+              url: /calm-mobile/lights
+              actions:
+                - action: LIGHTS_OVERNIGHT_SNOOZE
+                  title: Snooze tonight
+                - action: LIGHTS_OVERNIGHT_OFF_NOW
+                  title: Turn off now
+        - action: input_datetime.set_datetime
+          target:
+            entity_id: input_datetime.overnight_lights_last_notified_at
+          data:
+            datetime: '{{ now().strftime(''%Y-%m-%d %H:%M:%S'') }}'
+  mode: single
+  max_exceeded: silent
+- id: overnight_lights_morning_review
+  alias: Lights — Overnight Morning Review
+  description: Explain unresolved lights at the end of overnight cleanup, once per morning. Never switches lights.
+  trace:
+    stored_traces: 30
+  triggers:
+    - trigger: time
+      at: 06:00:00
+      id: morning
+    - trigger: homeassistant
+      event: start
+      id: startup
+    - trigger: event
+      event_type: automation_reloaded
+      id: reload
+    - trigger: template
+      value_template: '{{ now().hour == 6 and now().minute % 5 == 0 }}'
+      id: retry
+  actions:
+    - variables:
+        evaluated_at: '{{ now().isoformat() }}'
+        watched_count: '{{ states(''sensor.overnight_lights_left_on'') }}'
+        watched_names: |-
+          {{ state_attr('sensor.overnight_lights_left_on', 'names') | default('', true) | replace('||', ', ') }}
+        watched_entities: '{{ state_attr(''sensor.overnight_lights_left_on'', ''entity_ids'') | default('''', true)
+          }}'
+        guard: |-
+          {{ state_attr('sensor.overnight_lights_left_on', 'auto_off_guard') | default('unknown', true) | trim }}
+        scene: '{{ states(''input_select.lighting_active_scene'') }}'
+        tv_hold: '{{ states(''input_boolean.tv_lighting_scene_hold'') }}'
+        tv_player: '{{ states(''media_player.family_room_tv_2'') }}'
+        guest_lighting: '{{ states(''input_boolean.interior_lights_guest_override'') }}'
+        house_guests_motion_only: '{{ states(''input_boolean.away_motion_security_guest_stay'') }}'
+        vacation: '{{ states(''input_boolean.vacation_mode'') }}'
+        snooze_until: '{{ states(''input_datetime.overnight_lights_snooze_until'') }}'
+        sweep_last_started: '{{ state_attr(''script.lights_overnight_sweep_off'', ''last_triggered'') }}'
+    - variables:
+        decision_reason: |-
+          {% if not is_number(watched_count) %}Light status is unavailable
+          {% elif watched_count | int == 0 %}All watched lights are off
+          {% elif as_timestamp(snooze_until, 0) > as_timestamp(now()) %}Snoozed until {{ snooze_until }}
+          {% elif guest_lighting == 'on' %}Guest Lighting Override is on
+          {% elif scene == 'TV' or tv_hold == 'on' or tv_player == 'playing' %}TV protection: scene {{ scene }}, hold {{ tv_hold }}, player {{ tv_player }}
+          {% elif vacation == 'on' %}Vacation mode is on
+          {% elif guard != 'clear' %}Protection status is {{ guard }}
+          {% else %}No protection is blocking cleanup{% endif %}
+    - condition: template
+      value_template: '{{ now().hour == 6 }}'
+    - condition: template
+      value_template: '{{ not is_number(watched_count) or watched_count | int > 0 }}'
+    - condition: template
+      value_template: |-
+        {{ as_timestamp(states('input_datetime.overnight_lights_last_notified_at'), 0) < as_timestamp(today_at('06:00')) }}
     - action: script.notify_trevor_phone
       data:
-        message: clear_notification
+        title: 💡 Overnight lights review
+        message: |-
+          Lights reported on at {{ now().strftime("%I:%M %p") }}: {{ watched_names if watched_names else "status unavailable" }}. Current reason: {{ decision_reason | trim }}. Overnight cleanup ends at 6 AM; review the Lights page. This current check does not prove they stayed on all night.
         data:
           tag: overnight-lights-left-on
+          group: lighting
+          url: /calm-mobile/lights
+          actions:
+            - action: LIGHTS_OVERNIGHT_OFF_NOW
+              title: Turn off now
+    - action: input_datetime.set_datetime
+      target:
+        entity_id: input_datetime.overnight_lights_last_notified_at
+      data:
+        datetime: '{{ now().strftime(''%Y-%m-%d %H:%M:%S'') }}'
   mode: single
+  max_exceeded: silent
 
 - id: overnight_lights_clear_when_off
   alias: "Lights — Clear Overnight Left-On Reminder"
