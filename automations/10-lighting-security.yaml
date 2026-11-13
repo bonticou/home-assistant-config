@@ -1633,44 +1633,10 @@
         message: |-
           After cleanup: {{ remaining_count }} lights reported on; {{ remaining_names }}. A nonzero or unavailable result will be retried while protections permit.
       continue_on_error: true
-    - choose:
-        - conditions:
-            - condition: template
-              value_template: '{{ is_number(remaining_count) and remaining_count | int == 0 }}'
-          sequence:
-            - action: script.notify_trevor_phone
-              data:
-                message: clear_notification
-                data:
-                  tag: overnight-lights-left-on
-      default:
-        - condition: template
-          value_template: |-
-            {% set snooze = states('input_datetime.overnight_lights_snooze_until') %}
-            {{ state_attr('sensor.overnight_lights_left_on', 'auto_off_guard') | default('unknown', true) | trim == 'clear'
-               and (snooze in ['unknown', 'unavailable', 'none', ''] or as_timestamp(snooze, 0) <= as_timestamp(now())) }}
-        - condition: template
-          value_template: |-
-            {{ as_timestamp(states('input_datetime.overnight_lights_last_notified_at'), 0) < as_timestamp(today_at('01:00')) }}
-        - action: script.notify_trevor_phone
-          data:
-            title: ⚠️ Overnight lights need attention
-            message: |-
-              Cleanup has not confirmed all lights off: {{ remaining_names if remaining_names else "light status unavailable" }}. I will keep retrying until 6 AM when protections permit. Check the Lights page or use Snooze tonight to pause.
-            data:
-              tag: overnight-lights-sweep-failed
-              group: lighting
-              url: /calm-mobile/lights
-              actions:
-                - action: LIGHTS_OVERNIGHT_SNOOZE
-                  title: Snooze tonight
-                - action: LIGHTS_OVERNIGHT_OFF_NOW
-                  title: Turn off now
-        - action: input_datetime.set_datetime
-          target:
-            entity_id: input_datetime.overnight_lights_last_notified_at
-          data:
-            datetime: '{{ now().strftime(''%Y-%m-%d %H:%M:%S'') }}'
+    - event: overnight_lights_cleanup_evaluated
+      event_data:
+        remaining_count: '{{ remaining_count }}'
+        remaining_names: '{{ remaining_names }}'
   mode: single
   max_exceeded: silent
 - id: overnight_lights_morning_review
@@ -1743,6 +1709,59 @@
         entity_id: input_datetime.overnight_lights_last_notified_at
       data:
         datetime: '{{ now().strftime(''%Y-%m-%d %H:%M:%S'') }}'
+  mode: single
+  max_exceeded: silent
+- id: overnight_lights_cleanup_report
+  alias: Lights — Overnight Cleanup Report
+  description: Notification delivery runs separately so it cannot occupy the physical cleanup watchdog. Stamp only
+    after successful send.
+  trace:
+    stored_traces: 30
+  triggers:
+    - trigger: event
+      event_type: overnight_lights_cleanup_evaluated
+  actions:
+    - variables:
+        remaining_count: '{{ trigger.event.data.remaining_count }}'
+        remaining_names: '{{ trigger.event.data.remaining_names }}'
+    - choose:
+        - conditions:
+            - condition: template
+              value_template: '{{ is_number(remaining_count) and remaining_count | int == 0 }}'
+          sequence:
+            - action: script.notify_trevor_phone
+              data:
+                message: clear_notification
+                data:
+                  tag: overnight-lights-left-on
+      default:
+        - condition: template
+          value_template: |-
+            {% set snooze = states('input_datetime.overnight_lights_snooze_until') %}
+            {{ state_attr('sensor.overnight_lights_left_on', 'auto_off_guard') | default('unknown', true) | trim == 'clear'
+               and (snooze in ['unknown', 'unavailable', 'none', ''] or as_timestamp(snooze, 0) <= as_timestamp(now())) }}
+        - condition: template
+          value_template: |-
+            {{ as_timestamp(states('input_datetime.overnight_lights_last_notified_at'), 0) < as_timestamp(today_at('01:00')) }}
+        - action: script.notify_trevor_phone
+          data:
+            title: ⚠️ Overnight lights need attention
+            message: |-
+              Cleanup has not confirmed all lights off: {{ remaining_names if remaining_names else "light status unavailable" }}. I will keep retrying until 6 AM when protections permit. Check the Lights page or use Snooze tonight to pause.
+            data:
+              tag: overnight-lights-sweep-failed
+              group: lighting
+              url: /calm-mobile/lights
+              actions:
+                - action: LIGHTS_OVERNIGHT_SNOOZE
+                  title: Snooze tonight
+                - action: LIGHTS_OVERNIGHT_OFF_NOW
+                  title: Turn off now
+        - action: input_datetime.set_datetime
+          target:
+            entity_id: input_datetime.overnight_lights_last_notified_at
+          data:
+            datetime: '{{ now().strftime(''%Y-%m-%d %H:%M:%S'') }}'
   mode: single
   max_exceeded: silent
 

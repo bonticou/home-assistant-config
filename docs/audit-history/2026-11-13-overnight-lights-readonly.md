@@ -138,3 +138,24 @@ protected deferral and subsequent retry, actual device convergence, persisted
 decision records, and any real failure/morning notice. No scheduled follow-up
 agent or physical replay was created. Runtime/config verification is complete;
 the next-night physical outcome is not yet observed.
+
+### Notification isolation follow-up
+
+Final review confirmed the shared notify script has no explicit timeout: it
+records an event then synchronously invokes the mobile notification service.
+Its parallel mode does not prevent a synchronous caller from waiting. Moved
+cleanup clear/failure notifications and their send-then-stamp sequence into a
+separate single-mode `overnight_lights_cleanup_report` automation, triggered by
+the cleanup result event. Physical cleanup no longer calls the notify script.
+A stalled reporter can delay reporting, but cannot occupy the cleanup watchdog
+or prevent its subsequent attempts. The independent morning review remains
+separate. No global notification implementation was changed.
+
+Seven focused tests now pass, including structural notification isolation and
+the unchanged post-send durable stamp. MCP deployment
+`bb6bf979556a44a8b18dda6f9a676345` passed config validation and automation reload;
+final automation SHA256 readback matched
+`b4e93013f4acac221bb9ec05c5884b32e9d9a065221049ef5dadc8b526451fff`.
+Reporter loaded enabled; natural daytime reload again stopped cleanup at its
+time-window condition without physical commands or a test notification.
+The reporter event/delivery path awaits a natural overnight result.

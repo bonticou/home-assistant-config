@@ -12,6 +12,7 @@ class OvernightTests(unittest.TestCase):
   rules=yaml.safe_load((ROOT/'automations/10-lighting-security.yaml').read_text())
   cls.rule=next(a for a in rules if a['id']=='overnight_lights_one_am_auto_off')
   cls.morning=next(a for a in rules if a['id']=='overnight_lights_morning_review')
+  cls.reporter=next(a for a in rules if a['id']=='overnight_lights_cleanup_report')
   cls.script=yaml.safe_load((ROOT/'scripts.yaml').read_text())['lights_overnight_sweep_off']
   cls.env=Environment(undefined=StrictUndefined)
  def render(self,t,hour=2,minute=0,guard='clear',snooze='unknown',last='unknown',**extra):
@@ -47,7 +48,7 @@ class OvernightTests(unittest.TestCase):
    self.assertTrue(self.truth(t,hour=12,guard='guest_override'))
    self.assertTrue(p['sequence'][1]['continue_on_error'])
  def test_durable_notice_windows(self):
-  failure=self.rule['actions'][-1]['default'][1]['value_template']
+  failure=self.reporter['actions'][-1]['default'][1]['value_template']
   morning=[a['value_template'] for a in self.morning['actions'] if a.get('condition')=='template'][-1]
   for t,hour,boundary in [(failure,2,'01:00:00'),(morning,6,'06:00:00')]:
    for old in ['unknown','unavailable','2026-11-13 08:00:00','2026-11-14 00:00:10']:
@@ -75,6 +76,13 @@ class OvernightTests(unittest.TestCase):
   self.assertEqual(self.morning['actions'][-1]['action'],'input_datetime.set_datetime')
   for a in self.rule['actions']:
    if a.get('action')=='logbook.log':self.assertTrue(a['continue_on_error'])
+ def test_notification_isolation(self):
+  self.assertEqual(self.rule['actions'][-1]['event'],'overnight_lights_cleanup_evaluated')
+  self.assertNotIn('script.notify_trevor_phone',str(self.rule))
+  branch=self.reporter['actions'][-1]['default']
+  self.assertEqual(branch[-2]['action'],'script.notify_trevor_phone')
+  self.assertEqual(branch[-1]['action'],'input_datetime.set_datetime')
+  self.assertEqual(self.reporter['mode'],'single')
  def test_ready_trigger_respects_guards_and_window(self):
   t=self.rule['triggers'][1]['value_template']
   # The test state accessor supplies the count through last and snooze separately.
