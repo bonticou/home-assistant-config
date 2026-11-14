@@ -1,5 +1,7 @@
 # Audit History
 
+- [2026-11-14 Natural overnight verification](2026-11-14-overnight-natural-verification.md): hallway/back-stairs cleanup converged at 1 AM; all 61 overnight checkpoints and zero-light morning reviews verified read-only.
+
 - [2026-11-13 Overnight lights investigation and hardening](2026-11-13-overnight-lights-readonly.md): midnight hallway/back-stairs evidence; original blocker unretained, five-minute protected retries and morning explanation deployed with non-disruptive live verification.
 
 - [2026-11-08 Evening manual-off replay](2026-11-08-evening-manual-off-replay.md): deployed fix stops reload and refresh from undoing manual changes; explicit Evening resets preserved, with natural refresh verification.
