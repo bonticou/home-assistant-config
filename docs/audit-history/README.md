@@ -1,5 +1,9 @@
 # Audit History
 
+- [2026-11-14 Evening arrival All Off hold](2026-11-14-evening-arrival-all-off-hold.md): shared TV hold blocked homecoming; first-arrival exception deployed, tests and reload verified; next real arrival unverified.
+
+- [2026-11-12 Evening first arrival](2026-11-12-evening-first-arrival.md): same-day scene guard corrected while preserving background manual-off protection.
+
 - [2026-11-14 Natural overnight verification](2026-11-14-overnight-natural-verification.md): hallway/back-stairs cleanup converged at 1 AM; all 61 overnight checkpoints and zero-light morning reviews verified read-only.
 
 - [2026-11-13 Overnight lights investigation and hardening](2026-11-13-overnight-lights-readonly.md): midnight hallway/back-stairs evidence; original blocker unretained, five-minute protected retries and morning explanation deployed with non-disruptive live verification.

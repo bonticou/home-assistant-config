@@ -44,3 +44,9 @@ Evening script clears holds when the eligible arrival actually runs it.
 The next genuine first-person return from All Off is the physical end-to-end
 check. This change does not bypass a real TV or Bedtime scene, or reinterpret
 unknown scene metadata as an arrival permission. Retained traces are ephemeral.
+
+## Record reconciliation — November 15 UTC
+
+Implementation commit: `ab01da3`. Live deployment and test evidence above remain
+the verified result; next real arrival is still unverified. Parent has already
+scheduled the trace check. No additional automation created during reconciliation.
