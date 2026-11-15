@@ -67,6 +67,21 @@ class EveningManualOverrideTests(unittest.TestCase):
                                  from_state=None), states=lambda _: 'not_home')
         self.assertEqual(result.strip().lower(), 'false')
 
+    def test_hold_exception_only_for_all_off_arrival(self):
+        template = self.env.from_string(self.rule['conditions'][1]['value_template'])
+        for trigger in ['arrival', 'refresh', 'startup', 'automation_reloaded', 'dusk']:
+            for scene in ['All off', 'Evening', 'None', 'TV', 'Bedtime']:
+                for hold in ['on', 'off', 'unknown', 'unavailable']:
+                    states = {'input_boolean.tv_lighting_scene_hold': hold,
+                              'input_select.lighting_active_scene': scene}
+                    result = template.render(trigger=SimpleNamespace(id=trigger),
+                                             is_state=lambda entity, state: states[entity] == state)
+                    expected = hold == 'off' or (trigger == 'arrival' and scene == 'All off')
+                    self.assertEqual(result.strip().lower() == 'true', expected)
+        # Authenticity/first-person and TV/Bedtime guards remain separate gates.
+        self.assertIn("not in ['TV', 'Bedtime']", self.rule['conditions'][0]['value_template'])
+        self.assertIn("states(other_person) != 'home'", self.rule['conditions'][-2]['value_template'])
+
     def test_explicit_evening_is_not_scene_change_dependent(self):
         script = yaml.safe_load((ROOT / 'scripts.yaml').read_text())['lights_evening_scene']
         self.assertEqual(script['mode'], 'restart')

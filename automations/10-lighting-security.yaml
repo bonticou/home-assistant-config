@@ -459,9 +459,11 @@
   conditions:
     - condition: template
       value_template: "{{ states('input_select.lighting_active_scene') not in ['TV', 'Bedtime'] }}"
-    - condition: state
-      entity_id: input_boolean.tv_lighting_scene_hold
-      state: "off"
+    - condition: template
+      value_template: >-
+        {{ is_state('input_boolean.tv_lighting_scene_hold', 'off')
+           or (trigger.id | default('') == 'arrival'
+               and is_state('input_select.lighting_active_scene', 'All off')) }}
     - condition: state
       entity_id: binary_sensor.front_stairs_schedule_active
       state: "on"
