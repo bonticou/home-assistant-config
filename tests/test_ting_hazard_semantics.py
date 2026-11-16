@@ -43,4 +43,13 @@ class TingHazardTests(unittest.TestCase):
    for date in ['2026-11-16T08:18:07-05:00','2026-11-16T08:18:08-05:00','2026-11-17T01:00:00-05:00']:
     result=self.env.from_string(gate).render(kind=kind,now=lambda:date,as_timestamp=lambda x:datetime.fromisoformat(x).timestamp()).strip()=='True'
     self.assertEqual(result,kind not in ['confirmed','unverified','confirmed_clear'] or date!='2026-11-16T08:18:07-05:00')
+ def test_message_placeholder_filter_preserves_useful_text(self):
+  template=self.entities['ting_notification_status']['attributes']['ting_messages']
+  for text in ['No Hazards Detected','no hazards detected','  No hazards detected  ','UNKNOWN',' unavailable ','None','']:
+   values={'sensor.ting_1_hazard_message':text}
+   self.assertEqual(self.render(template,values),'')
+  values={'sensor.ting_1_hazard_message':'  Check outlet wiring  ',
+          'sensor.ting_2_hazard_message':'Check outlet wiring',
+          'sensor.ting_1_electrical_fire_hazard_message':'Call Ting support'}
+  self.assertEqual(self.render(template,values),'Check outlet wiring Call Ting support')
 if __name__=='__main__':unittest.main()

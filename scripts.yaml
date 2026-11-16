@@ -1536,11 +1536,9 @@ ting_send_notification:
           sequence:
             - action: script.notify_trevor_phone
               data:
-                title: "⚡ Ting sees something odd"
+                title: "⚡ Ting pattern watch"
                 message: >-
-                  Ting flagged an unverified electrical pattern on {{ unverified_devices }}.
-                  {{ ting_messages ~ ' ' if ting_messages | trim else '' }}No confirmed hazard yet.
-                  I’m watching for escalation.
+                  Home Assistant is watching an unconfirmed electrical-pattern indication from {{ unverified_devices }}. Check the Ting app for details. I’ll keep watching for changes.
                 data:
                   group: ting
                   tag: ting-unverified-hazard

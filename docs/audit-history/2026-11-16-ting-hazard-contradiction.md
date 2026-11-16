@@ -198,3 +198,30 @@ confirmed-hazard off and stops before actions. Thus the critical-classification
 fix remains effective, and the watch intentionally retained by the fix resumed
 after the requested snooze. No timing/kind/gate defect was established. No
 snooze extension, configuration edit, credential attempt or test push was made.
+
+## Watch copy and shared placeholder cleanup
+
+Subsequent authorized clarity correction changes the watch title to
+"⚡ Ting pattern watch" and body to "Home Assistant is watching an unconfirmed
+electrical-pattern indication from {{ unverified_devices }}. Check the Ting app
+for details. I’ll keep watching for changes." No clearance or safety claim.
+The shared ting_messages aggregation now trims input and filters placeholders
+case-insensitively. Previously its mixed-case No hazards detected literal did
+not match No Hazards Detected. Meaningful text retains its original casing;
+trimmed exact duplicates are removed. No classification predicate changed.
+
+Fresh live automation confirms unchanged cadence: check on watch activation
+and every 15 minutes; require watch notifications enabled, watch active and
+confirmed hazard off; send only if last-sent is missing/uninitialized or at
+least 3,600 seconds old. The sender applies the existing snooze gate before
+sending/stamping. Thus the 8:30 send makes the next repeat eligible no earlier
+than 9:30, subject to these guards. No cadence or snooze extension was made.
+
+Deployment `cb2dcbf6843b4f4aa3161e93b57642c4` passed HA validation and script/
+template reloads; no Core restart. Exact readbacks:
+scripts `d48fd0b99301a3ca1b9fa22d666b9b75f0345eddef70e01d6aff50662b224774`;
+configuration `2e2a321641afff12ca8f2e4eeaf8b456566892337259c86b817b4d6aacc4f2c9`.
+Five focused test methods passed, including mixed case/whitespace placeholders
+and preserved meaningful messages plus the prior classification/snooze matrix.
+Semantic comparison limits script changes to watch title/body. No test push;
+actual rendering on Trevor's phone awaits a naturally due notice.

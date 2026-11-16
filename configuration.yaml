@@ -4607,7 +4607,7 @@ template:
             Ting 1 {{ states('sensor.ting_1_hazard_status') }},
             Ting 2 {{ states('sensor.ting_2_hazard_status') }}
           ting_messages: >
-            {% set ignored = ['unknown', 'unavailable', 'none', '', 'No hazards detected'] %}
+            {% set ignored = ['unknown', 'unavailable', 'none', '', 'no hazards detected'] %}
             {% set ns = namespace(items=[]) %}
             {% for message in [
               states('sensor.ting_1_hazard_message'),
@@ -4617,7 +4617,8 @@ template:
               states('sensor.ting_2_electrical_fire_hazard_message'),
               states('sensor.ting_2_unverified_fire_hazard_message')
             ] %}
-              {% if message not in ignored and message not in ns.items %}
+              {% set message = message | trim %}
+              {% if message | lower not in ignored and message not in ns.items %}
                 {% set ns.items = ns.items + [message] %}
               {% endif %}
             {% endfor %}
