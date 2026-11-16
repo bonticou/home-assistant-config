@@ -174,3 +174,27 @@ metadata freshness: repository coordinator code obtains voltage from a separate
 WebSocket path and updates hazard data through its API polling path. Current
 vendor payload presence, hazard timestamp and last successful hazard-data fetch
 remain unknown. Do not describe the incident as a verified vendor false alarm.
+
+## Reported unusual-pattern notification — 8:35 AM EST follow-up
+
+Read-only check at November 16 8:35 AM EST (13:35 UTC) found no snooze bypass.
+Live script hash remains `398b973b0f92a9d1023518dd1a01e4a50b9195023a740306497106bdf5a0cc5a`,
+with the same 8:18:08 AM expiry. Natural unverified sender runs at 7:30, 7:45,
+8:00 and 8:15 stopped at the snooze gate. The 8:15 trace
+`56f910996c6b3e116e6940650677ed65` explicitly shows kind unverified and gate false.
+
+The next scheduled check, **8:30:00 AM EST**, passed the expired gate and sent
+the non-critical watch, then stamped its last-sent timestamp. Sender trace
+`57518429f4b318ec3ab1e0d05917bd76` records title **⚡ Ting sees something odd**
+and body: "Ting flagged an unverified electrical pattern on Ting 1. No Hazards
+Detected No confirmed hazard yet. I’m watching for escalation." It used tag
+ting-unverified-hazard, sticky/high-priority data, without the confirmed alert's
+critical sound override. The wording is confusing because it concatenates the
+possibly parser-default message; it is not proof of vendor clearance or a new
+confirmed hazard. Handset presentation timing was not independently retrieved.
+
+Confirmed sender's 8:35 trace `0408f4be89bf0b07d97cc5b327dc363f` explicitly reads
+confirmed-hazard off and stops before actions. Thus the critical-classification
+fix remains effective, and the watch intentionally retained by the fix resumed
+after the requested snooze. No timing/kind/gate defect was established. No
+snooze extension, configuration edit, credential attempt or test push was made.
