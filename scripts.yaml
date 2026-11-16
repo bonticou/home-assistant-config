@@ -1476,6 +1476,12 @@ ting_send_notification:
         voltage_spread: "{{ state_attr('sensor.ting_notification_status', 'voltage_spread') | default('unknown', true) }}"
         ting_messages: "{{ state_attr('sensor.ting_notification_status', 'ting_messages') | default('', true) }}"
         freeze_context: "{{ state_attr('sensor.ting_notification_status', 'freeze_context') | default('house context unavailable', true) }}"
+    # Owner-requested three-hour Ting hazard notification snooze, November 16.
+    # Absolute expiry restores delivery without a timer, restart or follow-up job.
+    - condition: template
+      value_template: >-
+        {{ kind not in ['confirmed', 'unverified', 'confirmed_clear']
+           or as_timestamp(now()) >= as_timestamp('2026-11-16T08:18:08-05:00') }}
     - choose:
         - conditions:
             - condition: template

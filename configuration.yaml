@@ -4555,19 +4555,19 @@ template:
             {% endif %}
           confirmed_devices: >
             {% set ns = namespace(items=[]) %}
-            {% if is_state('binary_sensor.ting_1_fire_hazard', 'on') or is_state('binary_sensor.ting_1_electrical_fire_hazard', 'on') %}
+            {% if is_state('binary_sensor.ting_1_fire_hazard', 'on') or (is_state('binary_sensor.ting_1_electrical_fire_hazard', 'on') and states('sensor.ting_1_electrical_fire_hazard_status') not in ['ReviewedNotFire', 'ReviewedSuspicious']) %}
               {% set ns.items = ns.items + ['Ting 1'] %}
             {% endif %}
-            {% if is_state('binary_sensor.ting_2_fire_hazard', 'on') or is_state('binary_sensor.ting_2_electrical_fire_hazard', 'on') %}
+            {% if is_state('binary_sensor.ting_2_fire_hazard', 'on') or (is_state('binary_sensor.ting_2_electrical_fire_hazard', 'on') and states('sensor.ting_2_electrical_fire_hazard_status') not in ['ReviewedNotFire', 'ReviewedSuspicious']) %}
               {% set ns.items = ns.items + ['Ting 2'] %}
             {% endif %}
             {{ ns.items | join(', ') if ns.items else 'None' }}
           unverified_devices: >
             {% set ns = namespace(items=[]) %}
-            {% if is_state('binary_sensor.ting_1_unverified_fire_hazard', 'on') %}
+            {% if (is_state('binary_sensor.ting_1_unverified_fire_hazard', 'on') or (is_state('binary_sensor.ting_1_electrical_fire_hazard', 'on') and states('sensor.ting_1_electrical_fire_hazard_status') == 'ReviewedSuspicious')) %}
               {% set ns.items = ns.items + ['Ting 1'] %}
             {% endif %}
-            {% if is_state('binary_sensor.ting_2_unverified_fire_hazard', 'on') %}
+            {% if (is_state('binary_sensor.ting_2_unverified_fire_hazard', 'on') or (is_state('binary_sensor.ting_2_electrical_fire_hazard', 'on') and states('sensor.ting_2_electrical_fire_hazard_status') == 'ReviewedSuspicious')) %}
               {% set ns.items = ns.items + ['Ting 2'] %}
             {% endif %}
             {{ ns.items | join(', ') if ns.items else 'None' }}
@@ -5955,8 +5955,8 @@ template:
         state: >
           {{ is_state('binary_sensor.ting_1_fire_hazard', 'on')
              or is_state('binary_sensor.ting_2_fire_hazard', 'on')
-             or is_state('binary_sensor.ting_1_electrical_fire_hazard', 'on')
-             or is_state('binary_sensor.ting_2_electrical_fire_hazard', 'on') }}
+             or (is_state('binary_sensor.ting_1_electrical_fire_hazard', 'on') and states('sensor.ting_1_electrical_fire_hazard_status') not in ['ReviewedNotFire', 'ReviewedSuspicious'])
+             or (is_state('binary_sensor.ting_2_electrical_fire_hazard', 'on') and states('sensor.ting_2_electrical_fire_hazard_status') not in ['ReviewedNotFire', 'ReviewedSuspicious']) }}
         icon: >
           {{ 'mdi:flash-alert' if is_state('binary_sensor.ting_confirmed_hazard_active', 'on') else 'mdi:flash-check-outline' }}
 
@@ -5966,10 +5966,10 @@ template:
         state: >
           {% set confirmed = is_state('binary_sensor.ting_1_fire_hazard', 'on')
              or is_state('binary_sensor.ting_2_fire_hazard', 'on')
-             or is_state('binary_sensor.ting_1_electrical_fire_hazard', 'on')
-             or is_state('binary_sensor.ting_2_electrical_fire_hazard', 'on') %}
-          {% set unverified = is_state('binary_sensor.ting_1_unverified_fire_hazard', 'on')
-             or is_state('binary_sensor.ting_2_unverified_fire_hazard', 'on') %}
+             or (is_state('binary_sensor.ting_1_electrical_fire_hazard', 'on') and states('sensor.ting_1_electrical_fire_hazard_status') not in ['ReviewedNotFire', 'ReviewedSuspicious'])
+             or (is_state('binary_sensor.ting_2_electrical_fire_hazard', 'on') and states('sensor.ting_2_electrical_fire_hazard_status') not in ['ReviewedNotFire', 'ReviewedSuspicious']) %}
+          {% set unverified = (is_state('binary_sensor.ting_1_unverified_fire_hazard', 'on') or (is_state('binary_sensor.ting_1_electrical_fire_hazard', 'on') and states('sensor.ting_1_electrical_fire_hazard_status') == 'ReviewedSuspicious'))
+             or (is_state('binary_sensor.ting_2_unverified_fire_hazard', 'on') or (is_state('binary_sensor.ting_2_electrical_fire_hazard', 'on') and states('sensor.ting_2_electrical_fire_hazard_status') == 'ReviewedSuspicious')) %}
           {{ unverified and not confirmed }}
         icon: >
           {{ 'mdi:flash-triangle-outline' if is_state('binary_sensor.ting_unverified_hazard_active', 'on') else 'mdi:flash-check-outline' }}
