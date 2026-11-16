@@ -29,6 +29,13 @@ class TingHazardTests(unittest.TestCase):
   v={'binary_sensor.ting_1_electrical_fire_hazard':'on','sensor.ting_1_electrical_fire_hazard_status':'ReviewedSuspicious','binary_sensor.ting_2_fire_hazard':'on'}
   self.assertEqual(self.render(self.entities['ting_confirmed_hazard_active']['state'],v),'True')
   self.assertEqual(self.render(self.entities['ting_notification_status']['attributes']['confirmed_devices'],v),'Ting 2')
+ def test_message_text_never_controls_hazard_classification(self):
+  for message,status,primary in itertools.product(['No Hazards Detected','unknown','unavailable','','Possible hazard'],['ReviewedSuspicious','ReviewedNotFire','Active','unknown'],[False,True]):
+   with self.subTest(message=message,status=status,primary=primary):
+    v={'binary_sensor.ting_1_fire_hazard':'on' if primary else 'off','binary_sensor.ting_1_electrical_fire_hazard':'on','sensor.ting_1_electrical_fire_hazard_status':status,'sensor.ting_1_hazard_message':message,'sensor.ting_1_electrical_fire_hazard_message':message}
+    expected=primary or status not in ['ReviewedNotFire','ReviewedSuspicious']
+    self.assertEqual(self.render(self.entities['ting_confirmed_hazard_active']['state'],v)=='True',expected)
+    self.assertEqual(self.render(self.entities['ting_unverified_hazard_active']['state'],v)=='True',status=='ReviewedSuspicious' and not primary)
  def test_owner_snooze_expires_and_preserves_other_kinds(self):
   script=yaml.safe_load((ROOT/'scripts.yaml').read_text())['ting_send_notification']
   gate=script['sequence'][1]['value_template']

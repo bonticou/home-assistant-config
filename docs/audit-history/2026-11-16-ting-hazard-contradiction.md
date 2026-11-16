@@ -137,3 +137,40 @@ Git. No vendor-side alert was dismissed and no detection entity was disabled.
 Remaining limits: exact vendor semantics/age of ReviewedSuspicious are not
 documented here; no claim that the electrical pattern is harmless. The snooze's
 expiry boundary is tested but its future wall-clock execution is not yet observed.
+
+
+## Message provenance and freshness review — later November 16
+
+The labels "vendor-message summary" / "Vendor message" above identify the
+HA integration's rendered text, **not proof that the current vendor payload
+explicitly supplied that text**. The repository parser in
+`custom_components/whisker_ting/api.py` defaults missing overall, EFH and UFH
+`message` keys to `No Hazards Detected`; its dataclasses have the same defaults.
+Therefore that HA message can be synthetic. The owner's separate Ting-app
+screenshot is independent evidence of the app presentation at screenshot time,
+not a captured API response or proof of electrical safety.
+
+This provenance correction does not change the deployed predicate: neither
+message text nor voltage suppresses any hazard. Primary-fire on always takes
+precedence. Active EFH with unknown, unavailable, empty or unrecognized status
+retains prior critical behavior; it is not interpreted as reviewed-clear.
+ReviewedSuspicious stays visible as a watch rather than being discarded.
+The four template changes are HA notification policy, not vendor confirmation
+that the electrical pattern is harmless.
+
+Forty additional message/status/primary combinations verify that clear-looking,
+missing/unknown and warning message strings cannot change classification.
+All four test methods pass. No additional runtime changes were made.
+
+Raw payload key presence and the vendor's EFH `timestampUtc` are not exposed
+by these sensor definitions. The current admin tool file allowlist excludes
+custom-integration Python, so repository parser content is not a fresh hash
+comparison with installed code. Authenticated raw-state/API inspection was
+blocked by the saved HA login being rejected. No new credential attempts,
+access expansion or unsupported internal-memory reads were made for this review.
+The trace's 5:20/5:25 capture times prove when HA evaluated its state, not when
+Ting refreshed the hazard metadata. Live voltage also does not prove hazard
+metadata freshness: repository coordinator code obtains voltage from a separate
+WebSocket path and updates hazard data through its API polling path. Current
+vendor payload presence, hazard timestamp and last successful hazard-data fetch
+remain unknown. Do not describe the incident as a verified vendor false alarm.
