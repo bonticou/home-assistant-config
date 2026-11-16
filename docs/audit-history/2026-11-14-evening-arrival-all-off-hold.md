@@ -98,3 +98,42 @@ The corrected configuration is still loaded, but natural end-to-end success
 remains unverified. Additional verification needs an actual known-away first
 arrival with its contemporaneous trace retained; this check created no schedule,
 increased retention, reload, simulated arrival, notification or light action.
+
+## Scheduled read-only verification — November 16, 8:59–9:00 AM EST
+
+**Result: no qualifying evening arrival identified; insufficient retained evidence
+to certify the first-arrival fix.** This is not a verified arrival success or
+failure. No runtime changes, test triggers, access changes or outbound message.
+Existing scheduled verification/delivery remains owned by Eames. The preceding
+automatic-review rejection is not treated as a completed check; these are fresh
+supported MCP reads under the supplied standing read-only instruction.
+
+- Health succeeds (Core/API 2026.9.2, config access true, recovery empty).
+  Scheduler still contains the November 14 All off hold exception. Its retained
+  five traces cover November 16 8:35–8:55 AM, all background refreshes stopped
+  by the daytime schedule. Latest `bb87f68512397f113b61aec8cffe255d` confirms this.
+- There is a **post-deployment Evening execution on November 15 at 3:25:00 PM
+  EST** (20:25 UTC), script trace `cc2742a81a5cf9ce15cd5c399b8ee7be`.
+  It selected Evening, cleared the three lighting holds, issued normal scene
+  commands and finished at 3:25:00.685 without a recorded error. Scheduler
+  last_triggered is 3:25:00.094 and shares context
+  `01M7GE4XDW670P6CTVAZ7ZM9TK`, establishing the scheduler/script relationship.
+  The original scheduler run/trigger is no longer retained. Timing alone does
+  not prove arrival; completed service calls are not physical state verification.
+- Independent person-home traces retain November 15 known-away returns:
+  Trevor **11:39:53 AM** (`89a868768101d4750b94d46bc7db9b03`), Trevor
+  **1:33:35 PM** (`7e5e8e5ecc9c28fd73c621d36ac3e135`) and Casey
+  **1:33:47 PM** (`1dd242a4400c8ea0b30ee96967ee1e2d`). Each payload is
+  not_home → home. These are earlier than the 3:25 Evening run, not a matched
+  evening-arrival activation. That separate automation stops at vacation off;
+  it does not record the other person's state or scene/schedule/hold/guest
+  conditions needed to qualify the corrected path. No later person-home event
+  is in that retained list, which also still contains two earlier recovery runs.
+- Do not count the 3:25 Evening run as validation of the arrival exception. No
+  matched first-person evening arrival + eligibility + Evening execution chain
+  is available. The original November 14 7:23:43 PM EST deployment boundary
+  remains controlling; November 14 pre-deployment events remain excluded.
+
+No general API/history or credential fallback was attempted. Retention prevents
+complete historical reconstruction. Continue the existing bounded verification
+under its original seven-day limit; no duplicate schedule created here.
