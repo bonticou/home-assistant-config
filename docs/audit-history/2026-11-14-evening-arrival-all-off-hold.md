@@ -137,3 +137,47 @@ supported MCP reads under the supplied standing read-only instruction.
 No general API/history or credential fallback was attempted. Retention prevents
 complete historical reconstruction. Continue the existing bounded verification
 under its original seven-day limit; no duplicate schedule created here.
+
+## HA-ARRIVAL-VERIFY-20261117 — November 17, 9:05–9:06 AM EST
+
+**Result: insufficient retained evidence; an evening return is observed, but
+qualification and activation/failure cannot be established.** This is neither
+"no arrival occurred" nor verified success/failure. Reviewed the existing audit
+and prior check before fresh supported MCP reads; no matching completed November
+17 check was present in the owning record. No runtime changes or outbound sends.
+
+- Deployment boundary remains November 14 7:23:43 PM EST, fix ab01da3.
+- Evening script has one retained run: **November 16 6:40:02–6:40:03 PM EST**
+  (23:40:02 UTC), `4f570a997e005a6b3b0d028fdd0ba8dd`, context
+  `01M7KBPRDYHZPDRQHWBC1H2T1X`. It selected Evening, cleared the three holds,
+  issued the normal light commands and finished without a recorded error.
+  Scheduler last_triggered matches 6:40:02.366748. The original scheduler
+  trigger/eligibility trace is absent; completion of commands alone is not
+  physical convergence or evidence of a first-person arrival.
+- **Trevor returned not_home → home at 6:58:20 PM EST November 16**, verified
+  by independent person-triggered trace `69eec3ff8ce730508bf3ec74c771d140`.
+  Vacation was off. This is about 18 minutes AFTER the retained Evening run,
+  so that run cannot be attributed to this return. The trace lacks Casey's
+  contemporaneous state and the scene, hold, schedule and guest-lighting guards.
+  It therefore does not establish that this was a qualifying first arrival.
+  No subsequent Evening invocation is retained; without those prerequisites,
+  do not call this an arrival failure.
+- Casey's retained **5:57:33 AM EST November 17** transition is unknown → home,
+  trace `667c863e2c2a08427b90c8715b61f5d9`; it is tracker recovery, not a
+  qualifying known-away return.
+- Scheduler's five retained traces cover **8:45:11–9:05 AM EST November 17**,
+  including a natural HA-start trace at 8:52:38. Latest
+  `842a668d5e42b8d0f4cb50673e8e036c` passes scene/hold guards and stops because
+  the front-stairs schedule is off. These morning checks cannot reconstruct
+  November 16 arrival conditions. The changed retention population and startup
+  further limit historical coverage; this task did not restart HA or investigate
+  that independent startup.
+
+Admin health/read access succeeded (Core/API 2026.9.2, recovery empty). The
+blocking issue is missing contemporaneous historical eligibility evidence,
+not authentication. No general API/history fallback, simulated arrival, scene
+call, diagnostic deployment, retention change or new schedule used. No resulting
+historical light-state evidence qualified for the arrival was available.
+Existing bounded verification remains inconclusive; caller owns quiet follow-up
+and the original seven-day deadline. Do not deliver a success/failure notice on
+this evidence alone.
