@@ -691,17 +691,14 @@
 
 - id: ting_unverified_hazard_notification
   alias: "Ting — Unverified Hazard Notification"
-  description: ReviewedSuspicious EFH watches are event-only; preserve existing periodic reminders for UFH (utility fire hazard), despite its legacy unverified entity name. Confirmed escalation remains independent.
+  description: Legacy entity name; pushes only actual UFH-derived utility indications. ReviewedSuspicious-only EFH remains diagnostic, never a push. Confirmed escalation remains independent.
   triggers:
     - trigger: state
-      entity_id: binary_sensor.ting_unverified_hazard_active
-      from: "off"
+      entity_id:
+        - binary_sensor.ting_1_unverified_fire_hazard
+        - binary_sensor.ting_2_unverified_fire_hazard
       to: "on"
-      id: activated
-    - trigger: state
-      entity_id: sensor.ting_notification_status
-      attribute: unverified_devices
-      id: devices_changed
+      id: utility_activated
     - trigger: time_pattern
       minutes: "/15"
       id: utility_repeat
@@ -709,30 +706,19 @@
     - condition: state
       entity_id: input_boolean.ting_watch_notifications_enabled
       state: "on"
-    - condition: state
-      entity_id: binary_sensor.ting_unverified_hazard_active
-      state: "on"
+    - condition: template
+      value_template: >
+        {{ is_state('binary_sensor.ting_1_unverified_fire_hazard', 'on')
+           or is_state('binary_sensor.ting_2_unverified_fire_hazard', 'on') }}
     - condition: state
       entity_id: binary_sensor.ting_confirmed_hazard_active
       state: "off"
     - condition: template
       value_template: >
-        {% if trigger.id == 'activated' %}
-          true
-        {% elif trigger.id == 'utility_repeat' %}
-          {% set utility_active = is_state('binary_sensor.ting_1_unverified_fire_hazard', 'on') or is_state('binary_sensor.ting_2_unverified_fire_hazard', 'on') %}
-          {% set last_sent = states('input_datetime.ting_unverified_hazard_last_sent_at') %}
-          {{ utility_active and (last_sent in ['unknown', 'unavailable', 'none', '']
-             or (as_timestamp(now()) - as_timestamp(last_sent, 0)) >= 3600) }}
-        {% elif trigger.from_state is not none and trigger.to_state is not none %}
-          {% set before = trigger.from_state.attributes.get('unverified_devices', 'None') %}
-          {% set after = trigger.to_state.attributes.get('unverified_devices', 'None') %}
-          {{ before not in ['None', 'unknown', 'unavailable', '', none]
-             and after not in ['None', 'unknown', 'unavailable', '', none]
-             and (after.split(', ') | reject('in', before.split(', ')) | list | length > 0) }}
-        {% else %}
-          false
-        {% endif %}
+        {% set last_sent = states('input_datetime.ting_unverified_hazard_last_sent_at') %}
+        {{ trigger.id == 'utility_activated'
+           or last_sent in ['unknown', 'unavailable', 'none', '']
+           or (as_timestamp(now()) - as_timestamp(last_sent, 0)) >= 3600 }}
   actions:
     - action: script.ting_send_notification
       data:

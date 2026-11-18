@@ -106,3 +106,27 @@ indications in diagnostic context rather than actionable push alerts until a
 vendor-supported meaning/action is available. Do not blanket-disable the legacy
 unverified branch because it also carries UFH. Ting's own actual hazard
 notifications and Fire Safety Team guidance remain the practical action source.
+
+## Owner-approved diagnostic-only ReviewedSuspicious EFH
+
+Trevor agreed that undocumented Home Assistant interpretation should not generate
+an alert without a documented actionable meaning. The push automation is now
+triggered by the actual UFH-derived device entities, with an explicit UFH-active
+gate on every path. ReviewedSuspicious-only EFH cannot push on activation,
+additional-device changes, restart, or periodic evaluation. Its sensor/status
+and dashboard diagnostic context remain intact; no data was discarded and no
+safety-clearance claim was made. Utility activation can notify immediately even
+if an EFH diagnostic was already active; existing periodic utility reminder
+throttling and independent confirmed-critical behavior remain intact.
+
+Only the selected watch automation changed. Legacy internal names and sender
+copy remain unchanged in this narrow deployment; no integration entity migration,
+new vendor threshold, or critical-path change was introduced. Nine focused tests
+passed, including no-UFH gating and both utility devices, activation and repeat
+throttle cases, plus the existing confirmed classification suite.
+
+Deployment `9b08b57ad44a4405986c279a61d22134` passed HA validation and completed
+automation reload without restart. Exact live readback SHA256:
+`7e77bd0531e933541be6bd999833465a44ebf23c5cf30bc0e9c6348aa1d39684`.
+Utility/watch and confirmed-critical automations both remain enabled. No test
+push or synthetic hazard; next natural scheduled run is not yet inspected.
