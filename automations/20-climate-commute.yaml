@@ -691,15 +691,17 @@
 
 - id: ting_unverified_hazard_notification
   alias: "Ting — Unverified Hazard Notification"
-  description: Sends non-critical Ting unverified-hazard watches, without duplicating confirmed hazard alerts.
+  description: Notify on a new unconfirmed watch or an additional watched device, never periodically for an unchanged watch. Confirmed escalation remains independent.
   triggers:
     - trigger: state
       entity_id: binary_sensor.ting_unverified_hazard_active
+      from: "off"
       to: "on"
       id: activated
-    - trigger: time_pattern
-      minutes: "/15"
-      id: repeat
+    - trigger: state
+      entity_id: sensor.ting_notification_status
+      attribute: unverified_devices
+      id: devices_changed
   conditions:
     - condition: state
       entity_id: input_boolean.ting_watch_notifications_enabled
@@ -710,19 +712,23 @@
     - condition: state
       entity_id: binary_sensor.ting_confirmed_hazard_active
       state: "off"
+    - condition: template
+      value_template: >
+        {% if trigger.id == 'activated' %}
+          true
+        {% elif trigger.from_state is not none and trigger.to_state is not none %}
+          {% set before = trigger.from_state.attributes.get('unverified_devices', 'None') %}
+          {% set after = trigger.to_state.attributes.get('unverified_devices', 'None') %}
+          {{ before not in ['None', 'unknown', 'unavailable', '', none]
+             and after not in ['None', 'unknown', 'unavailable', '', none]
+             and (after.split(', ') | reject('in', before.split(', ')) | list | length > 0) }}
+        {% else %}
+          false
+        {% endif %}
   actions:
-    - variables:
-        last_sent: "{{ states('input_datetime.ting_unverified_hazard_last_sent_at') }}"
-        send_due: >
-          {{ last_sent in ['unknown', 'unavailable', 'none', '']
-             or (as_timestamp(now()) - as_timestamp(last_sent, 0)) >= 3600 }}
-    - if:
-        - condition: template
-          value_template: "{{ send_due }}"
-      then:
-        - action: script.ting_send_notification
-          data:
-            alert_kind: unverified
+    - action: script.ting_send_notification
+      data:
+        alert_kind: unverified
   mode: single
 
 - id: ting_unverified_hazard_clear_notification

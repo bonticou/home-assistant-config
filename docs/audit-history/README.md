@@ -1,5 +1,7 @@
 # Audit History
 
+- [2026-11-18 Ting watch repeats](2026-11-18-ting-watch-repeats.md): removed unchanged hourly watch reminders; new episodes/devices and critical escalation retained, validated and live-reloaded.
+
 - [2026-11-16 Ting reviewed-status correction](2026-11-16-ting-hazard-contradiction.md): positive-level ReviewedSuspicious was misclassified as confirmed; retained as a watch, primary fire protection preserved, timed notification snooze and natural verification completed.
 
 - [2026-11-14 Evening arrival All Off hold](2026-11-14-evening-arrival-all-off-hold.md): shared TV hold blocked homecoming; first-arrival exception deployed, tests and reload verified; next real arrival unverified.
