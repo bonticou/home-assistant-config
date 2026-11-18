@@ -211,8 +211,8 @@ change was performed to complete the record.
   scheduler child-run link and its per-condition results are unavailable.
 - The script selected Evening, cleared the three lighting holds and issued
   normal family-room, kitchen, circulation, mudroom and patio commands.
-  Its conditional foyer branch skipped because the chandelier schedule was
-  already on. Completion establishes successful script execution/service calls;
+  Its conditional foyer branch skipped because `light.front_foyer_chandelier`
+  was already on; the branch requires off. Completion establishes successful script execution/service calls;
   retained evidence does not independently establish every bulb's resulting
   physical state or that every light was previously off.
 - The retained scheduler configuration still includes the corrected All off
