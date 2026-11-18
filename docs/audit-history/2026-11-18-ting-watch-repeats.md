@@ -64,3 +64,45 @@ reads confirmed-hazard off and stops at that condition. Live automation file has
 still matches the deployed candidate. No safety setting was changed, no test
 notification was sent, and no synthetic hazard or trigger was used. Phone display
 and vendor diagnosis were not independently checked.
+
+## Utility semantics correction and scoped safety restoration
+
+Subsequent investigation found the local third-party integration uses the name
+`unverified_fire_hazard` for `ufhStatus.level > 0`. That expansion is wrong:
+[Ting defines UFH as Utility Fire Hazard](https://help.tingfire.com/hc/en-us/articles/43729080235411-Power-Quality),
+as does the [upstream integration README](https://github.com/aidenmitchell/ha-whisker-ting).
+The shared watch branch therefore includes utility indications as well as our
+locally inferred ReviewedSuspicious EFH watch. Removing all periodic watch
+reminders was broader than necessary. No observed current utility event was
+established; the proven November 16 raw case had both UFH binaries off.
+
+Restored the **preexisting** 15-minute evaluation / 3600-second repeat eligibility
+only when at least one actual UFH-derived binary is on. ReviewedSuspicious-only
+EFH remains event-only. Kept the existing critical path, severity, classification,
+sender, enable gate, and successful-send timestamp unchanged. This is not a new
+claim that every positive UFH level is confirmed hazardous, nor a claim that
+legacy UFH notification severity was already critical. Names/copy remain legacy;
+a broader semantic correction needs verified vendor mappings.
+
+Deployment `e9c54f000e214f2b8ff432b0b163ca0a` passed HA validation and automation
+reload; exact readback matched SHA256
+`cced3eab9cdbb871bb609968812331932de90f5eeab78cbd999b71f7c71d9c9a`.
+Both relevant automations remain enabled. Nine focused tests pass, including
+both devices' actual UFH on/off and old/recent/missing timestamps, showing that
+EFH-only watch cannot pass the periodic repeat gate. No simulated event or push.
+
+No authoritative public meaning or actionable threshold for ReviewedSuspicious
+or level 20 was found. These values are not a percentage, severity score or
+confirmed vendor instruction. The integration's “No Hazards Detected” can be a
+parser default, not proof of actual vendor clearance. Latest available sender
+snapshot at 7:15 AM showed Ting 1 watch, no confirmed devices, no useful message.
+Latest inspected confirmed trace at 9:00 AM reads off. Attempted read-only live
+raw-state request returned 401; no credential/access change or diagnostic
+configuration was added. Trevor reports the Ting app looks normal. Treat that
+as owner observation, not an independently verified all-clear.
+
+Recommendation, not implemented: keep undocumented ReviewedSuspicious-only EFH
+indications in diagnostic context rather than actionable push alerts until a
+vendor-supported meaning/action is available. Do not blanket-disable the legacy
+unverified branch because it also carries UFH. Ting's own actual hazard
+notifications and Fire Safety Team guidance remain the practical action source.
