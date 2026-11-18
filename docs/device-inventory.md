@@ -456,3 +456,20 @@ Added owner-identified EP25 hardware 2.6; verified `switch.dehumidifier` and
 `sensor.dehumidifier_current_consumption`, on and about 450 W. No relay commands
 or humidity automation. Only these two exact IDs reconciled; not a full census.
 See [connection evidence](audit-history/2026-11-08-dehumidifier-kasa-connection.md).
+
+## Away-light coverage — November 18, 2026
+
+The [shared inventory](../helpers/household_lighting.yaml) covers 42 verified
+physical endpoints: 33 lights and nine lighting switches. Detection and the
+notification's explicit shutoff use that same mapping. Group aliases, equipment
+LEDs and non-light/security/appliance switches are excluded. New Lutron physical
+light entities are automatically included; other new lighting requires the
+[onboarding checklist](lighting-onboarding.md), including verification of both
+paths. This targeted reconciliation is not a full live registry refresh.
+
+Flower Lamp (`switch.flower_lamp`), Master door lantern (`switch.master_lantern`)
+and Uplight 1 (`switch.uplight`) were unavailable during the review. They remain
+unresolved inventory members, not silently removed. The door lantern is distinct
+from `light.master_bedroom_lantern`; all three saved uplight devices are distinct.
+`switch.great_room_uplights` is an alias and is replaced by its physical endpoints
+in this inventory. No light was toggled to verify coverage.

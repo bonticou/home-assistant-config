@@ -5141,279 +5141,290 @@ away_security_send_alert:
   icon: mdi:shield-alert-outline
   mode: restart
   sequence:
-    - action: script.casey_left_combo_clear_alert
-    - action: script.casey_left_garage_clear_alert
-    - action: script.casey_left_lights_clear_alert
-    - variables:
-        issue_summary: "{{ states('sensor.away_security_issue_summary') }}"
-        garage_door_open: "{{ is_state('binary_sensor.away_security_garage_door_open', 'on') }}"
-        garage_open_count: "{{ state_attr('binary_sensor.away_security_garage_door_open', 'open_count') | int(0) }}"
-        garage_close_title: "{{ state_attr('binary_sensor.away_security_garage_door_open', 'close_action_title') | default('Close garage', true) }}"
-        entry_point_count: "{{ states('sensor.away_security_entry_point_issues') | int(0) }}"
-        entry_point_issue: "{{ state_attr('sensor.away_security_entry_point_issues', 'issue') | default('', true) }}"
-        entry_point_issue_title: "{{ entry_point_issue[:1] | upper ~ entry_point_issue[1:] }}"
-        unlocked_entry_count: "{{ states('sensor.away_security_unlocked_entry_locks') | int(0) }}"
-        active_light_count: "{{ states('sensor.away_security_active_lights') | int(0) }}"
-        secure_action_title: >-
-          {% set garage = garage_door_open | bool %}
-          {% set garage_close = garage_close_title %}
-          {% set locks = unlocked_entry_count | int(0) > 0 %}
-          {% set lights = active_light_count | int(0) > 0 %}
-          {% if garage and locks and lights %}{{ garage_close }} + lock + lights off
-          {% elif garage and locks %}{{ garage_close }} + lock
-          {% elif garage and lights %}{{ garage_close }} + lights off
-          {% elif locks and lights %}Lock + lights off
-          {% else %}Secure home{% endif %}
-        notification_title: >-
-          {% if garage_open_count | int(0) == 2 %}
-            🚗 Both garage doors open while away
-          {% elif garage_door_open | bool and entry_point_count | int(0) == garage_open_count | int(0) and active_light_count | int(0) == 0 %}
-            🚗 {{ entry_point_issue_title }} while away
-          {% elif entry_point_count | int(0) > 1 and active_light_count | int(0) == 0 %}
-            🔐 Entry points unsecured while away
-          {% elif entry_point_count | int(0) == 1 and active_light_count | int(0) == 0 %}
-            🔐 {{ entry_point_issue_title }} while away
-          {% else %}
-            🏠 House left unsecured
-          {% endif %}
-        notification_message: >-
-          {% if garage_open_count | int(0) == 2 %}
-            Casey and Trevor are away, and Casey's garage door and your garage door are open.
-            {% set extras = namespace(items=[]) %}
-            {% if unlocked_entry_count | int(0) > 0 %}
-              {% set extras.items = extras.items + [('entry locks' if unlocked_entry_count | int(0) > 1 else 'an entry lock') ~ ' unlocked'] %}
-            {% endif %}
-            {% if active_light_count | int(0) > 0 %}
-              {% set extras.items = extras.items + [(active_light_count | int(0)) ~ (' lights' if active_light_count | int(0) > 1 else ' light') ~ ' on'] %}
-            {% endif %}
-            {% if extras.items | count > 0 %}
-              Home Assistant is also watching {{ extras.items | join(' and ') }}.
-            {% endif %}
-          {% else %}
-            Casey and Trevor are away, and {{ issue_summary }}.
-          {% endif %}
-    - choose:
-        - conditions:
-            - condition: template
-              value_template: >
-                {{ garage_door_open | bool
-                   and unlocked_entry_count | int(0) > 0
-                   and active_light_count | int(0) > 0 }}
-          sequence:
-            - action: script.notify_trevor_phone
-              data:
-                title: "{{ notification_title }}"
-                message: "{{ notification_message }}"
-                data:
-                  tag: away-security
-                  group: away-security
-                  sticky: true
-                  ttl: 0
-                  priority: high
-                  url: /calm-mobile/home
-                  actions:
-                    - action: URI
-                      title: Open Protect
-                      uri: unifi-protect://
-                    - action: SECURE_AWAY_HOME
-                      title: "{{ secure_action_title }}"
-                    - action: CLOSE_AWAY_GARAGE
-                      title: "{{ garage_close_title }}"
-                    - action: LOCK_AWAY_ENTRY_DOORS
-                      title: >-
-                        {{ 'Lock doors' if unlocked_entry_count | int(0) > 1 else 'Lock door' }}
-                    - action: TURN_OFF_AWAY_LIGHTS
-                      title: Turn off lights
-                    - action: SNOOZE_AWAY_SECURITY_30
-                      title: Sleep 30 min
-                    - action: SNOOZE_AWAY_SECURITY_120
-                      title: Sleep 2 hr
-        - conditions:
-            - condition: template
-              value_template: "{{ garage_door_open | bool and unlocked_entry_count | int(0) > 0 }}"
-          sequence:
-            - action: script.notify_trevor_phone
-              data:
-                title: "{{ notification_title }}"
-                message: "{{ notification_message }}"
-                data:
-                  tag: away-security
-                  group: away-security
-                  sticky: true
-                  ttl: 0
-                  priority: high
-                  url: /calm-mobile/home
-                  actions:
-                    - action: URI
-                      title: Open Protect
-                      uri: unifi-protect://
-                    - action: SECURE_AWAY_HOME
-                      title: "{{ secure_action_title }}"
-                    - action: CLOSE_AWAY_GARAGE
-                      title: "{{ garage_close_title }}"
-                    - action: LOCK_AWAY_ENTRY_DOORS
-                      title: >-
-                        {{ 'Lock doors' if unlocked_entry_count | int(0) > 1 else 'Lock door' }}
-                    - action: SNOOZE_AWAY_SECURITY_30
-                      title: Sleep 30 min
-                    - action: SNOOZE_AWAY_SECURITY_120
-                      title: Sleep 2 hr
-        - conditions:
-            - condition: template
-              value_template: "{{ garage_door_open | bool and active_light_count | int(0) > 0 }}"
-          sequence:
-            - action: script.notify_trevor_phone
-              data:
-                title: "{{ notification_title }}"
-                message: "{{ notification_message }}"
-                data:
-                  tag: away-security
-                  group: away-security
-                  sticky: true
-                  ttl: 0
-                  priority: high
-                  url: /calm-mobile/home
-                  actions:
-                    - action: URI
-                      title: Open Protect
-                      uri: unifi-protect://
-                    - action: SECURE_AWAY_HOME
-                      title: "{{ secure_action_title }}"
-                    - action: CLOSE_AWAY_GARAGE
-                      title: "{{ garage_close_title }}"
-                    - action: TURN_OFF_AWAY_LIGHTS
-                      title: Turn off lights
-                    - action: SNOOZE_AWAY_SECURITY_30
-                      title: Sleep 30 min
-                    - action: SNOOZE_AWAY_SECURITY_120
-                      title: Sleep 2 hr
-        - conditions:
-            - condition: template
-              value_template: "{{ unlocked_entry_count | int(0) > 0 and active_light_count | int(0) > 0 }}"
-          sequence:
-            - action: script.notify_trevor_phone
-              data:
-                title: "{{ notification_title }}"
-                message: "{{ notification_message }}"
-                data:
-                  tag: away-security
-                  group: away-security
-                  sticky: true
-                  ttl: 0
-                  priority: high
-                  url: /calm-mobile/home
-                  actions:
-                    - action: URI
-                      title: Open Protect
-                      uri: unifi-protect://
-                    - action: SECURE_AWAY_HOME
-                      title: "{{ secure_action_title }}"
-                    - action: LOCK_AWAY_ENTRY_DOORS
-                      title: >-
-                        {{ 'Lock doors' if unlocked_entry_count | int(0) > 1 else 'Lock door' }}
-                    - action: TURN_OFF_AWAY_LIGHTS
-                      title: Turn off lights
-                    - action: SNOOZE_AWAY_SECURITY_30
-                      title: Sleep 30 min
-                    - action: SNOOZE_AWAY_SECURITY_120
-                      title: Sleep 2 hr
-        - conditions:
-            - condition: template
-              value_template: "{{ garage_door_open | bool }}"
-          sequence:
-            - action: script.notify_trevor_phone
-              data:
-                title: "{{ notification_title }}"
-                message: "{{ notification_message }}"
-                data:
-                  tag: away-security
-                  group: away-security
-                  sticky: true
-                  ttl: 0
-                  priority: high
-                  url: /calm-mobile/home
-                  actions:
-                    - action: URI
-                      title: Open Protect
-                      uri: unifi-protect://
-                    - action: CLOSE_AWAY_GARAGE
-                      title: "{{ garage_close_title }}"
-                    - action: SNOOZE_AWAY_SECURITY_30
-                      title: Sleep 30 min
-                    - action: SNOOZE_AWAY_SECURITY_120
-                      title: Sleep 2 hr
-        - conditions:
-            - condition: template
-              value_template: "{{ unlocked_entry_count | int(0) > 0 }}"
-          sequence:
-            - action: script.notify_trevor_phone
-              data:
-                title: "{{ notification_title }}"
-                message: "{{ notification_message }}"
-                data:
-                  tag: away-security
-                  group: away-security
-                  sticky: true
-                  ttl: 0
-                  priority: high
-                  url: /calm-mobile/home
-                  actions:
-                    - action: URI
-                      title: Open Protect
-                      uri: unifi-protect://
-                    - action: LOCK_AWAY_ENTRY_DOORS
-                      title: >-
-                        {{ 'Lock doors' if unlocked_entry_count | int(0) > 1 else 'Lock door' }}
-                    - action: SNOOZE_AWAY_SECURITY_30
-                      title: Sleep 30 min
-                    - action: SNOOZE_AWAY_SECURITY_120
-                      title: Sleep 2 hr
-        - conditions:
-            - condition: template
-              value_template: "{{ active_light_count | int(0) > 0 }}"
-          sequence:
-            - action: script.notify_trevor_phone
-              data:
-                title: "{{ notification_title }}"
-                message: "{{ notification_message }}"
-                data:
-                  tag: away-security
-                  group: away-security
-                  sticky: true
-                  ttl: 0
-                  priority: high
-                  url: /calm-mobile/home
-                  actions:
-                    - action: URI
-                      title: Open Protect
-                      uri: unifi-protect://
-                    - action: TURN_OFF_AWAY_LIGHTS
-                      title: Turn off lights
-                    - action: SNOOZE_AWAY_SECURITY_30
-                      title: Sleep 30 min
-                    - action: SNOOZE_AWAY_SECURITY_120
-                      title: Sleep 2 hr
-      default:
-        - action: script.notify_trevor_phone
-          data:
-            title: "{{ notification_title }}"
-            message: "{{ notification_message }}"
-            data:
-              tag: away-security
-              group: away-security
-              sticky: true
-              ttl: 0
-              priority: high
-              url: /calm-mobile/home
-              actions:
-                - action: URI
-                  title: Open Protect
-                  uri: unifi-protect://
-                - action: SNOOZE_AWAY_SECURITY_30
-                  title: Sleep 30 min
-                - action: SNOOZE_AWAY_SECURITY_120
-                  title: Sleep 2 hr
+  - action: script.casey_left_combo_clear_alert
+  - action: script.casey_left_garage_clear_alert
+  - action: script.casey_left_lights_clear_alert
+  - variables:
+      issue_summary: '{{ states(''sensor.away_security_issue_summary'') }}'
+      garage_door_open: '{{ is_state(''binary_sensor.away_security_garage_door_open'', ''on'') }}'
+      garage_open_count: '{{ state_attr(''binary_sensor.away_security_garage_door_open'', ''open_count'')
+        | int(0) }}'
+      garage_close_title: '{{ state_attr(''binary_sensor.away_security_garage_door_open'', ''close_action_title'')
+        | default(''Close garage'', true) }}'
+      entry_point_count: '{{ states(''sensor.away_security_entry_point_issues'') | int(0) }}'
+      entry_point_issue: '{{ state_attr(''sensor.away_security_entry_point_issues'', ''issue'') | default('''',
+        true) }}'
+      entry_point_issue_title: '{{ entry_point_issue[:1] | upper ~ entry_point_issue[1:] }}'
+      unlocked_entry_count: '{{ states(''sensor.away_security_unlocked_entry_locks'') | int(0) }}'
+      active_light_count: '{{ states(''sensor.away_security_active_lights'') | int(0) }}'
+      secure_action_title: '{% set garage = garage_door_open | bool %} {% set garage_close = garage_close_title
+        %} {% set locks = unlocked_entry_count | int(0) > 0 %} {% set lights = active_light_count | int(0)
+        > 0 %} {% if garage and locks and lights %}{{ garage_close }} + lock + lights off {% elif garage
+        and locks %}{{ garage_close }} + lock {% elif garage and lights %}{{ garage_close }} + lights
+        off {% elif locks and lights %}Lock + lights off {% else %}Secure home{% endif %}'
+      notification_title: "{% if garage_open_count | int(0) == 2 %}\n  \U0001F697 Both garage doors open\
+        \ while away\n{% elif garage_door_open | bool and entry_point_count | int(0) == garage_open_count\
+        \ | int(0) and active_light_count | int(0) == 0 %}\n  \U0001F697 {{ entry_point_issue_title }}\
+        \ while away\n{% elif entry_point_count | int(0) > 1 and active_light_count | int(0) == 0 %}\n\
+        \  \U0001F510 Entry points unsecured while away\n{% elif entry_point_count | int(0) == 1 and active_light_count\
+        \ | int(0) == 0 %}\n  \U0001F510 {{ entry_point_issue_title }} while away\n{% else %}\n  \U0001F3E0\
+        \ House left unsecured\n{% endif %}"
+      notification_message: "{% if garage_open_count | int(0) == 2 %}\n  Casey and Trevor are away, and\
+        \ Casey's garage door and your garage door are open.\n  {% set extras = namespace(items=[]) %}\n\
+        \  {% if unlocked_entry_count | int(0) > 0 %}\n    {% set extras.items = extras.items + [('entry\
+        \ locks' if unlocked_entry_count | int(0) > 1 else 'an entry lock') ~ ' unlocked'] %}\n  {% endif\
+        \ %}\n  {% if active_light_count | int(0) > 0 %}\n    {% set extras.items = extras.items + [(active_light_count\
+        \ | int(0)) ~ (' lights' if active_light_count | int(0) > 1 else ' light') ~ ' on'] %}\n  {% endif\
+        \ %}\n  {% if extras.items | count > 0 %}\n    Home Assistant is also watching {{ extras.items\
+        \ | join(' and ') }}.\n  {% endif %}\n{% else %}\n  Casey and Trevor are away, and {{ issue_summary\
+        \ }}.\n{% endif %}"
+  - choose:
+    - conditions:
+      - condition: template
+        value_template: "{{ garage_door_open | bool\n   and unlocked_entry_count | int(0) > 0\n   and\
+          \ active_light_count | int(0) > 0 }}\n"
+      sequence:
+      - action: script.notify_trevor_phone
+        data:
+          title: '{{ notification_title }}'
+          message: '{{ notification_message }}
 
+            {% set missing = state_attr(''sensor.away_security_active_lights'', ''unavailable_names'')
+            | default([], true) %}{% if missing %} Couldn''t check: {{ missing | join('', '') }}.{% endif
+            %}'
+          data:
+            tag: away-security
+            group: away-security
+            sticky: true
+            ttl: 0
+            priority: high
+            url: /calm-mobile/home
+            actions:
+            - action: URI
+              title: Open Protect
+              uri: unifi-protect://
+            - action: SECURE_AWAY_HOME
+              title: '{{ secure_action_title }}'
+            - action: CLOSE_AWAY_GARAGE
+              title: '{{ garage_close_title }}'
+            - action: LOCK_AWAY_ENTRY_DOORS
+              title: '{{ ''Lock doors'' if unlocked_entry_count | int(0) > 1 else ''Lock door'' }}'
+            - action: TURN_OFF_AWAY_LIGHTS
+              title: Turn all lights off
+            - action: SNOOZE_AWAY_SECURITY_30
+              title: Sleep 30 min
+            - action: SNOOZE_AWAY_SECURITY_120
+              title: Sleep 2 hr
+    - conditions:
+      - condition: template
+        value_template: '{{ garage_door_open | bool and unlocked_entry_count | int(0) > 0 }}'
+      sequence:
+      - action: script.notify_trevor_phone
+        data:
+          title: '{{ notification_title }}'
+          message: '{{ notification_message }}
+
+            {% set missing = state_attr(''sensor.away_security_active_lights'', ''unavailable_names'')
+            | default([], true) %}{% if missing %} Couldn''t check: {{ missing | join('', '') }}.{% endif
+            %}'
+          data:
+            tag: away-security
+            group: away-security
+            sticky: true
+            ttl: 0
+            priority: high
+            url: /calm-mobile/home
+            actions:
+            - action: URI
+              title: Open Protect
+              uri: unifi-protect://
+            - action: SECURE_AWAY_HOME
+              title: '{{ secure_action_title }}'
+            - action: CLOSE_AWAY_GARAGE
+              title: '{{ garage_close_title }}'
+            - action: LOCK_AWAY_ENTRY_DOORS
+              title: '{{ ''Lock doors'' if unlocked_entry_count | int(0) > 1 else ''Lock door'' }}'
+            - action: SNOOZE_AWAY_SECURITY_30
+              title: Sleep 30 min
+            - action: SNOOZE_AWAY_SECURITY_120
+              title: Sleep 2 hr
+    - conditions:
+      - condition: template
+        value_template: '{{ garage_door_open | bool and active_light_count | int(0) > 0 }}'
+      sequence:
+      - action: script.notify_trevor_phone
+        data:
+          title: '{{ notification_title }}'
+          message: '{{ notification_message }}
+
+            {% set missing = state_attr(''sensor.away_security_active_lights'', ''unavailable_names'')
+            | default([], true) %}{% if missing %} Couldn''t check: {{ missing | join('', '') }}.{% endif
+            %}'
+          data:
+            tag: away-security
+            group: away-security
+            sticky: true
+            ttl: 0
+            priority: high
+            url: /calm-mobile/home
+            actions:
+            - action: URI
+              title: Open Protect
+              uri: unifi-protect://
+            - action: SECURE_AWAY_HOME
+              title: '{{ secure_action_title }}'
+            - action: CLOSE_AWAY_GARAGE
+              title: '{{ garage_close_title }}'
+            - action: TURN_OFF_AWAY_LIGHTS
+              title: Turn all lights off
+            - action: SNOOZE_AWAY_SECURITY_30
+              title: Sleep 30 min
+            - action: SNOOZE_AWAY_SECURITY_120
+              title: Sleep 2 hr
+    - conditions:
+      - condition: template
+        value_template: '{{ unlocked_entry_count | int(0) > 0 and active_light_count | int(0) > 0 }}'
+      sequence:
+      - action: script.notify_trevor_phone
+        data:
+          title: '{{ notification_title }}'
+          message: '{{ notification_message }}
+
+            {% set missing = state_attr(''sensor.away_security_active_lights'', ''unavailable_names'')
+            | default([], true) %}{% if missing %} Couldn''t check: {{ missing | join('', '') }}.{% endif
+            %}'
+          data:
+            tag: away-security
+            group: away-security
+            sticky: true
+            ttl: 0
+            priority: high
+            url: /calm-mobile/home
+            actions:
+            - action: URI
+              title: Open Protect
+              uri: unifi-protect://
+            - action: SECURE_AWAY_HOME
+              title: '{{ secure_action_title }}'
+            - action: LOCK_AWAY_ENTRY_DOORS
+              title: '{{ ''Lock doors'' if unlocked_entry_count | int(0) > 1 else ''Lock door'' }}'
+            - action: TURN_OFF_AWAY_LIGHTS
+              title: Turn all lights off
+            - action: SNOOZE_AWAY_SECURITY_30
+              title: Sleep 30 min
+            - action: SNOOZE_AWAY_SECURITY_120
+              title: Sleep 2 hr
+    - conditions:
+      - condition: template
+        value_template: '{{ garage_door_open | bool }}'
+      sequence:
+      - action: script.notify_trevor_phone
+        data:
+          title: '{{ notification_title }}'
+          message: '{{ notification_message }}
+
+            {% set missing = state_attr(''sensor.away_security_active_lights'', ''unavailable_names'')
+            | default([], true) %}{% if missing %} Couldn''t check: {{ missing | join('', '') }}.{% endif
+            %}'
+          data:
+            tag: away-security
+            group: away-security
+            sticky: true
+            ttl: 0
+            priority: high
+            url: /calm-mobile/home
+            actions:
+            - action: URI
+              title: Open Protect
+              uri: unifi-protect://
+            - action: CLOSE_AWAY_GARAGE
+              title: '{{ garage_close_title }}'
+            - action: SNOOZE_AWAY_SECURITY_30
+              title: Sleep 30 min
+            - action: SNOOZE_AWAY_SECURITY_120
+              title: Sleep 2 hr
+    - conditions:
+      - condition: template
+        value_template: '{{ unlocked_entry_count | int(0) > 0 }}'
+      sequence:
+      - action: script.notify_trevor_phone
+        data:
+          title: '{{ notification_title }}'
+          message: '{{ notification_message }}
+
+            {% set missing = state_attr(''sensor.away_security_active_lights'', ''unavailable_names'')
+            | default([], true) %}{% if missing %} Couldn''t check: {{ missing | join('', '') }}.{% endif
+            %}'
+          data:
+            tag: away-security
+            group: away-security
+            sticky: true
+            ttl: 0
+            priority: high
+            url: /calm-mobile/home
+            actions:
+            - action: URI
+              title: Open Protect
+              uri: unifi-protect://
+            - action: LOCK_AWAY_ENTRY_DOORS
+              title: '{{ ''Lock doors'' if unlocked_entry_count | int(0) > 1 else ''Lock door'' }}'
+            - action: SNOOZE_AWAY_SECURITY_30
+              title: Sleep 30 min
+            - action: SNOOZE_AWAY_SECURITY_120
+              title: Sleep 2 hr
+    - conditions:
+      - condition: template
+        value_template: '{{ active_light_count | int(0) > 0 }}'
+      sequence:
+      - action: script.notify_trevor_phone
+        data:
+          title: '{{ notification_title }}'
+          message: '{{ notification_message }}
+
+            {% set missing = state_attr(''sensor.away_security_active_lights'', ''unavailable_names'')
+            | default([], true) %}{% if missing %} Couldn''t check: {{ missing | join('', '') }}.{% endif
+            %}'
+          data:
+            tag: away-security
+            group: away-security
+            sticky: true
+            ttl: 0
+            priority: high
+            url: /calm-mobile/home
+            actions:
+            - action: URI
+              title: Open Protect
+              uri: unifi-protect://
+            - action: TURN_OFF_AWAY_LIGHTS
+              title: Turn all lights off
+            - action: SNOOZE_AWAY_SECURITY_30
+              title: Sleep 30 min
+            - action: SNOOZE_AWAY_SECURITY_120
+              title: Sleep 2 hr
+    default:
+    - action: script.notify_trevor_phone
+      data:
+        title: '{{ notification_title }}'
+        message: '{{ notification_message }}
+
+          {% set missing = state_attr(''sensor.away_security_active_lights'', ''unavailable_names'') |
+          default([], true) %}{% if missing %} Couldn''t check: {{ missing | join('', '') }}.{% endif
+          %}'
+        data:
+          tag: away-security
+          group: away-security
+          sticky: true
+          ttl: 0
+          priority: high
+          url: /calm-mobile/home
+          actions:
+          - action: URI
+            title: Open Protect
+            uri: unifi-protect://
+          - action: SNOOZE_AWAY_SECURITY_30
+            title: Sleep 30 min
+          - action: SNOOZE_AWAY_SECURITY_120
+            title: Sleep 2 hr
 away_security_clear_alert:
   alias: Away Security Clear Alert
   description: Clears the active away-security notification tag.
@@ -5559,76 +5570,62 @@ casey_left_garage_clear_alert:
 
 casey_left_combo_send_alert:
   alias: Casey Left Combo Send Alert
-  description: Sends Trevor a contextual push when Casey leaves during daylight with an entry point unsecured and lights still on.
+  description: Sends Trevor a contextual push when Casey leaves during daylight with an entry point unsecured
+    and lights still on.
   icon: mdi:home-lightning-bolt-outline
   mode: restart
   sequence:
-    - action: script.away_security_clear_alert
-    - action: script.casey_left_garage_clear_alert
-    - action: script.casey_left_lights_clear_alert
-    - variables:
-        garage_door_open: "{{ is_state('binary_sensor.away_security_garage_door_open', 'on') }}"
-        garage_open_count: "{{ state_attr('binary_sensor.away_security_garage_door_open', 'open_count') | int(0) }}"
-        garage_close_title: "{{ state_attr('binary_sensor.away_security_garage_door_open', 'close_action_title') | default('Close garage', true) }}"
-        entry_point_issue: "{{ state_attr('sensor.away_security_entry_point_issues', 'issue') | default('an entry point unsecured', true) }}"
-        entry_point_issue_sentence: >-
-          {% set issue = entry_point_issue | trim %}
-          {% if issue[:5] == 'Casey' or issue[:6] == 'Trevor' %}
-            {{ issue }}
-          {% elif issue %}
-            {{ issue[:1] | lower ~ issue[1:] }}
-          {% else %}
-            {{ issue }}
-          {% endif %}
-        casey_departure_entry_issue_sentence: >-
-          {% set issue = entry_point_issue_sentence | trim %}
-          {% if issue == "Casey's garage door open" %}
-            her garage door open
-          {% else %}
-            {{ issue }}
-          {% endif %}
-        casey_departure_entry_message_clause: >-
-          {% set issue = entry_point_issue_sentence | trim %}
-          {% if issue == "Casey's garage door open" %}
-            her garage door is open
-          {% elif issue[-5:] == ' open' %}
-            {{ issue[:-5] }} is open
-          {% else %}
-            {{ issue }}
-          {% endif %}
-        unlocked_entry_count: "{{ states('sensor.away_security_unlocked_entry_locks') | int(0) }}"
-        active_light_names: >
-          {% set light_names = state_attr('sensor.away_security_active_lights', 'names') | default('', true) %}
-          {{ (light_names.split('||') if light_names else []) | reject('eq', '') | list }}
-        secure_action_title: >-
-          {% if garage_door_open | bool and unlocked_entry_count | int(0) > 0 %}{{ garage_close_title }} + lock + lights off
-          {% elif garage_door_open | bool %}{{ garage_close_title }} + lights off
-          {% else %}Lock + lights off{% endif %}
-    - action: script.notify_trevor_phone
-      data:
-        title: "🏠 Casey left {{ casey_departure_entry_issue_sentence }} and lights on"
-        message: >-
-          {% if active_light_names | count == 1 %}
-            Casey just left home, {{ casey_departure_entry_message_clause }}, and {{ active_light_names[0] }} is still on.
-          {% elif active_light_names | count == 2 %}
-            Casey just left home, {{ casey_departure_entry_message_clause }}, and {{ active_light_names | join(' and ') }} are still on.
-          {% else %}
-            Casey just left home, {{ casey_departure_entry_message_clause }}, and {{ active_light_names | count }} lights are still on.
-          {% endif %}
-          Tap below to secure everything.
-        data:
-          tag: casey-left-combo
-          group: away-security
-          sticky: true
-          ttl: 0
-          priority: high
-          actions:
-            - action: URI
-              title: Open Protect
-              uri: unifi-protect://
-            - action: SECURE_CASEY_LEFT_HOME
-              title: "{{ secure_action_title }}"
+  - action: script.away_security_clear_alert
+  - action: script.casey_left_garage_clear_alert
+  - action: script.casey_left_lights_clear_alert
+  - variables:
+      garage_door_open: '{{ is_state(''binary_sensor.away_security_garage_door_open'', ''on'') }}'
+      garage_open_count: '{{ state_attr(''binary_sensor.away_security_garage_door_open'', ''open_count'')
+        | int(0) }}'
+      garage_close_title: '{{ state_attr(''binary_sensor.away_security_garage_door_open'', ''close_action_title'')
+        | default(''Close garage'', true) }}'
+      entry_point_issue: '{{ state_attr(''sensor.away_security_entry_point_issues'', ''issue'') | default(''an
+        entry point unsecured'', true) }}'
+      entry_point_issue_sentence: "{% set issue = entry_point_issue | trim %} {% if issue[:5] == 'Casey'\
+        \ or issue[:6] == 'Trevor' %}\n  {{ issue }}\n{% elif issue %}\n  {{ issue[:1] | lower ~ issue[1:]\
+        \ }}\n{% else %}\n  {{ issue }}\n{% endif %}"
+      casey_departure_entry_issue_sentence: "{% set issue = entry_point_issue_sentence | trim %} {% if\
+        \ issue == \"Casey's garage door open\" %}\n  her garage door open\n{% else %}\n  {{ issue }}\n\
+        {% endif %}"
+      casey_departure_entry_message_clause: "{% set issue = entry_point_issue_sentence | trim %} {% if\
+        \ issue == \"Casey's garage door open\" %}\n  her garage door is open\n{% elif issue[-5:] == '\
+        \ open' %}\n  {{ issue[:-5] }} is open\n{% else %}\n  {{ issue }}\n{% endif %}"
+      unlocked_entry_count: '{{ states(''sensor.away_security_unlocked_entry_locks'') | int(0) }}'
+      active_light_names: '{% set light_names = state_attr(''sensor.away_security_active_lights'', ''names'')
+        | default('''', true) %} {{ (light_names.split(''||'') if light_names else []) | reject(''eq'',
+        '''') | list }}
 
+        '
+      secure_action_title: '{% if garage_door_open | bool and unlocked_entry_count | int(0) > 0 %}{{ garage_close_title
+        }} + lock + lights off {% elif garage_door_open | bool %}{{ garage_close_title }} + lights off
+        {% else %}Lock + lights off{% endif %}'
+  - action: script.notify_trevor_phone
+    data:
+      title: 🏠 Casey left {{ casey_departure_entry_issue_sentence }} and lights on
+      message: "{% if active_light_names | count == 1 %}\n  Casey just left home, {{ casey_departure_entry_message_clause\
+        \ }}, and {{ active_light_names[0] }} is still on.\n{% elif active_light_names | count == 2 %}\n\
+        \  Casey just left home, {{ casey_departure_entry_message_clause }}, and {{ active_light_names\
+        \ | join(' and ') }} are still on.\n{% else %}\n  Casey just left home, {{ casey_departure_entry_message_clause\
+        \ }}, and {{ active_light_names | count }} lights are still on.\n{% endif %} Tap below to secure\
+        \ everything.\n{% set missing = state_attr('sensor.away_security_active_lights', 'unavailable_names')\
+        \ | default([], true) %}{% if missing %} Couldn't check: {{ missing | join(', ') }}.{% endif %}"
+      data:
+        tag: casey-left-combo
+        group: away-security
+        sticky: true
+        ttl: 0
+        priority: high
+        actions:
+        - action: URI
+          title: Open Protect
+          uri: unifi-protect://
+        - action: SECURE_CASEY_LEFT_HOME
+          title: '{{ secure_action_title }}'
 casey_left_combo_clear_alert:
   alias: Casey Left Combo Clear Alert
   description: Clears the contextual Casey-left combo notification tag.
@@ -5643,42 +5640,41 @@ casey_left_combo_clear_alert:
 
 casey_left_lights_send_alert:
   alias: Casey Left Lights Send Alert
-  description: Sends Trevor a contextual push when Casey leaves home during daylight and lights are still on.
+  description: Sends Trevor a contextual push when Casey leaves home during daylight and lights are still
+    on.
   icon: mdi:lightbulb-alert-outline
   mode: restart
   sequence:
-    - action: script.away_security_clear_alert
-    - action: script.casey_left_combo_clear_alert
-    - action: script.casey_left_garage_clear_alert
-    - variables:
-        active_light_names: >
-          {% set light_names = state_attr('sensor.away_security_active_lights', 'names') | default('', true) %}
-          {{ (light_names.split('||') if light_names else []) | reject('eq', '') | list }}
-    - action: script.notify_trevor_phone
-      data:
-        title: "💡 Casey left the lights on"
-        message: >-
-          {% if active_light_names | count == 1 %}
-            Casey just left home and {{ active_light_names[0] }} is still on.
-          {% elif active_light_names | count == 2 %}
-            Casey just left home and {{ active_light_names | join(' and ') }} are still on.
-          {% else %}
-            Casey just left home and {{ active_light_names | count }} lights are still on.
-          {% endif %}
-          Tap below to turn them off.
-        data:
-          tag: casey-left-lights-on
-          group: away-security
-          sticky: true
-          ttl: 0
-          priority: high
-          actions:
-            - action: URI
-              title: Open Protect
-              uri: unifi-protect://
-            - action: TURN_OFF_CASEY_LEFT_LIGHTS
-              title: Turn off lights
+  - action: script.away_security_clear_alert
+  - action: script.casey_left_combo_clear_alert
+  - action: script.casey_left_garage_clear_alert
+  - variables:
+      active_light_names: '{% set light_names = state_attr(''sensor.away_security_active_lights'', ''names'')
+        | default('''', true) %} {{ (light_names.split(''||'') if light_names else []) | reject(''eq'',
+        '''') | list }}
 
+        '
+  - action: script.notify_trevor_phone
+    data:
+      title: 💡 Casey left the lights on
+      message: "{% if active_light_names | count == 1 %}\n  Casey just left home and {{ active_light_names[0]\
+        \ }} is still on.\n{% elif active_light_names | count == 2 %}\n  Casey just left home and {{ active_light_names\
+        \ | join(' and ') }} are still on.\n{% else %}\n  Casey just left home and {{ active_light_names\
+        \ | count }} lights are still on.\n{% endif %} Tap below to turn them off.\n{% set missing = state_attr('sensor.away_security_active_lights',\
+        \ 'unavailable_names') | default([], true) %}{% if missing %} Couldn't check: {{ missing | join(',\
+        \ ') }}.{% endif %}"
+      data:
+        tag: casey-left-lights-on
+        group: away-security
+        sticky: true
+        ttl: 0
+        priority: high
+        actions:
+        - action: URI
+          title: Open Protect
+          uri: unifi-protect://
+        - action: TURN_OFF_CASEY_LEFT_LIGHTS
+          title: Turn all lights off
 casey_left_lights_clear_alert:
   alias: Casey Left Lights Clear Alert
   description: Clears the contextual Casey-left-lights notification tag.
@@ -6229,3 +6225,89 @@ garden_planning_2027_mark_done:
         entity_id: input_text.garden_planning_2027_done_at
       data:
         value: "{{ now().strftime('%Y-%m-%d %H:%M:%S') }}"
+
+away_lights_turn_off_verified:
+  alias: Away Lights Turn Off Verified
+  description: Explicit notification action only; two passes over the shared household lighting inventory, with state verification and no scene or arrival holds.
+  mode: queued
+  max: 3
+  trace:
+    stored_traces: 20
+  sequence:
+    - variables:
+        targets: "{{ state_attr('sensor.household_lighting_inventory', 'targets') | default({}, true) }}"
+    - if:
+        - condition: template
+          value_template: "{{ targets is mapping and targets | count > 0 and is_state('sensor.household_lighting_inventory', 'ready') }}"
+      then:
+        - repeat:
+            count: 2
+            sequence:
+              - repeat:
+                  for_each: "{{ targets | list }}"
+                  sequence:
+                    - if:
+                        - condition: template
+                          value_template: "{{ is_state(repeat.item, 'on') }}"
+                      then:
+                        - action: homeassistant.turn_off
+                          continue_on_error: true
+                          target:
+                            entity_id: "{{ repeat.item }}"
+              - delay:
+                  seconds: 3
+    - variables:
+        remaining: >
+          {% set ns = namespace(ids=[]) %}
+          {% for entity in targets if targets is mapping %}
+            {% if is_state(entity, 'on') %}{% set ns.ids = ns.ids + [entity] %}{% endif %}
+          {% endfor %}
+          {{ ns.ids }}
+        unavailable: >
+          {% set ns = namespace(ids=[]) %}
+          {% for entity in targets if targets is mapping %}
+            {% if states(entity) not in ['on', 'off'] %}{% set ns.ids = ns.ids + [entity] %}{% endif %}
+          {% endfor %}
+          {{ ns.ids }}
+        inventory_ready: "{{ targets is mapping and targets | count > 0 and is_state('sensor.household_lighting_inventory', 'ready') }}"
+    - variables:
+        result: "{{ dict(complete=inventory_ready and remaining | count == 0 and unavailable | count == 0, inventory_ready=inventory_ready, remaining=remaining, unavailable=unavailable, targets=targets, checked_at=now().isoformat()) }}"
+    - stop: Return observed lighting result; service acceptance alone is not success.
+      response_variable: result
+
+away_lights_report_result:
+  alias: Away Lights Report Result
+  description: Reports unresolved explicit shutoff results only; no routine success push.
+  mode: queued
+  fields:
+    result:
+      description: Verified result from away_lights_turn_off_verified.
+  sequence:
+    - if:
+        - condition: template
+          value_template: "{{ result.complete | default(false) }}"
+      then:
+        - action: script.notify_trevor_phone
+          data:
+            message: clear_notification
+            data:
+              tag: away-lights-result
+      else:
+        - action: script.notify_trevor_phone
+          data:
+            title: "💡 Some lights need a check"
+            message: >
+              {% if not result.inventory_ready | default(false) %}
+                I couldn't verify the lighting inventory, so I haven't confirmed the lights are off.
+              {% else %}
+                {% set ns = namespace(on=[], missing=[]) %}
+                {% for entity in result.remaining %}{% set ns.on = ns.on + [result.targets.get(entity, entity)] %}{% endfor %}
+                {% for entity in result.unavailable %}{% set ns.missing = ns.missing + [result.targets.get(entity, entity)] %}{% endfor %}
+                {% if ns.on %}Still on after two attempts: {{ ns.on | join(', ') }}.{% endif %}
+                {% if ns.missing %}Couldn't verify: {{ ns.missing | join(', ') }}.{% endif %}
+                The other listed lights reported off at the check. Normal lighting schedules remain active.
+              {% endif %}
+            data:
+              tag: away-lights-result
+              group: away-security
+              url: /calm-mobile/lights

@@ -43,6 +43,7 @@ SERVICE_OR_TEMPLATE_SUFFIXES = {
 }
 
 DEFAULT_CONFIG_FILES = (
+    "helpers/household_lighting.yaml",
     "configuration.yaml",
     "automations.yaml",
     "automations/00-water-irrigation.yaml",

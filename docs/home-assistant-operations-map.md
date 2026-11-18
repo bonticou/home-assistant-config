@@ -50,6 +50,11 @@ All 19 top-level YAML keys were accounted for: `default_config`, `homeassistant`
 
 ### Feature entrypoints
 
+When adding or replacing a household light, use the
+[required lighting onboarding checklist](lighting-onboarding.md). The shared
+physical inventory in `helpers/household_lighting.yaml` owns away detection and
+the explicit notification shutoff; verify both paths in the same task.
+
 Automation filenames are broad groupings, not exclusive domain boundaries.
 Search the exact entity, alias or user-facing title across the relevant group,
 main YAML, scripts and dashboard before changing it.

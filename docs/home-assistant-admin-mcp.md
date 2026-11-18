@@ -1,5 +1,15 @@
 # Home Assistant administrative MCP
 
+## Required lighting onboarding workflow
+
+For every new or replaced household light, follow the canonical
+[lighting onboarding checklist](lighting-onboarding.md). Trevor requires both
+away-alert detection and its one-tap shutoff coverage to be verified in the same
+task, using the shared physical inventory. Report evidence for both paths or the
+precise blocker. This applies equally to lighting switches and native lights;
+never classify security controls or equipment indicators as room lighting.
+No permission, credential or MCP server setting change is needed for this rule.
+
 ## Architecture
 
 Codex stdio MCP → `tools/ha_admin_mcp.py` → pinned, key-authenticated SSH →

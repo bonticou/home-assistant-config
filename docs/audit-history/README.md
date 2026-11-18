@@ -1,5 +1,7 @@
 # Audit History
 
+- [2026-11-18 Away lighting coverage](2026-11-18-away-lighting-coverage.md): shared 42-endpoint detection/action inventory, bounded verified retry, unavailable disclosure and required new-light onboarding; deployed without a house-off test.
+
 - [2026-11-18 Ting watch repeats](2026-11-18-ting-watch-repeats.md): removed unchanged hourly watch reminders; new episodes/devices and critical escalation retained, validated and live-reloaded.
 
 - [2026-11-16 Ting reviewed-status correction](2026-11-16-ting-hazard-contradiction.md): positive-level ReviewedSuspicious was misclassified as confirmed; retained as a watch, primary fire protection preserved, timed notification snooze and natural verification completed.

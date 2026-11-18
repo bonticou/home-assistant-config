@@ -64327,5 +64327,21 @@
     ],
     "scope": "Only two exact entity IDs verified; other plug telemetry/configuration entities not enumerated. Historical summary counts unchanged.",
     "automation": "None created; no relay commands issued"
+  },
+  "away_lighting_coverage": {
+    "date": "2026-11-18",
+    "owner": "helpers/household_lighting.yaml",
+    "verified_endpoints": 42,
+    "physical_lights": 33,
+    "lighting_switches": 9,
+    "automatic_inclusion": "Lutron light-domain physical endpoints without group members",
+    "excluded": "Group aliases, UniFi equipment LEDs and non-light/security/appliance switches",
+    "unavailable_at_review": [
+      "switch.flower_lamp",
+      "switch.master_lantern",
+      "switch.uplight"
+    ],
+    "scope": "Native exposed states plus saved physical device inventory; not a full live registry refresh. Unavailable is unresolved, not retired. Detection and explicit action share one mapping.",
+    "onboarding": "docs/lighting-onboarding.md"
   }
 }

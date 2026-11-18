@@ -2069,194 +2069,169 @@
   mode: restart
 
 - id: away_security_notification_actions
-  alias: "Security — Away Reminder Actions"
+  alias: Security — Away Reminder Actions
   description: Handles quick actions from the away-security push notification.
   triggers:
-    - trigger: event
-      event_type: mobile_app_notification_action
+  - trigger: event
+    event_type: mobile_app_notification_action
   conditions:
-    - condition: template
-      value_template: >
-        {{ trigger.event.data.action in [
-          'CLOSE_AWAY_GARAGE',
-          'LOCK_AWAY_GARAGE',
-          'LOCK_AWAY_ENTRY_DOORS',
-          'LOCK_CASEY_LEFT_GARAGE',
-          'LOCK_CASEY_LEFT_ENTRY_DOORS',
-          'SECURE_AWAY_HOME',
-          'SECURE_CASEY_LEFT_HOME',
-          'TURN_OFF_AWAY_LIGHTS',
-          'TURN_OFF_CASEY_LEFT_LIGHTS',
-          'SNOOZE_AWAY_SECURITY_30',
-          'SNOOZE_AWAY_SECURITY_120'
-        ] }}
+  - condition: template
+    value_template: "{{ trigger.event.data.action in [\n  'CLOSE_AWAY_GARAGE',\n  'LOCK_AWAY_GARAGE',\n\
+      \  'LOCK_AWAY_ENTRY_DOORS',\n  'LOCK_CASEY_LEFT_GARAGE',\n  'LOCK_CASEY_LEFT_ENTRY_DOORS',\n  'SECURE_AWAY_HOME',\n\
+      \  'SECURE_CASEY_LEFT_HOME',\n  'TURN_OFF_AWAY_LIGHTS',\n  'TURN_OFF_CASEY_LEFT_LIGHTS',\n  'SNOOZE_AWAY_SECURITY_30',\n\
+      \  'SNOOZE_AWAY_SECURITY_120'\n] }}\n"
   actions:
-    - choose:
-        - conditions:
-            - condition: template
-              value_template: "{{ trigger.event.data.action in ['SECURE_AWAY_HOME', 'SECURE_CASEY_LEFT_HOME'] }}"
-          sequence:
-            - action: script.away_security_lock_unlocked_entry_doors
-            - variables:
-                active_lights: >
-                  {% set light_ids = state_attr('sensor.away_security_active_lights', 'entity_ids') | default('', true) %}
-                  {{ (light_ids.split('||') if light_ids else []) | reject('eq', '') | list }}
-            - repeat:
-                for_each: "{{ active_lights }}"
-                sequence:
-                  - action: homeassistant.turn_off
-                    target:
-                      entity_id: "{{ repeat.item }}"
-            - action: script.away_security_close_open_garage_doors
-            - delay:
-                seconds: 2
-            - action: script.casey_left_combo_clear_alert
-            - action: script.casey_left_garage_clear_alert
-            - action: script.casey_left_lights_clear_alert
-            - if:
-                - condition: template
-                  value_template: >
-                    {% set trevor_state = states('device_tracker.trevor_iphone') %}
-                    {% set casey_state = states('device_tracker.unifi_default_42_15_78_4a_d9_f8') %}
-                    {% set trevor_away = trevor_state not in ['home', 'unknown', 'unavailable', ''] %}
-                    {% set casey_away = casey_state not in ['home', 'unknown', 'unavailable', ''] %}
-                    {{ not (trevor_away and casey_away and is_state('binary_sensor.away_security_garage_door_open', 'on')) }}
-              then:
-                - if:
-                    - condition: template
-                      value_template: >
-                        {% set trevor_state = states('device_tracker.trevor_iphone') %}
-                        {% set casey_state = states('device_tracker.unifi_default_42_15_78_4a_d9_f8') %}
-                        {% set trevor_away = trevor_state not in ['home', 'unknown', 'unavailable', ''] %}
-                        {% set casey_away = casey_state not in ['home', 'unknown', 'unavailable', ''] %}
-                        {% set lights_on = states('sensor.away_security_active_lights') | int(0) > 0 %}
-                        {% set entry_points_unsecured = states('sensor.away_security_entry_point_issues') | int(0) > 0 %}
-                        {{ trevor_away and casey_away and
-                           (entry_points_unsecured or lights_on) }}
-                  then:
-                    - action: script.away_security_send_alert
-                  else:
-                    - action: script.away_security_clear_alert
+  - choose:
+    - conditions:
+      - condition: template
+        value_template: '{{ trigger.event.data.action in [''SECURE_AWAY_HOME'', ''SECURE_CASEY_LEFT_HOME'']
+          }}'
+      sequence:
+      - action: script.away_security_lock_unlocked_entry_doors
+      - action: script.away_lights_turn_off_verified
+        response_variable: lighting_result
+      - action: script.away_security_close_open_garage_doors
+      - delay:
+          seconds: 2
+      - action: script.casey_left_combo_clear_alert
+      - action: script.casey_left_garage_clear_alert
+      - action: script.casey_left_lights_clear_alert
+      - if:
+        - condition: template
+          value_template: '{% set trevor_state = states(''device_tracker.trevor_iphone'') %} {% set casey_state
+            = states(''device_tracker.unifi_default_42_15_78_4a_d9_f8'') %} {% set trevor_away = trevor_state
+            not in [''home'', ''unknown'', ''unavailable'', ''''] %} {% set casey_away = casey_state not
+            in [''home'', ''unknown'', ''unavailable'', ''''] %} {{ not (trevor_away and casey_away and
+            is_state(''binary_sensor.away_security_garage_door_open'', ''on'')) }}
 
-        - conditions:
-            - condition: template
-              value_template: "{{ trigger.event.data.action == 'CLOSE_AWAY_GARAGE' }}"
-          sequence:
-            - action: script.away_security_close_open_garage_doors
-            - delay:
-                seconds: 2
-            - if:
-                - condition: template
-                  value_template: "{{ not is_state('binary_sensor.away_security_garage_door_open', 'on') }}"
-              then:
-                - action: script.casey_left_garage_clear_alert
-            - if:
-                - condition: template
-                  value_template: >
-                    {% set trevor_state = states('device_tracker.trevor_iphone') %}
-                    {% set casey_state = states('device_tracker.unifi_default_42_15_78_4a_d9_f8') %}
-                    {% set trevor_away = trevor_state not in ['home', 'unknown', 'unavailable', ''] %}
-                    {% set casey_away = casey_state not in ['home', 'unknown', 'unavailable', ''] %}
-                    {{ not (trevor_away and casey_away and is_state('binary_sensor.away_security_garage_door_open', 'on')) }}
-              then:
-                - if:
-                    - condition: template
-                      value_template: >
-                        {% set trevor_state = states('device_tracker.trevor_iphone') %}
-                        {% set casey_state = states('device_tracker.unifi_default_42_15_78_4a_d9_f8') %}
-                        {% set trevor_away = trevor_state not in ['home', 'unknown', 'unavailable', ''] %}
-                        {% set casey_away = casey_state not in ['home', 'unknown', 'unavailable', ''] %}
-                        {% set lights_on = states('sensor.away_security_active_lights') | int(0) > 0 %}
-                        {% set entry_points_unsecured = states('sensor.away_security_entry_point_issues') | int(0) > 0 %}
-                        {{ trevor_away and casey_away and
-                           (entry_points_unsecured or lights_on) }}
-                  then:
-                    - action: script.away_security_send_alert
-                  else:
-                    - action: script.away_security_clear_alert
+            '
+        then:
+        - if:
+          - condition: template
+            value_template: "{% set trevor_state = states('device_tracker.trevor_iphone') %} {% set casey_state\
+              \ = states('device_tracker.unifi_default_42_15_78_4a_d9_f8') %} {% set trevor_away = trevor_state\
+              \ not in ['home', 'unknown', 'unavailable', ''] %} {% set casey_away = casey_state not in\
+              \ ['home', 'unknown', 'unavailable', ''] %} {% set lights_on = states('sensor.away_security_active_lights')\
+              \ | int(0) > 0 %} {% set entry_points_unsecured = states('sensor.away_security_entry_point_issues')\
+              \ | int(0) > 0 %} {{ trevor_away and casey_away and\n   (entry_points_unsecured or lights_on)\
+              \ }}\n"
+          then:
+          - action: script.away_security_send_alert
+          else:
+          - action: script.away_security_clear_alert
+      - action: script.away_lights_report_result
+        data:
+          result: '{{ lighting_result }}'
+    - conditions:
+      - condition: template
+        value_template: '{{ trigger.event.data.action == ''CLOSE_AWAY_GARAGE'' }}'
+      sequence:
+      - action: script.away_security_close_open_garage_doors
+      - delay:
+          seconds: 2
+      - if:
+        - condition: template
+          value_template: '{{ not is_state(''binary_sensor.away_security_garage_door_open'', ''on'') }}'
+        then:
+        - action: script.casey_left_garage_clear_alert
+      - if:
+        - condition: template
+          value_template: '{% set trevor_state = states(''device_tracker.trevor_iphone'') %} {% set casey_state
+            = states(''device_tracker.unifi_default_42_15_78_4a_d9_f8'') %} {% set trevor_away = trevor_state
+            not in [''home'', ''unknown'', ''unavailable'', ''''] %} {% set casey_away = casey_state not
+            in [''home'', ''unknown'', ''unavailable'', ''''] %} {{ not (trevor_away and casey_away and
+            is_state(''binary_sensor.away_security_garage_door_open'', ''on'')) }}
 
-        - conditions:
-            - condition: template
-              value_template: "{{ trigger.event.data.action in ['LOCK_AWAY_GARAGE', 'LOCK_AWAY_ENTRY_DOORS', 'LOCK_CASEY_LEFT_GARAGE', 'LOCK_CASEY_LEFT_ENTRY_DOORS'] }}"
-          sequence:
-            - action: script.away_security_lock_unlocked_entry_doors
-            - delay:
-                seconds: 2
-            - action: script.casey_left_garage_clear_alert
-            - if:
-                - condition: template
-                  value_template: >
-                    {% set trevor_state = states('device_tracker.trevor_iphone') %}
-                    {% set casey_state = states('device_tracker.unifi_default_42_15_78_4a_d9_f8') %}
-                    {% set trevor_away = trevor_state not in ['home', 'unknown', 'unavailable', ''] %}
-                    {% set casey_away = casey_state not in ['home', 'unknown', 'unavailable', ''] %}
-                    {% set lights_on = states('sensor.away_security_active_lights') | int(0) > 0 %}
-                    {% set entry_points_unsecured = states('sensor.away_security_entry_point_issues') | int(0) > 0 %}
-                    {{ trevor_away and casey_away and
-                       (entry_points_unsecured or lights_on) }}
-              then:
-                - action: script.away_security_send_alert
-              else:
-                - action: script.away_security_clear_alert
-
-        - conditions:
-            - condition: template
-              value_template: "{{ trigger.event.data.action in ['TURN_OFF_AWAY_LIGHTS', 'TURN_OFF_CASEY_LEFT_LIGHTS'] }}"
-          sequence:
-            - variables:
-                active_lights: >
-                  {% set light_ids = state_attr('sensor.away_security_active_lights', 'entity_ids') | default('', true) %}
-                  {{ (light_ids.split('||') if light_ids else []) | reject('eq', '') | list }}
-            - repeat:
-                for_each: "{{ active_lights }}"
-                sequence:
-                  - action: homeassistant.turn_off
-                    target:
-                      entity_id: "{{ repeat.item }}"
-            - delay:
-                seconds: 2
-            - action: script.casey_left_lights_clear_alert
-            - if:
-                - condition: template
-                  value_template: >
-                    {% set trevor_state = states('device_tracker.trevor_iphone') %}
-                    {% set casey_state = states('device_tracker.unifi_default_42_15_78_4a_d9_f8') %}
-                    {% set trevor_away = trevor_state not in ['home', 'unknown', 'unavailable', ''] %}
-                    {% set casey_away = casey_state not in ['home', 'unknown', 'unavailable', ''] %}
-                    {% set lights_on = states('sensor.away_security_active_lights') | int(0) > 0 %}
-                    {% set entry_points_unsecured = states('sensor.away_security_entry_point_issues') | int(0) > 0 %}
-                    {{ trevor_away and casey_away and
-                       (entry_points_unsecured or lights_on) }}
-              then:
-                - action: script.away_security_send_alert
-              else:
-                - action: script.away_security_clear_alert
-
-        - conditions:
-            - condition: template
-              value_template: "{{ trigger.event.data.action == 'SNOOZE_AWAY_SECURITY_30' }}"
-          sequence:
-            - action: script.away_security_snooze_30
-
-        - conditions:
-            - condition: template
-              value_template: "{{ trigger.event.data.action == 'SNOOZE_AWAY_SECURITY_120' }}"
-          sequence:
-            - action: input_datetime.set_datetime
-              target:
-                entity_id: input_datetime.away_security_snooze_until
-              data:
-                datetime: "{{ (now() + timedelta(hours=2)).strftime('%Y-%m-%d %H:%M:%S') }}"
-            - action: script.away_security_clear_alert
-            - action: script.notify_trevor_phone
-              data:
-                title: House reminder sleeping
-                message: Away security reminders paused for 2 hours.
-                data:
-                  tag: away-security-snooze
+            '
+        then:
+        - if:
+          - condition: template
+            value_template: "{% set trevor_state = states('device_tracker.trevor_iphone') %} {% set casey_state\
+              \ = states('device_tracker.unifi_default_42_15_78_4a_d9_f8') %} {% set trevor_away = trevor_state\
+              \ not in ['home', 'unknown', 'unavailable', ''] %} {% set casey_away = casey_state not in\
+              \ ['home', 'unknown', 'unavailable', ''] %} {% set lights_on = states('sensor.away_security_active_lights')\
+              \ | int(0) > 0 %} {% set entry_points_unsecured = states('sensor.away_security_entry_point_issues')\
+              \ | int(0) > 0 %} {{ trevor_away and casey_away and\n   (entry_points_unsecured or lights_on)\
+              \ }}\n"
+          then:
+          - action: script.away_security_send_alert
+          else:
+          - action: script.away_security_clear_alert
+    - conditions:
+      - condition: template
+        value_template: '{{ trigger.event.data.action in [''LOCK_AWAY_GARAGE'', ''LOCK_AWAY_ENTRY_DOORS'',
+          ''LOCK_CASEY_LEFT_GARAGE'', ''LOCK_CASEY_LEFT_ENTRY_DOORS''] }}'
+      sequence:
+      - action: script.away_security_lock_unlocked_entry_doors
+      - delay:
+          seconds: 2
+      - action: script.casey_left_garage_clear_alert
+      - if:
+        - condition: template
+          value_template: "{% set trevor_state = states('device_tracker.trevor_iphone') %} {% set casey_state\
+            \ = states('device_tracker.unifi_default_42_15_78_4a_d9_f8') %} {% set trevor_away = trevor_state\
+            \ not in ['home', 'unknown', 'unavailable', ''] %} {% set casey_away = casey_state not in\
+            \ ['home', 'unknown', 'unavailable', ''] %} {% set lights_on = states('sensor.away_security_active_lights')\
+            \ | int(0) > 0 %} {% set entry_points_unsecured = states('sensor.away_security_entry_point_issues')\
+            \ | int(0) > 0 %} {{ trevor_away and casey_away and\n   (entry_points_unsecured or lights_on)\
+            \ }}\n"
+        then:
+        - action: script.away_security_send_alert
+        else:
+        - action: script.away_security_clear_alert
+    - conditions:
+      - condition: template
+        value_template: '{{ trigger.event.data.action in [''TURN_OFF_AWAY_LIGHTS'', ''TURN_OFF_CASEY_LEFT_LIGHTS'']
+          }}'
+      sequence:
+      - action: script.away_lights_turn_off_verified
+        response_variable: lighting_result
+      - if:
+        - condition: template
+          value_template: '{{ lighting_result.complete }}'
+        then:
+        - delay:
+            seconds: 2
+        - action: script.casey_left_lights_clear_alert
+        - if:
+          - condition: template
+            value_template: "{% set trevor_state = states('device_tracker.trevor_iphone') %} {% set casey_state\
+              \ = states('device_tracker.unifi_default_42_15_78_4a_d9_f8') %} {% set trevor_away = trevor_state\
+              \ not in ['home', 'unknown', 'unavailable', ''] %} {% set casey_away = casey_state not in\
+              \ ['home', 'unknown', 'unavailable', ''] %} {% set lights_on = states('sensor.away_security_active_lights')\
+              \ | int(0) > 0 %} {% set entry_points_unsecured = states('sensor.away_security_entry_point_issues')\
+              \ | int(0) > 0 %} {{ trevor_away and casey_away and\n   (entry_points_unsecured or lights_on)\
+              \ }}\n"
+          then:
+          - action: script.away_security_send_alert
+          else:
+          - action: script.away_security_clear_alert
+      - action: script.away_lights_report_result
+        data:
+          result: '{{ lighting_result }}'
+    - conditions:
+      - condition: template
+        value_template: '{{ trigger.event.data.action == ''SNOOZE_AWAY_SECURITY_30'' }}'
+      sequence:
+      - action: script.away_security_snooze_30
+    - conditions:
+      - condition: template
+        value_template: '{{ trigger.event.data.action == ''SNOOZE_AWAY_SECURITY_120'' }}'
+      sequence:
+      - action: input_datetime.set_datetime
+        target:
+          entity_id: input_datetime.away_security_snooze_until
+        data:
+          datetime: '{{ (now() + timedelta(hours=2)).strftime(''%Y-%m-%d %H:%M:%S'') }}'
+      - action: script.away_security_clear_alert
+      - action: script.notify_trevor_phone
+        data:
+          title: House reminder sleeping
+          message: Away security reminders paused for 2 hours.
+          data:
+            tag: away-security-snooze
   mode: parallel
   max: 10
-
 - id: garage_security_notification_actions
   alias: "Garage — Notification Actions"
   description: Handles quick actions from garage door reminders.
@@ -2858,92 +2833,74 @@
   mode: single
 
 - id: security_casey_left_combo_clear
-  alias: "Security — Clear Casey Left Combo Alert"
+  alias: Security — Clear Casey Left Combo Alert
   description: Clears the contextual Casey-left combo push once it is no longer relevant.
   triggers:
-    - trigger: state
-      entity_id:
-        - cover.ratgdo32disco_c26634_door
-        - cover.ratgdo32_4536e8_door
-      to: closed
-    - trigger: state
-      entity_id:
-        - lock.garage_entry_lock
-        - lock.mudroom_door_lock
-      to: locked
-    - trigger: state
-      entity_id: sun.sun
-      to: "below_horizon"
-    - trigger: state
-      entity_id: device_tracker.trevor_iphone
-      to: home
-    - trigger: state
-      entity_id: device_tracker.unifi_default_42_15_78_4a_d9_f8
-      to: home
-    - trigger: event
-      event_type: state_changed
-      id: lights_state_changed
+  - trigger: state
+    entity_id:
+    - cover.ratgdo32disco_c26634_door
+    - cover.ratgdo32_4536e8_door
+    to: closed
+  - trigger: state
+    entity_id:
+    - lock.garage_entry_lock
+    - lock.mudroom_door_lock
+    to: locked
+  - trigger: state
+    entity_id: sun.sun
+    to: below_horizon
+  - trigger: state
+    entity_id: device_tracker.trevor_iphone
+    to: home
+  - trigger: state
+    entity_id: device_tracker.unifi_default_42_15_78_4a_d9_f8
+    to: home
+  - trigger: event
+    event_type: state_changed
+    id: lights_state_changed
   conditions:
-    - condition: template
-      value_template: >
-        {% if trigger.id == 'lights_state_changed' %}
-          {% set entity = trigger.event.data.entity_id | default('') %}
-          {{ entity.startswith('light.') or entity == 'switch.exterior_mud_room_stairs' }}
-        {% else %}
-          true
-        {% endif %}
+  - condition: template
+    value_template: "{% if trigger.id == 'lights_state_changed' %}\n  {{ trigger.event.data.entity_id\
+      \ | default('') == 'sensor.away_security_active_lights' }}\n{% else %}\n  true\n{% endif %}\n"
   actions:
-    - if:
-        - condition: template
-          value_template: >
-            {{ not (
-              is_state('sun.sun', 'above_horizon')
-              and states('device_tracker.trevor_iphone') not in ['home', 'unknown', 'unavailable', '']
-              and states('device_tracker.unifi_default_42_15_78_4a_d9_f8') not in ['home', 'unknown', 'unavailable', '']
-              and states('sensor.away_security_entry_point_issues') | int(0) > 0
-              and states('sensor.away_security_active_lights') | int(0) > 0
-            ) }}
-      then:
-        - action: script.casey_left_combo_clear_alert
+  - if:
+    - condition: template
+      value_template: "{{ not (\n  is_state('sun.sun', 'above_horizon')\n  and states('device_tracker.trevor_iphone')\
+        \ not in ['home', 'unknown', 'unavailable', '']\n  and states('device_tracker.unifi_default_42_15_78_4a_d9_f8')\
+        \ not in ['home', 'unknown', 'unavailable', '']\n  and states('sensor.away_security_entry_point_issues')\
+        \ | int(0) > 0\n  and states('sensor.away_security_active_lights') | int(0) > 0\n) }}\n"
+    then:
+    - action: script.casey_left_combo_clear_alert
   mode: single
-
 - id: security_casey_left_lights_clear
-  alias: "Security — Clear Casey Left Lights Alert"
+  alias: Security — Clear Casey Left Lights Alert
   description: Clears the contextual Casey-left-lights push once it is no longer relevant.
   triggers:
-    - trigger: state
-      entity_id: sun.sun
-      to: "below_horizon"
-    - trigger: state
-      entity_id: device_tracker.trevor_iphone
-      to: home
-    - trigger: state
-      entity_id: device_tracker.unifi_default_42_15_78_4a_d9_f8
-      to: home
-    - trigger: event
-      event_type: state_changed
-      id: lights_state_changed
+  - trigger: state
+    entity_id: sun.sun
+    to: below_horizon
+  - trigger: state
+    entity_id: device_tracker.trevor_iphone
+    to: home
+  - trigger: state
+    entity_id: device_tracker.unifi_default_42_15_78_4a_d9_f8
+    to: home
+  - trigger: event
+    event_type: state_changed
+    id: lights_state_changed
   conditions:
-    - condition: template
-      value_template: >
-        {% if trigger.id == 'lights_state_changed' %}
-          {% set entity = trigger.event.data.entity_id | default('') %}
-          {{ entity.startswith('light.') or entity == 'switch.exterior_mud_room_stairs' }}
-        {% else %}
-          true
-        {% endif %}
+  - condition: template
+    value_template: "{% if trigger.id == 'lights_state_changed' %}\n  {{ trigger.event.data.entity_id\
+      \ | default('') == 'sensor.away_security_active_lights' }}\n{% else %}\n  true\n{% endif %}\n"
   actions:
-    - if:
-        - condition: template
-          value_template: >
-            {{ is_state('sun.sun', 'below_horizon')
-               or is_state('device_tracker.trevor_iphone', 'home')
-               or is_state('device_tracker.unifi_default_42_15_78_4a_d9_f8', 'home')
-               or states('sensor.away_security_active_lights') | int(0) == 0 }}
-      then:
-        - action: script.casey_left_lights_clear_alert
+  - if:
+    - condition: template
+      value_template: "{{ is_state('sun.sun', 'below_horizon')\n   or is_state('device_tracker.trevor_iphone',\
+        \ 'home')\n   or is_state('device_tracker.unifi_default_42_15_78_4a_d9_f8', 'home')\n   or states('sensor.away_security_active_lights')\
+        \ | int(0) == 0 }}\n"
+    then:
+    - action: script.casey_left_lights_clear_alert
   mode: single
-
 - id: security_entry_ring_notifications
   alias: "Security — Entry Ring Notifications"
   description: Sends mobile notifications for front door and mud room Ring motion and doorbell events.
