@@ -181,3 +181,57 @@ historical light-state evidence qualified for the arrival was available.
 Existing bounded verification remains inconclusive; caller owns quiet follow-up
 and the original seven-day deadline. Do not deliver a success/failure notice on
 this evidence alone.
+
+## HA-ARRIVAL-VERIFY-20261118 — November 18, 8:55 AM EST
+
+**Result: a known-away arrival is causally linked to a completed Evening run.
+The specific All off hold exception and the other person's known-away state
+remain unverified.** This is stronger evidence than the previous checks, but
+does not fully certify every prerequisite of the November 14 regression fix.
+This record uses the already retrieved traces; no duplicate live scan or runtime
+change was performed to complete the record.
+
+- Casey changed **not_home → home on November 17 at 4:38:38.281 PM EST**
+  (21:38:38.281233 UTC). Independent vacation-return trace
+  `127f37839bbd0138212c083ba4a13669` started at 4:38:38.312 PM and stopped
+  because vacation mode was off. Casey's preceding not_home state began at
+  3:39:42 PM. This is a known-away return, not unknown/unavailable recovery,
+  and is after both the deployment boundary and the November 17 check.
+- Evening trace `a9e234768eaa089f897462c0300f768e` ran **4:38:38.311452–
+  4:38:38.958200 PM EST November 17** (21:38 UTC), finishing without a
+  recorded error. Its parent context `01M7NQ5629ZZZB9314PZ21XYZP` exactly
+  matches Casey's home-state event context. This establishes causal event
+  linkage, beyond merely matching clock times. Script context is
+  `01M7NQ5636Y2HNRMQ9TJBC1BHR`.
+- The scheduler's retained next-day snapshot records last_triggered at
+  **4:38:38.311348 PM EST November 17**, immediately before that script run.
+  Together with the arrival parent context and the scheduler's sole action
+  calling Evening, this strongly supports arrival → scheduler → Evening.
+  The original scheduler execution trace is evicted, so a retained direct
+  scheduler child-run link and its per-condition results are unavailable.
+- The script selected Evening, cleared the three lighting holds and issued
+  normal family-room, kitchen, circulation, mudroom and patio commands.
+  Its conditional foyer branch skipped because the chandelier schedule was
+  already on. Completion establishes successful script execution/service calls;
+  retained evidence does not independently establish every bulb's resulting
+  physical state or that every light was previously off.
+- The retained scheduler configuration still includes the corrected All off
+  exception and the arrival guard requiring the other person **not home**.
+  Successful scheduler execution supports that its guards passed, assuming
+  this configuration applied at the event. However, Trevor's contemporaneous
+  state is not captured: **not home is not proof of known-away**, because that
+  guard also admits unknown/unavailable. Nor are the prior scene and shared
+  hold captured, so this cannot prove the All off exception was exercised.
+  Vacation off is independently observed; schedule, sun, scene and guest-guard
+  eligibility are inferred from execution, not historical value snapshots.
+- Only five scheduler traces remain, covering November 18 **8:35–8:55 AM
+  EST**. Latest `e9de5ce8828803d224258edf082ca0e1` at 13:55:00.296197 UTC
+  is a refresh stopped at the daytime front-stairs schedule guard. Its morning
+  states cannot substitute for November 17 arrival-time states.
+
+No HA changes, light/scene calls, test triggers, reloads, retention changes,
+credential access, sends or new schedules. Missing historical guard values
+remain the limit; absence of retained traces is not evidence of no event.
+Eames owns delivery and any existing bounded follow-up. Report the observed
+arrival-linked Evening success with these limits; do not label the specific
+All off/known-away-other-person regression fully verified.
