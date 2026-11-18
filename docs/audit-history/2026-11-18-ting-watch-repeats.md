@@ -49,3 +49,18 @@ new episode or added device; this is not a snooze or a safety-clearance claim.
 Access note: ordinary sandbox DNS/SSH failed; the already-authorized admin
 bridge worked with the normal host/key configuration under approved execution.
 An old known-IP probe timed out. No host pin bypass or permanent access change.
+
+## Natural follow-up at 8:18 AM EST
+
+Read-only checks after the 8:00 and 8:15 quarter-hours found no new watch
+execution: its latest retained run and last-triggered stamp remain 7:45 AM.
+The Ting sender's latest retained execution remains 7:15 AM; no subsequent
+sender run appears. The next old hourly eligibility would have been 8:30 AM
+because the 7:15 successful send stamped seconds after the minute boundary;
+this check verifies removed scheduler activity, not that later boundary yet.
+Both watch and confirmed-hazard automations remain enabled. Critical evaluation
+continues naturally every five minutes, including 8:15 AM, whose trace explicitly
+reads confirmed-hazard off and stops at that condition. Live automation file hash
+still matches the deployed candidate. No safety setting was changed, no test
+notification was sent, and no synthetic hazard or trigger was used. Phone display
+and vendor diagnosis were not independently checked.
