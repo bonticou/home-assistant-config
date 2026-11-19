@@ -5187,11 +5187,7 @@ away_security_send_alert:
       - action: script.notify_trevor_phone
         data:
           title: '{{ notification_title }}'
-          message: '{{ notification_message }}
-
-            {% set missing = state_attr(''sensor.away_security_active_lights'', ''unavailable_names'')
-            | default([], true) %}{% if missing %} Couldn''t check: {{ missing | join('', '') }}.{% endif
-            %}'
+          message: "{{ notification_message }}"
           data:
             tag: away-security
             group: away-security
@@ -5222,11 +5218,7 @@ away_security_send_alert:
       - action: script.notify_trevor_phone
         data:
           title: '{{ notification_title }}'
-          message: '{{ notification_message }}
-
-            {% set missing = state_attr(''sensor.away_security_active_lights'', ''unavailable_names'')
-            | default([], true) %}{% if missing %} Couldn''t check: {{ missing | join('', '') }}.{% endif
-            %}'
+          message: "{{ notification_message }}"
           data:
             tag: away-security
             group: away-security
@@ -5255,11 +5247,7 @@ away_security_send_alert:
       - action: script.notify_trevor_phone
         data:
           title: '{{ notification_title }}'
-          message: '{{ notification_message }}
-
-            {% set missing = state_attr(''sensor.away_security_active_lights'', ''unavailable_names'')
-            | default([], true) %}{% if missing %} Couldn''t check: {{ missing | join('', '') }}.{% endif
-            %}'
+          message: "{{ notification_message }}"
           data:
             tag: away-security
             group: away-security
@@ -5288,11 +5276,7 @@ away_security_send_alert:
       - action: script.notify_trevor_phone
         data:
           title: '{{ notification_title }}'
-          message: '{{ notification_message }}
-
-            {% set missing = state_attr(''sensor.away_security_active_lights'', ''unavailable_names'')
-            | default([], true) %}{% if missing %} Couldn''t check: {{ missing | join('', '') }}.{% endif
-            %}'
+          message: "{{ notification_message }}"
           data:
             tag: away-security
             group: away-security
@@ -5321,11 +5305,7 @@ away_security_send_alert:
       - action: script.notify_trevor_phone
         data:
           title: '{{ notification_title }}'
-          message: '{{ notification_message }}
-
-            {% set missing = state_attr(''sensor.away_security_active_lights'', ''unavailable_names'')
-            | default([], true) %}{% if missing %} Couldn''t check: {{ missing | join('', '') }}.{% endif
-            %}'
+          message: "{{ notification_message }}"
           data:
             tag: away-security
             group: away-security
@@ -5350,11 +5330,7 @@ away_security_send_alert:
       - action: script.notify_trevor_phone
         data:
           title: '{{ notification_title }}'
-          message: '{{ notification_message }}
-
-            {% set missing = state_attr(''sensor.away_security_active_lights'', ''unavailable_names'')
-            | default([], true) %}{% if missing %} Couldn''t check: {{ missing | join('', '') }}.{% endif
-            %}'
+          message: "{{ notification_message }}"
           data:
             tag: away-security
             group: away-security
@@ -5379,11 +5355,7 @@ away_security_send_alert:
       - action: script.notify_trevor_phone
         data:
           title: '{{ notification_title }}'
-          message: '{{ notification_message }}
-
-            {% set missing = state_attr(''sensor.away_security_active_lights'', ''unavailable_names'')
-            | default([], true) %}{% if missing %} Couldn''t check: {{ missing | join('', '') }}.{% endif
-            %}'
+          message: "{{ notification_message }}"
           data:
             tag: away-security
             group: away-security
@@ -5405,11 +5377,7 @@ away_security_send_alert:
     - action: script.notify_trevor_phone
       data:
         title: '{{ notification_title }}'
-        message: '{{ notification_message }}
-
-          {% set missing = state_attr(''sensor.away_security_active_lights'', ''unavailable_names'') |
-          default([], true) %}{% if missing %} Couldn''t check: {{ missing | join('', '') }}.{% endif
-          %}'
+        message: "{{ notification_message }}"
         data:
           tag: away-security
           group: away-security
@@ -5607,13 +5575,7 @@ casey_left_combo_send_alert:
   - action: script.notify_trevor_phone
     data:
       title: 🏠 Casey left {{ casey_departure_entry_issue_sentence }} and lights on
-      message: "{% if active_light_names | count == 1 %}\n  Casey just left home, {{ casey_departure_entry_message_clause\
-        \ }}, and {{ active_light_names[0] }} is still on.\n{% elif active_light_names | count == 2 %}\n\
-        \  Casey just left home, {{ casey_departure_entry_message_clause }}, and {{ active_light_names\
-        \ | join(' and ') }} are still on.\n{% else %}\n  Casey just left home, {{ casey_departure_entry_message_clause\
-        \ }}, and {{ active_light_names | count }} lights are still on.\n{% endif %} Tap below to secure\
-        \ everything.\n{% set missing = state_attr('sensor.away_security_active_lights', 'unavailable_names')\
-        \ | default([], true) %}{% if missing %} Couldn't check: {{ missing | join(', ') }}.{% endif %}"
+      message: "{% if active_light_names | count == 1 %}\n  Casey just left home, {{ casey_departure_entry_message_clause }}, and {{ active_light_names[0] }} is still on.\n{% elif active_light_names | count == 2 %}\n  Casey just left home, {{ casey_departure_entry_message_clause }}, and {{ active_light_names | join(' and ') }} are still on.\n{% else %}\n  Casey just left home, {{ casey_departure_entry_message_clause }}, and {{ active_light_names | count }} lights are still on.\n{% endif %} Tap below to secure everything."
       data:
         tag: casey-left-combo
         group: away-security
@@ -5657,12 +5619,7 @@ casey_left_lights_send_alert:
   - action: script.notify_trevor_phone
     data:
       title: 💡 Casey left the lights on
-      message: "{% if active_light_names | count == 1 %}\n  Casey just left home and {{ active_light_names[0]\
-        \ }} is still on.\n{% elif active_light_names | count == 2 %}\n  Casey just left home and {{ active_light_names\
-        \ | join(' and ') }} are still on.\n{% else %}\n  Casey just left home and {{ active_light_names\
-        \ | count }} lights are still on.\n{% endif %} Tap below to turn them off.\n{% set missing = state_attr('sensor.away_security_active_lights',\
-        \ 'unavailable_names') | default([], true) %}{% if missing %} Couldn't check: {{ missing | join(',\
-        \ ') }}.{% endif %}"
+      message: "{% if active_light_names | count == 1 %}\n  Casey just left home and {{ active_light_names[0] }} is still on.\n{% elif active_light_names | count == 2 %}\n  Casey just left home and {{ active_light_names | join(' and ') }} are still on.\n{% else %}\n  Casey just left home and {{ active_light_names | count }} lights are still on.\n{% endif %} Tap below to turn them off."
       data:
         tag: casey-left-lights-on
         group: away-security

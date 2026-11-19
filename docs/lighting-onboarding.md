@@ -54,3 +54,9 @@ Unknown/unavailable/missing entities remain unresolved, never silently off. It
 does not set a blanket lighting hold or alter genuine first-arrival behavior;
 normal schedules may subsequently turn a light on. New schedules are not part of
 onboarding unless specifically requested.
+
+Trevor's November 19 presentation decision: routine away/Casey alerts show
+confirmed unsecured entry points and lights on, without unavailable/unverified
+diagnostics or their device names. Keep that diagnostic evidence in inventory
+attributes and action traces. An explicitly requested shutoff must still report
+incomplete results truthfully; never turn unknown into confirmed off.

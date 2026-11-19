@@ -1,5 +1,7 @@
 # Audit History
 
+- [2026-11-19 Away alert presentation](2026-11-19-away-alert-presentation.md): removes unavailable-device diagnostics from all routine away variants; preserves 42-target coverage, controls and truthful explicit-action results; script-only deployment.
+
 - [2026-11-18 Away lighting coverage](2026-11-18-away-lighting-coverage.md): shared 42-endpoint detection/action inventory, bounded verified retry, unavailable disclosure and required new-light onboarding; deployed without a house-off test.
 
 - [2026-11-18 Ting watch repeats](2026-11-18-ting-watch-repeats.md): removed unchanged hourly watch reminders; new episodes/devices and critical escalation retained, validated and live-reloaded.
