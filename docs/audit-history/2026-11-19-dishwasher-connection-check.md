@@ -65,11 +65,11 @@ cannot be checked until the replacement is connected through an appliance
 integration. Its network tracker and independent leak protection must not be
 presented as equivalent to that connection. This review did not itself authorize setup.
 
-## Subsequent authorized connection attempt — pending grant decision
+## Subsequent authorized connection attempt — callback incomplete
 
-**Current checkpoint: login succeeded through the existing shared-vault route;
-the official consent page requests control and settings-modification access.
-Approval has not been clicked. No desktop unlock or password from Trevor is needed.**
+**Current checkpoint: Trevor approved the exact broader grant, and Approve was
+clicked once. The official callback did not create a visible HA integration;
+connection remains incomplete. No desktop unlock or password is needed.**
 
 Trevor subsequently said **“Connect”**. Under `HA-DISHWASHER-CONNECT-20261120`,
 that authorizes the official connection of the replacement, without appliance
@@ -120,3 +120,38 @@ scopes. No OAuth consent was accepted, appliance association completed, physical
 action, test push, configuration reload or dashboard edit performed. The actual
 replacement identity and telemetry still require verification after an authorized
 successful connection.
+
+### Exact grant approved; callback did not complete, 20:53–20:56 Eastern
+
+Eames relayed Trevor's **Yes by iMessage** to the specific question explaining
+monitor/control access to all appliances on the Home Connect account, including
+settings changes, with intended use limited to verifying dishwasher status.
+The operator re-read the unchanged official consent and clicked **Approve once**.
+This supersedes the pending grant decision above; it does not authorize appliance
+control, notification creation or dashboard edits.
+
+The official My Home Assistant page required saving the already-used local HA
+instance URL in browser preferences and then **Link account**. Its destination
+was the correct local `/auth/external/callback` route. After that navigation,
+the original HA setup dialog still displayed the external-website step. A
+Safari-blocked popup was opened through the normal visible control; it proved
+to be another pending authorization window. Continuing the already-signed-in
+account reached the identical consent screen again. **Approve was not clicked
+a second time**, respecting the explicit one-approval instruction.
+
+Fresh read-only verification found:
+
+- At **20:55:22 Eastern**, `integration_entities('home_connect')` count was **0**.
+- A fresh Integrations page around **20:56 Eastern** showed **No integrations
+  found** for Home Connect, rather than a created/failed or duplicate entry.
+- The original flow remained at its external-website step; there was no explicit
+  provider or HA error. A bounded recent 100-line Core excerpt contained no
+  Home Connect/OAuth diagnostic explaining the callback outcome.
+
+The exact callback failure cause is unresolved; do not call it rejected
+credentials, an expired flow or a rejected grant without evidence. No URLs,
+authorization codes or scope parameters were altered. No integration or exact
+replacement-device association is verified, so operation/program/remaining-time,
+door and error telemetry cannot yet be reported. Ring, dehumidifier, Flo,
+notifications and dashboards are unchanged. The checkpoint and bounded evidence
+were returned to the originating relay for recovery direction.
