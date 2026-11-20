@@ -63,4 +63,34 @@ No pairing, login, credential access, control, cycle start, test notification,
 configuration edit or reload was performed. Appliance operation/current cycle
 cannot be checked until the replacement is connected through an appliance
 integration. Its network tracker and independent leak protection must not be
-presented as equivalent to that connection. This review does not authorize setup.
+presented as equivalent to that connection. This review did not itself authorize setup.
+
+## Subsequent authorized connection attempt — pending secure login
+
+Trevor subsequently said **“Connect”**. Under `HA-DISHWASHER-CONNECT-20261120`,
+that authorizes the official connection of the replacement, without appliance
+control, new notification/dashboard work or acceptance of broader unexpected
+OAuth grants. Ring, Flo and dehumidifier settings remain unchanged.
+
+The existing HA **Application credentials** page already contains a Home Connect
+credential. Its identifiers and secret are omitted here. Starting the official
+Home Connect integration reused that credential and reached the genuine Home
+Connect SingleKey ID login. No new developer account or application was created.
+
+The required scoped 1Password CLI preflight authenticated exactly the Ames vault.
+A metadata-only lookup found the Bosch Dishwasher item and separate Home Connect
+Developer item. No item secrets were printed or read into chat. The present
+native CUA runtime exposes no documented in-memory CLI-to-form credential bridge;
+the historical bridge qualification does not establish current tool support.
+
+The permitted Safari autofill fallback found a saved SingleKey ID login, but
+selecting it opened the desktop 1Password unlock prompt: **password confirmation
+is required every 14 days**. The exact next step is for the owner to unlock
+1Password directly on the Mac, then resume login. Do not ask for that password in
+chat or bypass the unlock. This secure handoff was returned to Eames through the
+existing relay.
+
+No OAuth consent was accepted and no appliance association was completed.
+The setup remains pending at login; requested provider scopes must still be
+reviewed before any grant. No physical action, test push, configuration reload,
+dashboard change or unrelated account change occurred.
