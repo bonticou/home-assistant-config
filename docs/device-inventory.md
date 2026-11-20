@@ -2,21 +2,24 @@
 
 A human-readable map of the Home Assistant device model. The full audit dump is in [device-inventory-detail.md](device-inventory-detail.md); this page is the quick view.
 
-## Replacement dishwasher — November 19 connection
+## Replacement dishwasher — November 20 notification reconciliation
 
-Home Connect now has one loaded hub and one **Bosch SHV9PCM3N** device matching the
-canonical replacement. Live integration/device UI and read-only templates verified
-23 registered entities, 12 enabled and 11 disabled. The targeted JSON reconciliation
-lists all 12 enabled entity IDs; disabled IDs were not extracted and the base
-snapshot/global totals below were not refreshed. This does not claim full registry
-coverage of the new device.
+Home Connect has one **Bosch SHV9PCM3N** device matching the canonical replacement.
+The initial November 19 inspection found 23 registry entries (12 enabled/11
+disabled). Four option entities subsequently appeared naturally; November 20
+readback confirms 17 enabled entities after enabling **only**
+`sensor.dishwasher_program_finished`. Ten other reminder/event rows remain disabled.
+The targeted JSON records all 17 active IDs; disabled IDs are not fully inventoried.
+The base snapshot/global totals below were not refreshed.
 
-Connectivity, door, operation, selected/active program, progress, finish time,
-remote-control/start status, interior illumination, power and stop-program entities
-are exposed. No controls were exercised. Eleven event/reminder entities remain
-disabled. No cycle notifications or appliance dashboard card were added; the
-existing Dishwasher leak tile remains the separate Flo detector. See the
-[connection evidence](audit-history/2026-11-19-dishwasher-connection-check.md).
+The completion sensor is an off/present/confirmed enum with no vendor timestamp.
+One quiet, guarded completion automation uses it with observed run and connectivity.
+A durable YAML input-text ledger keeps cycle, attempt and successful-call stamps.
+Emission/reset behavior and handset receipt await the next natural cycle. No fault
+alert or appliance dashboard card was added, and the Dishwasher leak tile remains
+the separate Flo detector. No appliance controls were exercised. See the
+[notification evidence](audit-history/2026-11-20-dishwasher-notifications.md) and
+[connection history](audit-history/2026-11-19-dishwasher-connection-check.md).
 
 ## At A Glance
 

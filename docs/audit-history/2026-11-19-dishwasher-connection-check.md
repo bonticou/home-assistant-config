@@ -1,5 +1,7 @@
 # Replacement dishwasher connection check
 
+Subsequent authorized work: [November 20 completion notification](2026-11-20-dishwasher-notifications.md). The no-notification statements below describe this earlier connection-only task.
+
 **Connected and verified on November 19, 2026 at approximately 20:59–21:02 Eastern.**
 Home Assistant created one Home Connect hub with one Bosch **SHV9PCM3N** dishwasher,
 matching the canonical replacement. The integration reports 23 registered entities:

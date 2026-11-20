@@ -1,0 +1,5 @@
+# Durable cycle identity, attempted-cycle claim and successful-send stamp, never a restored boolean latch.
+# A lost observation window intentionally suppresses that cycle's completion.
+name: Dishwasher Notification Cycle
+max: 255
+icon: mdi:dishwasher

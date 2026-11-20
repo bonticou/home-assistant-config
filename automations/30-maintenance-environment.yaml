@@ -2723,3 +2723,154 @@
     - stop: "Observation captured; no appliance control."
   mode: queued
   max: 5
+- id: dishwasher_successful_cycle_notification
+  alias: Dishwasher - Successful cycle notification
+  description: >-
+    One quiet completion for an observed cycle and Home Connect ProgramFinished.
+    Never infer success from OperationState Finished. Ambiguous cycles spanning
+    startup, reload or disconnected telemetry are intentionally skipped.
+  triggers:
+    - trigger: state
+      entity_id: sensor.dishwasher_operation_state
+      to: run
+      id: run
+    - trigger: state
+      entity_id: sensor.dishwasher_program_finished
+      to: present
+      id: complete
+    - trigger: state
+      entity_id: sensor.dishwasher_program_finished
+      to:
+        - 'off'
+        - confirmed
+      id: baseline
+    - trigger: state
+      entity_id:
+        - sensor.dishwasher_operation_state
+        - sensor.dishwasher_program_finished
+      to:
+        - unknown
+        - unavailable
+      id: invalidate
+    - trigger: state
+      entity_id: sensor.dishwasher_operation_state
+      to:
+        - aborting
+        - error
+      id: invalidate
+    - trigger: state
+      entity_id: binary_sensor.dishwasher_connectivity
+      to:
+        - 'off'
+        - unknown
+        - unavailable
+      id: invalidate
+    - trigger: homeassistant
+      event: start
+      id: invalidate
+    - trigger: event
+      event_type: automation_reloaded
+      id: invalidate
+  conditions: []
+  actions:
+    - condition: template
+      value_template: >-
+        {{ states.input_text.dishwasher_notification_cycle is defined and
+           states.input_text.dishwasher_notification_cycle is not none and
+           states('input_text.dishwasher_notification_cycle') != 'unavailable' }}
+    - variables:
+        record: "{{ states('input_text.dishwasher_notification_cycle') | from_json({}) }}"
+    - variables:
+        cycle: "{{ record.get('cycle', 0) | float(0) if record is mapping else 0 }}"
+        sent: "{{ record.get('sent', 0) | float(0) if record is mapping else 0 }}"
+        claimed: "{{ record.get('claimed', 0) | float(0) if record is mapping else 0 }}"
+        baseline: "{{ record.get('baseline', false) == true if record is mapping else false }}"
+        event_at: >-
+          {{ as_timestamp(trigger.to_state.last_changed, 0)
+             if trigger.platform == 'state' and trigger.to_state is not none else 0 }}
+    - choose:
+        - conditions: "{{ trigger.id == 'invalidate' }}"
+          sequence:
+            - action: input_text.set_value
+              target:
+                entity_id: input_text.dishwasher_notification_cycle
+              data:
+                value: "{{ dict(cycle=0, sent=sent, claimed=claimed, baseline=false) | to_json }}"
+        - conditions: >-
+            {{ trigger.id == 'run' and trigger.from_state is not none and
+               trigger.from_state.state in ['ready', 'inactive', 'finished', 'delayedstart'] and
+               is_state('binary_sensor.dishwasher_connectivity', 'on') and
+               event_at > as_timestamp(this.last_changed, 0) }}
+          sequence:
+            - action: input_text.set_value
+              target:
+                entity_id: input_text.dishwasher_notification_cycle
+              data:
+                value: "{{ dict(cycle=event_at, sent=sent, claimed=claimed, baseline=states('sensor.dishwasher_program_finished') in ['off', 'confirmed']) | to_json }}"
+        - conditions: >-
+            {{ trigger.id == 'run' and (trigger.from_state is none or
+               trigger.from_state.state not in ['pause', 'actionrequired']) }}
+          sequence:
+            - action: input_text.set_value
+              target:
+                entity_id: input_text.dishwasher_notification_cycle
+              data:
+                value: "{{ dict(cycle=0, sent=sent, claimed=claimed, baseline=false) | to_json }}"
+        - conditions: >-
+            {{ trigger.id == 'baseline' and trigger.from_state is not none and
+               trigger.from_state.state in ['present', 'off', 'confirmed'] and
+               is_state('sensor.dishwasher_operation_state', 'run') and
+               is_state('binary_sensor.dishwasher_connectivity', 'on') and
+               cycle > sent and cycle > claimed and cycle > as_timestamp(this.last_changed, 0) and
+               event_at >= cycle and event_at - cycle < 86400 }}
+          sequence:
+            - action: input_text.set_value
+              target:
+                entity_id: input_text.dishwasher_notification_cycle
+              data:
+                value: "{{ dict(cycle=cycle, sent=sent, claimed=claimed, baseline=true) | to_json }}"
+        - conditions: >-
+            {{ trigger.id == 'complete' and baseline and trigger.from_state is not none and
+               trigger.from_state.state in ['off', 'confirmed'] and
+               trigger.to_state.state == 'present' and
+               is_state('binary_sensor.dishwasher_connectivity', 'on') and
+               states('sensor.dishwasher_operation_state') in ['run', 'finished'] and
+               cycle > sent and cycle > claimed and cycle > as_timestamp(this.last_changed, 0) and
+               0 < event_at - cycle < 86400 and
+               0 <= as_timestamp(now()) - event_at < 60 }}
+          sequence:
+            # Claim this cycle before dispatch: an uncertain send must not replay.
+            # This is an attempt stamp, not successful delivery; sent is separate.
+            - action: input_text.set_value
+              target:
+                entity_id: input_text.dishwasher_notification_cycle
+              data:
+                value: "{{ dict(cycle=cycle, sent=sent, claimed=cycle, baseline=baseline) | to_json }}"
+            - condition: template
+              value_template: >-
+                {% set current = states('input_text.dishwasher_notification_cycle') | from_json({}) %}
+                {{ current is mapping and current.get('cycle', 0) == cycle and
+                   current.get('claimed', 0) == cycle and current.get('sent', 0) < cycle and
+                   is_state('binary_sensor.dishwasher_connectivity', 'on') and
+                   is_state('sensor.dishwasher_program_finished', 'present') and
+                   states('sensor.dishwasher_operation_state') in ['run', 'finished'] }}
+            - action: script.notify_trevor_phone
+              data:
+                title: "🍽️ Dishwasher finished"
+                message: "The dishwasher has finished its cycle."
+                data:
+                  tag: dishwasher-finished
+                  group: appliances
+                  push:
+                    interruption-level: passive
+                    sound: "none"
+                  # No audible sound, critical priority, action buttons or invented destination.
+            - action: input_text.set_value
+              target:
+                entity_id: input_text.dishwasher_notification_cycle
+              data:
+                value: "{{ dict(cycle=cycle, sent=cycle, claimed=cycle, baseline=baseline) | to_json }}"
+  mode: queued
+  max: 10
+  trace:
+    stored_traces: 20

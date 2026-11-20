@@ -889,6 +889,7 @@ input_datetime:
     has_date: true
     has_time: true
 input_text:
+  dishwasher_notification_cycle: !include helpers/dishwasher_notification_cycle.yaml
   garden_planning_2027_done_at:
     name: Garden Planning 2027 Done At
     max: 32
