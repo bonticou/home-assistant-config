@@ -1,5 +1,7 @@
 # Audit History
 
+- [2026-11-19 Replacement dishwasher connection check](2026-11-19-dishwasher-connection-check.md): no Home Connect appliance connection or cycle notifications; live Water tile and enabled shared alerts cover the independent Flo leak detector only.
+
 - [2026-11-19 Mudroom Ring motion lighting](2026-11-19-mudroom-ring-motion-light.md): sunset-to-sunrise two-minute exterior assist; confirmed-off and first-transition ownership, manual-cycle protection, no extension; deployed and enabled, natural motion outcome untested.
 
 - [2026-11-19 Away alert presentation](2026-11-19-away-alert-presentation.md): removes unavailable-device diagnostics from all routine away variants; preserves 42-target coverage, controls and truthful explicit-action results; script-only deployment.
