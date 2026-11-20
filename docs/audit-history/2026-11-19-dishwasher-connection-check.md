@@ -1,10 +1,47 @@
 # Replacement dishwasher connection check
 
-**The replacement dishwasher is not currently connected as an appliance in Home
-Assistant.** A network-presence tracker and the independent dishwasher-area leak
-sensor are present; neither supplies wash-cycle status or completion alerts.
-This was a read-only review for `HA-DISHWASHER-VERIFY-20261120`, performed on
-November 19, 2026, approximately 20:18–20:20 Eastern.
+**Connected and verified on November 19, 2026 at approximately 20:59–21:02 Eastern.**
+Home Assistant created one Home Connect hub with one Bosch **SHV9PCM3N** dishwasher,
+matching the canonical replacement. The integration reports 23 registered entities:
+12 enabled and 11 disabled. No appliance controls, test notification, dashboard edit,
+or notification automation was performed.
+
+## Successful separately authorized clean retry
+
+After the first callback failed to produce an integration, Eames relayed explicit
+authorization for **one clean retry of the identical grant**. The original
+account-wide monitor/control/settings/identify grant had been specifically approved
+by Trevor via iMessage. That access approval does not authorize appliance operation.
+The retry reused the signed-in SingleKey session, accepted the identical consent
+once, followed the official Link account callback, and reached **Success — Created
+configuration for Home Connect**. Finish opened the matching dishwasher. The first
+failure's precise cause remains unproven; no authorization URL/code was replayed.
+
+Integration readback showed one hub, one device and 23 entities, without a duplicate
+hub or visible setup error. At 21:02 Eastern the read-only Template tool returned
+12 enabled Home Connect entities, each associated with model SHV9PCM3N:
+connectivity on, remote control on, remote start off, interior illumination on,
+door closed, power on, operation state `finished`, selected program Eco 50°C;
+active program, progress and finish time were unknown. Stop-program button state
+was unknown, as expected for an unused button. **Finished does not prove a clean
+completed wash; it can also represent a successfully aborted program.** Unknown
+progress/finish time outside an active cycle is not itself a fault.
+
+Eleven event/reminder entities remain disabled, including program finished,
+program aborted, salt-blocked, salt/rinse-aid and cleaning reminders. Their exact
+entity IDs were not extracted; no disabled entity was enabled. No general fault
+or maintenance completeness claim is supported. The targeted device inventory
+records the 12 verified active IDs and explicitly preserves this coverage limit.
+
+Existing Flo leak protection, Ring, dehumidifier, dashboards and notifications
+remain unchanged. No new cycle notification exists, and no physical cycle or
+notification delivery test was performed. Setup is UI-managed; no YAML deployment,
+Core restart or unrelated reload was necessary.
+
+## Initial read-only review — superseded connection status
+
+At approximately 20:18–20:20 Eastern, `HA-DISHWASHER-VERIFY-20261120` found no
+appliance connection. The following historical evidence predates successful setup.
 
 ## Identity and live integration
 
@@ -67,7 +104,7 @@ presented as equivalent to that connection. This review did not itself authorize
 
 ## Subsequent authorized connection attempt — callback incomplete
 
-**Current checkpoint: Trevor approved the exact broader grant, and Approve was
+**Historical checkpoint, superseded by the successful retry above: Trevor approved the exact broader grant, and Approve was
 clicked once. The official callback did not create a visible HA integration;
 connection remains incomplete. No desktop unlock or password is needed.**
 

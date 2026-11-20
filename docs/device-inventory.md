@@ -2,6 +2,22 @@
 
 A human-readable map of the Home Assistant device model. The full audit dump is in [device-inventory-detail.md](device-inventory-detail.md); this page is the quick view.
 
+## Replacement dishwasher — November 19 connection
+
+Home Connect now has one loaded hub and one **Bosch SHV9PCM3N** device matching the
+canonical replacement. Live integration/device UI and read-only templates verified
+23 registered entities, 12 enabled and 11 disabled. The targeted JSON reconciliation
+lists all 12 enabled entity IDs; disabled IDs were not extracted and the base
+snapshot/global totals below were not refreshed. This does not claim full registry
+coverage of the new device.
+
+Connectivity, door, operation, selected/active program, progress, finish time,
+remote-control/start status, interior illumination, power and stop-program entities
+are exposed. No controls were exercised. Eleven event/reminder entities remain
+disabled. No cycle notifications or appliance dashboard card were added; the
+existing Dishwasher leak tile remains the separate Flo detector. See the
+[connection evidence](audit-history/2026-11-19-dishwasher-connection-check.md).
+
 ## At A Glance
 
 - Base live snapshot: `2026-07-29T14:29:24.057042+00:00`; repository-defined entities reconciled through `2026-09-11`

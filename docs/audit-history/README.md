@@ -1,6 +1,6 @@
 # Audit History
 
-- [2026-11-19 Replacement dishwasher connection check](2026-11-19-dishwasher-connection-check.md): no Home Connect appliance connection or cycle notifications; live Water tile and enabled shared alerts cover the independent Flo leak detector only.
+- [2026-11-19 Replacement dishwasher connection check](2026-11-19-dishwasher-connection-check.md): Home Connect successfully connected to exact replacement model SHV9PCM3N after a separately authorized clean retry; 12 active entities verified, 11 disabled; no cycle notifications or dashboard changes. Existing Flo leak protection remains separate.
 
 - [2026-11-19 Mudroom Ring motion lighting](2026-11-19-mudroom-ring-motion-light.md): sunset-to-sunrise two-minute exterior assist; confirmed-off and first-transition ownership, manual-cycle protection, no extension; deployed and enabled, natural motion outcome untested.
 

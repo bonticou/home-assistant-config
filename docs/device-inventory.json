@@ -64343,5 +64343,32 @@
     ],
     "scope": "Native exposed states plus saved physical device inventory; not a full live registry refresh. Unavailable is unresolved, not retired. Detection and explicit action share one mapping.",
     "onboarding": "docs/lighting-onboarding.md"
+  },
+  "dishwasher_reconciliation": {
+    "date": "2026-11-19",
+    "source": "Live Home Connect integration/device UI and read-only Template tool at 20:59\u201321:02 Eastern",
+    "manufacturer": "Bosch",
+    "model": "SHV9PCM3N",
+    "integration": "home_connect",
+    "loaded_hubs": 1,
+    "devices": 1,
+    "registered_entity_count": 23,
+    "enabled_entity_count": 12,
+    "disabled_entity_count": 11,
+    "verified_enabled_entities": [
+      "binary_sensor.dishwasher_connectivity",
+      "binary_sensor.dishwasher_interior_illumination_active",
+      "binary_sensor.dishwasher_remote_control",
+      "binary_sensor.dishwasher_remote_start",
+      "button.dishwasher_stop_program",
+      "select.dishwasher_active_program",
+      "select.dishwasher_selected_program",
+      "sensor.dishwasher_door",
+      "sensor.dishwasher_operation_state",
+      "sensor.dishwasher_program_finish_time",
+      "sensor.dishwasher_program_progress",
+      "switch.dishwasher_power"
+    ],
+    "coverage_limit": "Targeted addition only. Disabled entity IDs not extracted; base snapshot and global totals not refreshed. No new automation or dashboard references."
   }
 }
