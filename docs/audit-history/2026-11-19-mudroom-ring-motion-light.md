@@ -97,3 +97,35 @@ independent policies remain unchanged.
 
 Rollback uses the deployment journal with only an automation reload, subject to
 the helper's unchanged-hash guard. Do not overwrite later unrelated changes.
+
+## Owner-reported motion attempt, 20:16–20:17 EST
+
+Trevor reported putting his hand in front of the motion detector. He did not
+explicitly report the light's physical outcome. An immediate read-only check
+at 20:16:39 EST found the new rule enabled, with no last trigger; retained traces
+were empty, including no condition-rejection or ownership-failure trace.
+
+Fresh HA template output at **20:17:00 EST** showed:
+
+- Ring's mudroom `last_activity` sensor: **20:15:54 EST today**.
+- Mudroom motion event: still **November 17, 08:52:32.175 EST**.
+- Exterior target: **off**, with last state change **12:33:59 EST today**, well
+  before deployment. No target state transition was evident during this attempt.
+- Sun: below horizon; Ring motion detection: enabled.
+
+The polling activity timestamp advanced within the reported attempt's window,
+but the realtime motion event did not. The new rule therefore had no new motion
+trigger to evaluate; this is not evidence of a darkness or ownership-code failure.
+The specific Ring activity type is not established by `last_activity` alone.
+
+A bounded 150-line recent Core log excerpt covering the attempt contained no
+Ring/FCM/new-rule diagnostic explaining the missing event. The historical
+polling-versus-realtime incident is relevant, but its old root cause is not
+proven to have recurred. No full Recorder history was retrieved; current state,
+last-changed timestamps and retained automation traces are the evidence limits.
+
+Initial and follow-up facts were returned promptly through the originating relay.
+No configuration correction, physical command, fake event, reconnect,
+integration restart or authentication change was performed. Realtime Ring
+delivery remains the unresolved dependency; do not substitute polling activity
+for the explicitly requested motion signal.
