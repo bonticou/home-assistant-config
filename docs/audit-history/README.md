@@ -1,5 +1,7 @@
 # Audit History
 
+- [2026-11-19 Mudroom Ring motion lighting](2026-11-19-mudroom-ring-motion-light.md): sunset-to-sunrise two-minute exterior assist; confirmed-off and first-transition ownership, manual-cycle protection, no extension; deployed and enabled, natural motion outcome untested.
+
 - [2026-11-19 Away alert presentation](2026-11-19-away-alert-presentation.md): removes unavailable-device diagnostics from all routine away variants; preserves 42-target coverage, controls and truthful explicit-action results; script-only deployment.
 
 - [2026-11-18 Away lighting coverage](2026-11-18-away-lighting-coverage.md): shared 42-endpoint detection/action inventory, bounded verified retry, unavailable disclosure and required new-light onboarding; deployed without a house-off test.
