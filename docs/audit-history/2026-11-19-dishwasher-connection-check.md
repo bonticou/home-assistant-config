@@ -65,7 +65,11 @@ cannot be checked until the replacement is connected through an appliance
 integration. Its network tracker and independent leak protection must not be
 presented as equivalent to that connection. This review did not itself authorize setup.
 
-## Subsequent authorized connection attempt — pending secure login
+## Subsequent authorized connection attempt — pending grant decision
+
+**Current checkpoint: login succeeded through the existing shared-vault route;
+the official consent page requests control and settings-modification access.
+Approval has not been clicked. No desktop unlock or password from Trevor is needed.**
 
 Trevor subsequently said **“Connect”**. Under `HA-DISHWASHER-CONNECT-20261120`,
 that authorizes the official connection of the replacement, without appliance
@@ -80,17 +84,39 @@ Connect SingleKey ID login. No new developer account or application was created.
 The required scoped 1Password CLI preflight authenticated exactly the Ames vault.
 A metadata-only lookup found the Bosch Dishwasher item and separate Home Connect
 Developer item. No item secrets were printed or read into chat. The present
-native CUA runtime exposes no documented in-memory CLI-to-form credential bridge;
-the historical bridge qualification does not establish current tool support.
+native CUA route was initially misclassified as lacking an in-memory CLI-to-form
+bridge. That assessment was incorrect and is superseded by the direct successful
+qualification below.
 
 The permitted Safari autofill fallback found a saved SingleKey ID login, but
 selecting it opened the desktop 1Password unlock prompt: **password confirmation
-is required every 14 days**. The exact next step is for the owner to unlock
-1Password directly on the Mac, then resume login. Do not ask for that password in
-chat or bypass the unlock. This secure handoff was returned to Eames through the
-existing relay.
+is required every 14 days**. An owner-unlock handoff was initially returned to
+Eames, but Trevor correctly pointed out the independently authorized shared-vault
+route. That handoff is superseded; the desktop lock was not bypassed or unlocked.
 
-No OAuth consent was accepted and no appliance association was completed.
-The setup remains pending at login; requested provider scopes must still be
-reviewed before any grant. No physical action, test push, configuration reload,
-dashboard change or unrelated account change occurred.
+The existing [native Safari procedure](/Users/ames/Documents/Codex/2026-10-28/task/ipostal-monitor/NATIVE-SAFARI.md)
+documents the same-runtime Node route. A harmless `node:child_process` import in
+the CUA runtime succeeded. The Ames-only/Stop preflight was repeated there;
+only the selected Bosch Dishwasher item was retrieved in memory, its saved
+SingleKey hostname verified, and normal native form controls entered the login.
+The unused autofill sheet was closed, Safari password saving declined, and
+credential variables cleared. No new broker, vault access or developer app was
+required. This establishes a working route for this session, not a guarantee for
+every future runtime.
+
+The actual **Home Connect Authorization** page now says Home Assistant would
+like to:
+
+- Control your home appliances.
+- Monitor your home appliances.
+- Get and modify the settings of your home appliances.
+- Identify your home appliances.
+
+It presents one **Approve** button with no permission or individual-appliance
+selector visible. This exceeds the current monitoring-only setup boundary.
+The operator stopped before approval and returned the exact grant wording to
+Eames for an owner decision. No authorization URL or code was modified to narrow
+scopes. No OAuth consent was accepted, appliance association completed, physical
+action, test push, configuration reload or dashboard edit performed. The actual
+replacement identity and telemetry still require verification after an authorized
+successful connection.
