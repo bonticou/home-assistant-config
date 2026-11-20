@@ -155,3 +155,24 @@ replacement-device association is verified, so operation/program/remaining-time,
 door and error telemetry cannot yet be reported. Ring, dehumidifier, Flo,
 notifications and dashboards are unchanged. The checkpoint and bounded evidence
 were returned to the originating relay for recovery direction.
+
+### Bounded diagnosis of the existing approved flow
+
+The first My Home Assistant/callback tab no longer existed in Safari's tab
+inventory: it closed after the original Link account interaction. The popup
+queue had opened the old authorization request, not the already-approved
+callback. No second approval or new authorization flow was started.
+
+The original HA tab still showed the external-website step without an error.
+One ordinary browser-page refresh (not an HA configuration/integration reload)
+returned the Home Connect search with **No integrations found** and only Add
+integration controls. No supported Resume/Finish control for the existing flow
+was visible. The already-approved code was not replayed and URLs were not edited.
+
+Core's [callback implementation](https://github.com/home-assistant/core/blob/2026.9.2/homeassistant/helpers/config_entry_oauth2_flow.py#L666)
+resumes the referenced flow before returning a window-close page; token exchange
+and entry creation occur in a separate step. The observed close is consistent
+with callback handling, but no retained response/debug trace proves the exact
+backend step reached. Completion of token exchange/entry creation remains
+unverified. There is no visible first-flow error to report, and no recoverable
+normal UI continuation was found within this bounded check.
